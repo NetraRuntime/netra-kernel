@@ -1,0 +1,110 @@
+{
+  "device": "AMD Radeon 8060S, Ryzen AI Max+ PRO 395",
+  "target": "gfx1151",
+  "date": "2026-07-28",
+  "toolchain": "ROCm 7.2.1",
+  "measurement": "rocprofv3 kernel timestamps; all performance values measured on gfx1151",
+  "ceilings": {
+    "bf16_wmma_tflops": 55.2,
+    "f16_wmma_tflops": 55.3,
+    "fp32_valu_fma_tflops": 13.7,
+    "v_perm_tops": 6.5,
+    "streaming_gbps": 222.4
+  },
+  "kernels": [
+    {
+      "name": "expert_decode_gate_up",
+      "shape": "E=8,M=1,N=512,K=2048",
+      "mean_us": 78.133,
+      "previous_best_us": 405.456,
+      "speedup": 5.19,
+      "real_max_abs": 6.332994e-8,
+      "real_max_rel": 4.365097e-5
+    },
+    {
+      "name": "expert_decode_down",
+      "shape": "E=8,M=1,N=2048,K=512",
+      "mean_us": 43.167,
+      "previous_best_us": 119.916,
+      "speedup": 2.78,
+      "real_max_abs": 2.421439e-8,
+      "real_max_rel": 1.142645e-3
+    },
+    {
+      "name": "expert_verify_gate_up_wmma",
+      "shape": "E=8,M=12,N=512,K=2048",
+      "mean_us": 51.40474,
+      "previous_best_us": 286.312,
+      "speedup": 5.57,
+      "real_max_abs": 1.266599e-7,
+      "real_max_rel": 1.792436e-4,
+      "real_normalized_l2": 4.80782e-8
+    },
+    {
+      "name": "expert_verify_down_wmma",
+      "shape": "E=8,M=12,N=2048,K=512",
+      "mean_us": 26.631219,
+      "tflops": 7.56,
+      "real_max_abs": 2.980232e-8,
+      "real_max_rel": 3.90625e-3,
+      "real_normalized_l2": 2.288736e-8
+    },
+    {
+      "name": "grouped_prefill_gate_up_m64",
+      "shape": "G=8,M=64,N=512,K=2048",
+      "mean_us": 98.754854,
+      "tflops": 10.873,
+      "real_max_abs": 1.271255e-7,
+      "real_normalized_l2": 4.632562e-8
+    },
+    {
+      "name": "grouped_prefill_down_m64",
+      "shape": "G=8,M=64,N=2048,K=512",
+      "mean_us": 84.581365,
+      "tflops": 12.695,
+      "real_max_abs": 3.864989e-8,
+      "real_normalized_l2": 2.325625e-8
+    },
+    {
+      "name": "lm_head_decode",
+      "shape": "M=1,N=248320,K=2048",
+      "mean_us": 1201.57135,
+      "effective_gbps": 225.679,
+      "tflops": 0.847,
+      "previous_best_us": 1337.09295,
+      "speedup": 1.117,
+      "real_max_abs": 3.72529e-7,
+      "real_normalized_l2": 4.944872e-8
+    },
+    {
+      "name": "lm_head_verify_wmma",
+      "shape": "M=12,N=248320,K=2048",
+      "mean_us": 1441.56185,
+      "effective_gbps": 195.73,
+      "tflops": 8.467,
+      "real_max_abs": 4.023314e-7,
+      "real_normalized_l2": 4.298918e-8
+    }
+  ],
+  "negative_results": [
+    {
+      "name": "prefill_scale_folded_bf16_tables",
+      "baseline_event_us": 104.992,
+      "variant_event_us": 107.815,
+      "baseline_synthetic_max_abs": 3.266335e-4,
+      "variant_synthetic_max_abs": 1.964569e-3
+    },
+    {
+      "name": "prefill_m32_reuse",
+      "normalized_64_row_us": 125.886,
+      "selected_m64_us": 98.754854,
+      "allocated_vgprs": 96
+    },
+    {
+      "name": "prefill_m128_reuse",
+      "variant_128_row_us": 203.128625,
+      "two_selected_m64_calls_us": 197.509708,
+      "allocated_vgprs": 144
+    }
+  ]
+}
