@@ -27,6 +27,7 @@ asm_sources=(
   mxfp4_prefill_down_wmma_gfx1151.s
   mxfp4_lm_head_decode_gfx1151.s
   mxfp4_lm_head_verify_wmma_gfx1151.s
+  silu_mul_bf16_gfx1151.s
 )
 
 # Retained negative-result variants; built so their measurements remain
@@ -34,6 +35,8 @@ asm_sources=(
 experiment_sources=(
   mxfp4_prefill_gate_m32_wmma_gfx1151.s
   mxfp4_prefill_gate_m128_wmma_gfx1151.s
+  mxfp4_decode_gate_up_fused_gfx1151.s
+  mxfp4_decode_gate_up_fused_n64_gfx1151.s
 )
 
 for source_name in "${asm_sources[@]}" "${experiment_sources[@]}"; do
@@ -58,6 +61,8 @@ harness_sources=(
   mxfp4_lm_head_decode_gfx1151.hip
   mxfp4_lm_head_verify_wmma_gfx1151.hip
   mxfp4_lm_head_compiler_baseline.hip
+  mxfp4_decode_gate_up_fused_gfx1151.hip
+  mxfp4_decode_gate_up_pipeline_gfx1151.hip
 )
 
 for source_name in "${harness_sources[@]}"; do

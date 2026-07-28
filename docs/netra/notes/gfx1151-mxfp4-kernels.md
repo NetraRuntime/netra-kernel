@@ -1,9 +1,14 @@
-# gfx1151 MXFP4 kernel work log
+# gfx1151 raw-ASM MXFP4 kernels
 
 All numbers below are measured on the Radeon 8060S in the Ryzen AI Max+ PRO
 395 (`gfx1151`, 40 CUs/20 WGPs). Times use HIP events or `rocprofv3`; host
 wall-clock timing is not used. Weight buffers rotate over more than the 32 MiB
 Infinity Cache unless explicitly noted.
+
+This repository contains hand-written AMDGCN `.s` kernels, launch/check/timing
+HIP harnesses, one-time Qwen3.6 checkpoint repackers, measured result data and
+the complete optimization log. HIP sources do not implement matrix kernels.
+Checkpoint tensors and generated code objects are intentionally not committed.
 
 ## Established ceilings
 
@@ -363,6 +368,27 @@ normalized L2 4.672731e-8), but `rocprofv3` measured 62.943 us on gfx1151 for
 32 rows. Two such calls take 125.886 us, 27.5% slower than the 98.755-us
 64-row kernel because weights are decoded twice. Four live tiles are the
 measured reuse/occupancy sweet spot among 32, 64 and 128 rows on gfx1151.
+Thus the selected M64 gate/up kernel is a measured 1.275x improvement over
+its shape-normalized M32 raw-ASM predecessor on gfx1151.
+
+### External MXFP4 prefill baseline audit
+
+ROCm 7.2.1 installs CK 1.2.0 headers for an A16/W4 MXFP4 MoE FlatMM kernel.
+The matching upstream source is AMD Composable Kernel commit
+`a7ed94f71cb412178ad034c98c05724c37083efa` (tag `rocm-7.2.1`). It was audited
+as the strongest installed external candidate rather than substituting a
+different numeric format.
+
+This implementation cannot provide a gfx1151 measurement. Its CMake target
+list is gfx908, gfx90a, gfx942 and gfx950. A direct build of
+`example/ck_tile/18_flatmm/mixed_prec/a16w4_moe_flatmm.cpp` with ROCm 7.2.1
+for gfx1151 fails at compile time in
+`static_encoding_pattern.hpp:157`: the generated distribution evaluates
+`X0 * Y1` to zero while requiring the 32-lane gfx1151 wave size. This is a
+measured build failure, not a performance estimate. No CK number from another
+GPU is used as a gfx1151 comparison. The M32 raw predecessor above is
+therefore the only architecture-, format- and shape-matched prefill baseline
+available in this environment.
 
 ## MXFP4 LM-head specialization
 
@@ -407,24 +433,80 @@ the raw kernel in the same process on gfx1151: a measured 1.117x kernel-only
 speedup. The compiler output differs from the fp64-validated raw output by
 4.768372e-7 maximum absolute error.
 
-## Remaining work
+## Decode gate/up fusion: measured negative result
+
+Files:
+
+- `scripts/rocm/mxfp4_decode_gate_up_fused_gfx1151.s`
+- `scripts/rocm/mxfp4_decode_gate_up_fused_n64_gfx1151.s`
+- `scripts/rocm/silu_mul_bf16_gfx1151.s`
+- the fused and standalone-pipeline HIP launch/check harnesses
+
+The N128 fused experiment decodes gate and up MXFP4 weights in one wave,
+applies SiLU and multiplication, and writes BF16 output. Because gfx1151 does
+not accept `v_cvt_pk_bf16_f32`, the raw epilogue implements IEEE
+round-to-nearest-even explicitly before packing BF16.
+
+The fused output is bit-exact to the standalone raw gate + raw up + raw SiLU
+pipeline: zero of 4,096 BF16 values differ on the real checkpoint. Against
+the fp64 dequantized-MXFP4 reference, measured gfx1151 error is 7.191333e-4
+maximum absolute, 3.813265e-3 maximum relative and 1.710884e-3 normalized L2.
+The larger error than the FP32-output GEMV gates is the expected final BF16
+rounding and is shared exactly by both compared pipelines.
+
+The disassembly explains why eliminating intermediate traffic did not win:
+
+| Static gfx1151 disassembly item | Two gate/up decoders + SiLU | Fused N128 |
+|---|---:|---:|
+| Instructions | 1,017 | 968 |
+| `v_perm_b32` | 384 | 384 |
+| `v_dot2_f32_bf16` | 128 | 128 |
+| Wait-class instructions | 40 | 13 |
+| Exponentials | 1 | 4 |
+| Declared VGPRs in ASM | 34 + 34 + 8 | 54 |
+| Allocated VGPRs reported by `rocprofv3` | 40 per decoder, 8 epilogue | 56 |
+
+The fused wave retains four gate and four up output columns, then executes
+four independent SiLU paths. Its 56-VGPR allocation and four exponentials
+reduce residency/throughput enough to outweigh fewer instructions, waits,
+launches and intermediate stores.
+
+Matched final samples on gfx1151:
+
+- `rocprofv3`, final 128 decoder calls plus final 64 epilogues:
+  170.205875 us standalone kernel sum;
+- `rocprofv3`, final 64 fused calls in the same process: 193.700109 us;
+- HIP event, complete standalone pipeline including its two output clears:
+  185.722 us;
+- HIP event, fused pipeline: 199.508 us.
+
+The fused N128 kernel is therefore 13.8% slower by the matched profiler kernel
+sum and 7.4% slower end-to-end by HIP event, both measured on gfx1151. A
+lower-pressure N64 fused variant allocated 40 VGPRs but duplicated more decode
+work and measured 203.829 us by HIP event on gfx1151. Fusion remains a
+reproducible negative experiment; the selected path is the three standalone
+raw-ASM kernels.
+
+## Completion status
 
 Raw ASM now covers both expert decode orientations, both M=12 verify
 orientations, grouped 64-row prefill for both orientations, and LM-head decode
-and verify. Still required before final handoff: a matched external
-prior-best baseline for grouped prefill and fusion measurements beyond the
-measured four-tile decode reuse.
+and verify. The real-checkpoint correctness gates, gfx1151 profiler samples,
+prefill predecessor comparison, external MXFP4 baseline audit and decode
+fusion comparison are recorded above.
 
 ## Reproducible build
 
 `scripts/rocm/build_gfx1151_mxfp4_raw.sh` was executed inside Netra with ROCm
-7.2.1. It assembled all nine shipping raw-ASM code objects plus the two
-retained prefill experiments, emitted gfx1151 disassemblies, compiled the HIP
-launch/check harnesses, and wrote SHA-256 hashes. The verified invocation was:
+7.2.1. It assembled all nine matrix kernels plus the standalone raw SiLU
+epilogue and four retained negative-result variants, emitted gfx1151
+disassemblies, compiled the HIP launch/check harnesses, and wrote SHA-256
+hashes. The verified invocation was:
 
 ```bash
-bash /root/work/build_gfx1151_mxfp4_raw.sh \
-  /root/work /root/work/build-gfx1151-mxfp4
+repo=/root/netra-mxfp4-gfx1151
+bash "$repo/scripts/rocm/build_gfx1151_mxfp4_raw.sh" \
+  "$repo/scripts/rocm" /root/netra-mxfp4-gfx1151-build
 ```
 
 Machine-readable final results are in

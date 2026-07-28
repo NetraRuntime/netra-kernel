@@ -53,6 +53,9 @@
       "name": "grouped_prefill_gate_up_m64",
       "shape": "G=8,M=64,N=512,K=2048",
       "mean_us": 98.754854,
+      "previous_best": "two measured M32 raw-ASM calls",
+      "previous_best_us": 125.8855,
+      "speedup": 1.2747,
       "tflops": 10.873,
       "real_max_abs": 1.271255e-7,
       "real_normalized_l2": 4.632562e-8
@@ -105,6 +108,32 @@
       "variant_128_row_us": 203.128625,
       "two_selected_m64_calls_us": 197.509708,
       "allocated_vgprs": 144
+    },
+    {
+      "name": "decode_gate_up_fused_n128",
+      "shape": "E=8,M=1,N=512,K=2048 gate+up+SiLU to BF16",
+      "standalone_rocprof_kernel_sum_us": 170.205875,
+      "fused_rocprof_us": 193.700109,
+      "fused_slowdown_percent": 13.8,
+      "standalone_event_us": 185.722,
+      "fused_event_us": 199.508,
+      "bf16_mismatches_vs_standalone": 0,
+      "real_max_abs_vs_fp64": 7.191333e-4,
+      "real_normalized_l2_vs_fp64": 1.710884e-3,
+      "allocated_vgprs": 56
+    },
+    {
+      "name": "decode_gate_up_fused_n64",
+      "shape": "E=8,M=1,N=512,K=2048 gate+up+SiLU to BF16",
+      "event_us": 203.829,
+      "allocated_vgprs": 40
+    },
+    {
+      "name": "ck_1_2_0_mxfp4_prefill_baseline",
+      "source_commit": "a7ed94f71cb412178ad034c98c05724c37083efa",
+      "target": "gfx1151",
+      "result": "compile-time failure: CK tile distribution requires a 64-lane-wave mapping and does not support gfx1151",
+      "performance_value": null
     }
   ]
 }
