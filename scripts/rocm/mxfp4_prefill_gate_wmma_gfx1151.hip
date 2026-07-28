@@ -100,7 +100,9 @@ int main(int ac,char** av) {
   CHK(hipEventRecord(a));for(int i=0;i<iters;++i)launch(i%NBUF);
   CHK(hipEventRecord(z));CHK(hipEventSynchronize(z));float ms=0;
   CHK(hipEventElapsedTime(&ms,a,z));double us=ms*1000/iters;
-  double bytes=np+ns+na*2+ny*4;
+  // The backing tensor may contain all 256 experts, but this launch streams
+  // exactly one expert matrix per group.
+  double bytes=size_t(G)*(K/2)*N+size_t(G)*(K/32)*N+na*2+ny*4;
   std::printf("gfx1151 raw ASM grouped MXFP4 prefill G=8 M=%d N=512 K=2048: "
               "%.3f us %.1f GB/s %.3f TFLOP/s (measured)\n",rows,us,
               bytes/(us*1e-6)/1e9,2.0*G*rows*N*K/(us*1e-6)/1e12);
