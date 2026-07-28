@@ -1,0 +1,5 @@
+--- config.json
++++ config.json
+@@ -120,1 +120,1 @@
+-    "quant_method": "compressed-tensors",
++    "quant_method": "mxfp4",

@@ -511,3 +511,31 @@ bash "$repo/scripts/rocm/build_gfx1151_mxfp4_raw.sh" \
 
 Machine-readable final results are in
 `docs/netra/notes/gfx1151-mxfp4-results.json`.
+
+## SGLang deployment
+
+The raw kernels are integrated with SGLang for the real 26-shard Qwen3.6
+checkpoint. Build the serving code objects and launch-only bridge inside the
+Netra LXC:
+
+```bash
+bash scripts/rocm/build_netra_sglang_gfx1151.sh
+```
+
+Apply `scripts/rocm/sglang-gfx1151-integration.patch` to SGLang commit
+`1eee8fbdcc25b44e13bc097d5ff6ac24e8c24af4`, copy
+`scripts/rocm/netra_gfx1151_sglang.py` to
+`python/sglang/srt/layers/quantization/netra_gfx1151.py`, and launch:
+
+```bash
+bash scripts/rocm/launch_netra_sglang_gfx1151.sh
+```
+
+The real-checkpoint correctness gates, uncached serving measurements and
+stabilized raw-ASM versus Triton comparison are recorded in
+`docs/netra/notes/gfx1151-mxfp4-sglang-integration-2026-07-29.md`.
+
+The serving backend includes a runtime-N/K raw AMDGCN M64 WMMA dense-prefill
+kernel. On gfx1151 it reduced the exact-210-token uncached request median from
+2,780.742 ms to 447.245 ms (6.217x measured end-to-end speedup); see the
+integration note for correctness, scope, and individual samples.

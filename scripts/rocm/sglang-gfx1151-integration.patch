@@ -1,0 +1,349 @@
+diff --git a/python/sglang/srt/configs/utils.py b/python/sglang/srt/configs/utils.py
+index 16575df..ddb64f1 100644
+--- a/python/sglang/srt/configs/utils.py
++++ b/python/sglang/srt/configs/utils.py
+@@ -13,11 +13,17 @@ def register_image_processor(
+     config: Type[PretrainedConfig], image_processor: Type[BaseImageProcessor]
+ ):
+     """
+-    register customized hf image processor while removing hf impl
++    Register a customized HF image processor while removing the HF implementation.
++
++    Text-only ROCm deployments may intentionally omit torchvision. Config modules are
++    still imported eagerly, so leave their image processors unregistered in that case.
+     """
+-    AutoImageProcessor.register(
+-        config, slow_image_processor_class=image_processor, exist_ok=True
+-    )
++    try:
++        AutoImageProcessor.register(
++            config, slow_image_processor_class=image_processor, exist_ok=True
++        )
++    except ImportError:
++        pass
+ 
+ 
+ def register_processor(config: Type[PretrainedConfig], processor: Type[ProcessorMixin]):
+diff --git a/python/sglang/srt/layers/moe/fused_moe_triton/layer.py b/python/sglang/srt/layers/moe/fused_moe_triton/layer.py
+index e8007a4..0feacc4 100644
+--- a/python/sglang/srt/layers/moe/fused_moe_triton/layer.py
++++ b/python/sglang/srt/layers/moe/fused_moe_triton/layer.py
+@@ -838,7 +838,7 @@ class FusedMoE(torch.nn.Module):
+         # if expert_id is None, then
+         # all the experts are loaded at the same time
+         if (
+-            not expert_id
++            expert_id is None
+             and self.quant_config is not None
+             and self.quant_config.get_name() == "mxfp4"
+             and self.quant_config.is_static_cfg()
+@@ -1068,6 +1068,17 @@ class FusedMoE(torch.nn.Module):
+         if is_transposed:
+             shard_dim = int(not shard_dim)
+ 
++        # Qwen3.5/3.6 serialized MXFP4 stores each expert and each E8M0 scale
++        # tensor separately. Both use the same w1/w2/w3 sharding geometry.
++        if self.quant_config is not None and self.quant_config.get_name() == "mxfp4" and self.quant_config.is_static_cfg():
++            self._load_model_weight_or_group_weight_scale(
++                shard_id=shard_id,
++                shard_dim=shard_dim,
++                loaded_weight=loaded_weight,
++                expert_data=expert_data,
++                tp_rank=tp_rank,
++            )
++            return
+         if self._maybe_load_fp8_shared_expert_as_fp4(
+             param=param,
+             loaded_weight=loaded_weight,
+diff --git a/python/sglang/srt/layers/moe/topk.py b/python/sglang/srt/layers/moe/topk.py
+index bd166b3..690e54b 100644
+--- a/python/sglang/srt/layers/moe/topk.py
++++ b/python/sglang/srt/layers/moe/topk.py
+@@ -849,7 +849,7 @@ def fused_topk(
+                 num_token_non_padded=num_token_non_padded,
+             )
+         # ===== END TO BE REFACTORED ====
+-        elif _is_cuda and envs.SGLANG_OPT_USE_JIT_KERNEL_FUSED_TOPK.get():
++        elif (_is_cuda or _is_hip) and envs.SGLANG_OPT_USE_JIT_KERNEL_FUSED_TOPK.get():
+             # Unified Triton router (subsumes the AOT topk_softmax CUDA kernel).
+             from sglang.kernels.ops.moe.moe_fused_gate import (
+                 moe_fused_gate as _jit_moe_fused_gate,
+@@ -889,7 +889,7 @@ def fused_topk(
+                 topk_weights *= (
+                     routed_scaling_factor if routed_scaling_factor is not None else 1.0
+                 )
+-        elif _is_cuda and envs.SGLANG_OPT_USE_JIT_KERNEL_FUSED_TOPK.get():
++        elif (_is_cuda or _is_hip) and envs.SGLANG_OPT_USE_JIT_KERNEL_FUSED_TOPK.get():
+             # Unified Triton router (subsumes the AOT topk_sigmoid CUDA kernel).
+             from sglang.kernels.ops.moe.moe_fused_gate import (
+                 moe_fused_gate as _jit_moe_fused_gate,
+diff --git a/python/sglang/srt/layers/quantization/__init__.py b/python/sglang/srt/layers/quantization/__init__.py
+index 397660c..1ca6424 100644
+--- a/python/sglang/srt/layers/quantization/__init__.py
++++ b/python/sglang/srt/layers/quantization/__init__.py
+@@ -5,6 +5,8 @@ from __future__ import annotations
+ 
+ import builtins
+ import inspect
++from importlib.util import find_spec
++import os
+ from typing import TYPE_CHECKING, Dict, Optional, Type
+ 
+ import torch
+@@ -48,8 +50,6 @@ from sglang.srt.layers.quantization.npu_mxfp4 import Mxfp4W4A8Config
+ from sglang.srt.layers.quantization.npu_mxfp4_w4a4 import Mxfp4W4A4Config
+ from sglang.srt.layers.quantization.nvfp4_online import NvFp4OnlineConfig
+ from sglang.srt.layers.quantization.petit import PetitNvFp4Config
+-from sglang.srt.layers.quantization.quark.quark import QuarkConfig
+-from sglang.srt.layers.quantization.quark_int4fp8_moe import QuarkInt4Fp8Config
+ from sglang.srt.layers.quantization.w4afp8 import W4AFp8Config
+ from sglang.srt.layers.quantization.w8a8_fp8 import W8A8Fp8Config
+ from sglang.srt.layers.quantization.w8a8_int8 import W8A8Int8Config
+@@ -66,6 +66,13 @@ from sglang.srt.utils import (
+ 
+ _is_mxfp_supported = mxfp_supported()
+ 
++if torch.version.hip is None or find_spec("aiter") is not None:
++    from sglang.srt.layers.quantization.quark.quark import QuarkConfig
++    from sglang.srt.layers.quantization.quark_int4fp8_moe import QuarkInt4Fp8Config
++else:
++    QuarkConfig = DummyConfig
++    QuarkInt4Fp8Config = DummyConfig
++
+ if TYPE_CHECKING:
+     from sglang.srt.layers.moe.topk import TopKOutput
+ 
+@@ -102,7 +109,12 @@ BASE_QUANTIZATION_METHODS: Dict[str, Type[QuantizationConfig]] = {
+ }
+ 
+ 
+-if is_cpu() or is_cuda() or (_is_mxfp_supported and is_hip()):
++if (
++    is_cpu()
++    or is_cuda()
++    or (_is_mxfp_supported and is_hip())
++    or (is_hip() and os.environ.get("SGLANG_USE_NETRA_MXFP4_GFX1151") == "1")
++):
+     BASE_QUANTIZATION_METHODS.update(
+         {
+             "mxfp4": Mxfp4Config,
+diff --git a/python/sglang/srt/layers/quantization/mxfp4.py b/python/sglang/srt/layers/quantization/mxfp4.py
+index 822998f..f62f004 100644
+--- a/python/sglang/srt/layers/quantization/mxfp4.py
++++ b/python/sglang/srt/layers/quantization/mxfp4.py
+@@ -148,6 +148,11 @@ _is_hip = is_hip()
+ _use_aiter = get_bool_env_var("SGLANG_USE_AITER") and _is_hip
+ _is_shuffle_moe_mxfp4 = is_gfx95_supported()
+ _is_cpu_amx_available = cpu_has_amx_support()
++_use_netra_gfx1151 = (
++    get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
++    and _is_hip
++    and torch.cuda.get_device_properties(0).gcnArchName.split(":")[0] == "gfx1151"
++)
+ 
+ if _is_hip:
+     # import aiter
+@@ -256,7 +261,7 @@ class Mxfp4Config(QuantizationConfig):
+         is_checkpoint_mxfp4_serialized = "mxfp4" in quant_method
+ 
+         if _is_hip:
+-            if mxfp_supported():
++            if mxfp_supported() or _use_netra_gfx1151:
+                 return cls(
+                     is_checkpoint_mxfp4_serialized=is_checkpoint_mxfp4_serialized
+                 )
+@@ -304,6 +309,11 @@ class Mxfp4Config(QuantizationConfig):
+             ):
+                 return UnquantizedLinearMethod()
+             elif _is_hip:
++                if _use_netra_gfx1151 and ".linear_attn." in prefix:
++                    from sglang.srt.layers.quantization.netra_gfx1151 import (
++                        NetraMxfp4LinearMethod,
++                    )
++                    return NetraMxfp4LinearMethod()
+                 return UnquantizedLinearMethod()
+         elif isinstance(layer, FusedMoE):
+             if self.is_checkpoint_mxfp4_serialized:
+@@ -312,6 +322,8 @@ class Mxfp4Config(QuantizationConfig):
+                 return Mxfp4DynamicQuantMoEMethod()
+         else:
+             if self.is_checkpoint_mxfp4_serialized:
++                if _use_netra_gfx1151:
++                    return None
+                 raise NotImplementedError("Mxfp4 attention layer is not implemented")
+         return None
+ 
+@@ -508,6 +520,12 @@ class Mxfp4MoEMethod(FusedMoEMethodBase):
+         set_weight_attrs(w2_weight_bias, extra_weight_attrs)
+ 
+     def process_weights_after_loading(self, layer):
++        if _use_netra_gfx1151:
++            from sglang.srt.layers.quantization.netra_gfx1151 import process_weights
++
++            process_weights(layer)
++            return
++
+         if self.use_marlin:
+             from sglang.srt.layers.quantization.marlin_utils import (
+                 check_moe_marlin_supports_layer,
+@@ -1013,6 +1031,8 @@ class Mxfp4MoEMethod(FusedMoEMethodBase):
+     ):
+         self.moe_runner_config = moe_runner_config
+         moe_runner_backend = get_moe_runner_backend()
++        if _use_netra_gfx1151:
++            return
+         if moe_runner_backend.is_auto():
+             # Must match apply() priority: _use_aiter before use_triton_kernels.
+             if _use_aiter and get_moe_a2a_backend().supports_aiter():
+@@ -1085,6 +1105,20 @@ class Mxfp4MoEMethod(FusedMoEMethodBase):
+ 
+         x = dispatch_output.hidden_states
+         topk_output = dispatch_output.topk_output
++        if _use_netra_gfx1151:
++            assert TopKOutputChecker.format_is_standard(topk_output)
++            from sglang.srt.layers.quantization.netra_gfx1151 import (
++                apply as netra_apply,
++            )
++
++            output = netra_apply(
++                layer,
++                x,
++                topk_output.topk_weights,
++                topk_output.topk_ids,
++            )
++            return StandardCombineInput(hidden_states=output)
++
+         if _is_cpu:
+             if use_intel_amx_backend(layer):
+                 from sglang.srt.layers.moe.topk import apply_topk_weights_cpu
+diff --git a/python/sglang/srt/layers/quantization/quark/schemes/quark_w4a4_mxfp4.py b/python/sglang/srt/layers/quantization/quark/schemes/quark_w4a4_mxfp4.py
+index 1b71465..2181a38 100644
+--- a/python/sglang/srt/layers/quantization/quark/schemes/quark_w4a4_mxfp4.py
++++ b/python/sglang/srt/layers/quantization/quark/schemes/quark_w4a4_mxfp4.py
+@@ -2,6 +2,7 @@
+ 
+ import logging
+ import threading
++from importlib.util import find_spec
+ from typing import Any, Callable, Optional
+ 
+ import torch
+@@ -19,7 +20,7 @@ from sglang.srt.utils import is_hip
+ from sglang.srt.utils.common import direct_register_custom_op, mxfp_supported
+ 
+ _is_hip = is_hip()
+-if _is_hip:
++if _is_hip and find_spec("aiter") is not None:
+     from aiter.ops.triton.gemm.fused.fused_gemm_afp4wfp4_split_cat import (
+         fused_gemm_afp4wfp4_split_cat as _fused_gemm_afp4wfp4_split_cat_orig,
+     )
+diff --git a/python/sglang/srt/models/qwen3_5.py b/python/sglang/srt/models/qwen3_5.py
+index fcdcb92..21c5ea1 100644
+--- a/python/sglang/srt/models/qwen3_5.py
++++ b/python/sglang/srt/models/qwen3_5.py
+@@ -2176,6 +2176,11 @@ class Qwen3_5MoeForConditionalGeneration(Qwen3VLForConditionalGeneration):
+                     # attempted to load as other weights later
+                     is_expert_weight = True
+                     name_mapped = name.replace(weight_name, param_name)
++                    # Serialized MXFP4 checkpoints name their nibble tensor
++                    # `weight_packed`; Mxfp4MoEMethod stores it as `weight`.
++                    if name_mapped.endswith("_packed") and name_mapped[:-7] in params_dict:
++                        name_mapped = name_mapped[:-7]
++
+                     if is_fused_expert:
+                         # is_fused_expert is True, the checkpoint contains gate_up_proj and down_proj for each expert
+                         if "experts.gate_up_proj" in name:
+diff --git a/python/sglang/srt/utils/common.py b/python/sglang/srt/utils/common.py
+index 5a284b4..cb9f19a 100644
+--- a/python/sglang/srt/utils/common.py
++++ b/python/sglang/srt/utils/common.py
+@@ -91,7 +91,6 @@ from starlette.routing import Mount
+ from torch import nn
+ from torch.library import Library
+ from torch.utils._contextlib import _DecoratorContextManager
+-from torchvision.io import decode_jpeg
+ from typing_extensions import Literal
+ 
+ from sglang.srt.environ import envs
+@@ -567,6 +566,11 @@ def device_stream_context(stream):
+ 
+ 
+ def get_amdgpu_memory_capacity():
++    # rocminfo lists Strix Halo's fine-grained system pool before its
++    # coarse-grained 96 GiB VRAM pool. Query HIP directly so unified-memory
++    # APUs do not get capped to the smaller host pool.
++    if torch.cuda.is_available():
++        return min(torch.cuda.mem_get_info(i)[1] for i in range(torch.cuda.device_count())) / 1024 / 1024
+     try:
+         # Run rocm-smi and capture the output
+         result = subprocess.run(
+@@ -1664,6 +1668,8 @@ def _load_image(
+         image_bytes = get_image_bytes(image_file)
+     if is_jpeg_with_cuda(image_bytes, gpu_image_decode):
+         try:
++            from torchvision.io import decode_jpeg
++
+             encoded_image = torch.frombuffer(image_bytes, dtype=torch.uint8)
+             image_tensor = decode_jpeg(encoded_image, device="cuda")
+             return image_tensor
+diff --git a/sgl-kernel/pyproject.toml b/sgl-kernel/pyproject.toml
+index aeded1e..4c1fda6 100644
+--- a/sgl-kernel/pyproject.toml
++++ b/sgl-kernel/pyproject.toml
+@@ -1,17 +1,15 @@
+ [build-system]
+ requires = [
++  "setuptools>=75.0",
+   "scikit-build-core>=0.10",
+   "torch>=2.8.0",
+   "wheel",
+ ]
+-build-backend = "scikit_build_core.build"
++build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "sglang-kernel"
+ version = "0.4.5"
+-authors = [
+-  { name="SGLang Kernel Team", email="sglang@lmsys.org" },
+-]
+ description = "Kernel Library for SGLang"
+ readme = "README.md"
+ requires-python = ">=3.10"
+@@ -32,11 +30,3 @@ exclude = [
+   "dist*",
+   "tests*",
+ ]
+-
+-[tool.scikit-build]
+-cmake.build-type = "Release"
+-minimum-version = "build-system.requires"
+-
+-wheel.py-api = "cp310"
+-wheel.license-files = []
+-wheel.packages = ["python/sgl_kernel"]
+diff --git a/sgl-kernel/setup_rocm.py b/sgl-kernel/setup_rocm.py
+index 9762787..a356135 100644
+--- a/sgl-kernel/setup_rocm.py
++++ b/sgl-kernel/setup_rocm.py
+@@ -74,9 +74,9 @@ if torch.cuda.is_available():
+ else:
+     print(f"Warning: torch.cuda not available. Using default target: {amdgpu_target}")
+ 
+-if amdgpu_target not in ["gfx942", "gfx950"]:
++if amdgpu_target not in ["gfx942", "gfx950", "gfx1151"]:
+     print(
+-        f"Warning: Unsupported GPU architecture detected '{amdgpu_target}'. Expected 'gfx942' or 'gfx950'."
++        f"Warning: Unsupported GPU architecture detected '{amdgpu_target}'."
+     )
+     sys.exit(1)
+ 
+@@ -88,7 +88,7 @@ fp8_macro = (
+ # - gfx942 (MI300/MI325): LDS is typically 64KB per workgroup -> keep dynamic smem <= ~48KB
+ #   (leaves room for static shared allocations in the kernel).
+ # - gfx95x (MI350): LDS is larger (e.g. 160KB per CU) -> allow the original 128KB dynamic smem.
+-topk_dynamic_smem_bytes = 48 * 1024 if amdgpu_target == "gfx942" else 32 * 1024 * 4
++topk_dynamic_smem_bytes = 48 * 1024 if amdgpu_target in ("gfx942", "gfx1151") else 32 * 1024 * 4
+ 
+ hipcc_flags = [
+     "-DNDEBUG",

@@ -1,0 +1,33 @@
+diff --git a/python/sglang/srt/layers/quantization/__init__.py b/python/sglang/srt/layers/quantization/__init__.py
+--- a/python/sglang/srt/layers/quantization/__init__.py
++++ b/python/sglang/srt/layers/quantization/__init__.py
+@@ -5,6 +5,7 @@
+ 
+ import builtins
+ import inspect
++from importlib.util import find_spec
+ from typing import TYPE_CHECKING, Dict, Optional, Type
+ 
+ import torch
+@@ -48,8 +49,6 @@
+ from sglang.srt.layers.quantization.npu_mxfp4_w4a4 import Mxfp4W4A4Config
+ from sglang.srt.layers.quantization.nvfp4_online import NvFp4OnlineConfig
+ from sglang.srt.layers.quantization.petit import PetitNvFp4Config
+-from sglang.srt.layers.quantization.quark.quark import QuarkConfig
+-from sglang.srt.layers.quantization.quark_int4fp8_moe import QuarkInt4Fp8Config
+ from sglang.srt.layers.quantization.w4afp8 import W4AFp8Config
+ from sglang.srt.layers.quantization.w8a8_fp8 import W8A8Fp8Config
+ from sglang.srt.layers.quantization.w8a8_int8 import W8A8Int8Config
+@@ -66,6 +65,13 @@
+ 
+ _is_mxfp_supported = mxfp_supported()
+ 
++if torch.version.hip is None or find_spec("aiter") is not None:
++    from sglang.srt.layers.quantization.quark.quark import QuarkConfig
++    from sglang.srt.layers.quantization.quark_int4fp8_moe import QuarkInt4Fp8Config
++else:
++    QuarkConfig = DummyConfig
++    QuarkInt4Fp8Config = DummyConfig
++
+ if TYPE_CHECKING:
+     from sglang.srt.layers.moe.topk import TopKOutput

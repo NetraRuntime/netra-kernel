@@ -1,0 +1,4 @@
+/build/
+/results/
+*.orig
+__pycache__/

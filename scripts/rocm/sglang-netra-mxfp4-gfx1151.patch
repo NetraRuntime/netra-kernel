@@ -1,0 +1,54 @@
+diff --git a/python/sglang/srt/layers/quantization/__init__.py b/python/sglang/srt/layers/quantization/__init__.py
+--- a/python/sglang/srt/layers/quantization/__init__.py
++++ b/python/sglang/srt/layers/quantization/__init__.py
+@@ -8 +8,2 @@
+ from importlib.util import find_spec
++import os
+@@ -111 +112,6 @@
+-if is_cpu() or is_cuda() or (_is_mxfp_supported and is_hip()):
++if (
++    is_cpu()
++    or is_cuda()
++    or (_is_mxfp_supported and is_hip())
++    or (is_hip() and os.environ.get("SGLANG_USE_NETRA_MXFP4_GFX1151") == "1")
++):
+diff --git a/python/sglang/srt/layers/quantization/mxfp4.py b/python/sglang/srt/layers/quantization/mxfp4.py
+--- a/python/sglang/srt/layers/quantization/mxfp4.py
++++ b/python/sglang/srt/layers/quantization/mxfp4.py
+@@ -150,0 +151,5 @@
++_use_netra_gfx1151 = (
++    get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
++    and _is_hip
++    and torch.cuda.get_device_properties(0).gcnArchName.split(":")[0] == "gfx1151"
++)
+@@ -258 +263 @@
+-            if mxfp_supported():
++            if mxfp_supported() or _use_netra_gfx1151:
+@@ -510,1 +515,7 @@
+     def process_weights_after_loading(self, layer):
++        if _use_netra_gfx1151:
++            from sglang.srt.layers.quantization.netra_gfx1151 import process_weights
++
++            process_weights(layer)
++            return
++
+@@ -1014,1 +1025,3 @@
+         self.moe_runner_config = moe_runner_config
++        if _use_netra_gfx1151:
++            return
+@@ -1087,1 +1100,15 @@
+         topk_output = dispatch_output.topk_output
++        if _use_netra_gfx1151:
++            assert TopKOutputChecker.format_is_standard(topk_output)
++            from sglang.srt.layers.quantization.netra_gfx1151 import (
++                apply as netra_apply,
++            )
++
++            output = netra_apply(
++                layer,
++                x,
++                topk_output.topk_weights,
++                topk_output.topk_ids,
++            )
++            return StandardCombineInput(hidden_states=output)
++

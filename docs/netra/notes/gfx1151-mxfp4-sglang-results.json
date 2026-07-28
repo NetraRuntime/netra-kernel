@@ -1,0 +1,88 @@
+{
+  "date": "2026-07-29",
+  "target": "gfx1151",
+  "device": "AMD Radeon 8060S, Ryzen AI Max+ PRO 395",
+  "checkpoint": "pahajokiconsulting/Qwen3.6-35B-A3B-MXFP4",
+  "sglang_commit": "1eee8fbdcc25b44e13bc097d5ff6ac24e8c24af4",
+  "correctness": {
+    "expert_decode_max_abs_bf16": 0.0,
+    "expert_decode_normalized_l2_bf16": 0.0,
+    "expert_decode_exact_bf16_fraction": 1.0,
+    "linear_m2_n8192_k2048_max_abs_bf16": 0.0,
+    "linear_m2_n8192_k2048_normalized_l2_bf16": 0.0,
+    "linear_m2_n8192_k2048_exact_bf16_fraction": 1.0,
+    "linear_prefill_m65_n64_k2048_max_abs_bf16": 0.0,
+    "linear_prefill_m65_n64_k2048_normalized_l2_bf16": 0.0,
+    "linear_prefill_m65_n64_k2048_exact_bf16_fraction": 1.0,
+    "linear_prefill_m2_n8192_k2048_max_abs_bf16": 0.000244140625,
+    "linear_prefill_m2_n8192_k2048_normalized_l2_bf16": 2.9187131076469086e-06,
+    "linear_prefill_m2_n8192_k2048_exact_bf16_fraction": 0.99993896484375
+  },
+  "kernel_timing": {
+    "scope": "HIP events, live SGL deployment resident and idle, real weights",
+    "raw_iterations": 100,
+    "triton_warmup": 20,
+    "triton_iterations": 100,
+    "triton_baseline": "Triton 3.5.1 matmul_ogs RDNA manual MXFP4 decode",
+    "operations": [
+      {"name": "gate_decode", "raw_us": 90.342, "triton_us": 110.1365852355957},
+      {"name": "down_decode", "raw_us": 46.653, "triton_us": 109.94844436645508},
+      {"name": "gate_verify_m12", "raw_us": 52.639, "triton_us": 116.98527336120605},
+      {"name": "down_verify_m12", "raw_us": 26.656, "triton_us": 114.25025939941406},
+      {"name": "gate_prefill_m64", "raw_us": 104.223, "triton_us": 216.78936004638672},
+      {"name": "down_prefill_m64", "raw_us": 89.121, "triton_us": 111.76527976989746}
+    ],
+    "expert_mlp": [
+      {"path": "decode_m1", "raw_us": 227.337, "triton_us": 330.2216148376465, "speedup": 1.4525643200959215},
+      {"path": "verify_m12", "raw_us": 131.934, "triton_us": 348.2208061218262, "speedup": 2.6393560880578635},
+      {"path": "prefill_m64", "raw_us": 297.567, "triton_us": 545.344, "speedup": 1.8326763384380662}
+    ],
+    "dense_linear_prefill_crossover": {
+      "scope": "HIP events, cache-resident real layer-0 projection",
+      "shape_mnk": [210, 8192, 2048],
+      "old_decode_row_loop_us": 21942.63427734375,
+      "raw_m64_prefill_us": 332.00206756591797,
+      "speedup": 66.09186032549965
+    }
+  },
+  "serving": {
+    "scope": "uncached HTTP end-to-end, host monotonic clock",
+    "cases": [
+      {"prompt_tokens": 25, "completion_tokens": 8, "median_ms": 1024.75658399635, "mean_ms": 1034.387203331183},
+      {"prompt_tokens": 36, "completion_tokens": 16, "median_ms": 1594.9878949904814, "mean_ms": 1587.9588539974065},
+      {"prompt_tokens": 210, "completion_tokens": 1, "median_ms": 2780.7419399905484, "mean_ms": 2772.3449443340846, "implementation": "M1 dense linear launched once per row"},
+      {
+        "prompt_tokens": 210,
+        "completion_tokens": 1,
+        "cached_tokens": 0,
+        "samples_ms": [440.13787699805107, 448.2853380031884, 447.245274001034],
+        "median_ms": 447.245274001034,
+        "mean_ms": 445.2228296674245,
+        "effective_prefill_tokens_per_second_from_e2e_median": 469.5410152048124,
+        "implementation": "raw runtime-N/K M64 WMMA dense prefill"
+      },
+      {
+        "prompt_tokens": 32768,
+        "completion_tokens": 16384,
+        "batch_size": 1,
+        "context_length": 65536,
+        "chunked_prefill_size": 8192,
+        "cuda_graphs": false,
+        "time_to_first_token_s": 35.3761,
+        "input_throughput_tokens_per_s": 926.28,
+        "output_throughput_tokens_per_s": 12.9,
+        "mean_inter_token_latency_ms": 77.52,
+        "end_to_end_latency_s": 1305.4599,
+        "overall_throughput_tokens_per_s": 37.65,
+        "final_server_decode_throughput_tokens_per_s": 12.37,
+        "harness": "SGLang bench_one_batch_server streaming exact-length run"
+      }
+    ]
+  },
+  "negative_results": [
+    "SGL AOT topk_softmax launch failed on gfx1151; validated Triton fused router selected",
+    "HSA metadata initially omitted scalar N/K args; kernel received zeros and faulted",
+    "Repeated-prompt prefill samples had 320 cached tokens and were rejected",
+    "Eight Triton warmups were insufficient; unstable 30-iteration result rejected"
+  ]
+}

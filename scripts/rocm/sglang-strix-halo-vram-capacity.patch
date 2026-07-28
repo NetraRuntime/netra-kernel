@@ -1,0 +1,15 @@
+diff --git a/python/sglang/srt/utils/common.py b/python/sglang/srt/utils/common.py
+--- a/python/sglang/srt/utils/common.py
++++ b/python/sglang/srt/utils/common.py
+@@ -570,6 +570,11 @@
+ 
+ 
+ def get_amdgpu_memory_capacity():
++    # rocminfo lists Strix Halo's fine-grained system pool before its
++    # coarse-grained 96 GiB VRAM pool. Query HIP directly so unified-memory
++    # APUs do not get capped to the smaller host pool.
++    if torch.cuda.is_available():
++        return min(torch.cuda.mem_get_info(i)[1] for i in range(torch.cuda.device_count())) / 1024 / 1024
+     try:
+         # Run rocm-smi and capture the output
+         result = subprocess.run(

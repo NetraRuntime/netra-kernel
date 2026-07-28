@@ -1,0 +1,25 @@
+diff --git a/python/sglang/srt/layers/quantization/mxfp4.py b/python/sglang/srt/layers/quantization/mxfp4.py
+--- a/python/sglang/srt/layers/quantization/mxfp4.py
++++ b/python/sglang/srt/layers/quantization/mxfp4.py
+@@ -515,8 +515,8 @@
+     def process_weights_after_loading(self, layer):
+-        if self.use_marlin:
+         if _use_netra_gfx1151:
+             from sglang.srt.layers.quantization.netra_gfx1151 import process_weights
+ 
+             process_weights(layer)
+             return
+ 
++        if self.use_marlin:
+             from sglang.srt.layers.quantization.marlin_utils import (
+@@ -1099,4 +1099,3 @@
+         x = dispatch_output.hidden_states
+         topk_output = dispatch_output.topk_output
+-        if _is_cpu:
+         if _use_netra_gfx1151:
+@@ -1113,4 +1112,5 @@
+             )
+             return StandardCombineInput(hidden_states=output)
+ 
++        if _is_cpu:
+             if use_intel_amx_backend(layer):
