@@ -1,8 +1,0 @@
-diff --git a/python/sglang/srt/layers/quantization/mxfp4.py b/python/sglang/srt/layers/quantization/mxfp4.py
---- a/python/sglang/srt/layers/quantization/mxfp4.py
-+++ b/python/sglang/srt/layers/quantization/mxfp4.py
-@@ -1101 +1100,0 @@
--        if _is_cpu:
-@@ -1116 +1115,2 @@
-+        if _is_cpu:
-             if use_intel_amx_backend(layer):

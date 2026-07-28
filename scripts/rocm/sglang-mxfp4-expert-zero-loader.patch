@@ -1,6 +1,0 @@
-diff --git a/python/sglang/srt/layers/moe/fused_moe_triton/layer.py b/python/sglang/srt/layers/moe/fused_moe_triton/layer.py
---- a/python/sglang/srt/layers/moe/fused_moe_triton/layer.py
-+++ b/python/sglang/srt/layers/moe/fused_moe_triton/layer.py
-@@ -841 +841 @@
--            not expert_id
-+            expert_id is None

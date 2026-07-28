@@ -68,9 +68,9 @@ These observations determine the raw-assembly changes below.
 
 Files:
 
-- `scripts/rocm/mxfp4_decode_gate_gfx1151.s`
-- `scripts/rocm/mxfp4_decode_gate_gfx1151.hip`
-- `scripts/rocm/extract_qwen36_gate_mxfp4.py`
+- `kernels/gfx1151/mxfp4/decode/mxfp4_decode_gate_gfx1151.s`
+- `harness/gfx1151/mxfp4/decode/mxfp4_decode_gate_gfx1151.hip`
+- `tools/checkpoint/extract_qwen36_gate_mxfp4.py`
 
 The kernel is raw AMDGCN assembly. The HIP file only loads the code object,
 launches it, checks it and times it.
@@ -155,8 +155,8 @@ the 26-shard model and measured against fp64:
 
 Files:
 
-- `scripts/rocm/mxfp4_decode_down_gfx1151.s`
-- `scripts/rocm/mxfp4_decode_down_gfx1151.hip`
+- `kernels/gfx1151/mxfp4/decode/mxfp4_decode_down_gfx1151.s`
+- `harness/gfx1151/mxfp4/decode/mxfp4_decode_down_gfx1151.hip`
 
 This is the complementary real expert shape: 8 selected experts, N=2048 and
 K=512. Sixteen workgroups cover the output without split K. That removes the
@@ -209,7 +209,7 @@ LM-head case, standalone versus fused measurements for each, and matched
 
 ## M=12 verify work in progress
 
-`scripts/rocm/mxfp4_verify_gate_gfx1151.s` is the first raw-ASM correctness
+`kernels/gfx1151/mxfp4/verify/mxfp4_verify_gate_gfx1151.s` is the first raw-ASM correctness
 reference for E=8, M=12, N=512, K=2048. Unlike twelve decode calls, it decodes
 each packed weight once and reuses it across all twelve BF16 activation rows.
 
@@ -234,10 +234,10 @@ gfx1151 WMMA rather than continuing to tune this accumulator-heavy path.
 
 Files:
 
-- `scripts/rocm/mxfp4_verify_gate_wmma_gfx1151.s`
-- `scripts/rocm/mxfp4_verify_gate_wmma_gfx1151.hip`
-- `scripts/rocm/mxfp4_verify_down_wmma_gfx1151.s`
-- `scripts/rocm/mxfp4_verify_down_wmma_gfx1151.hip`
+- `kernels/gfx1151/mxfp4/verify/mxfp4_verify_gate_wmma_gfx1151.s`
+- `harness/gfx1151/mxfp4/verify/mxfp4_verify_gate_wmma_gfx1151.hip`
+- `kernels/gfx1151/mxfp4/verify/mxfp4_verify_down_wmma_gfx1151.s`
+- `harness/gfx1151/mxfp4/verify/mxfp4_verify_down_wmma_gfx1151.hip`
 
 The exact gfx1151 WMMA fragment mapping was established empirically with the
 installed rocWMMA headers and a BF16 identity probe before writing these
@@ -287,9 +287,9 @@ error.
 
 Files:
 
-- `scripts/rocm/mxfp4_prefill_gate_wmma_gfx1151.s`
-- `scripts/rocm/mxfp4_prefill_down_wmma_gfx1151.s`
-- `scripts/rocm/mxfp4_prefill_wmma_gfx1151.inc`
+- `kernels/gfx1151/mxfp4/prefill/mxfp4_prefill_gate_wmma_gfx1151.s`
+- `kernels/gfx1151/mxfp4/prefill/mxfp4_prefill_down_wmma_gfx1151.s`
+- `kernels/gfx1151/mxfp4/prefill/mxfp4_prefill_wmma_gfx1151.inc`
 - the matching `.hip` launch/correctness harnesses
 
 The grouped interface stores activations and outputs as padded 64-row chunks.
@@ -394,9 +394,9 @@ available in this environment.
 
 Files:
 
-- `scripts/rocm/quantize_qwen36_lm_head_mxfp4.py`
-- `scripts/rocm/mxfp4_lm_head_decode_gfx1151.s`
-- `scripts/rocm/mxfp4_lm_head_verify_wmma_gfx1151.s`
+- `tools/checkpoint/quantize_qwen36_lm_head_mxfp4.py`
+- `kernels/gfx1151/mxfp4/lm_head/mxfp4_lm_head_decode_gfx1151.s`
+- `kernels/gfx1151/mxfp4/lm_head/mxfp4_lm_head_verify_wmma_gfx1151.s`
 - the matching `.hip` launch/correctness harnesses
 
 The checkpoint LM head is BF16 `[248320,2048]`, so the one-time repacker
@@ -437,9 +437,9 @@ speedup. The compiler output differs from the fp64-validated raw output by
 
 Files:
 
-- `scripts/rocm/mxfp4_decode_gate_up_fused_gfx1151.s`
-- `scripts/rocm/mxfp4_decode_gate_up_fused_n64_gfx1151.s`
-- `scripts/rocm/silu_mul_bf16_gfx1151.s`
+- `kernels/gfx1151/mxfp4/decode/experiments/mxfp4_decode_gate_up_fused_gfx1151.s`
+- `kernels/gfx1151/mxfp4/decode/experiments/mxfp4_decode_gate_up_fused_n64_gfx1151.s`
+- `kernels/gfx1151/mxfp4/epilogue/silu_mul_bf16_gfx1151.s`
 - the fused and standalone-pipeline HIP launch/check harnesses
 
 The N128 fused experiment decodes gate and up MXFP4 weights in one wave,
@@ -497,7 +497,7 @@ fusion comparison are recorded above.
 
 ## Reproducible build
 
-`scripts/rocm/build_gfx1151_mxfp4_raw.sh` was executed inside Netra with ROCm
+`tools/build/build_gfx1151_mxfp4_raw.sh` was executed inside Netra with ROCm
 7.2.1. It assembled all nine matrix kernels plus the standalone raw SiLU
 epilogue and four retained negative-result variants, emitted gfx1151
 disassemblies, compiled the HIP launch/check harnesses, and wrote SHA-256
@@ -505,9 +505,9 @@ hashes. The verified invocation was:
 
 ```bash
 repo=/root/netra-mxfp4-gfx1151
-bash "$repo/scripts/rocm/build_gfx1151_mxfp4_raw.sh" \
-  "$repo/scripts/rocm" /root/netra-mxfp4-gfx1151-build
+bash "$repo/tools/build/build_gfx1151_mxfp4_raw.sh" \
+  "$repo" /root/netra-mxfp4-gfx1151-build
 ```
 
 Machine-readable final results are in
-`docs/netra/notes/gfx1151-mxfp4-results.json`.
+`docs/notes/gfx1151-mxfp4-results.json`.

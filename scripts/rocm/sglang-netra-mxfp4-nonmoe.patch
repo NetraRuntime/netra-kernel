@@ -1,7 +1,0 @@
-diff --git a/python/sglang/srt/layers/quantization/mxfp4.py b/python/sglang/srt/layers/quantization/mxfp4.py
---- a/python/sglang/srt/layers/quantization/mxfp4.py
-+++ b/python/sglang/srt/layers/quantization/mxfp4.py
-@@ -320 +320,3 @@
-+                if _use_netra_gfx1151:
-+                    return None
-                 raise NotImplementedError("Mxfp4 attention layer is not implemented")

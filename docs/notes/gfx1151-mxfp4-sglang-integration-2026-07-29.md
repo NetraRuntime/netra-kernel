@@ -138,8 +138,8 @@ The consolidated patch was checked against a clean archive of SGLang commit
 
 ```bash
 cd /root/work/sglang-main
-git apply /root/netra-mxfp4-gfx1151/scripts/rocm/sglang-gfx1151-integration.patch
-cp /root/netra-mxfp4-gfx1151/scripts/rocm/netra_gfx1151_sglang.py \
+git apply /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-integration.patch
+cp /root/netra-mxfp4-gfx1151/integrations/sglang/netra_gfx1151_sglang.py \
   python/sglang/srt/layers/quantization/netra_gfx1151.py
 ```
 

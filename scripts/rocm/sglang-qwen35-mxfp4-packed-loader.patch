@@ -1,9 +1,0 @@
-diff --git a/python/sglang/srt/models/qwen3_5.py b/python/sglang/srt/models/qwen3_5.py
---- a/python/sglang/srt/models/qwen3_5.py
-+++ b/python/sglang/srt/models/qwen3_5.py
-@@ -2178,0 +2179,5 @@
-+                    # Serialized MXFP4 checkpoints name their nibble tensor
-+                    # `weight_packed`; Mxfp4MoEMethod stores it as `weight`.
-+                    if name_mapped.endswith("_packed") and name_mapped[:-7] in params_dict:
-+                        name_mapped = name_mapped[:-7]
-+
