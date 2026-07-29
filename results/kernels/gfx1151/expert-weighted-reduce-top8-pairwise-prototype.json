@@ -1,0 +1,23 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "production_status": "rejected_pending_full_stack_determinism",
+  "kernel": "expert_weighted_reduce_top8_gfx1151",
+  "variant": "separate FP32 multiplies plus fixed balanced pairwise adds",
+  "code_object": {"vgpr": 34, "sgpr": 44, "lds_bytes": 0, "scratch_bytes": 0, "wave_size": 32},
+  "layer_validation": {
+    "tokens_128": {"pairwise_bf16_mismatches": 0, "fp64_rounded_bf16_mismatches": 12, "max_abs_vs_fp64_bf16": 0.000244140625},
+    "tokens_8192": {"pairwise_bf16_mismatches": 0, "fp64_rounded_bf16_mismatches": 885, "max_abs_vs_fp64_bf16": 0.0078125, "mean_abs_vs_fp64_bf16": 1.4430978190205224e-8}
+  },
+  "temporary_combined_serving": {
+    "pair_a": {"host_e2e_ms": 27125.972755, "token": 220},
+    "pair_b_first_server": {"host_e2e_ms": 26991.832809, "token": 3709},
+    "pair_b_fresh_server": {"host_e2e_ms": 27149.518923, "token": 96043},
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled"
+  },
+  "decision": "not integrated: fixed MoE reduction did not eliminate fresh-server greedy-token variation elsewhere in the full stack"
+}

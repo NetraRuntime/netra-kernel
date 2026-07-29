@@ -1,0 +1,57 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "kernel": "expert_activation_pack_gfx1151",
+  "scope": "Qwen3.6-35B-A3B MXFP4 routed-expert activation gather, grouped scatter, and padding clear",
+  "shape": {"tokens": 8192, "topk": 8, "pairs": 65536, "experts": 256, "group_rows": 81664, "hidden": 2048},
+  "code_object": {"vgpr": 8, "sgpr": 26, "lds_bytes": 0, "scratch_bytes": 0, "wave_size": 32},
+  "hip_events": {
+    "raw_median_ms": 2.559765100479126,
+    "torch_zeros_gather_index_copy_median_ms": 6.754312992095947,
+    "speedup": 2.6386456283944586,
+    "bit_equal": true
+  },
+  "guard_test": {"prefix_words": 65536, "suffix_words": 65536, "prefix_corrupt_words": 0, "suffix_corrupt_words": 0},
+  "real_checkpoint_validation": {
+    "calls_compared": 160,
+    "hidden_stride": [2048, 1],
+    "bit_equal_calls": 160,
+    "mismatch_calls": 0
+  },
+  "rocprofv3_exact_32768_input": {
+    "before": {
+      "bf16_fill_calls": 160,
+      "bf16_fill_total_ms": 209.901659,
+      "pre_activation_gather_calls": 160,
+      "pre_activation_gather_total_ms_derived_by_matched_family_difference": 361.34958,
+      "index_copy_calls": 160,
+      "index_copy_total_ms": 516.872,
+      "pipeline_total_ms": 1088.123239
+    },
+    "after": {
+      "raw_pack_calls": 160,
+      "raw_pack_total_ms": 404.818448,
+      "raw_pack_mean_ms": 2.5301153
+    },
+    "gpu_time_saved_ms": 683.304791,
+    "launches_removed": 320,
+    "profile_mode": "process_start_csv_disable_signal_handlers",
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled"
+  },
+  "serving_exact_32768_input_1_output": {
+    "pair_a": {"baseline_host_e2e_ms": 29930.237, "raw_host_e2e_ms": 29389.211846, "speedup": 1.018409, "baseline_token": 220, "raw_token": 220, "cached_tokens": 0},
+    "pair_b_same_module_layout": {"baseline_host_e2e_ms": 30037.007713, "raw_host_e2e_ms": 29320.494905, "speedup": 1.024437, "baseline_token": 3709, "raw_token": 3709, "cached_tokens": 0}
+  },
+  "piecewise_graph_m64": {
+    "capture_time_s": 12.44,
+    "capture_memory_gb": 0.28,
+    "replay_host_e2e_ms": 511.700861,
+    "eager_host_e2e_ms": 575.081533,
+    "input_sha256_match": true,
+    "output_sha256_match": true,
+    "output_token": 198,
+    "cached_tokens": 0,
+    "performance_decision": "single-sample compatibility result; no graph speedup claim"
+  }
+}

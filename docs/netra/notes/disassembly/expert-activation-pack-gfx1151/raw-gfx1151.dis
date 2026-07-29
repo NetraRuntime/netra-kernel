@@ -1,0 +1,42 @@
+
+/root/netra-mxfp4-gfx1151/build/sglang/expert_activation_pack_gfx1151.hsaco:	file format elf64-amdgpu
+
+Disassembly of section .text:
+
+0000000000001800 <expert_activation_pack_gfx1151>:
+	s_clause 0x2                                               // 000000001800: BF850002
+	s_load_b128 s[4:7], s[0:1], null                           // 000000001804: F4080100 F8000000
+	s_load_b128 s[8:11], s[0:1], 0x10                          // 00000000180C: F4080200 F8000010
+	s_load_b64 s[12:13], s[0:1], 0x20                          // 000000001814: F4040300 F8000020
+	s_lshl_b32 s14, s2, 3                                      // 00000000181C: 840E8302
+	s_waitcnt lgkmcnt(0)                                       // 000000001820: BF89FC07
+	s_load_b64 s[16:17], s[6:7], s14                           // 000000001824: F4040403 1C000000
+	s_load_b64 s[18:19], s[8:9], s14                           // 00000000182C: F4040484 1C000000
+	s_add_u32 s15, s2, 1                                       // 000000001834: 800F8102
+	s_cmp_ge_u32 s15, s12                                      // 000000001838: BF090C0F
+	s_cbranch_scc1 4                                           // 00000000183C: BFA20004 <expert_activation_pack_gfx1151+0x50>
+	s_add_u32 s14, s14, 8                                      // 000000001840: 800E880E
+	s_load_b64 s[20:21], s[8:9], s14                           // 000000001844: F4040504 1C000000
+	s_branch 1                                                 // 00000000184C: BFA00001 <expert_activation_pack_gfx1151+0x54>
+	s_mov_b32 s20, s13                                         // 000000001850: BE94000D
+	s_waitcnt lgkmcnt(0)                                       // 000000001854: BF89FC07
+	v_lshlrev_b32_e32 v1, 4, v0                                // 000000001858: 30020084
+	s_lshl_b32 s22, s16, 12                                    // 00000000185C: 84168C10
+	v_add_nc_u32_e32 v2, s22, v1                               // 000000001860: 4A040216
+	s_lshl_b32 s22, s18, 12                                    // 000000001864: 84168C12
+	v_add_nc_u32_e32 v3, s22, v1                               // 000000001868: 4A060216
+	global_load_b128 v[4:7], v2, s[4:5]                        // 00000000186C: DC5E0000 04040002
+	s_waitcnt vmcnt(0)                                         // 000000001874: BF8903F7
+	global_store_b128 v3, v[4:7], s[10:11]                     // 000000001878: DC760000 000A0403
+	s_add_u32 s22, s18, 1                                      // 000000001880: 80168112
+	s_cmp_ge_u32 s22, s20                                      // 000000001884: BF091416
+	s_cbranch_scc1 11                                          // 000000001888: BFA2000B <expert_activation_pack_gfx1151+0xb8>
+	v_dual_mov_b32 v4, 0 :: v_dual_mov_b32 v5, 0               // 00000000188C: CA100080 04040080
+	v_dual_mov_b32 v6, 0 :: v_dual_mov_b32 v7, 0               // 000000001894: CA100080 06060080
+	s_lshl_b32 s23, s22, 12                                    // 00000000189C: 84178C16
+	v_add_nc_u32_e32 v3, s23, v1                               // 0000000018A0: 4A060217
+	global_store_b128 v3, v[4:7], s[10:11]                     // 0000000018A4: DC760000 000A0403
+	s_add_u32 s22, s22, 1                                      // 0000000018AC: 80168116
+	s_cmp_lt_u32 s22, s20                                      // 0000000018B0: BF0A1416
+	s_cbranch_scc1 65529                                       // 0000000018B4: BFA2FFF9 <expert_activation_pack_gfx1151+0x9c>
+	s_endpgm                                                   // 0000000018B8: BFB00000

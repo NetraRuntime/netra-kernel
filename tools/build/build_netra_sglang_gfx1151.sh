@@ -59,6 +59,15 @@ attention_stem=extend_attention_wmma_n64_gfx1151
 "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
   "${out_dir}/${attention_stem}.hsaco" > "${out_dir}/${attention_stem}.dis"
 
+pack_stem=expert_activation_pack_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c "${repo_dir}/scripts/rocm/${pack_stem}.s" \
+  -o "${out_dir}/${pack_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${pack_stem}.o" -o "${out_dir}/${pack_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${pack_stem}.hsaco" > "${out_dir}/${pack_stem}.dis"
+
 gdn_stem=gdn_chunk_o_bv32_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c "${repo_dir}/scripts/rocm/${gdn_stem}.s" \

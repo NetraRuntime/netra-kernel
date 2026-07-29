@@ -65,6 +65,12 @@ class _Runtime:
             + [ctypes.c_float, ctypes.c_uint, ctypes.c_void_p]
         )
         self.lib.netra_gdn_chunk_o.restype = ctypes.c_int
+        self.lib.netra_expert_activation_pack.argtypes = (
+            [ctypes.c_void_p] * 4
+            + [ctypes.c_uint] * 2
+            + [ctypes.c_void_p]
+        )
+        self.lib.netra_expert_activation_pack.restype = ctypes.c_int
         status = self.lib.netra_mxfp4_sgl_init()
         if status:
             raise RuntimeError(self.lib.netra_mxfp4_sgl_error().decode())
@@ -87,6 +93,29 @@ def _get_runtime() -> _Runtime:
     if _runtime is None:
         _runtime = _Runtime()
     return _runtime
+
+
+@register_custom_op(mutates_args=["output"])
+def netra_expert_activation_pack_with_output(
+    hidden: torch.Tensor,
+    pair_tokens: torch.Tensor,
+    position: torch.Tensor,
+    output: torch.Tensor,
+    pair_count: int,
+    total_rows: int,
+) -> None:
+    """Graph-safe raw gfx1151 routed activation pack."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_expert_activation_pack(
+        _ptr(hidden),
+        _ptr(pair_tokens),
+        _ptr(position),
+        _ptr(output),
+        pair_count,
+        total_rows,
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM expert activation pack")
 
 
 @register_custom_op(mutates_args=["output"])
@@ -577,13 +606,18 @@ def _prefill(
     group_expert_ids.scatter_(0, group_index, sorted_ids.to(torch.int32))
     pair_tokens = torch.div(order, 8, rounding_mode="floor")
 
-    activation_groups = torch.zeros(
+    activation_groups = torch.empty(
         (group_count, 64, 2048),
         dtype=torch.bfloat16,
         device=hidden_states.device,
     )
-    activation_groups.view(-1, 2048).index_copy_(
-        0, position, hidden_states.index_select(0, pair_tokens)
+    netra_expert_activation_pack_with_output(
+        hidden_states,
+        pair_tokens,
+        position,
+        activation_groups,
+        pair_count,
+        group_count * 64,
     )
     gate_output = torch.empty(
         (group_count, 64, 512), dtype=torch.float32, device=hidden_states.device

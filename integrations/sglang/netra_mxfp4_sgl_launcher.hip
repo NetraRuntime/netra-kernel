@@ -31,6 +31,7 @@ Kernel linear_prefill;
 Kernel qkvzba_split;
 Kernel extend_attention;
 Kernel gdn_chunk_o;
+Kernel activation_pack;
 hipError_t init_status = hipSuccess;
 std::string init_error;
 
@@ -72,6 +73,8 @@ void initialize() {
        "extend_attention_wmma_n64_gfx1151");
   load(gdn_chunk_o, "gdn_chunk_o_bv32_gfx1151.hsaco",
        "gdn_chunk_o_bv32_gfx1151");
+  load(activation_pack, "expert_activation_pack_gfx1151.hsaco",
+       "expert_activation_pack_gfx1151");
 }
 
 template <typename Args>
@@ -147,6 +150,16 @@ struct alignas(8) ExtendAttentionArgs {
   float sm_scale;
 };
 static_assert(sizeof(ExtendAttentionArgs) == 72);
+
+struct alignas(8) ActivationPackArgs {
+  void* hidden;
+  void* pair_tokens;
+  void* position;
+  void* output;
+  unsigned pair_count;
+  unsigned total_rows;
+};
+static_assert(sizeof(ActivationPackArgs) == 40);
 
 }  // namespace
 
@@ -328,4 +341,18 @@ extern "C" int netra_gdn_chunk_o(
       gdn_chunk_o.function, 4, 128, 32, 128,
       reinterpret_cast<hipStream_t>(stream_ptr), args);
   return status == hipSuccess ? 0 : 96000 + static_cast<int>(status);
+}
+
+extern "C" int netra_expert_activation_pack(
+    void* hidden, void* pair_tokens, void* position, void* output,
+    unsigned pair_count, unsigned total_rows, void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  if (pair_count == 0 || total_rows < pair_count) return 97001;
+  ActivationPackArgs args{
+      hidden, pair_tokens, position, output, pair_count, total_rows};
+  hipError_t status = launch(
+      activation_pack.function, pair_count, 1, 256,
+      reinterpret_cast<hipStream_t>(stream_ptr), args);
+  return status == hipSuccess ? 0 : 97000 + static_cast<int>(status);
 }

@@ -1,0 +1,80 @@
+
+File: build/sglang/expert_activation_pack_gfx1151.hsaco
+Format: elf64-amdgpu
+Arch: amdgcn
+AddressSize: 64bit
+LoadName: <Not found>
+NoteSections [
+  NoteSection {
+    Name: .note
+    Offset: 0x200
+    Size: 0x414
+    Notes [
+      {
+        Owner: AMDGPU
+        Data size: 0x3FE
+        Type: NT_AMDGPU_METADATA (AMDGPU Metadata)
+        AMDGPU Metadata: ---
+amdhsa.kernels:
+  - .args:
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           hidden
+        .offset:         0
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           pair_tokens
+        .offset:         8
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           position
+        .offset:         16
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  write_only
+        .address_space:  global
+        .name:           output
+        .offset:         24
+        .size:           8
+        .value_kind:     global_buffer
+      - .name:           pair_count
+        .offset:         32
+        .size:           4
+        .value_kind:     by_value
+      - .name:           total_rows
+        .offset:         36
+        .size:           4
+        .value_kind:     by_value
+    .group_segment_fixed_size: 0
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 40
+    .language:       OpenCL C
+    .language_version:
+      - 2
+      - 0
+    .max_flat_workgroup_size: 256
+    .name:           expert_activation_pack_gfx1151
+    .private_segment_fixed_size: 0
+    .sgpr_count:     26
+    .sgpr_spill_count: 0
+    .symbol:         expert_activation_pack_gfx1151.kd
+    .uniform_work_group_size: 1
+    .uses_dynamic_stack: false
+    .vgpr_count:     8
+    .vgpr_spill_count: 0
+    .wavefront_size: 32
+    .workgroup_processor_mode: 1
+amdhsa.target:   amdgcn-amd-amdhsa--gfx1151
+amdhsa.version:
+  - 1
+  - 2
+...
+
+      }
+    ]
+  }
+]
