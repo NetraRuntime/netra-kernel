@@ -1,0 +1,8 @@
+"Correlation_Id","Dispatch_Id","Agent_Id","Queue_Id","Process_Id","Thread_Id","Grid_Size","Kernel_Id","Kernel_Name","Workgroup_Size","LDS_Block_Size","Scratch_Size","VGPR_Count","Accum_VGPR_Count","SGPR_Count","Counter_Name","Counter_Value","Start_Timestamp","End_Timestamp"
+1,1,"Agent 1",1,61522,61522,5120,2,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"MeanOccupancyPerCU",3.742933,183048524612189,183048524922176
+2,2,"Agent 1",1,61522,61522,5120,2,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"MeanOccupancyPerCU",2.972174,183048525310029,183048525355115
+3,3,"Agent 1",1,61522,61522,5120,2,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"MeanOccupancyPerCU",3.474000,183048525418795,183048525449614
+4,4,"Agent 1",1,61522,61522,5120,2,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"MeanOccupancyPerCU",3.812493,183048525481314,183048525584549
+5,5,"Agent 1",1,61522,61522,5120,2,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"MeanOccupancyPerCU",3.802534,183048525620938,183048525722931
+6,6,"Agent 1",1,61522,61522,512,6,"__amd_rocclr_copyBuffer",512,0,0,16,0,128,"MeanOccupancyPerCU",7.36858278e-02,183048527459831,183048527462676
+7,7,"Agent 1",1,61522,61522,262144,16,"extend_attention_wmma_n64_gfx1151",128,65536,0,248,0,128,"MeanOccupancyPerCU",2.368471,183048527859774,183048841016728

@@ -1,0 +1,8 @@
+"Correlation_Id","Dispatch_Id","Agent_Id","Queue_Id","Process_Id","Thread_Id","Grid_Size","Kernel_Id","Kernel_Name","Workgroup_Size","LDS_Block_Size","Scratch_Size","VGPR_Count","Accum_VGPR_Count","SGPR_Count","Counter_Name","Counter_Value","Start_Timestamp","End_Timestamp"
+1,1,"Agent 1",1,61594,61594,5120,2,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"GL2C_MISS_sum",262152.000000,183053313989040,183053314307125
+2,2,"Agent 1",1,61594,61594,5120,2,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"GL2C_MISS_sum",32770.000000,183053314655626,183053314701593
+3,3,"Agent 1",1,61594,61594,5120,2,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"GL2C_MISS_sum",32768.000000,183053314743593,183053314774211
+4,4,"Agent 1",1,61594,61594,5120,2,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"GL2C_MISS_sum",98312.000000,183053314804910,183053314908587
+5,5,"Agent 1",1,61594,61594,5120,2,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"GL2C_MISS_sum",98313.000000,183053314942651,183053315047531
+6,6,"Agent 1",1,61594,61594,512,4,"__amd_rocclr_copyBuffer",512,0,0,16,0,128,"GL2C_MISS_sum",5.000000,183053316840517,183053316843242
+7,7,"Agent 1",1,61594,61594,262144,16,"extend_attention_wmma_n64_gfx1151",128,65536,0,248,0,128,"GL2C_MISS_sum",158607402.000000,183053317222681,183053633726910

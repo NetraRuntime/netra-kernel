@@ -1,0 +1,9 @@
+W20260729 14:19:18.430819 131772086701888 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.066490 sec
+W20260729 14:19:18.430995 131772086701888 simple_timer.cpp:55] [rocprofv3] 'results/profiles/gfx1151/extend-attention-counters-20260729/extend_attention_counter /root/netra-mxfp4-gfx1151/build/sglang/extend_attention_wmma_n64_gfx1151.hsaco 8192 24576' ::     0.000000 sec
+W20260729 14:19:18.480553 131772086701888 tool.cpp:2422] HSA version 8.20.1 initialized (instance=0)
+W20260729 14:19:18.818038 131772086701888 simple_timer.cpp:55] [rocprofv3] 'results/profiles/gfx1151/extend-attention-counters-20260729/extend_attention_counter /root/netra-mxfp4-gfx1151/build/sglang/extend_attention_wmma_n64_gfx1151.hsaco 8192 24576' ::     0.387042 sec
+E20260729 14:19:18.826084 131772086701888 output_stream.cpp:111] Opened result file: results/profiles/gfx1151/extend-attention-counters-20260729/GL2C_HIT_sum/trace_counter_collection.csv
+E20260729 14:19:18.829768 131772086701888 output_stream.cpp:111] Opened result file: results/profiles/gfx1151/extend-attention-counters-20260729/GL2C_HIT_sum/trace_agent_info.csv
+W20260729 14:19:18.830706 131772086701888 simple_timer.cpp:55] [rocprofv3] output generation ::     0.012579 sec
+W20260729 14:19:18.830740 131772086701888 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.012618 sec
+gfx1151 measured dispatch tokens=8192 prefix=24576

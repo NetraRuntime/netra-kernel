@@ -1,0 +1,173 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "input_scope": "synthetic zeros with exact Qwen3.6 T8192 prefix24576 Hq16 Hkv2 D256 and sequential page indices",
+  "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+  "method": "one counter per process launch; identical raw-ASM kernel dispatch shapes",
+  "units": {
+    "FETCH_SIZE": "KiB fetched from video memory per dispatch",
+    "WRITE_SIZE": "KiB written to video memory per dispatch",
+    "OccupancyPercent": "percent of device maximum",
+    "L2CacheHit": "percent",
+    "MemUnitBusy": "percent of GPUTime",
+    "WriteUnitStalled": "percent of GPUTime"
+  },
+  "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+  "kernels": [
+    {
+      "kernel": "extend_attention_wmma_n64_gfx1151",
+      "grid_size": 262144,
+      "workgroup_size": 128,
+      "lds_bytes": 65536,
+      "scratch_bytes": 0,
+      "vgpr": 248,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": {
+          "samples": 1,
+          "mean": 19163593.9375,
+          "min": 19163593.9375,
+          "max": 19163593.9375
+        },
+        "GL2C_HIT_sum": {
+          "samples": 1,
+          "mean": 46928116.0,
+          "min": 46928116.0,
+          "max": 46928116.0
+        },
+        "GL2C_MISS_sum": {
+          "samples": 1,
+          "mean": 158607402.0,
+          "min": 158607402.0,
+          "max": 158607402.0
+        },
+        "L2CacheHit": {
+          "samples": 1,
+          "mean": 24.662958,
+          "min": 24.662958,
+          "max": 24.662958
+        },
+        "LDSBankConflict": {
+          "samples": 1,
+          "mean": 49.789985,
+          "min": 49.789985,
+          "max": 49.789985
+        },
+        "MeanOccupancyPerActiveCU": {
+          "samples": 1,
+          "mean": 4.786643,
+          "min": 4.786643,
+          "max": 4.786643
+        },
+        "MeanOccupancyPerCU": {
+          "samples": 1,
+          "mean": 2.368471,
+          "min": 2.368471,
+          "max": 2.368471
+        },
+        "MemUnitBusy": {
+          "samples": 1,
+          "mean": 860299.543081,
+          "min": 860299.543081,
+          "max": 860299.543081
+        },
+        "OccupancyPercent": {
+          "samples": 1,
+          "mean": 7.377047,
+          "min": 7.377047,
+          "max": 7.377047
+        },
+        "SALUInsts": {
+          "samples": 1,
+          "mean": 100768.0,
+          "min": 100768.0,
+          "max": 100768.0
+        },
+        "SQ_BUSY_CYCLES": {
+          "samples": 1,
+          "mean": 17989205750.0,
+          "min": 17989205750.0,
+          "max": 17989205750.0
+        },
+        "SQ_INSTS_FLAT": {
+          "samples": 1,
+          "mean": 177537024.0,
+          "min": 177537024.0,
+          "max": 177537024.0
+        },
+        "SQ_INSTS_LDS": {
+          "samples": 1,
+          "mean": 4658905088.0,
+          "min": 4658905088.0,
+          "max": 4658905088.0
+        },
+        "SQ_INSTS_SALU": {
+          "samples": 1,
+          "mean": 825491456.0,
+          "min": 825491456.0,
+          "max": 825491456.0
+        },
+        "SQ_INSTS_SMEM": {
+          "samples": 1,
+          "mean": 100712448.0,
+          "min": 100712448.0,
+          "max": 100712448.0
+        },
+        "SQ_INSTS_TEX_LOAD": {
+          "samples": 1,
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "SQ_INSTS_TEX_STORE": {
+          "samples": 1,
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "SQ_INSTS_VALU": {
+          "samples": 1,
+          "mean": 6658113536.0,
+          "min": 6658113536.0,
+          "max": 6658113536.0
+        },
+        "SQ_WAVES": {
+          "samples": 1,
+          "mean": 8192.0,
+          "min": 8192.0,
+          "max": 8192.0
+        },
+        "SQ_WAVE_CYCLES": {
+          "samples": 1,
+          "mean": 85899345900.0,
+          "min": 85899345900.0,
+          "max": 85899345900.0
+        },
+        "VALUInsts": {
+          "samples": 1,
+          "mean": 812758.0,
+          "min": 812758.0,
+          "max": 812758.0
+        },
+        "WRITE_SIZE": {
+          "samples": 1,
+          "mean": 32439.875,
+          "min": 32439.875,
+          "max": 32439.875
+        },
+        "Wavefronts": {
+          "samples": 1,
+          "mean": 8192.0,
+          "min": 8192.0,
+          "max": 8192.0
+        },
+        "WriteUnitStalled": {
+          "samples": 1,
+          "mean": 0.000931120216,
+          "min": 0.000931120216,
+          "max": 0.000931120216
+        }
+      }
+    }
+  ]
+}

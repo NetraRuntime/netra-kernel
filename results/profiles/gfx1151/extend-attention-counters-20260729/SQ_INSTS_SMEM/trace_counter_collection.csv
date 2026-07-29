@@ -1,0 +1,8 @@
+"Correlation_Id","Dispatch_Id","Agent_Id","Queue_Id","Process_Id","Thread_Id","Grid_Size","Kernel_Id","Kernel_Name","Workgroup_Size","LDS_Block_Size","Scratch_Size","VGPR_Count","Accum_VGPR_Count","SGPR_Count","Counter_Name","Counter_Value","Start_Timestamp","End_Timestamp"
+1,1,"Agent 1",1,61666,61666,5120,3,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"SQ_INSTS_SMEM",131392.000000,183058122067233,183058122376580
+2,2,"Agent 1",1,61666,61666,5120,3,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"SQ_INSTS_SMEM",16704.000000,183058122757661,183058122802746
+3,3,"Agent 1",1,61666,61666,5120,3,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"SQ_INSTS_SMEM",16704.000000,183058122887627,183058122926541
+4,4,"Agent 1",1,61666,61666,5120,3,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"SQ_INSTS_SMEM",49472.000000,183058122981966,183058123087886
+5,5,"Agent 1",1,61666,61666,5120,3,"__amd_rocclr_fillBufferAligned",256,0,0,16,0,128,"SQ_INSTS_SMEM",49472.000000,183058123124676,183058123226549
+6,6,"Agent 1",1,61666,61666,512,9,"__amd_rocclr_copyBuffer",512,0,0,16,0,128,"SQ_INSTS_SMEM",32.000000,183058124824787,183058124827352
+7,7,"Agent 1",1,61666,61666,262144,16,"extend_attention_wmma_n64_gfx1151",128,65536,0,248,0,128,"SQ_INSTS_SMEM",100712448.000000,183058125226770,183058439247722
