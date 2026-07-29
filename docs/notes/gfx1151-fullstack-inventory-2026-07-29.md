@@ -117,6 +117,34 @@ All numbers below are **measured on gfx1151** unless a row explicitly says unava
 | 11 | `void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::MeanOps<float, float, float, float>, u...` | reduce_misc | 10449 | 3.964 | 41.417 | 0.49% | 32 / 128 | 512 / 0 |
 | 12 | `_fwd_grouped_kernel_stage1` | other | 1280 | 23.228 | 29.732 | 0.35% | 256 / 128 | 0 / 1060 |
 
+## Post-dword-layout exact 32K ranking — gfx1151 measured
+
+A fresh ABI-matched process-start rocprofv3 trace captured exact 32,768/+1
+uncached inference after the accepted attention K swizzle and prefill gate/up
+dword layout. The trace finalized normally with 34,090 launches, 29,738.787 ms
+of GPU kernel time, and 12,303.018 ms of positive gaps over its 42,004.145 ms
+process-start window. Startup copies are included in the aggregate API/gap
+figures; the ranked model kernels below use exact request call counts.
+
+| Rank | Kernel | Calls | Mean us | Total ms | % kernel time | VGPR / SGPR | LDS / scratch B |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| 1 | `extend_attention_wmma_n64_gfx1151` | 40 | 173257.699 | 6930.308 | 23.304% | 248 / 128 | 65536 / 0 |
+| 2 | `mxfp4_sgl_linear_prefill_wmma_gfx1151` | 360 | 8175.856 | 2943.308 | 9.897% | 112 / 128 | 0 / 0 |
+| 3 | `mxfp4_prefill_gate_wmma_gfx1151` | 320 | 9083.241 | 2906.637 | 9.774% | 112 / 128 | 0 / 0 |
+| 4 | `recompute_w_u_fwd_kernel` | 150 | 15848.254 | 2377.238 | 7.994% | 256 / 128 | 0 / 0 |
+| 5 | `gdn_chunk_o_bv32_gfx1151` | 120 | 11352.175 | 1362.261 | 4.581% | 216 / 128 | 32768 / 0 |
+| 6 | `_causal_conv1d_fwd_kernel` | 150 | 8818.668 | 1322.800 | 4.448% | 72 / 128 | 0 / 0 |
+| 7 | `mxfp4_prefill_down_wmma_gfx1151` | 160 | 7577.532 | 1212.405 | 4.077% | 112 / 128 | 0 / 0 |
+| 8 | `indexFuncLargeIndex` expert reduction | 160 | 7058.314 | 1129.330 | 3.797% | 16 / 128 | 0 / 0 |
+| 9 | FP32 router-weight multiply | 1054 | 1046.565 | 1103.079 | 3.709% | 24 / 128 | 0 / 0 |
+| 10 | `chunk_gated_delta_rule_fwd_kernel_h_blockdim64` | 150 | 7106.871 | 1066.031 | 3.585% | 256 / 128 | 0 / 524 |
+
+The accepted gate/up change reduces its total from 3,456.036 to 2,906.637 ms
+(-15.897%) and moves it from rank 2 to rank 3. Dense prefill is therefore the
+next MXFP4 projection target; recompute W/U is the next non-attention GDN
+target. The complete updated trace is under
+`results/profiles/gfx1151/prefill-gate-dword-layout-32k-start-20260729/`.
+
 ## CPU/GPU orchestration
 
 `hipMemcpyWithStream` is a blocking host API in every measured scenario. The 32K request issued 402 calls totaling 34094.121 ms of CPU call duration. This trace predates the piecewise integration fix: grouped prefill called `group_index[-1].item()`, a source-derived device-to-host synchronization point. That host read is now removed with a correctness-validated fixed-capacity routed-group workspace; the remaining blocking copies require a fresh trace before attribution.

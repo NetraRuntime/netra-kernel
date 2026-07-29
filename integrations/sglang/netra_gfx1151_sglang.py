@@ -28,6 +28,8 @@ class _Runtime:
         self.lib.netra_mxfp4_sgl_error.restype = ctypes.c_char_p
         self.lib.netra_mxfp4_sgl_decode.argtypes = [ctypes.c_void_p] * 15
         self.lib.netra_mxfp4_sgl_decode.restype = ctypes.c_int
+        self.lib.netra_mxfp4_sgl_prefill_repack.argtypes = [ctypes.c_void_p] * 3
+        self.lib.netra_mxfp4_sgl_prefill_repack.restype = ctypes.c_int
         self.lib.netra_mxfp4_sgl_prefill_gate_up.argtypes = (
             [ctypes.c_void_p] * 9
             + [ctypes.c_uint, ctypes.c_void_p]
@@ -93,6 +95,24 @@ def _get_runtime() -> _Runtime:
     if _runtime is None:
         _runtime = _Runtime()
     return _runtime
+
+
+def _repack_prefill_weight(source: torch.Tensor) -> torch.Tensor:
+    """One-time device-side byte permutation for the raw gfx1151 prefill kernel."""
+    if source.shape != (256, 1024, 512) or source.dtype != torch.uint8:
+        raise ValueError(
+            f"Netra prefill repack expects uint8 [256,1024,512], got "
+            f"{source.dtype} {tuple(source.shape)}"
+        )
+    if not source.is_contiguous():
+        raise ValueError("Netra prefill repack requires a contiguous source")
+    destination = torch.empty_like(source)
+    runtime = _get_runtime()
+    status = runtime.lib.netra_mxfp4_sgl_prefill_repack(
+        _ptr(source), _ptr(destination), runtime.stream()
+    )
+    runtime.check(status, "Netra raw-ASM MXFP4 prefill weight repack")
+    return destination
 
 
 @register_custom_op(mutates_args=["output"])
@@ -314,6 +334,8 @@ def process_weights(layer: torch.nn.Module) -> None:
     split = layer.w13_weight.shape[1] // 2
     gate_weight = layer.w13_weight.data[:, :split, :].transpose(1, 2).contiguous()
     up_weight = layer.w13_weight.data[:, split:, :].transpose(1, 2).contiguous()
+    gate_prefill_weight = _repack_prefill_weight(gate_weight)
+    up_prefill_weight = _repack_prefill_weight(up_weight)
     gate_scale = (
         layer.w13_weight_scale.data[:, :split, :].transpose(1, 2).contiguous()
     )
@@ -324,8 +346,14 @@ def process_weights(layer: torch.nn.Module) -> None:
     down_scale = layer.w2_weight_scale.data.transpose(1, 2).contiguous()
 
     layer.netra_gate_weight = Parameter(gate_weight, requires_grad=False)
+    layer.netra_gate_prefill_weight = Parameter(
+        gate_prefill_weight, requires_grad=False
+    )
     layer.netra_gate_scale = Parameter(gate_scale, requires_grad=False)
     layer.netra_up_weight = Parameter(up_weight, requires_grad=False)
+    layer.netra_up_prefill_weight = Parameter(
+        up_prefill_weight, requires_grad=False
+    )
     layer.netra_up_scale = Parameter(up_scale, requires_grad=False)
     layer.netra_down_weight = Parameter(down_weight, requires_grad=False)
     layer.netra_down_scale = Parameter(down_scale, requires_grad=False)
@@ -631,9 +659,9 @@ def _prefill(
     )
 
     status = runtime.lib.netra_mxfp4_sgl_prefill_gate_up(
-        _ptr(layer.netra_gate_weight),
+        _ptr(layer.netra_gate_prefill_weight),
         _ptr(layer.netra_gate_scale),
-        _ptr(layer.netra_up_weight),
+        _ptr(layer.netra_up_prefill_weight),
         _ptr(layer.netra_up_scale),
         _ptr(activation_groups),
         _ptr(group_expert_ids),

@@ -1,0 +1,113 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "kernel": "mxfp4_prefill_gate_wmma_gfx1151",
+  "shape": {"experts": 256, "groups": 1276, "m": 64, "n": 512, "k": 2048},
+  "layout": "[expert][K32][fragment][subgroup][N][four packed MXFP4 bytes]",
+  "correctness": {
+    "repacker_bytes_compared": 134217728,
+    "repacker_bit_equal": true,
+    "compute_output_bit_equal": true,
+    "compute_mismatches": 0,
+    "compute_max_abs": 0.0,
+    "graph_replay_bit_equal": true
+  },
+  "hip_events_ms": {
+    "samples": 11,
+    "baseline_median": 10.222587,
+    "candidate_median": 8.507615,
+    "speedup": 1.201581,
+    "repacker_median": 1.138494,
+    "graph_replay_median": 8.517274,
+    "baseline_samples": [10.908707, 10.544506, 10.436224, 10.222587, 11.045928, 10.567993, 9.930880, 10.222108, 9.987588, 10.060925, 10.031110],
+    "candidate_samples": [8.855544, 8.499918, 8.180159, 8.665590, 8.426383, 8.559512, 8.444458, 8.507615, 8.542401, 8.316177, 8.640505],
+    "graph_replay_samples": [9.104334, 8.262357, 8.599990, 8.352286, 8.557749, 8.428067, 8.517274, 8.386429, 8.555105, 8.532423, 8.467861]
+  },
+  "rocprofv3_counters": {
+    "method": "one counter per process launch with system ROCm 7.2.1 profiler",
+    "baseline": {
+      "fetch_kib": 587746.546875,
+      "sq_busy_cycles": 602769635.25,
+      "sq_insts_valu": 286150656.0,
+      "valu_insts": 7008.0,
+      "occupancy_percent": 73.4734,
+      "l2_hit_percent": 92.47871575,
+      "waves": 40832.0,
+      "vgpr": 112,
+      "sgpr": 128,
+      "lds_bytes": 0,
+      "scratch_bytes": 0
+    },
+    "candidate": {
+      "fetch_kib": 393866.53125,
+      "sq_busy_cycles": 481244878.75,
+      "sq_insts_valu": 270512000.0,
+      "valu_insts": 6625.0,
+      "occupancy_percent": 74.00032475,
+      "l2_hit_percent": 92.01305475,
+      "waves": 40832.0,
+      "vgpr": 112,
+      "sgpr": 128,
+      "lds_bytes": 0,
+      "scratch_bytes": 0
+    },
+    "relative_change_percent": {
+      "fetch_kib": -32.9870,
+      "sq_busy_cycles": -20.1611,
+      "sq_insts_valu": -5.4652
+    },
+    "direct_dependency_stall_counter": "not exposed for gfx1151 by this metric set"
+  },
+  "full_request_rocprofv3": {
+    "scenario": "exact 32768 input + 1 output, uncached, graph disabled, dFlash disabled",
+    "profiler": "/root/venv1151/bin/rocprofv3 ROCm 7.13 ABI matched",
+    "process_start": true,
+    "signal_handlers_disabled": true,
+    "signal_6_or_abort_errors": 0,
+    "invocations": 320,
+    "baseline_total_gpu_ms": 3456.036,
+    "candidate_total_gpu_ms": 2906.637126,
+    "candidate_mean_gpu_ms": 9.083241,
+    "total_gpu_ms_reduction": 549.398874,
+    "total_gpu_reduction_percent": 15.8968,
+    "candidate_percent_of_kernel_time": 9.773893,
+    "candidate_rank": 3,
+    "repacker_invocations": 80,
+    "repacker_total_gpu_ms": 90.525236,
+    "repacker_mean_gpu_ms": 1.131565
+  },
+  "serving": {
+    "scenario": "exact 32768 input + 1 output, uncached, graph disabled, dFlash disabled",
+    "baseline_pair_host_e2e_ms": [29144.950506, 29046.814831],
+    "candidate_pair_host_e2e_ms": [28628.678410, 28433.217832],
+    "baseline_mean_host_e2e_ms": 29095.882669,
+    "candidate_mean_host_e2e_ms": 28530.948121,
+    "host_e2e_reduction_ms": 564.934548,
+    "speedup": 1.019800,
+    "greedy_output_ids": [248045, 220],
+    "greedy_outputs_match": true,
+    "baseline_peak_vram_bytes": [60921634816, 60923731968],
+    "candidate_peak_vram_bytes": [71766151168, 71768248320],
+    "mean_vram_increase_bytes": 10844516352
+  },
+  "additional_serving": {
+    "8192_input_1_output": {"host_e2e_ms": 5867.450266, "cached_tokens": 0, "output_id": 278, "prior_control_output_id": 278, "peak_vram_bytes": 71768244224},
+    "210_input_1_output": {"host_e2e_ms": 567.599932, "cached_tokens": 0, "output_id": 95860, "peak_vram_bytes": 71840841728},
+    "210_input_128_output": {"ttft_ms": 526.401213, "host_e2e_ms": 7602.906321, "output_throughput_tokens_per_s": 17.946712, "cached_tokens": 0, "peak_vram_bytes": 71840841728}
+  },
+  "loading": {
+    "shard_loading_seconds": 9.01,
+    "launch_to_health_ms": 22143,
+    "persistent_prefill_layout_bytes": 10737418240,
+    "source_quantization": "MXFP4",
+    "destination_quantization": "MXFP4",
+    "dequantization": false
+  },
+  "static_disassembly": {
+    "baseline_instructions": 375,
+    "candidate_instructions": 364,
+    "baseline_global_load_instructions": 17,
+    "candidate_global_load_instructions": 11,
+    "repacker_instructions": 29
+  }
+}

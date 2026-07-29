@@ -25,6 +25,7 @@ Kernel down;
 Kernel silu;
 Kernel reduce;
 Kernel prefill_gate;
+Kernel prefill_repack;
 Kernel prefill_down;
 Kernel linear_decode;
 Kernel linear_prefill;
@@ -61,6 +62,8 @@ void initialize() {
        "mxfp4_sgl_reduce_gfx1151");
   load(prefill_gate, "mxfp4_prefill_gate_wmma_gfx1151.hsaco",
        "mxfp4_prefill_gate_wmma_gfx1151");
+  load(prefill_repack, "mxfp4_prefill_repack_dword_gfx1151.hsaco",
+       "mxfp4_prefill_repack_dword_gfx1151");
   load(prefill_down, "mxfp4_prefill_down_wmma_gfx1151.hsaco",
        "mxfp4_prefill_down_wmma_gfx1151");
   load(linear_decode, "mxfp4_sgl_linear_decode_gfx1151.hsaco",
@@ -111,6 +114,11 @@ struct alignas(8) FivePointers {
   void* c;
   void* d;
   void* e;
+};
+
+struct alignas(8) TwoPointers {
+  void* a;
+  void* b;
 };
 
 struct alignas(8) ThreePointers {
@@ -223,6 +231,17 @@ extern "C" int netra_mxfp4_sgl_decode(
   ThreePointers reduce_args{expert_output_tmp, topk_weights, output};
   status = launch(reduce.function, 8, 1, 256, stream, reduce_args);
   return status == hipSuccess ? 0 : 70000 + static_cast<int>(status);
+}
+
+extern "C" int netra_mxfp4_sgl_prefill_repack(
+    void* source, void* destination, void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  auto stream = reinterpret_cast<hipStream_t>(stream_ptr);
+  TwoPointers args{source, destination};
+  hipError_t status =
+      launch(prefill_repack.function, 131072, 1, 256, stream, args);
+  return status == hipSuccess ? 0 : 80000 + static_cast<int>(status);
 }
 
 extern "C" int netra_mxfp4_sgl_prefill_gate_up(

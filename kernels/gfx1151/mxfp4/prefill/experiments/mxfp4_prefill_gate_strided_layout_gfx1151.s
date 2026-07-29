@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Production raw grouped MXFP4 prefill with coalesced dword weight layout.
+// Raw grouped MXFP4 prefill for gfx1151.
 // Qwen3.6 expert gate/up: N=512, K=2048, 64 padded rows per group.
 //
 // grid=(32, group_count, 1), block=(32,1,1). expert_ids[group] chooses
@@ -145,8 +145,7 @@ mxfp4_prefill_gate_wmma_gfx1151:
 	// A row address within the first 16-row tile; packed B and scale columns.
 	v_lshlrev_b32_e32 v8, 12, v1
 	v_lshl_add_u32 v8, v2, 4, v8
-	v_lshlrev_b32_e32 v9, 2, v3
-	v_lshl_add_u32 v9, v2, 11, v9
+	v_lshl_add_u32 v9, v2, 11, v3
 	v_mov_b32_e32 v10, v3
 
 	v_mov_b32_e32 v4, 0xc0800000
@@ -175,12 +174,24 @@ mxfp4_prefill_gate_wmma_gfx1151:
 .Lmxblock:
 	// Both K=16 B fragments and their shared scale issue together.
 	global_load_ubyte v104, v10, s[6:7]
-	global_load_dword v80, v9, s[4:5]
+	global_load_ubyte v80, v9, s[4:5]
+	global_load_ubyte v81, v9, s[4:5] offset:512
+	global_load_ubyte v82, v9, s[4:5] offset:1024
+	global_load_ubyte v83, v9, s[4:5] offset:1536
 	v_add_nc_u32_e32 v12, 4096, v9
-	global_load_dword v84, v12, s[4:5]
+	global_load_ubyte v84, v12, s[4:5]
+	global_load_ubyte v85, v12, s[4:5] offset:512
+	global_load_ubyte v86, v12, s[4:5] offset:1024
+	global_load_ubyte v87, v12, s[4:5] offset:1536
 	s_waitcnt vmcnt(0)
 
+	v_lshl_or_b32 v81, v81, 8, v80
+	v_lshl_or_b32 v83, v83, 8, v82
+	v_lshl_or_b32 v80, v83, 16, v81
 	DECODE_TO v80 v16 v17 v18 v19 v20 v21 v22 v23
+	v_lshl_or_b32 v85, v85, 8, v84
+	v_lshl_or_b32 v87, v87, 8, v86
+	v_lshl_or_b32 v84, v87, 16, v85
 	DECODE_TO v84 v24 v25 v26 v27 v28 v29 v30 v31
 	s_waitcnt lgkmcnt(0)
 	v_lshlrev_b32_e32 v104, 23, v104

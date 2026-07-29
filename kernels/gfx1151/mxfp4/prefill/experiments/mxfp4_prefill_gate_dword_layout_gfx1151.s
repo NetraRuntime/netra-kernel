@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Production raw grouped MXFP4 prefill with coalesced dword weight layout.
+// Experimental raw grouped MXFP4 prefill with coalesced dword weight layout.
 // Qwen3.6 expert gate/up: N=512, K=2048, 64 padded rows per group.
 //
 // grid=(32, group_count, 1), block=(32,1,1). expert_ids[group] chooses
@@ -104,11 +104,11 @@
 	v_add_nc_u32_e32 v11, 2048, v11
 	.endm
 
-	.protected mxfp4_prefill_gate_wmma_gfx1151
-	.globl mxfp4_prefill_gate_wmma_gfx1151
+	.protected mxfp4_prefill_gate_dword_layout_gfx1151
+	.globl mxfp4_prefill_gate_dword_layout_gfx1151
 	.p2align 8
-	.type mxfp4_prefill_gate_wmma_gfx1151,@function
-mxfp4_prefill_gate_wmma_gfx1151:
+	.type mxfp4_prefill_gate_dword_layout_gfx1151,@function
+mxfp4_prefill_gate_dword_layout_gfx1151:
 	s_clause 0x1
 	s_load_b128 s[4:7], s[0:1], 0
 	s_load_b128 s[8:11], s[0:1], 16
@@ -215,7 +215,7 @@ mxfp4_prefill_gate_wmma_gfx1151:
 
 	.section .rodata,"a",@progbits
 	.p2align 6, 0
-	.amdhsa_kernel mxfp4_prefill_gate_wmma_gfx1151
+	.amdhsa_kernel mxfp4_prefill_gate_dword_layout_gfx1151
 		.amdhsa_group_segment_fixed_size 0
 		.amdhsa_private_segment_fixed_size 0
 		.amdhsa_kernarg_size 40
@@ -240,7 +240,7 @@ mxfp4_prefill_gate_wmma_gfx1151:
 	.end_amdhsa_kernel
 	.text
 .Lfunc_end0:
-	.size mxfp4_prefill_gate_wmma_gfx1151, .Lfunc_end0-mxfp4_prefill_gate_wmma_gfx1151
+	.size mxfp4_prefill_gate_dword_layout_gfx1151, .Lfunc_end0-mxfp4_prefill_gate_dword_layout_gfx1151
 
 	.amdgpu_metadata
 ---
@@ -265,11 +265,11 @@ amdhsa.kernels:
     .language: OpenCL C
     .language_version: [2, 0]
     .max_flat_workgroup_size: 32
-    .name: mxfp4_prefill_gate_wmma_gfx1151
+    .name: mxfp4_prefill_gate_dword_layout_gfx1151
     .private_segment_fixed_size: 0
     .sgpr_count: 22
     .sgpr_spill_count: 0
-    .symbol: mxfp4_prefill_gate_wmma_gfx1151.kd
+    .symbol: mxfp4_prefill_gate_dword_layout_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 105

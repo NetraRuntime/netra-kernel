@@ -1,0 +1,35 @@
+
+build/sglang/mxfp4_prefill_repack_dword_gfx1151.hsaco:	file format elf64-amdgpu
+
+Disassembly of section .text:
+
+0000000000001600 <mxfp4_prefill_repack_dword_gfx1151>:
+	s_load_b128 s[4:7], s[0:1], null                           // 000000001600: F4080100 F8000000
+	s_waitcnt lgkmcnt(0)                                       // 000000001608: BF89FC07
+	v_mov_b32_e32 v1, s2                                       // 00000000160C: 7E020202
+	v_lshlrev_b32_e32 v1, 8, v1                                // 000000001610: 30020288
+	v_add_nc_u32_e32 v1, v0, v1                                // 000000001614: 4A020300
+	v_lshlrev_b32_e32 v2, 2, v1                                // 000000001618: 30040282
+	v_and_b32_e32 v3, 0x1ff, v1                                // 00000000161C: 360602FF 000001FF
+	v_lshrrev_b32_e32 v4, 9, v1                                // 000000001624: 32080289
+	v_and_b32_e32 v5, 1, v4                                    // 000000001628: 360A0881
+	v_lshrrev_b32_e32 v6, 1, v4                                // 00000000162C: 320C0881
+	v_and_b32_e32 v7, 1, v6                                    // 000000001630: 360E0C81
+	v_lshrrev_b32_e32 v8, 2, v4                                // 000000001634: 32100882
+	v_and_b32_e32 v8, 63, v8                                   // 000000001638: 361010BF
+	v_lshrrev_b32_e32 v9, 8, v4                                // 00000000163C: 32120888
+	v_lshlrev_b32_e32 v8, 4, v8                                // 000000001640: 30101084
+	v_lshl_add_u32 v8, v7, 3, v8                               // 000000001644: D6460008 04210707
+	v_lshl_add_u32 v8, v5, 2, v8                               // 00000000164C: D6460008 04210505
+	v_lshl_add_u32 v8, v9, 10, v8                              // 000000001654: D6460008 04211509
+	v_lshl_add_u32 v3, v8, 9, v3                               // 00000000165C: D6460003 040D1308
+	global_load_u8 v10, v3, s[4:5]                             // 000000001664: DC420000 0A040003
+	global_load_u8 v11, v3, s[4:5] offset:512                  // 00000000166C: DC420200 0B040003
+	global_load_u8 v12, v3, s[4:5] offset:1024                 // 000000001674: DC420400 0C040003
+	global_load_u8 v13, v3, s[4:5] offset:1536                 // 00000000167C: DC420600 0D040003
+	s_waitcnt vmcnt(0)                                         // 000000001684: BF8903F7
+	v_lshl_or_b32 v11, v11, 8, v10                             // 000000001688: D656000B 0429110B
+	v_lshl_or_b32 v13, v13, 8, v12                             // 000000001690: D656000D 0431110D
+	v_lshl_or_b32 v10, v13, 16, v11                            // 000000001698: D656000A 042D210D
+	global_store_b32 v2, v10, s[6:7]                           // 0000000016A0: DC6A0000 00060A02
+	s_endpgm                                                   // 0000000016A8: BFB00000

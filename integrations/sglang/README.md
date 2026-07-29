@@ -16,6 +16,8 @@ This directory is the complete serving overlay for SGLang commit
 - The raw GDN bridge is graph-safe and retains Triton for all other shapes.
 - `netra_gfx1151_sglang.py` is copied into SGLang's quantization package.
 - `netra_mxfp4_sgl_launcher.hip` is launch-only host code for the raw HSACOs.
+- Prefill gate/up weights retain MXFP4 and add a load-time raw-ASM dword-layout
+  view for coalesced gfx1151 access; decode retains the serialized layout.
 - `launch.sh` starts the validated gfx1151 deployment.
 
 The launcher enables the measured fast-load path by default: safetensors are
@@ -23,7 +25,10 @@ read without mmap by two bounded loader threads, then the Qwen integration
 stages each 256-expert MXFP4 group into a small number of device copies. On the
 16 GiB Netra system, do not raise `SGLANG_WEIGHT_LOADER_THREADS` without first
 checking peak host memory. The cold-cache gfx1151 result is documented in
-`docs/notes/gfx1151-loading-report-2026-07-29.md`.
+`docs/notes/gfx1151-loading-report-2026-07-29.md`. The accepted prefill view
+adds 10 GiB of persistent unified-VRAM allocation but keeps the measured shard
+phase at 9.01 seconds and passes the 49K context tier. Its evidence is in
+`docs/notes/gfx1151-prefill-gate-dword-layout-2026-07-29.md`.
 
 Build the native artifacts first:
 
