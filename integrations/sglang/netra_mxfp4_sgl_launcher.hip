@@ -29,6 +29,7 @@ Kernel prefill_repack;
 Kernel prefill_down;
 Kernel linear_decode;
 Kernel linear_prefill;
+Kernel linear_prefill_repack;
 Kernel qkvzba_split;
 Kernel extend_attention;
 Kernel gdn_chunk_o;
@@ -68,6 +69,9 @@ void initialize() {
        "mxfp4_prefill_down_wmma_gfx1151");
   load(linear_decode, "mxfp4_sgl_linear_decode_gfx1151.hsaco",
        "mxfp4_sgl_linear_decode_gfx1151");
+  load(linear_prefill_repack,
+       "mxfp4_sgl_linear_prefill_repack_dword_gfx1151.hsaco",
+       "mxfp4_sgl_linear_prefill_repack_dword_gfx1151");
   load(linear_prefill, "mxfp4_sgl_linear_prefill_wmma_gfx1151.hsaco",
        "mxfp4_sgl_linear_prefill_wmma_gfx1151");
   load(qkvzba_split, "qkvzba_split_copy_gfx1151.hsaco",
@@ -144,6 +148,13 @@ struct alignas(8) LinearArgs {
   unsigned n;
   unsigned k;
 };
+
+struct alignas(8) LinearRepackArgs {
+  void* source;
+  void* destination;
+  unsigned n;
+};
+static_assert(sizeof(LinearRepackArgs) == 24);
 
 struct alignas(8) ExtendAttentionArgs {
   void* q;
@@ -316,6 +327,19 @@ extern "C" int netra_mxfp4_sgl_linear_prefill(
   hipError_t status = launch(
       linear_prefill.function, n / 16, group_count, 32, stream, args);
   return status == hipSuccess ? 0 : 93000 + static_cast<int>(status);
+}
+
+extern "C" int netra_mxfp4_sgl_linear_prefill_repack(
+    void* source, void* destination, unsigned n, unsigned k,
+    void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  if ((n & 7U) || (k & 31U) || n == 0 || k == 0) return 92501;
+  LinearRepackArgs args{source, destination, n};
+  hipError_t status = launch(
+      linear_prefill_repack.function, n / 8, k / 32, 32,
+      reinterpret_cast<hipStream_t>(stream_ptr), args);
+  return status == hipSuccess ? 0 : 92500 + static_cast<int>(status);
 }
 
 extern "C" int netra_qkvzba_split_copy(

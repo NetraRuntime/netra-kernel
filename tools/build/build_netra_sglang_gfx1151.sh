@@ -22,6 +22,7 @@ sources=(
   serving/mxfp4_sgl_reduce_gfx1151.s
   serving/mxfp4_sgl_linear_decode_gfx1151.s
   serving/mxfp4_sgl_linear_prefill_wmma_gfx1151.s
+  serving/mxfp4_sgl_linear_prefill_repack_dword_gfx1151.s
   prefill/mxfp4_prefill_gate_wmma_gfx1151.s
   prefill/mxfp4_prefill_repack_dword_gfx1151.s
   prefill/mxfp4_prefill_down_wmma_gfx1151.s

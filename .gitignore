@@ -2,3 +2,4 @@
 /results/
 *.orig
 __pycache__/
+.rocprofv3/

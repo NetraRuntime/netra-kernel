@@ -1,0 +1,134 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured except static disassembly fields",
+  "date": "2026-07-29",
+  "checkpoint": "/root/models/qwen36-sgl-mxfp4",
+  "weights": "MXFP4 retained; byte permutation only",
+  "layout": "[K32][fragment][subgroup][N][four packed K bytes]",
+  "isolated_hip_events": [
+    {
+      "shape": {"groups": 128, "m": 64, "n": 12288, "k": 2048},
+      "baseline_median_ms": 14.558731,
+      "candidate_median_ms": 12.935582,
+      "speedup": 1.125479,
+      "repacker_median_ms": 0.113493,
+      "graph_replay_median_ms": 12.955162,
+      "compute_bit_exact": true,
+      "repacker_bit_exact": true,
+      "graph_bit_exact": true
+    },
+    {
+      "shape": {"groups": 128, "m": 64, "n": 2048, "k": 4096},
+      "baseline_median_ms": 7.308417,
+      "candidate_median_ms": 4.903353,
+      "speedup": 1.490494,
+      "repacker_median_ms": 0.028894,
+      "graph_replay_median_ms": 4.880715,
+      "compute_bit_exact": true,
+      "repacker_bit_exact": true,
+      "graph_bit_exact": true
+    },
+    {
+      "shape": {"groups": 128, "m": 64, "n": 64, "k": 2048},
+      "baseline_median_ms_31_samples": 0.774129,
+      "candidate_median_ms_31_samples": 0.796532,
+      "speedup": 0.971874,
+      "repacker_median_ms": 0.005651,
+      "graph_replay_median_ms": 0.681678,
+      "compute_bit_exact": true,
+      "repacker_bit_exact": true,
+      "graph_bit_exact": true
+    }
+  ],
+  "rocprofv3_counters": {
+    "collection": "ROCm 7.2.1, one counter per process launch",
+    "n12288_k2048": {
+      "fetch_kib": {"before": 1322643.78125, "after": 1077846.7375, "change_pct": -18.508161},
+      "sq_busy_cycles": {"before": 831759545.25, "after": 741985037.4, "change_pct": -10.793325},
+      "sq_valu_instructions": {"before": 726859776.0, "after": 651362304.0, "change_pct": -10.386800},
+      "flat_instructions": {"before": 110100480.0, "after": 72351744.0, "change_pct": -34.285714},
+      "occupancy_pct": {"before": 74.652811, "after": 74.705250},
+      "waves": {"before": 98304, "after": 98304},
+      "resources": {"before": "112 VGPR / 128 profiler SGPR / 0 LDS / 0 scratch", "after": "112 VGPR / 128 profiler SGPR / 0 LDS / 0 scratch"}
+    },
+    "n2048_k4096": {
+      "fetch_kib": {"before": 1234990.15625, "after": 253080.8875, "change_pct": -79.507457},
+      "sq_busy_cycles": {"before": 410263553.25, "after": 275802638.8, "change_pct": -32.774277},
+      "sq_valu_instructions": {"before": 240680960.0, "after": 215515136.0, "change_pct": -10.456093},
+      "flat_instructions": {"before": 36175872.0, "after": 23592960.0, "change_pct": -34.782609},
+      "occupancy_pct": {"before": 71.325526, "after": 73.593761},
+      "waves": {"before": 16384, "after": 16384},
+      "resources": {"before": "112 VGPR / 128 profiler SGPR / 0 LDS / 0 scratch", "after": "112 VGPR / 128 profiler SGPR / 0 LDS / 0 scratch"}
+    },
+    "n64_k2048": {
+      "fetch_kib": {"before": 73599.59375, "after": 77492.4625, "change_pct": 5.289253},
+      "sq_busy_cycles": {"before": 39184378.0, "after": 40862972.6, "change_pct": 4.283836},
+      "sq_valu_instructions": {"before": 3785728.0, "after": 3392512.0, "change_pct": -10.386800},
+      "flat_instructions": {"before": 573440.0, "after": 376832.0, "change_pct": -34.285714},
+      "waves": {"before": 512, "after": 512},
+      "resources": {"before": "112 VGPR / 128 profiler SGPR / 0 LDS / 0 scratch", "after": "112 VGPR / 128 profiler SGPR / 0 LDS / 0 scratch"},
+      "interpretation": "fewer instructions did not offset 5.289% more fetched bytes and 4.284% more SQ busy cycles"
+    },
+    "direct_dependency_stall_counter": "unavailable on the exposed gfx1151 metric set; not estimated"
+  },
+  "full_request_rocprofv3": {
+    "scenario": "exact 32768 input + 1 output, uncached, batch 1, graph disabled, dFlash disabled",
+    "before": {"calls": 360, "total_gpu_ms": 2943.308317, "mean_gpu_ms": 8.175856, "kernel_time_pct": 9.897204},
+    "after": {"calls": 360, "total_gpu_ms": 2432.429527, "mean_gpu_ms": 6.756749, "kernel_time_pct": 8.344864},
+    "total_gpu_reduction_ms": 510.878790,
+    "total_gpu_reduction_pct": 17.357292,
+    "shape_breakdown": [
+      {"n": 64, "calls": 120, "before_total_ms": 167.127637, "after_total_ms": 171.614542, "change_ms": 4.486905},
+      {"n": 2048, "calls": 120, "before_total_ms": 801.957327, "after_total_ms": 592.667853, "change_ms": -209.289474},
+      {"n": 12288, "calls": 120, "before_total_ms": 1974.223353, "after_total_ms": 1668.147132, "change_ms": -306.076221}
+    ],
+    "one_time_repacker": {"calls": 90, "total_gpu_ms": 4.771609, "mean_gpu_us": 53.017878},
+    "persistent_view_bytes": 505282560,
+    "profiler": "ROCm 7.13 ABI-matched rocprofv3 process-start CSV, signal handlers disabled",
+    "request_output_ids": [248045],
+    "request_correct": true
+  },
+  "serving": {
+    "scenario": "exact 32768 input + 1 output, uncached, batch 1, graph disabled, dFlash disabled",
+    "control_commit": "cbe25010018b1d91e59c585b6db9fbafade8a2fb",
+    "pairs": [
+      {"seed": "attention-k-lds-pair-a", "before_ms": 28628.678410, "after_ms": 28100.356803, "output_id": 248045, "match": true},
+      {"seed": "attention-k-lds-pair-b", "before_ms": 28433.217832, "after_ms": 27904.237105, "output_id": 220, "match": true}
+    ],
+    "before_mean_ms": 28530.948121,
+    "after_mean_ms": 28002.296954,
+    "reduction_ms": 528.651167,
+    "speedup": 1.018879,
+    "after_peak_vram_bytes": [72044933120, 72047030272]
+  },
+  "short_prefill": {
+    "scenario": "exact 210 input + 1 output, uncached, graph disabled, dFlash disabled",
+    "host_e2e_ms": 616.442424,
+    "output_id": 95860,
+    "control_output_id": 95860,
+    "correct": true,
+    "performance_decision": "not used as an improvement claim; one measured sample was slower than the prior 567.599932 ms"
+  },
+  "loading": {
+    "shard_and_weight_phase_seconds": 9.32,
+    "prior_accepted_seconds": 9.01,
+    "status": "measured; still on the fast multi-thread loader path, not the former 10-20 minute path"
+  },
+  "negative_specialization": {
+    "candidate": "retain the old strided raw ASM and original MXFP4 view only for N=64",
+    "isolated_reason": "N=64 candidate dword median was 2.813% slower and the full trace added 4.487 ms across 120 calls",
+    "serving_before_mean_ms": 28002.296954,
+    "serving_candidate_mean_ms": 28181.301490,
+    "serving_regression_ms": 179.004536,
+    "outputs_match": true,
+    "decision": "rejected and removed from production"
+  },
+  "disassembly": {
+    "compute_instructions": {"before": 384, "after": 366},
+    "global_load_instructions": {"before": 17, "after": 11},
+    "wait_instructions": {"before": 15, "after": 15},
+    "wmma_instructions": {"before": 8, "after": 8},
+    "repacker_instructions": 28,
+    "status": "static disassembly count"
+  }
+}

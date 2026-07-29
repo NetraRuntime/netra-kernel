@@ -19,6 +19,17 @@ def launch(lib, packed, scales, activation, output, groups, n, k, stream):
     if status:
         raise RuntimeError(f"raw dense-prefill launch failed: {status}")
 
+
+def repack(lib, packed, n, k, stream):
+    destination = torch.empty_like(packed)
+    status = lib.netra_mxfp4_sgl_linear_prefill_repack(
+        ptr(packed), ptr(destination), n, k, stream
+    )
+    if status:
+        raise RuntimeError(f"raw dense-prefill repack failed: {status}")
+    return destination, "dword"
+
+
 def time_shape(lib, packed, scales, activation, output, groups, n, k, stream, inner):
     for _ in range(5):
         launch(lib, packed, scales, activation, output, groups, n, k, stream)
@@ -48,6 +59,8 @@ def main():
     lib.netra_mxfp4_sgl_init.restype = ctypes.c_int
     lib.netra_mxfp4_sgl_linear_prefill.argtypes = [ctypes.c_void_p] * 4 + [ctypes.c_uint] * 3 + [ctypes.c_void_p]
     lib.netra_mxfp4_sgl_linear_prefill.restype = ctypes.c_int
+    lib.netra_mxfp4_sgl_linear_prefill_repack.argtypes = [ctypes.c_void_p] * 2 + [ctypes.c_uint] * 2 + [ctypes.c_void_p]
+    lib.netra_mxfp4_sgl_linear_prefill_repack.restype = ctypes.c_int
     if lib.netra_mxfp4_sgl_init():
         raise RuntimeError("Netra raw-ASM runtime init failed")
     stream = ctypes.c_void_p(torch.cuda.current_stream().cuda_stream)
@@ -56,13 +69,15 @@ def main():
     results = []
     for name, n, k in SHAPES:
         packed = torch.randint(0, 256, (k // 2, n), dtype=torch.uint8, device="cuda")
+        compute_packed, weight_layout = repack(lib, packed, n, k, stream)
         scales = torch.full((k // 32, n), 127, dtype=torch.uint8, device="cuda")
         activation = torch.randn((args.groups, 64, k), dtype=torch.bfloat16, device="cuda")
         output = torch.empty((args.groups, 64, n), dtype=torch.float32, device="cuda")
-        samples = time_shape(lib, packed, scales, activation, output, args.groups, n, k, stream, args.inner)
+        samples = time_shape(lib, compute_packed, scales, activation, output, args.groups, n, k, stream, args.inner)
         one_group = output[0].cpu()
         saved[name] = output.cpu() if args.save_all_gdn and name == "gdn_out" else one_group
         item = {"name": name, "n": n, "k": k, "groups": args.groups, "median_ms": statistics.median(samples), "mean_ms": statistics.mean(samples), "min_ms": min(samples), "max_ms": max(samples), "samples_ms": samples}
+        item["weight_layout"] = weight_layout
         if name in reference:
             expected = reference[name]
             actual = output.cpu() if expected.ndim == 3 else one_group

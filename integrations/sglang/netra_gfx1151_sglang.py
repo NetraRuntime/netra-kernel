@@ -52,6 +52,12 @@ class _Runtime:
             + [ctypes.c_void_p]
         )
         self.lib.netra_mxfp4_sgl_linear_prefill.restype = ctypes.c_int
+        self.lib.netra_mxfp4_sgl_linear_prefill_repack.argtypes = (
+            [ctypes.c_void_p] * 2
+            + [ctypes.c_uint] * 2
+            + [ctypes.c_void_p]
+        )
+        self.lib.netra_mxfp4_sgl_linear_prefill_repack.restype = ctypes.c_int
         self.lib.netra_qkvzba_split_copy.argtypes = (
             [ctypes.c_void_p] * 6
             + [ctypes.c_uint, ctypes.c_void_p]
@@ -112,6 +118,26 @@ def _repack_prefill_weight(source: torch.Tensor) -> torch.Tensor:
         _ptr(source), _ptr(destination), runtime.stream()
     )
     runtime.check(status, "Netra raw-ASM MXFP4 prefill weight repack")
+    return destination
+
+
+def _repack_linear_prefill_weight(
+    source: torch.Tensor, n: int, k: int
+) -> torch.Tensor:
+    """Build the persistent dword layout consumed by dense prefill ASM."""
+    if source.dtype != torch.uint8 or tuple(source.shape) != (k // 2, n):
+        raise ValueError(
+            f"Netra dense-prefill repack expects uint8 [{k // 2},{n}], got "
+            f"{source.dtype} {tuple(source.shape)}"
+        )
+    if not source.is_contiguous():
+        raise ValueError("Netra dense-prefill repack requires a contiguous source")
+    destination = torch.empty_like(source)
+    runtime = _get_runtime()
+    status = runtime.lib.netra_mxfp4_sgl_linear_prefill_repack(
+        _ptr(source), _ptr(destination), n, k, runtime.stream()
+    )
+    runtime.check(status, "Netra raw-ASM dense MXFP4 prefill weight repack")
     return destination
 
 
@@ -428,6 +454,14 @@ class NetraMxfp4LinearMethod(LinearMethodBase):
             layer.weight_scale.data.transpose(0, 1).contiguous(),
             requires_grad=False,
         )
+        layer.netra_linear_prefill_weight = Parameter(
+            _repack_linear_prefill_weight(
+                layer.netra_linear_weight,
+                layer.netra_output_size,
+                layer.netra_input_size,
+            ),
+            requires_grad=False,
+        )
         del layer.weight_packed
         del layer.weight_scale
         layer._mxfp4_backend = "netra_gfx1151_raw_asm_linear"
@@ -479,7 +513,7 @@ class NetraMxfp4LinearMethod(LinearMethodBase):
             )
             if torch.compiler.is_compiling():
                 netra_mxfp4_linear_prefill_with_output(
-                    layer.netra_linear_weight,
+                    layer.netra_linear_prefill_weight,
                     layer.netra_linear_scale,
                     activation_groups,
                     output_groups,
@@ -490,7 +524,7 @@ class NetraMxfp4LinearMethod(LinearMethodBase):
             else:
                 runtime = _get_runtime()
                 status = runtime.lib.netra_mxfp4_sgl_linear_prefill(
-                    _ptr(layer.netra_linear_weight),
+                    _ptr(layer.netra_linear_prefill_weight),
                     _ptr(layer.netra_linear_scale),
                     _ptr(activation_groups),
                     _ptr(output_groups),

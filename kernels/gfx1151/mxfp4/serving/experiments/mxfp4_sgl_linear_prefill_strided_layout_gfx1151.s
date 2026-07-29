@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 //
-// Raw gfx1151 MXFP4 dense-linear prefill with persistent dword-layout weights with runtime N and K.
-// packed=[K32,fragment2,subgroup2,N,4 bytes], scales=[K/32,N], activation=[groups,64,K] BF16,
+// Experimental baseline raw gfx1151 MXFP4 dense-linear prefill with strided weights.
+// packed=[K/2,N], scales=[K/32,N], activation=[groups,64,K] BF16,
 // output=[groups,64,N] FP32. N and K must be multiples of 16 and 32.
 // grid=(N/16,group_count,1), block=(32,1,1).
 //
@@ -58,7 +58,7 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 	v_mul_lo_u32 v8, v1, s19
 	v_lshl_add_u32 v8, v2, 4, v8
 	v_mul_lo_u32 v9, v2, s17
-	v_lshl_add_u32 v9, v3, 2, v9
+	v_add_nc_u32_e32 v9, v9, v3
 	v_mov_b32_e32 v10, v3
 
 	v_mov_b32_e32 v4, 0xc0800000
@@ -86,12 +86,30 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 .Lmxblock:
 	// Scale and both K=16 B fragments. Dynamic N replaces fixed offsets.
 	global_load_ubyte v104, v10, s[6:7]
-	global_load_dword v80, v9, s[4:5]
+	global_load_ubyte v80, v9, s[4:5]
+	v_add_nc_u32_e32 v100, s12, v9
+	global_load_ubyte v81, v100, s[4:5]
+	v_add_nc_u32_e32 v100, s12, v100
+	global_load_ubyte v82, v100, s[4:5]
+	v_add_nc_u32_e32 v100, s12, v100
+	global_load_ubyte v83, v100, s[4:5]
 	v_add_nc_u32_e32 v12, s18, v9
-	global_load_dword v84, v12, s[4:5]
+	global_load_ubyte v84, v12, s[4:5]
+	v_add_nc_u32_e32 v100, s12, v12
+	global_load_ubyte v85, v100, s[4:5]
+	v_add_nc_u32_e32 v100, s12, v100
+	global_load_ubyte v86, v100, s[4:5]
+	v_add_nc_u32_e32 v100, s12, v100
+	global_load_ubyte v87, v100, s[4:5]
 	s_waitcnt vmcnt(0)
 
+	v_lshl_or_b32 v81, v81, 8, v80
+	v_lshl_or_b32 v83, v83, 8, v82
+	v_lshl_or_b32 v80, v83, 16, v81
 	PREFILL_DECODE_TO v80 v16 v17 v18 v19 v20 v21 v22 v23
+	v_lshl_or_b32 v85, v85, 8, v84
+	v_lshl_or_b32 v87, v87, 8, v86
+	v_lshl_or_b32 v84, v87, 16, v85
 	PREFILL_DECODE_TO v84 v24 v25 v26 v27 v28 v29 v30 v31
 	s_waitcnt lgkmcnt(0)
 	v_lshlrev_b32_e32 v104, 23, v104
