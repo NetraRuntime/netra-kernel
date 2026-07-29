@@ -1,0 +1,109 @@
+--- a/python/sglang/srt/models/qwen3_5.py
++++ b/python/sglang/srt/models/qwen3_5.py
+@@ -17,0 +18,3 @@
++import os
++import re
++import weakref
+@@ -288,0 +292,12 @@
++        if _is_hip:
++            # Weak links let the Netra quant post-load pass combine the two
++            # raw MXFP4 layouts after BA (the second module) is processed,
++            # without registering either linear as a duplicate child module.
++            self.in_proj_qkvz._netra_qkvz_ba_role = "qkvz"
++            self.in_proj_ba._netra_qkvz_ba_role = "ba"
++            self.in_proj_qkvz._netra_qkvz_ba_peer = weakref.ref(
++                self.in_proj_ba
++            )
++            self.in_proj_ba._netra_qkvz_ba_peer = weakref.ref(
++                self.in_proj_qkvz
++            )
+@@ -549,0 +565,9 @@
++        if hidden_states.shape == (1, 2048) and hasattr(
++            self.in_proj_qkvz, "netra_qkvz_ba_weight"
++        ):
++            from sglang.srt.layers.quantization.netra_gfx1151 import (
++                apply_qkvz_ba_decode_fused,
++            )
++
++            return apply_qkvz_ba_decode_fused(self.in_proj_qkvz, hidden_states)
++
+@@ -2093,0 +2118,66 @@
++        batch_netra_experts = (
++            _is_hip
++            and os.environ.get("SGLANG_USE_NETRA_MXFP4_GFX1151") == "1"
++            and num_experts == 256
++            and not self.enable_shared_expert_fusion
++        )
++        expert_pattern = re.compile(
++            r"model\.layers\.(\d+)\.mlp\.experts\.(\d+)\."
++            r"(gate|up|down)_proj\.(weight_packed|weight_scale)$"
++        )
++        expert_batches: dict[tuple[int, str, str], dict[int, torch.Tensor]] = {}
++        batched_expert_tensors = 0
++
++        def maybe_batch_netra_expert(name: str, value: torch.Tensor) -> bool:
++            nonlocal batched_expert_tensors
++            if not batch_netra_experts:
++                return False
++            match = expert_pattern.fullmatch(name)
++            if match is None:
++                return False
++            layer_id = int(match.group(1))
++            expert_id = int(match.group(2))
++            projection = match.group(3)
++            kind = match.group(4)
++            base = f"model.layers.{layer_id}.mlp.experts"
++            if projection in ("gate", "up"):
++                target_name = (
++                    f"{base}.w13_weight"
++                    if kind == "weight_packed"
++                    else f"{base}.w13_weight_scale"
++                )
++            else:
++                target_name = (
++                    f"{base}.w2_weight"
++                    if kind == "weight_packed"
++                    else f"{base}.w2_weight_scale"
++                )
++            target = params_dict.get(target_name)
++            if target is None or target.shape[0] != num_experts:
++                return False
++
++            key = (layer_id, projection, kind)
++            bucket = expert_batches.setdefault(key, {})
++            bucket[expert_id] = value
++            if len(bucket) != num_experts:
++                return True
++
++            # A single contiguous host staging tensor replaces 256 blocking
++            # mmap-backed CPU->GPU copies. Serialized MXFP4 stays unchanged.
++            staged = torch.stack([bucket[i] for i in range(num_experts)])
++            if projection == "gate":
++                destination = target.data[:, : staged.shape[1], :]
++            elif projection == "up":
++                destination = target.data[:, -staged.shape[1] :, :]
++            else:
++                destination = target.data
++            if destination.shape != staged.shape:
++                raise RuntimeError(
++                    f"Netra batched load shape mismatch for {target_name}: "
++                    f"{destination.shape} != {staged.shape}"
++                )
++            destination.copy_(staged)
++            batched_expert_tensors += len(bucket)
++            del expert_batches[key]
++            loaded_params.add(target_name)
++            return True
+@@ -2103,0 +2194,3 @@
++            if maybe_batch_netra_expert(name, loaded_weight):
++                continue
++
+@@ -2293,0 +2387,8 @@
++        if expert_batches:
++            incomplete = {key: len(value) for key, value in expert_batches.items()}
++            raise RuntimeError(f"Incomplete Netra expert batches: {incomplete}")
++        if batched_expert_tensors:
++            logger.info(
++                "Netra loaded %d MXFP4 expert tensors via 256-way host staging",
++                batched_expert_tensors,
++            )

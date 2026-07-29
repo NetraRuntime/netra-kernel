@@ -1,0 +1,28 @@
+{
+  "target": "gfx1151",
+  "date": "2026-07-29",
+  "measurement_status": "unavailable",
+  "status": "blocked_missing_compatible_dflash_draft_checkpoint",
+  "target_checkpoint": "/root/models/qwen36-sgl-mxfp4",
+  "target_has_dflash_config": false,
+  "installed_model_directories": [
+    "/root/models/qwen36-mxfp4",
+    "/root/models/qwen36-sgl-mxfp4"
+  ],
+  "separate_draft_checkpoint_found": false,
+  "source_commit": "1eee8fbdcc25b44e13bc097d5ff6ac24e8c24af4",
+  "required_flag": "--speculative-draft-model-path",
+  "metrics": {
+    "acceptance_rate": null,
+    "mean_accepted_length": null,
+    "drafted_tokens": null,
+    "verify_calls": null,
+    "verify_latency_ms": null,
+    "rollback_cost_ms": null,
+    "effective_output_tokens_per_s": null,
+    "ttft_ms": null,
+    "total_latency_ms": null,
+    "peak_vram_bytes": null
+  },
+  "estimated_values": false
+}

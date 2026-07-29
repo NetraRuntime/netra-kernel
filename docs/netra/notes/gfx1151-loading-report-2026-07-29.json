@@ -1,0 +1,45 @@
+{
+  "date": "2026-07-29",
+  "target": "gfx1151",
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "checkpoint": "/root/models/qwen36-sgl-mxfp4",
+  "quantization": "MXFP4 unchanged",
+  "measurement_status": "measured",
+  "cold_cache": {
+    "method": "POSIX_FADV_DONTNEED scoped to 26 checkpoint safetensors files",
+    "baseline_seconds": 731.51,
+    "mmap_batched_expert_seconds": 734.27,
+    "accepted_non_mmap_two_thread_seconds": 9.24,
+    "accepted_speedup": 79.1677,
+    "accepted_reduction_percent": 98.7369,
+    "shard_progress_seconds": 8,
+    "validation_repeat_seconds": 9.13,
+    "validation_repeat_host_launch_to_health_ms": 23145
+  },
+  "checkpoint_inventory": {
+    "shards": 26,
+    "tensors": 63321,
+    "main_model_expert_tensors_batched": 61440,
+    "expert_device_copies_after_batching": 240
+  },
+  "accepted_flags": [
+    "--weight-loader-disable-mmap",
+    "--model-loader-extra-config={\"num_threads\":2}",
+    "--weight-loader-drop-cache-after-load"
+  ],
+  "hip_event_copy_microbenchmark": {
+    "bytes": 268435456,
+    "pageable_ms": [18.916494, 3.384762, 3.360516, 3.374872],
+    "pinned_ms": [4.347503, 3.325469, 3.326992, 3.41672],
+    "conclusion": "pinning is not a material steady-state copy optimization on gfx1151 UMA"
+  },
+  "correctness": [
+    {"input_tokens": 16, "output_tokens": 1, "cached_tokens": 0, "host_e2e_ms": 395.212, "reference_hash": "match"},
+    {"input_tokens": 210, "output_tokens": 1, "cached_tokens": 0, "host_e2e_ms": 391.129, "reference_hash": "match"},
+    {"input_tokens": 8192, "output_tokens": 1, "cached_tokens": 0, "host_e2e_ms": 7117.081, "reference_hash": "match"},
+    {"input_tokens": 32768, "output_tokens": 1, "cached_tokens": 0, "host_e2e_ms": 34810.206, "reference_hash": "known_unstable_near_tie"},
+    {"input_tokens": 1, "output_tokens": 32, "cached_tokens": 0, "host_e2e_ms": 1798.343, "output_tokens_per_second": 18.05, "reference_hash": "match"},
+    {"input_tokens": 210, "output_tokens": 128, "cached_tokens": 0, "host_e2e_ms": 7451.358, "output_tokens_per_second": 17.991, "reference_hash": "match"}
+  ],
+  "raw_evidence": "results/loading/gfx1151/batched-disable-mmap-2t-20260729"
+}

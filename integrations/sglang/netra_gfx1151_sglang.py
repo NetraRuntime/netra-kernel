@@ -73,6 +73,22 @@ def _get_runtime() -> _Runtime:
     return _runtime
 
 
+def _ensure_decode_workspace(
+    layer: torch.nn.Module, device: torch.device
+) -> tuple[torch.Tensor, ...]:
+    workspace = getattr(layer, "_netra_decode_workspace", None)
+    if workspace is None:
+        workspace = (
+            torch.empty((8, 512), dtype=torch.float32, device=device),
+            torch.empty((8, 512), dtype=torch.float32, device=device),
+            torch.empty((8, 512), dtype=torch.bfloat16, device=device),
+            torch.empty((8, 2048), dtype=torch.float32, device=device),
+            torch.empty((1, 2048), dtype=torch.bfloat16, device=device),
+        )
+        layer._netra_decode_workspace = workspace
+    return workspace
+
+
 def process_weights(layer: torch.nn.Module) -> None:
     """Repack serialized MXFP4 once, retaining four-bit weights in VRAM."""
     split = layer.w13_weight.shape[1] // 2
@@ -101,6 +117,12 @@ def process_weights(layer: torch.nn.Module) -> None:
     del layer.w2_weight_scale
     del layer.w2_weight_bias
     layer._mxfp4_backend = "netra_gfx1151_raw_asm"
+
+    # Graph capture must not perform module loading or persistent allocation.
+    # Load every raw gfx1151 code object and allocate stable decode pointers as
+    # part of model initialization, before SGLang begins graph capture.
+    _get_runtime()
+    _ensure_decode_workspace(layer, layer.netra_gate_weight.device)
     torch.cuda.empty_cache()
 
 
@@ -162,6 +184,17 @@ class NetraMxfp4LinearMethod(LinearMethodBase):
         del layer.weight_scale
         layer._mxfp4_backend = "netra_gfx1151_raw_asm_linear"
 
+        # Qwen3.6 GDN marks the paired QKVZ and BA modules with weak peer
+        # references. BA is visited second by SGLang's quant post-processing,
+        # so both packed raw-ASM layouts are stable at this point.
+        if getattr(layer, "_netra_qkvz_ba_role", None) == "ba":
+            peer_ref = getattr(layer, "_netra_qkvz_ba_peer", None)
+            qkvz_layer = peer_ref() if peer_ref is not None else None
+            if qkvz_layer is not None and hasattr(
+                qkvz_layer, "netra_linear_weight"
+            ):
+                _prepare_qkvz_ba_decode_fusion(qkvz_layer, layer)
+
     def apply(
         self,
         layer: torch.nn.Module,
@@ -218,6 +251,66 @@ class NetraMxfp4LinearMethod(LinearMethodBase):
         return output.view(*original_shape[:-1], n)
 
 
+def _prepare_qkvz_ba_decode_fusion(
+    qkvz_layer: torch.nn.Module, ba_layer: torch.nn.Module
+) -> None:
+    """Build stable load-time pointers for the M=1 QKVZ+BA raw-ASM fusion."""
+    if hasattr(qkvz_layer, "netra_qkvz_ba_weight"):
+        return
+    if (
+        qkvz_layer.netra_input_size != 2048
+        or qkvz_layer.netra_output_size != 12288
+        or ba_layer.netra_input_size != 2048
+        or ba_layer.netra_output_size != 64
+    ):
+        return
+    fused_n = 12288 + 64
+    padded_n = ((fused_n + 511) // 512) * 512
+    pad = padded_n - fused_n
+    weight = torch.cat(
+        (qkvz_layer.netra_linear_weight, ba_layer.netra_linear_weight), dim=1
+    )
+    scale = torch.cat(
+        (qkvz_layer.netra_linear_scale, ba_layer.netra_linear_scale), dim=1
+    )
+    qkvz_layer.netra_qkvz_ba_weight = Parameter(
+        torch.nn.functional.pad(weight, (0, pad)).contiguous(),
+        requires_grad=False,
+    )
+    qkvz_layer.netra_qkvz_ba_scale = Parameter(
+        torch.nn.functional.pad(scale, (0, pad)).contiguous(),
+        requires_grad=False,
+    )
+    qkvz_layer.netra_qkvz_ba_padded_n = padded_n
+    qkvz_layer.netra_qkvz_ba_output = torch.empty(
+        (1, padded_n), dtype=torch.bfloat16,
+        device=qkvz_layer.netra_qkvz_ba_weight.device,
+    )
+
+
+def apply_qkvz_ba_decode_fused(
+    qkvz_layer: torch.nn.Module, x: torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """One raw gfx1151 dispatch for Qwen3.6 M=1 QKVZ and BA projections."""
+    if x.dtype != torch.bfloat16 or x.shape != (1, 2048):
+        raise ValueError(f"QKVZ+BA fusion requires BF16 [1,2048], got {x.shape}")
+    runtime = _get_runtime()
+    padded_n = qkvz_layer.netra_qkvz_ba_padded_n
+    output = qkvz_layer.netra_qkvz_ba_output
+    status = runtime.lib.netra_mxfp4_sgl_linear(
+        _ptr(qkvz_layer.netra_qkvz_ba_weight),
+        _ptr(qkvz_layer.netra_qkvz_ba_scale),
+        _ptr(x.contiguous()),
+        _ptr(output),
+        1,
+        padded_n,
+        2048,
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM fused QKVZ+BA decode")
+    return output[:, :12288], output[:, 12288:12352]
+
+
 def _decode(
     layer: torch.nn.Module,
     hidden_states: torch.Tensor,
@@ -229,17 +322,9 @@ def _decode(
     weights = topk_weights.reshape(8).to(dtype=torch.float32).contiguous()
     x = hidden_states.reshape(2048).contiguous()
 
-    workspace = getattr(layer, "_netra_decode_workspace", None)
-    if workspace is None:
-        workspace = (
-            torch.empty((8, 512), dtype=torch.float32, device=x.device),
-            torch.empty((8, 512), dtype=torch.float32, device=x.device),
-            torch.empty((8, 512), dtype=torch.bfloat16, device=x.device),
-            torch.empty((8, 2048), dtype=torch.float32, device=x.device),
-            torch.empty((1, 2048), dtype=torch.bfloat16, device=x.device),
-        )
-        layer._netra_decode_workspace = workspace
-    gate_tmp, up_tmp, intermediate, expert_output, output = workspace
+    gate_tmp, up_tmp, intermediate, expert_output, output = (
+        _ensure_decode_workspace(layer, x.device)
+    )
 
     status = runtime.lib.netra_mxfp4_sgl_decode(
         _ptr(layer.netra_gate_weight),

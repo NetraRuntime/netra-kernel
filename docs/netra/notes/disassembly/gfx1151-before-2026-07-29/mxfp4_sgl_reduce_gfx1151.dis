@@ -1,0 +1,48 @@
+
+/root/netra-mxfp4-gfx1151/build/sglang/mxfp4_sgl_reduce_gfx1151.hsaco:	file format elf64-amdgpu
+
+Disassembly of section .text:
+
+0000000000001700 <mxfp4_sgl_reduce_gfx1151>:
+	s_load_b128 s[4:7], s[0:1], null                           // 000000001700: F4080100 F8000000
+	s_load_b64 s[8:9], s[0:1], 0x10                            // 000000001708: F4040200 F8000010
+	s_waitcnt lgkmcnt(0)                                       // 000000001710: BF89FC07
+	s_load_b128 s[12:15], s[6:7], null                         // 000000001714: F4080303 F8000000
+	s_load_b128 s[16:19], s[6:7], 0x10                         // 00000000171C: F4080403 F8000010
+	s_lshl_b32 s20, s2, 10                                     // 000000001724: 84148A02
+	v_lshlrev_b32_e32 v1, 2, v0                                // 000000001728: 30020082
+	s_waitcnt_depctr depctr_hold_cnt(0) depctr_sa_sdst(0) depctr_va_vdst(0) depctr_va_sdst(0) depctr_va_ssrc(0) depctr_va_vcc(0) depctr_vm_vsrc(0)// 00000000172C: BF880000
+	v_add_nc_u32_e32 v1, s20, v1                               // 000000001730: 4A020214
+	v_mov_b32_e32 v11, v1                                      // 000000001734: 7E160301
+	global_load_b32 v2, v11, s[4:5]                            // 000000001738: DC520000 0204000B
+	v_add_nc_u32_e32 v11, 0x2000, v11                          // 000000001740: 4A1616FF 00002000
+	global_load_b32 v3, v11, s[4:5]                            // 000000001748: DC520000 0304000B
+	v_add_nc_u32_e32 v11, 0x2000, v11                          // 000000001750: 4A1616FF 00002000
+	global_load_b32 v4, v11, s[4:5]                            // 000000001758: DC520000 0404000B
+	v_add_nc_u32_e32 v11, 0x2000, v11                          // 000000001760: 4A1616FF 00002000
+	global_load_b32 v5, v11, s[4:5]                            // 000000001768: DC520000 0504000B
+	v_add_nc_u32_e32 v11, 0x2000, v11                          // 000000001770: 4A1616FF 00002000
+	global_load_b32 v6, v11, s[4:5]                            // 000000001778: DC520000 0604000B
+	v_add_nc_u32_e32 v11, 0x2000, v11                          // 000000001780: 4A1616FF 00002000
+	global_load_b32 v7, v11, s[4:5]                            // 000000001788: DC520000 0704000B
+	v_add_nc_u32_e32 v11, 0x2000, v11                          // 000000001790: 4A1616FF 00002000
+	global_load_b32 v8, v11, s[4:5]                            // 000000001798: DC520000 0804000B
+	v_add_nc_u32_e32 v11, 0x2000, v11                          // 0000000017A0: 4A1616FF 00002000
+	global_load_b32 v9, v11, s[4:5]                            // 0000000017A8: DC520000 0904000B
+	s_waitcnt vmcnt(0) lgkmcnt(0)                              // 0000000017B0: BF890007
+	v_mul_f32_e32 v2, s12, v2                                  // 0000000017B4: 1004040C
+	v_fmac_f32_e32 v2, s13, v3                                 // 0000000017B8: 5604060D
+	v_fmac_f32_e32 v2, s14, v4                                 // 0000000017BC: 5604080E
+	v_fmac_f32_e32 v2, s15, v5                                 // 0000000017C0: 56040A0F
+	v_fmac_f32_e32 v2, s16, v6                                 // 0000000017C4: 56040C10
+	v_fmac_f32_e32 v2, s17, v7                                 // 0000000017C8: 56040E11
+	v_fmac_f32_e32 v2, s18, v8                                 // 0000000017CC: 56041012
+	v_fmac_f32_e32 v2, s19, v9                                 // 0000000017D0: 56041213
+	v_lshrrev_b32_e32 v3, 16, v2                               // 0000000017D4: 32060490
+	v_and_b32_e32 v3, 1, v3                                    // 0000000017D8: 36060681
+	v_add_nc_u32_e32 v3, 0x7fff, v3                            // 0000000017DC: 4A0606FF 00007FFF
+	v_add_nc_u32_e32 v2, v3, v2                                // 0000000017E4: 4A040503
+	v_lshrrev_b32_e32 v2, 16, v2                               // 0000000017E8: 32040490
+	v_lshrrev_b32_e32 v1, 1, v1                                // 0000000017EC: 32020281
+	global_store_b16 v1, v2, s[8:9]                            // 0000000017F0: DC660000 00080201
+	s_endpgm                                                   // 0000000017F8: BFB00000

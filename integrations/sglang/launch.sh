@@ -5,6 +5,12 @@ set -euo pipefail
 sglang_dir=${SGLANG_DIR:-/root/work/sglang-main}
 sglang_venv=${SGLANG_VENV:-/root/sglvenv1151}
 model_dir=${MODEL_DIR:-/root/models/qwen36-sgl-mxfp4}
+weight_loader_threads=${SGLANG_WEIGHT_LOADER_THREADS:-2}
+
+case "${weight_loader_threads}" in
+  ''|*[!0-9]*) echo "SGLANG_WEIGHT_LOADER_THREADS must be a positive integer" >&2; exit 2 ;;
+  0) echo "SGLANG_WEIGHT_LOADER_THREADS must be greater than zero" >&2; exit 2 ;;
+esac
 
 export SGLANG_USE_NETRA_MXFP4_GFX1151=1
 export PATH="${sglang_venv}/bin:/opt/rocm-7.2.1/bin:${PATH}"
@@ -21,5 +27,9 @@ exec "${sglang_venv}/bin/python" -m sglang.launch_server \
   --cuda-graph-backend-prefill disabled \
   --mem-fraction-static "${SGLANG_MEM_FRACTION:-0.80}" \
   --context-length "${SGLANG_CONTEXT_LENGTH:-2048}" \
+  --weight-loader-disable-mmap \
+  --model-loader-extra-config "{\"num_threads\":${weight_loader_threads}}" \
+  --weight-loader-drop-cache-after-load \
   --skip-server-warmup \
-  --disable-shared-experts-fusion
+  --disable-shared-experts-fusion \
+  "$@"
