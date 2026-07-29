@@ -28,8 +28,12 @@ def analyze(path: Path) -> dict:
         "s_waitcnt": opcodes["s_waitcnt"], "s_waitcnt_depctr": opcodes["s_waitcnt_depctr"],
         "s_barrier": prefix("s_barrier"), "s_nop": prefix("s_nop"),
         "global_load": prefix("global_load"), "global_store": prefix("global_store"),
+        "scratch_load": prefix("scratch_load"),
+        "scratch_store": prefix("scratch_store"),
         "scalar_load": prefix("s_load"), "lds_ds": prefix("ds_"),
+        "s_delay_alu": prefix("s_delay_alu"),
         "v_perm": prefix("v_perm"), "v_cvt": prefix("v_cvt"),
+        "v_exp": prefix("v_exp"), "v_rcp": prefix("v_rcp"),
         "v_dot": prefix("v_dot"), "v_wmma": prefix("v_wmma"), "v_mfma": prefix("v_mfma"),
         "top_opcodes": dict(opcodes.most_common(25)),
     }
