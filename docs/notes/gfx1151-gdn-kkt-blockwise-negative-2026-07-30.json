@@ -1,0 +1,80 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "date": "2026-07-30",
+  "decision": "reject",
+  "shape": "B1_T8192_H32_Hg16_K128_BT64_BC16_beta_fp32",
+  "correctness_real_checkpoint_capture": {
+    "bf16_values": 16777216,
+    "bf16_bit_mismatches": 28567,
+    "numerical_mismatches": 4884,
+    "max_abs": 1.1112095035116937e-38,
+    "mean_abs": 5.521115949439779e-43,
+    "differences_subnormal_only": true
+  },
+  "hip_events_real_checkpoint_capture": {
+    "samples": 9,
+    "production_median_ms": 5.239524841308594,
+    "raw_median_ms": 5.386480808258057,
+    "raw_speedup_vs_production": 0.9727176291570252
+  },
+  "rocprofv3_trace": {
+    "dispatches": 5,
+    "mean_ms": 5.719091,
+    "min_ms": 5.312058,
+    "max_ms": 7.09335,
+    "profiler_overhead_included": true
+  },
+  "raw_resources": {
+    "vgpr_allocated": 208,
+    "sgpr_next_free_source": 48,
+    "rocprof_sgpr_field": 128,
+    "lds_bytes": 16384,
+    "scratch_bytes": 0,
+    "wave_size": 32,
+    "waves_per_dispatch": 4096,
+    "grid": [128, 32, 1],
+    "block": [32, 1, 1]
+  },
+  "rocprofv3_counters": {
+    "OccupancyPercent": 12.384405142857144,
+    "MeanOccupancyPerActiveCU": 7.952568142857143,
+    "Wavefronts": 4096.0,
+    "L2CacheHit": 34.005181,
+    "FETCH_SIZE_KiB": 131315.875,
+    "WRITE_SIZE_KiB": 16384.0,
+    "LDSBankConflict": 41.314554,
+    "SQ_WAVE_CYCLES": 2597597308.714286,
+    "VALUInsts": 12594.0
+  },
+  "serving_uncached_graph_disabled_dflash_disabled": [
+    {
+      "seed": "pair-a",
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "baseline_output_id": 220,
+      "raw_output_id": 220,
+      "baseline_host_e2e_ms": 23632.266273,
+      "raw_host_e2e_ms": 23501.101826
+    },
+    {
+      "seed": "pair-b",
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "baseline_output_id": 290,
+      "raw_output_id": 290,
+      "baseline_host_e2e_ms": 23453.797578,
+      "raw_host_e2e_ms": 23330.436277
+    }
+  ],
+  "rocprof_signal6": {
+    "scope": "Python/PyTorch PMC collection",
+    "root_message": "aqlprofile API table load failed: HSA_STATUS_ERROR",
+    "kernel_fault": false,
+    "standalone_hip_counter_passes": 9,
+    "standalone_passes_succeeded": true
+  },
+  "production_integration": false
+}
