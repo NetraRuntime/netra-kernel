@@ -119,7 +119,7 @@ All numbers below are **measured on gfx1151** unless a row explicitly says unava
 
 ## CPU/GPU orchestration
 
-`hipMemcpyWithStream` is a blocking host API in every measured scenario. The 32K request issued 402 calls totaling 34094.121 ms of CPU call duration. The integration contains `group_index[-1].item()` in grouped prefill, a source-derived device-to-host synchronization point, and allocates routing/group tensors dynamically.
+`hipMemcpyWithStream` is a blocking host API in every measured scenario. The 32K request issued 402 calls totaling 34094.121 ms of CPU call duration. This trace predates the piecewise integration fix: grouped prefill called `group_index[-1].item()`, a source-derived device-to-host synchronization point. That host read is now removed with a correctness-validated fixed-capacity routed-group workspace; the remaining blocking copies require a fresh trace before attribution.
 
 | Scenario | Top HIP API | Calls | Total CPU ms | Mean us |
 |---|---|---:|---:|---:|
@@ -149,7 +149,7 @@ These are gfx1151 **measured** rocprofv3 counters with exact Qwen3.6 decode tens
 
 ## Evidence-backed priorities
 
-1. Remove grouped-prefill host reads and dynamic allocation. The 32K trace measures 402 blocking copies and 34.094 s inside `hipMemcpyWithStream`.
+1. Reprofile grouped prefill after the accepted `.item()` removal and fixed-capacity workspace. The original 32K trace measured 402 blocking copies and 34.094 s inside `hipMemcpyWithStream`; no portion is assumed eliminated until the replacement trace is captured.
 2. Optimize the top 32K GDN kernels first: `_fwd_kernel`, `chunk_fwd_kernel_o`, and `recompute_w_u` collectively dominate several seconds and use 256 VGPR with scratch in the first two cases.
 3. Continue raw gfx1151 ASM work on MXFP4 gate/linear/down. Decode linear alone is 34.05% of decode GPU time; the raw gate/down counter passes are 85.8–90.3% memory-unit busy with low measured L2 hit rate.
 4. Reduce decode launch fragmentation: the 1+32 trace contains 59,984 launches; 210+128 contains 235,410 launches.
@@ -161,6 +161,6 @@ These are gfx1151 **measured** rocprofv3 counters with exact Qwen3.6 decode tens
 - ROCm 7.13 wheel counter collection fails to load the AQL profiling API. ROCm 7.2.1 native harness collection succeeds and is used above.
 - Direct dependency-stall counters were not exposed for gfx1151 by the available metric set; no stall percentage is estimated.
 - Speculative M=12 and actual dFlash shapes are unavailable because the supplied checkpoint has no `dflash_config` and no compatible draft checkpoint exists on the system.
-- SGLang's pinned native `tc_piecewise` compatibility rules disable it on HIP. Full decode-graph validation is tracked separately.
+- Explicit native `tc_piecewise` prefill capture now succeeds on HIP and matches eager hashes from M64 through M8,192. Its measured host-serving medians are neutral (0.9871x to 1.0073x), so it is retained as a graph-safe integration path but rejected as a default speed optimization.
 
 The raw JSON companion contains the top 80 kernels per scenario, full family tables, HIP API tables, allocation totals, and all collected hardware counters.

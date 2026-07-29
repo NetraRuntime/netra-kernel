@@ -1,10 +1,11 @@
 --- a/python/sglang/srt/models/qwen3_5.py
 +++ b/python/sglang/srt/models/qwen3_5.py
-@@ -17,0 +18,3 @@
+@@ -17,0 +18,4 @@
 +import os
 +import re
 +import weakref
-@@ -288,0 +292,12 @@
++from contextlib import nullcontext
+@@ -288,0 +293,12 @@
 +        if _is_hip:
 +            # Weak links let the Netra quant post-load pass combine the two
 +            # raw MXFP4 layouts after BA (the second module) is processed,
@@ -17,7 +18,7 @@
 +            self.in_proj_ba._netra_qkvz_ba_peer = weakref.ref(
 +                self.in_proj_qkvz
 +            )
-@@ -549,0 +565,9 @@
+@@ -549,0 +566,9 @@
 +        if hidden_states.shape == (1, 2048) and hasattr(
 +            self.in_proj_qkvz, "netra_qkvz_ba_weight"
 +        ):
@@ -27,7 +28,19 @@
 +
 +            return apply_qkvz_ba_decode_fused(self.in_proj_qkvz, hidden_states)
 +
-@@ -2093,0 +2118,66 @@
+@@ -1431,3 +1456,8 @@
+-            with get_global_expert_distribution_recorder().with_current_layer(
+-                layer_idx
+-            ):
++            ctx = (
++                nullcontext()
++                if check_cuda_graph_backend(Phase.PREFILL, Backend.TC_PIECEWISE)
++                else get_global_expert_distribution_recorder().with_current_layer(
++                    layer_idx
++                )
++            )
++            with ctx:
+@@ -2093,0 +2124,66 @@
 +        batch_netra_experts = (
 +            _is_hip
 +            and os.environ.get("SGLANG_USE_NETRA_MXFP4_GFX1151") == "1"
@@ -94,11 +107,11 @@
 +            del expert_batches[key]
 +            loaded_params.add(target_name)
 +            return True
-@@ -2103,0 +2194,3 @@
+@@ -2103,0 +2200,3 @@
 +            if maybe_batch_netra_expert(name, loaded_weight):
 +                continue
 +
-@@ -2293,0 +2387,8 @@
+@@ -2293,0 +2393,8 @@
 +        if expert_batches:
 +            incomplete = {key: len(value) for key, value in expert_batches.items()}
 +            raise RuntimeError(f"Incomplete Netra expert batches: {incomplete}")

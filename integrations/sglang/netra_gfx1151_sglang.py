@@ -8,6 +8,7 @@ from typing import List, Optional
 import torch
 from sglang.srt.layers.parameter import ModelWeightParameter
 from sglang.srt.layers.quantization.base_config import LinearMethodBase
+from sglang.srt.utils.custom_op import register_custom_op
 from torch.nn.parameter import Parameter
 
 
@@ -71,6 +72,31 @@ def _get_runtime() -> _Runtime:
     if _runtime is None:
         _runtime = _Runtime()
     return _runtime
+
+
+@register_custom_op(mutates_args=["output"])
+def netra_mxfp4_linear_prefill_with_output(
+    packed: torch.Tensor,
+    scale: torch.Tensor,
+    activation_groups: torch.Tensor,
+    output: torch.Tensor,
+    group_count: int,
+    n: int,
+    k: int,
+) -> None:
+    """Torch-compile boundary whose compute remains raw gfx1151 AMDGCN."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_mxfp4_sgl_linear_prefill(
+        _ptr(packed),
+        _ptr(scale),
+        _ptr(activation_groups),
+        _ptr(output),
+        group_count,
+        n,
+        k,
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM MXFP4 linear prefill")
 
 
 def _ensure_decode_workspace(
@@ -209,9 +235,9 @@ class NetraMxfp4LinearMethod(LinearMethodBase):
         k = original_shape[-1]
         n = layer.netra_output_size
         flat_x = x.reshape(-1, k).contiguous()
-        runtime = _get_runtime()
         if flat_x.shape[0] == 1:
             output = torch.empty((1, n), dtype=torch.bfloat16, device=x.device)
+            runtime = _get_runtime()
             status = runtime.lib.netra_mxfp4_sgl_linear(
                 _ptr(layer.netra_linear_weight),
                 _ptr(layer.netra_linear_scale),
@@ -232,17 +258,29 @@ class NetraMxfp4LinearMethod(LinearMethodBase):
             output_groups = torch.empty(
                 (group_count, 64, n), dtype=torch.float32, device=x.device
             )
-            status = runtime.lib.netra_mxfp4_sgl_linear_prefill(
-                _ptr(layer.netra_linear_weight),
-                _ptr(layer.netra_linear_scale),
-                _ptr(activation_groups),
-                _ptr(output_groups),
-                group_count,
-                n,
-                k,
-                runtime.stream(),
-            )
-            runtime.check(status, "Netra raw-ASM MXFP4 linear prefill")
+            if torch.compiler.is_compiling():
+                netra_mxfp4_linear_prefill_with_output(
+                    layer.netra_linear_weight,
+                    layer.netra_linear_scale,
+                    activation_groups,
+                    output_groups,
+                    group_count,
+                    n,
+                    k,
+                )
+            else:
+                runtime = _get_runtime()
+                status = runtime.lib.netra_mxfp4_sgl_linear_prefill(
+                    _ptr(layer.netra_linear_weight),
+                    _ptr(layer.netra_linear_scale),
+                    _ptr(activation_groups),
+                    _ptr(output_groups),
+                    group_count,
+                    n,
+                    k,
+                    runtime.stream(),
+                )
+                runtime.check(status, "Netra raw-ASM MXFP4 linear prefill")
             output = output_groups.view(-1, n)[: flat_x.shape[0]].to(
                 torch.bfloat16
             )
@@ -359,6 +397,12 @@ def _prefill(
     flat_weights = topk_weights.reshape(-1).to(torch.float32)
     sorted_ids, order = torch.sort(flat_ids)
     pair_count = sorted_ids.numel()
+    expert_count = layer.netra_gate_weight.shape[0]
+    group_count = (
+        pair_count
+        if pair_count <= expert_count
+        else expert_count + (pair_count - expert_count) // 64
+    )
     sequence = torch.arange(pair_count, device=hidden_states.device)
     new_expert = torch.ones(pair_count, dtype=torch.bool, device=hidden_states.device)
     new_expert[1:] = sorted_ids[1:] != sorted_ids[:-1]
@@ -367,9 +411,11 @@ def _prefill(
     rank_in_expert = sequence - expert_start
     new_group = new_expert | ((rank_in_expert & 63) == 0)
     group_index = torch.cumsum(new_group.to(torch.int64), dim=0) - 1
-    group_count = int(group_index[-1].item()) + 1
     position = group_index * 64 + (rank_in_expert & 63)
-    group_expert_ids = sorted_ids[new_group].to(torch.int32).contiguous()
+    group_expert_ids = torch.zeros(
+        group_count, dtype=torch.int32, device=hidden_states.device
+    )
+    group_expert_ids.scatter_(0, group_index, sorted_ids.to(torch.int32))
     pair_tokens = torch.div(order, 8, rounding_mode="floor")
 
     activation_groups = torch.zeros(

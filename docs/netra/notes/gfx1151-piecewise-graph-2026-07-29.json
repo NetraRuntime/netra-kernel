@@ -1,0 +1,29 @@
+{
+  "target": "gfx1151",
+  "date": "2026-07-29",
+  "measurement_status": "measured",
+  "checkpoint": "/root/models/qwen36-sgl-mxfp4",
+  "source_commit": "1eee8fbdcc25b44e13bc097d5ff6ac24e8c24af4",
+  "backend": "tc_piecewise",
+  "compiler": "eager",
+  "dflash_mode": "disabled",
+  "cached_tokens": 0,
+  "timing_scope": "host_e2e_http_stream_monotonic",
+  "correctness": {"real_checkpoint": true, "matched_input_id_hashes": true, "matched_output_text_hashes": true, "tiers": [64, 128, 256, 1024, 2048, 4096, 8192]},
+  "capture_sets": [
+    {"tiers": [64], "construction_time_s": 12.46, "memory_gb": 0.28},
+    {"tiers": [64, 128, 256], "construction_time_s": 29.14, "memory_gb": 0.40},
+    {"tiers": [1024, 2048, 4096, 8192], "construction_time_s": 53.80, "memory_gb": 0.52}
+  ],
+  "serving": [
+    {"input_tokens": 64, "output_tokens": 1, "repeat_count": 5, "eager_median_ms": 478.170, "piecewise_median_ms": 484.441, "speedup": 0.9871, "decision": "rejected_regression"},
+    {"input_tokens": 128, "output_tokens": 1, "repeat_count": 3, "eager_median_ms": 503.539, "piecewise_median_ms": 501.853, "speedup": 1.0034, "decision": "neutral_noise"},
+    {"input_tokens": 256, "output_tokens": 1, "repeat_count": 3, "eager_median_ms": 561.034, "piecewise_median_ms": 556.982, "speedup": 1.0073, "decision": "neutral_noise"},
+    {"input_tokens": 1024, "output_tokens": 1, "repeat_count": 3, "eager_median_ms": 964.782, "piecewise_median_ms": 958.983, "speedup": 1.0060, "decision": "neutral_noise"},
+    {"input_tokens": 2048, "output_tokens": 1, "repeat_count": 3, "eager_median_ms": 1695.754, "piecewise_median_ms": 1697.762, "speedup": 0.9988, "decision": "neutral_noise"},
+    {"input_tokens": 4096, "output_tokens": 1, "repeat_count": 3, "eager_median_ms": 3415.790, "piecewise_median_ms": 3412.113, "speedup": 1.0011, "decision": "neutral_noise"},
+    {"input_tokens": 8192, "output_tokens": 1, "repeat_count": 3, "eager_median_ms": 7151.251, "piecewise_median_ms": 7137.229, "speedup": 1.0020, "decision": "neutral_noise"}
+  ],
+  "gpu_duration_claims": false,
+  "estimated_values": false
+}

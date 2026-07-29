@@ -73,15 +73,54 @@ finalized normally. The valid CSV trace measured separate raw-ASM kernel
 medians of 100.351 + 84.922 us versus 101.114 us fused on gfx1151 (1.8323x).
 The failed SQLite database is retained only as tool-failure evidence.
 
-## Native piecewise graph status
+## Native piecewise graph result
 
-At pinned SGLang commit `1eee8fbdcc25b44e13bc097d5ff6ac24e8c24af4`, `tc_piecewise` is the native torch.compile-driven prefill backend. It FX-splits at attention layers, keeps attention metadata outside captured pieces, uses stable graph pools, and caches concrete token tiers. The implementation contains an explicit HIP single-trace warmup path, but `ServerArgs._disable_tc_piecewise_cudagraph_if_incompatible` currently disables the backend whenever `is_hip()` is true.
+At pinned SGLang commit `1eee8fbdcc25b44e13bc097d5ff6ac24e8c24af4`,
+`tc_piecewise` is the native torch.compile-driven prefill backend. It FX-splits
+at attention layers, keeps attention metadata outside captured pieces, uses
+stable graph pools, and caches concrete token tiers. An explicitly selected
+prefill backend is locked before SGLang's automatic HIP compatibility cascade,
+so the native CLI is sufficient; no removal of the general HIP rule is needed.
 
-Consequently, piecewise construction time, replay overhead, memory, graph-break count, and serving improvement are pending. The next gate is a guarded removal of only the HIP compatibility rule followed by a 64-token tier correctness/capture test; broader 128/256/1,024/2,048/4,096/8,192 tiers must not be prebuilt until that test passes.
+The first capture exposed two real graph breaks in the model integration:
+the expert-distribution recorder context was entered inside the compiled layer
+loop, and routed-MoE group construction called `.item()` on a device tensor.
+The bridge now presents the raw gfx1151 AMDGCN prefill launch as an SGLang
+custom-op boundary. During piecewise prefill, the recorder context is omitted
+and routed-MoE uses a fixed group capacity
+`E + floor((P - E) / 64)` for `P > E`, otherwise `P`. This is the exact maximum
+of `sum(ceil(tokens_per_expert / 64))`, so no routed group can exceed the
+preallocated workspace. It removes the CPU/GPU synchronization and keeps all
+raw compute in the existing gfx1151 `.s` kernels.
+
+All serving rows below are host-monotonic, uncached, exact-input/+1-output
+measurements on gfx1151. Each median has three matched-seed eager and piecewise
+runs except M64, which has five. Every matched pair has identical input-ID and
+output-text SHA-256 hashes.
+
+| Tier | Eager median ms | Piecewise median ms | Eager / piecewise | Decision | Status |
+|---:|---:|---:|---:|---|---|
+| M64 | 478.170 | 484.441 | 0.9871x | reject: 1.31% regression | gfx1151 measured |
+| M128 | 503.539 | 501.853 | 1.0034x | neutral/noise | gfx1151 measured |
+| M256 | 561.034 | 556.982 | 1.0073x | neutral/noise | gfx1151 measured |
+| M1,024 | 964.782 | 958.983 | 1.0060x | neutral/noise | gfx1151 measured |
+| M2,048 | 1,695.754 | 1,697.762 | 0.9988x | neutral/noise | gfx1151 measured |
+| M4,096 | 3,415.790 | 3,412.113 | 1.0011x | neutral/noise | gfx1151 measured |
+| M8,192 | 7,151.251 | 7,137.229 | 1.0020x | neutral/noise | gfx1151 measured |
+
+The isolated M64 graph captured in 12.46 seconds and used 0.28 GB. Capturing
+M64/M128/M256 together took 29.14 seconds and 0.40 GB. Capturing
+M1,024/M2,048/M4,096/M8,192 together took 53.80 seconds and 0.52 GB. These are
+SGLang log measurements on gfx1151. The end-to-end deltas are host serving
+measurements, not GPU-duration claims; no speedup is accepted because all
+positive medians are below one percent and the construction/memory cost is
+material. Piecewise capture remains available as a correctness-proven
+integration path, but it is not the default performance path.
 
 ## Correctness and optimization gates
 
 - Graph replay has completed on the real checkpoint with the raw gfx1151 ASM modules and persistent workspaces.
 - The accepted QKVZ+BA M=1 fusion is bit-exact at the layer boundary, matches the fixed 1/+32 full-model output hash, and improves both repeated serving cases end to end.
-- Matched-seed eager versus graph output hashes outside the accepted fusion cases remain pending; empty one-token decoded strings are not treated as sufficient correctness evidence.
+- Piecewise M64 through M8,192 matched eager input IDs and output hashes for every measured seed. Several seeds emitted non-empty text, so correctness does not rely on empty one-token decodes.
+- Native piecewise replay is rejected as a speed optimization on the measured tiers; its best median delta is below one percent.
 - dFlash graph modes remain unavailable until a compatible draft checkpoint and its `dflash_config` are supplied.

@@ -4,7 +4,9 @@ This directory is the complete serving overlay for SGLang commit
 `1eee8fbdcc25b44e13bc097d5ff6ac24e8c24af4`.
 
 - `sglang-gfx1151-integration.patch` is the single authoritative SGLang patch.
-- `sglang-gfx1151-qkvz-ba-fusion.patch` applies after it and adds the measured Qwen3.6 GDN M=1 QKVZ+BA raw-ASM fusion plus batched MXFP4 expert loading.
+- `sglang-gfx1151-qkvz-ba-fusion.patch` applies after it and adds the measured
+  Qwen3.6 GDN M=1 QKVZ+BA raw-ASM fusion, batched MXFP4 expert loading, and the
+  native `tc_piecewise` model-loop boundary.
 - `netra_gfx1151_sglang.py` is copied into SGLang's quantization package.
 - `netra_mxfp4_sgl_launcher.hip` is launch-only host code for the raw HSACOs.
 - `launch.sh` starts the validated gfx1151 deployment.
