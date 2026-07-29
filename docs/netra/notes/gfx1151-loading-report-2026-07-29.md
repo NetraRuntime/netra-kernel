@@ -18,6 +18,9 @@ progress, and the server reached ready state normally after graph setup.
 A second cold-cache run through the committed benchmark script loaded weights
 in 9.13 seconds and reached HTTP health in 23.145 seconds from host launch;
 both values are gfx1151 measured.
+Four later real-checkpoint server launches during recompute-W/U validation
+measured 8.85, 8.89, 9.03, and 9.89 seconds for weight loading on gfx1151,
+confirming that the accepted loader remains in the 9-second range.
 
 ## Root cause
 

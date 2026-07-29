@@ -206,6 +206,7 @@ def main() -> int:
             b"".join(value.to_bytes(4, "little") for value in ids)
         ).hexdigest(),
         "output_text_sha256": hashlib.sha256(text.encode()).hexdigest(),
+        "output_ids": payload.get("output_ids"),
         "output_text_prefix": text[:160],
         "server_meta_info": meta,
     }

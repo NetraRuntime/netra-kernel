@@ -36,5 +36,14 @@ runtime in the other direction.
 - Prefer `--output-format csv`: an independent RocPD/SQLite empty-name writer
   bug also aborts during some traces, while CSV bypasses that writer.
 
+
+## Confirmed safe full-stack invocation
+
+The later recompute-W/U inventory used the ABI-matched wheel profiler from
+process start with `--disable-signal-handlers true` and `--output-format csv`.
+It finalized 13.56 MB of kernel trace and 30.35 MB of HIP API trace normally;
+no repeated signal 6 occurred. Attaching to an already-running scheduler was
+separately observed to terminate that scheduler, so process-start collection
+is the required SGLang path on this machine.
 The failed trace contains no valid GPU timing evidence. Only normally finalized
 CSV output is labeled measured on gfx1151.

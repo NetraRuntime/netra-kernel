@@ -24,3 +24,50 @@ workgroups reloads the 64x64 A tile four times. This prototype is retained as
 a correct raw baseline, not yet integrated or accepted for serving. The next
 revision must combine A reuse with a two-wave schedule. Before/oracle/raw
 disassemblies are in `docs/netra/notes/disassembly/recompute-w-u-gfx1151/`.
+
+## Two-wave A-reuse revision: fast but rejected
+
+All values in this section are measured on gfx1151; none are estimated. The
+second raw revision, `recompute_w_u_reuse_a_gfx1151.s`, assigns one A tile to
+each two-wave workgroup and evaluates all four U/W right-hand-side tiles before
+retiring the workgroup. Its fixed launch is grid `(128,32)`, block 64, with
+16 KiB LDS, 136 VGPR, 128 SGPR, and zero scratch in rocprofv3 metadata.
+
+On the exact B1/T8192/H32/Hg16/K128/V128/BT64 shape, ten HIP-event samples
+measured 9.974 ms median. The same-run 2w1 Triton oracle measured 11.112 ms,
+so raw was 1.1140x faster than the best compiler configuration and 2.109x
+faster than the deployed 4w3 measurement. Controlled random inputs had
+7.6294e-6 max absolute error for both W and U. A wider random integrated-op
+test reached one BF16 output ULP (0.00390625) and remained finite. Stable-
+pointer HIP graph replay was bit-identical to raw eager output and measured
+9.965 ms median over ten replays.
+
+The real checkpoint guard intercepted all 30 GDN layers for an exact uncached
+8192/+1 request. Per-layer comparison against the 2w1 compiler oracle measured
+worst W error 0.0009765625 and worst U error 0.001953125. The deterministic
+greedy token matched at this length: token 278 in both modes.
+
+A normally finalized process-start rocprofv3 CSV trace for exact uncached
+32768/+1 measured 120 raw calls, 1,217.875 ms total, 10.149 ms mean, and
+10.128 ms median. The earlier deployed trace measured approximately
+2,402.123 ms for this family including 30 negligible warmup/health calls, so
+the raw request path removed approximately 1.184 seconds of GPU work. The
+paired non-profiled serving run measured TTFT 30,024.270 ms with raw disabled
+and 28,820.132 ms with raw enabled: 1.0418x faster on gfx1151. Both requests
+were exact 32768 input +1 output, uncached, graph disabled, and dFlash disabled.
+
+The replacement nevertheless fails the full-model deterministic correctness
+gate. At the exact paired 32768-token input, raw selected token 220; the
+deployed Triton 4w3 path and independently tested 2w1 oracle both selected
+token 248045. Raw assigned log probabilities -6.03881 to token 220 and
+-6.16381 to token 248045. The 2w1 oracle assigned -5.92670 to token 248045 and
+-6.05170 to token 220. This is not merely the known server-epoch text/hash
+instability: the raw result disagreed with the compiler oracle under the same
+fixed input and remained separated by 0.125 log-probability.
+
+Therefore the fast A-reuse kernel is retained only as a reproducible negative
+prototype with its standalone HIP launcher and disassembly. Its temporary
+SGLang dispatch, production HIP bridge, and build integration were removed.
+No serving speedup from this kernel is claimed as accepted. A future revision
+must reproduce the model-native compiler accumulation closely enough to pass
+the 32768-token greedy/logit gate before integration.

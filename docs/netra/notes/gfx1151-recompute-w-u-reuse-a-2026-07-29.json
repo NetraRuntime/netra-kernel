@@ -1,0 +1,60 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "kernel": "recompute_w_u_reuse_a_gfx1151",
+  "shape": {
+    "B": 1,
+    "T": 8192,
+    "H": 32,
+    "Hg": 16,
+    "K": 128,
+    "V": 128,
+    "BT": 64
+  },
+  "resources": {
+    "vgpr": 136,
+    "sgpr": 128,
+    "lds_bytes": 16384,
+    "scratch_bytes": 0,
+    "waves_per_workgroup": 2
+  },
+  "hip_events": {
+    "raw_median_ms": 9.974424839,
+    "triton_2w1_oracle_median_ms": 11.111651897,
+    "raw_speedup_over_oracle": 1.11402,
+    "graph_replay_median_ms": 9.965340614,
+    "graph_replay_matches_raw_eager": true
+  },
+  "real_checkpoint_layer_validation": {
+    "layers": 30,
+    "input_tokens": 8192,
+    "output_tokens": 1,
+    "max_abs_error_w": 0.0009765625,
+    "max_abs_error_u": 0.001953125,
+    "greedy_token_raw": 278,
+    "greedy_token_oracle": 278
+  },
+  "rocprofv3_32768_plus_1": {
+    "calls": 120,
+    "total_gpu_ms": 1217.875424,
+    "mean_gpu_ms": 10.148961867,
+    "median_gpu_ms": 10.1281325,
+    "min_gpu_ms": 9.490816,
+    "max_gpu_ms": 10.505801,
+    "pct_of_kernel_time": 4.0473,
+    "trace": "results/profiles/gfx1151/raw-recompute-w-u-32k-start"
+  },
+  "paired_serving_32768_plus_1": {
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "baseline_ttft_ms": 30024.270393,
+    "raw_ttft_ms": 28820.132468,
+    "speedup": 1.04178,
+    "baseline_and_2w1_token": 248045,
+    "raw_token": 220
+  },
+  "decision": "rejected",
+  "reason": "The exact 32768-token greedy result disagrees with both Triton 4w3 and the independent 2w1 compiler oracle.",
+  "production_dispatch_retained": false
+}
