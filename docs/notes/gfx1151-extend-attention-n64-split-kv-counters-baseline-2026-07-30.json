@@ -1,0 +1,71 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "input_scope": "synthetic zeros exact Qwen3.6 T8192 prefix24576 Hq16 Hkv2 D256 accepted N64",
+  "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+  "method": "one counter per process launch; identical raw-ASM kernel dispatch shapes",
+  "units": {
+    "FETCH_SIZE": "KiB fetched from video memory per dispatch",
+    "WRITE_SIZE": "KiB written to video memory per dispatch",
+    "OccupancyPercent": "percent of device maximum",
+    "L2CacheHit": "percent",
+    "MemUnitBusy": "percent of GPUTime",
+    "WriteUnitStalled": "percent of GPUTime"
+  },
+  "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+  "kernels": [
+    {
+      "kernel": "extend_attention_wmma_n64_gfx1151",
+      "grid_size": 262144,
+      "workgroup_size": 128,
+      "lds_bytes": 65536,
+      "scratch_bytes": 0,
+      "vgpr": 248,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": {
+          "samples": 1,
+          "mean": 17767828.6875,
+          "min": 17767828.6875,
+          "max": 17767828.6875
+        },
+        "L2CacheHit": {
+          "samples": 1,
+          "mean": 27.088579,
+          "min": 27.088579,
+          "max": 27.088579
+        },
+        "LDSBankConflict": {
+          "samples": 1,
+          "mean": 34.630479,
+          "min": 34.630479,
+          "max": 34.630479
+        },
+        "MeanOccupancyPerActiveCU": {
+          "samples": 1,
+          "mean": 4.936308,
+          "min": 4.936308,
+          "max": 4.936308
+        },
+        "OccupancyPercent": {
+          "samples": 1,
+          "mean": 7.66699,
+          "min": 7.66699,
+          "max": 7.66699
+        },
+        "VALUInsts": {
+          "samples": 1,
+          "mean": 906046.0,
+          "min": 906046.0,
+          "max": 906046.0
+        },
+        "Wavefronts": {
+          "samples": 1,
+          "mean": 8192.0,
+          "min": 8192.0,
+          "max": 8192.0
+        }
+      }
+    }
+  ]
+}
