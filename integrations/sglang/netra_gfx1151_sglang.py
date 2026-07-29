@@ -60,6 +60,11 @@ class _Runtime:
             + [ctypes.c_uint, ctypes.c_float, ctypes.c_void_p]
         )
         self.lib.netra_extend_attention.restype = ctypes.c_int
+        self.lib.netra_gdn_chunk_o.argtypes = (
+            [ctypes.c_void_p] * 8
+            + [ctypes.c_float, ctypes.c_uint, ctypes.c_void_p]
+        )
+        self.lib.netra_gdn_chunk_o.restype = ctypes.c_int
         status = self.lib.netra_mxfp4_sgl_init()
         if status:
             raise RuntimeError(self.lib.netra_mxfp4_sgl_error().decode())
@@ -227,6 +232,37 @@ def netra_extend_attention_with_output(
     )
     runtime.check(status, "Netra raw-ASM extend attention")
 
+
+
+@register_custom_op(mutates_args=["output"])
+def netra_gdn_chunk_o_with_output(
+    q: torch.Tensor,
+    k: torch.Tensor,
+    v: torch.Tensor,
+    h: torch.Tensor,
+    g: torch.Tensor,
+    output: torch.Tensor,
+    cu_seqlens: torch.Tensor,
+    chunk_indices: torch.Tensor,
+    scale: float,
+    token_count: int,
+) -> None:
+    """Graph-safe launch for the exact Qwen3.6 8K raw gfx1151 GDN kernel."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_gdn_chunk_o(
+        _ptr(q),
+        _ptr(k),
+        _ptr(v),
+        _ptr(h),
+        _ptr(g),
+        _ptr(output),
+        _ptr(cu_seqlens),
+        _ptr(chunk_indices),
+        scale,
+        token_count,
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM GDN chunk output")
 
 def _ensure_decode_workspace(
     layer: torch.nn.Module, device: torch.device

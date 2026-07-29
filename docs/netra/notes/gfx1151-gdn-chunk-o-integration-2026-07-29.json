@@ -1,0 +1,53 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "kernel": "gdn_chunk_o_bv32_gfx1151",
+  "shape": "B1_T8192_H32_Hg16_K128_V128_BT64",
+  "resources": {"vgpr": 216, "sgpr": 128, "lds_bytes": 32768, "scratch_bytes": 0},
+  "synthetic_correctness": {
+    "max_abs_error": 1.9073486328125e-06,
+    "mean_abs_error": 2.0215873246243188e-12,
+    "finite": true,
+    "samples": 10,
+    "raw_median_hip_event_ms": 11.57468318939209,
+    "tuned_triton_median_hip_event_ms": 15.025868892669678,
+    "speedup": 1.2981667529734648,
+    "graph_replay_median_hip_event_ms": 11.617502689361572
+  },
+  "real_checkpoint_layer_validation": {
+    "layers": 30,
+    "max_of_max_abs_error": 0.00048828125,
+    "median_max_abs_error": 0.00006103515625,
+    "max_mean_abs_error": 6.38676611597333e-11,
+    "finite": true
+  },
+  "rocprofv3_exact_32768_plus_1": {
+    "input_ids_sha256": "b8e34ae579809777d38cdb9f06e5b51727adbc54e41efdf07951ee4af043fecc",
+    "raw_calls": 120,
+    "raw_total_gpu_ms": 1419.824726,
+    "raw_mean_gpu_ms": 11.831872716666667,
+    "raw_median_gpu_ms": 11.816151,
+    "tuned_triton_total_gpu_ms": 1881.298842,
+    "original_triton_total_gpu_ms": 3978.24958,
+    "speedup_vs_tuned_triton": 1.325024775563472,
+    "speedup_vs_original_triton": 2.802,
+    "accepted_trace": "results/profiles/gfx1151/raw-gdn-chunk-o-live-shape-32k-start"
+  },
+  "paired_serving_exact_32768_plus_1": {
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "baseline_host_e2e_ms": 30484.974886,
+    "raw_host_e2e_ms": 30262.817457,
+    "baseline_ttft_ms": 30484.847647,
+    "raw_ttft_ms": 30262.66431,
+    "baseline_input_tokens_per_s": 1074.894661749267,
+    "raw_input_tokens_per_s": 1082.7863556339994,
+    "speedup": 1.0073409367556625,
+    "saving_ms": 222.15742899999896,
+    "greedy_output_sha256_match": true,
+    "output_text_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+    "baseline_peak_vram_bytes": 61573218304,
+    "raw_peak_vram_bytes": 61129388032
+  }
+}

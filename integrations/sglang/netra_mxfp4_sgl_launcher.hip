@@ -30,6 +30,7 @@ Kernel linear_decode;
 Kernel linear_prefill;
 Kernel qkvzba_split;
 Kernel extend_attention;
+Kernel gdn_chunk_o;
 hipError_t init_status = hipSuccess;
 std::string init_error;
 
@@ -69,6 +70,8 @@ void initialize() {
        "qkvzba_split_copy_gfx1151");
   load(extend_attention, "extend_attention_wmma_n64_gfx1151.hsaco",
        "extend_attention_wmma_n64_gfx1151");
+  load(gdn_chunk_o, "gdn_chunk_o_bv32_gfx1151.hsaco",
+       "gdn_chunk_o_bv32_gfx1151");
 }
 
 template <typename Args>
@@ -84,6 +87,19 @@ hipError_t launch(hipFunction_t function, unsigned gx, unsigned gy, unsigned bx,
   };
   return hipModuleLaunchKernel(function, gx, gy, 1, bx, 1, 1, 0, stream, nullptr,
                                config);
+}
+
+template <typename Args>
+hipError_t launch_3d(hipFunction_t function, unsigned gx, unsigned gy,
+                     unsigned gz, unsigned bx, hipStream_t stream, Args& args) {
+  size_t size = sizeof(args);
+  void* config[] = {
+      HIP_LAUNCH_PARAM_BUFFER_POINTER, &args,
+      HIP_LAUNCH_PARAM_BUFFER_SIZE, &size,
+      HIP_LAUNCH_PARAM_END,
+  };
+  return hipModuleLaunchKernel(function, gx, gy, gz, bx, 1, 1, 0, stream,
+                               nullptr, config);
 }
 
 struct alignas(8) FivePointers {
@@ -134,6 +150,20 @@ static_assert(sizeof(ExtendAttentionArgs) == 72);
 
 }  // namespace
 
+
+struct alignas(8) GdnChunkOArgs {
+  void* q;
+  void* k;
+  void* v;
+  void* h;
+  void* g;
+  void* output;
+  void* cu_seqlens;
+  void* chunk_indices;
+  float scale;
+  unsigned tokens;
+};
+static_assert(sizeof(GdnChunkOArgs) == 72);
 extern "C" int netra_mxfp4_sgl_init() {
   std::call_once(init_once, initialize);
   return static_cast<int>(init_status);
@@ -283,4 +313,19 @@ extern "C" int netra_extend_attention(
       extend_attention.function, tokens / 64, 16, 128,
       reinterpret_cast<hipStream_t>(stream_ptr), args);
   return status == hipSuccess ? 0 : 95000 + static_cast<int>(status);
+}
+
+extern "C" int netra_gdn_chunk_o(
+    void* q, void* k, void* v, void* h, void* g, void* output,
+    void* cu_seqlens, void* chunk_indices, float scale, unsigned tokens,
+    void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  if (tokens != 8192) return 96001;
+  GdnChunkOArgs args{
+      q, k, v, h, g, output, cu_seqlens, chunk_indices, scale, tokens};
+  hipError_t status = launch_3d(
+      gdn_chunk_o.function, 4, 128, 32, 128,
+      reinterpret_cast<hipStream_t>(stream_ptr), args);
+  return status == hipSuccess ? 0 : 96000 + static_cast<int>(status);
 }

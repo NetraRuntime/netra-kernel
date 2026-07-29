@@ -8,6 +8,9 @@ This directory is the complete serving overlay for SGLang commit
   Qwen3.6 GDN M=1 QKVZ+BA raw-ASM fusion, batched MXFP4 expert loading, and the
   native `tc_piecewise` model-loop boundary, plus the accepted raw-ASM GDN
   QKVZ/BA split-copy path.
+- `scripts/rocm/sglang_gdn_chunk_o_gfx1151.patch` adds the exact-shape raw
+  gfx1151 GDN chunk-output dispatch after the base integration patches.
+- The raw GDN bridge is graph-safe and retains Triton for all other shapes.
 - `netra_gfx1151_sglang.py` is copied into SGLang's quantization package.
 - `netra_mxfp4_sgl_launcher.hip` is launch-only host code for the raw HSACOs.
 - `launch.sh` starts the validated gfx1151 deployment.
