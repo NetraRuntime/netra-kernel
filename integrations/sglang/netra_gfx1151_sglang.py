@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ctypes
+import os
 from typing import List, Optional
 
 import torch
@@ -15,6 +16,10 @@ from torch.nn.parameter import Parameter
 _LIB_PATH = (
     "/root/netra-mxfp4-gfx1151/build/sglang/libnetra_mxfp4_sgl.so"
 )
+
+_USE_EXPERT_REDUCE_FP64 = os.getenv(
+    "SGLANG_NETRA_DISABLE_EXPERT_REDUCE_FP64", "0"
+).lower() not in {"1", "true", "yes", "on"}
 
 
 def _ptr(tensor: torch.Tensor) -> ctypes.c_void_p:
@@ -86,6 +91,11 @@ class _Runtime:
             + [ctypes.c_void_p]
         )
         self.lib.netra_expert_activation_pack.restype = ctypes.c_int
+        self.lib.netra_expert_weighted_reduce_fp64.argtypes = (
+            [ctypes.c_void_p] * 4
+            + [ctypes.c_uint, ctypes.c_void_p]
+        )
+        self.lib.netra_expert_weighted_reduce_fp64.restype = ctypes.c_int
         status = self.lib.netra_mxfp4_sgl_init()
         if status:
             raise RuntimeError(self.lib.netra_mxfp4_sgl_error().decode())
@@ -169,6 +179,27 @@ def netra_expert_activation_pack_with_output(
         runtime.stream(),
     )
     runtime.check(status, "Netra raw-ASM expert activation pack")
+
+
+@register_custom_op(mutates_args=["output"])
+def netra_expert_weighted_reduce_fp64_with_output(
+    expert_output: torch.Tensor,
+    positions: torch.Tensor,
+    weights: torch.Tensor,
+    output: torch.Tensor,
+    token_count: int,
+) -> None:
+    """Deterministic high-precision raw gfx1151 expert reduction."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_expert_weighted_reduce_fp64(
+        _ptr(expert_output),
+        _ptr(positions),
+        _ptr(weights),
+        _ptr(output),
+        token_count,
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM FP64 expert weighted reduction")
 
 
 @register_custom_op(mutates_args=["output"])
@@ -772,6 +803,21 @@ def _prefill(
         runtime.stream(),
     )
     runtime.check(status, "Netra raw-ASM grouped down")
+
+    if _USE_EXPERT_REDUCE_FP64:
+        token_positions_flat = torch.empty(
+            pair_count, dtype=torch.int32, device=hidden_states.device
+        )
+        token_positions_flat.scatter_(0, order, position.to(torch.int32))
+        token_positions = token_positions_flat.view(token_count, 8)
+        token_weights = topk_weights.to(torch.float32).contiguous()
+        output = torch.empty(
+            (token_count, 2048), dtype=torch.bfloat16, device=hidden_states.device
+        )
+        netra_expert_weighted_reduce_fp64_with_output(
+            expert_output, token_positions, token_weights, output, token_count
+        )
+        return output
 
     sorted_pair_output = expert_output.view(-1, 2048).index_select(0, position)
     sorted_pair_output.mul_(flat_weights.index_select(0, order)[:, None])

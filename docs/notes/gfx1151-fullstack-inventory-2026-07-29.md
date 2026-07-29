@@ -240,3 +240,23 @@ The accepted ordered raw causal convolution replaces the 120 long-prefill Triton
 | 10 | `chunk_gated_delta_rule_fwd_kkt_solve_kernel` | 180 | 978.392810 | 5435.516 |
 
 The raw causal pair is now 166.231160 ms and is no longer a top-ten request cost. The next untargeted kernel by total request cost is `indexFuncLargeIndex` expert reduction; attention, gate, dense, GDN chunk-o, recompute, and prefill down retain higher absolute totals despite earlier accepted replacements.
+
+## Post-deterministic-expert-reduction exact 32K ranking — gfx1151 measured
+
+The accepted deterministic raw-ASM expert reduction replaces padded-row gather, router-weight multiplication, unordered indexed accumulation, and BF16 conversion. The old `indexFuncLargeIndex` reduction used 1,130.480012 ms across 160 calls; the fused FP64 raw kernel uses 462.722462 ms, a measured 59.068% reduction. Total launches fall from 38,203 to 33,820 and positive launch gaps from 15,264.835 to 12,326.289 ms in the process-start trace.
+
+| Rank | Kernel | Calls | Total GPU ms | Mean us |
+|---:|---|---:|---:|---:|
+| 1 | `extend_attention_wmma_n64_gfx1151` | 40 | 6,968.533990 | 174,213.350 |
+| 2 | `mxfp4_prefill_gate_wmma_gfx1151` | 320 | 2,864.250326 | 8,950.782 |
+| 3 | `mxfp4_sgl_linear_prefill_wmma_gfx1151` | 360 | 2,415.927782 | 6,710.911 |
+| 4 | `gdn_chunk_o_bv32_gfx1151` | 120 | 1,359.649114 | 11,330.409 |
+| 5 | `recompute_w_u_reuse_a_ordered_gfx1151` | 120 | 1,235.816817 | 10,298.473 |
+| 6 | `mxfp4_prefill_down_wmma_gfx1151` | 160 | 1,202.531681 | 7,515.823 |
+| 7 | `chunk_gated_delta_rule_fwd_kernel_h_blockdim64` | 150 | 1,063.174706 | 7,087.831 |
+| 8 | `chunk_gated_delta_rule_fwd_kkt_solve_kernel` | 150 | 961.425615 | 6,409.504 |
+| 9 | BF16 direct-copy family | 640 | 777.023350 | 1,214.099 |
+| 10 | GDN BF16 GEMM family | 40 | 565.978644 | 14,149.466 |
+| 12 | `expert_weighted_reduce_top8_fp64_gfx1151` | 160 | 462.722462 | 2,892.015 |
+
+The next untargeted model kernels are the GDN chunk-H and KKT-solve families at ranks 7 and 8. The accepted reduction remains rank 12 because deterministic FP64 arithmetic is deliberately retained for the correctness-sensitive top-8 sum.

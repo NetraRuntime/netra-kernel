@@ -1,0 +1,58 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "status": "accepted_enabled",
+  "kernel": "expert_weighted_reduce_top8_fp64_gfx1151",
+  "shape": {"tokens": 8192, "hidden": 2048, "topk": 8},
+  "correctness": {
+    "controlled_bf16_bit_mismatches_vs_fp64_to_fp32_bf16": 0,
+    "real_checkpoint_layers_validated": 40,
+    "real_checkpoint_layer_bf16_bit_mismatches": 0,
+    "graph_replay_vs_eager_bit_mismatches": 0,
+    "graph_replay_vs_fp64_bit_mismatches": 0,
+    "exact_8192_output_token": 220,
+    "exact_32768_pair_a_output_token": 248045,
+    "exact_32768_pair_b_output_token": 220
+  },
+  "hip_events": {
+    "timing": "HIP events",
+    "m128": {"raw_median_ms": 0.036309, "pytorch_pipeline_median_ms": 0.061515, "speedup": 1.694208},
+    "m8192": {"raw_median_ms": 2.732935, "pytorch_pipeline_median_ms": 13.008181, "speedup": 4.759784}
+  },
+  "rocprofv3_exact_32768_plus_1": {
+    "old_index_reduce": {"invocations": 160, "total_gpu_ms": 1130.480012, "mean_gpu_us": 7065.500},
+    "raw_fp64_reduce": {"invocations": 160, "total_gpu_ms": 462.722462, "mean_gpu_us": 2892.015},
+    "kernel_speedup": 2.443106,
+    "gpu_reduction_percent": 59.068497,
+    "old_kernel_launches": 38203,
+    "raw_kernel_launches": 33820,
+    "old_total_kernel_gpu_ms": 27035.350969,
+    "raw_total_kernel_gpu_ms": 24566.359640,
+    "old_positive_launch_gaps_ms": 15264.834734,
+    "raw_positive_launch_gaps_ms": 12326.289108
+  },
+  "serving_host_e2e": {
+    "timing_scope": "host_e2e_http_monotonic",
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "cached_tokens": 0,
+    "m8192": {"baseline_ms": 5365.620317, "raw_ms": 4800.411558, "speedup": 1.117742},
+    "m32768_two_prompt_mean": {"baseline_ms": 25716.847616, "raw_ms": 23479.242605, "speedup": 1.095301}
+  },
+  "hardware": {
+    "vgpr_metadata": 40,
+    "sgpr_metadata": 44,
+    "lds_bytes": 0,
+    "scratch_bytes": 0,
+    "waves": 524288,
+    "occupancy_percent": 82.391730,
+    "mean_occupancy_per_active_cu": 53.936501,
+    "fetch_kib": 262401.6875,
+    "write_kib": 16384.0,
+    "l2_hit_percent": 5.796901,
+    "mem_unit_busy_percent": 96.371759,
+    "lds_bank_conflicts": 0,
+    "dependency_stall_percent": null,
+    "dependency_stall_note": "not exposed for gfx1151 by this rocprofv3 metric set"
+  }
+}

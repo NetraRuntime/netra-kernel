@@ -98,6 +98,15 @@ for causal_stem in causal_conv1d_stream64_ordered_gfx1151 causal_conv1d_state_up
     "${out_dir}/${causal_stem}.hsaco" > "${out_dir}/${causal_stem}.dis"
 done
 
+reduce_stem=expert_weighted_reduce_top8_fp64_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c "${repo_dir}/kernels/gfx1151/moe/${reduce_stem}.s" \
+  -o "${out_dir}/${reduce_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${reduce_stem}.o" -o "${out_dir}/${reduce_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${reduce_stem}.hsaco" > "${out_dir}/${reduce_stem}.dis"
+
 "${hipcc_bin}" --offload-arch=gfx1151 -O3 -shared -fPIC \
   -DNETRA_HSACO_DIR="\"${out_dir}\"" \
   "${integration_dir}/netra_mxfp4_sgl_launcher.hip" \

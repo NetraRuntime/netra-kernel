@@ -37,6 +37,7 @@ Kernel recompute_w_u;
 Kernel causal_conv;
 Kernel causal_state;
 Kernel activation_pack;
+Kernel expert_reduce_fp64;
 hipError_t init_status = hipSuccess;
 std::string init_error;
 
@@ -91,6 +92,8 @@ void initialize() {
        "causal_conv1d_state_update_gfx1151");
   load(activation_pack, "expert_activation_pack_gfx1151.hsaco",
        "expert_activation_pack_gfx1151");
+  load(expert_reduce_fp64, "expert_weighted_reduce_top8_fp64_gfx1151.hsaco",
+       "expert_weighted_reduce_top8_fp64_gfx1151");
 }
 
 template <typename Args>
@@ -120,6 +123,13 @@ hipError_t launch_3d(hipFunction_t function, unsigned gx, unsigned gy,
   return hipModuleLaunchKernel(function, gx, gy, gz, bx, 1, 1, 0, stream,
                                nullptr, config);
 }
+
+struct alignas(8) FourPointers {
+  void* a;
+  void* b;
+  void* c;
+  void* d;
+};
 
 struct alignas(8) FivePointers {
   void* a;
@@ -453,6 +463,19 @@ extern "C" int netra_causal_conv1d(
   CausalStateArgs state_args{x, state, cache_index};
   status = launch(causal_state.function, 64, 1, 128, stream, state_args);
   return status == hipSuccess ? 0 : 96800 + static_cast<int>(status);
+}
+
+extern "C" int netra_expert_weighted_reduce_fp64(
+    void* expert, void* positions, void* weights, void* output,
+    unsigned tokens, void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  if (tokens == 0) return 96901;
+  FourPointers args{expert, positions, weights, output};
+  hipError_t status = launch(
+      expert_reduce_fp64.function, 8, tokens, 256,
+      reinterpret_cast<hipStream_t>(stream_ptr), args);
+  return status == hipSuccess ? 0 : 96900 + static_cast<int>(status);
 }
 
 extern "C" int netra_expert_activation_pack(
