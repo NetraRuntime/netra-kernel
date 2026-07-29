@@ -55,6 +55,11 @@ class _Runtime:
             + [ctypes.c_uint, ctypes.c_void_p]
         )
         self.lib.netra_qkvzba_split_copy.restype = ctypes.c_int
+        self.lib.netra_extend_attention.argtypes = (
+            [ctypes.c_void_p] * 8
+            + [ctypes.c_uint, ctypes.c_float, ctypes.c_void_p]
+        )
+        self.lib.netra_extend_attention.restype = ctypes.c_int
         status = self.lib.netra_mxfp4_sgl_init()
         if status:
             raise RuntimeError(self.lib.netra_mxfp4_sgl_error().decode())
@@ -191,6 +196,36 @@ def apply_qkvzba_split_copy(
         token_count,
     )
     return mixed_qkv, z, b, a
+
+@register_custom_op(mutates_args=["output"])
+def netra_extend_attention_with_output(
+    q_extend: torch.Tensor,
+    k_extend: torch.Tensor,
+    v_extend: torch.Tensor,
+    output: torch.Tensor,
+    k_buffer: torch.Tensor,
+    v_buffer: torch.Tensor,
+    kv_indices: torch.Tensor,
+    kv_indptr: torch.Tensor,
+    token_count: int,
+    sm_scale: float,
+) -> None:
+    """Graph-safe raw gfx1151 M64xN64 extend-attention launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_extend_attention(
+        _ptr(q_extend),
+        _ptr(k_extend),
+        _ptr(v_extend),
+        _ptr(output),
+        _ptr(k_buffer),
+        _ptr(v_buffer),
+        _ptr(kv_indices),
+        _ptr(kv_indptr),
+        token_count,
+        sm_scale,
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM extend attention")
 
 
 def _ensure_decode_workspace(

@@ -1,0 +1,63 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "rows": [
+    {
+      "target": "gfx1151",
+      "measurement_status": "measured_hip_events",
+      "tokens": 8192,
+      "prefix_tokens": 16384,
+      "raw_hip_event_ms": [
+        229.02374267578125,
+        227.45974731445312,
+        229.143798828125,
+        229.42332458496094,
+        228.838623046875
+      ],
+      "raw_median_ms": 229.02374267578125,
+      "triton_hip_event_ms": [
+        275.70880126953125,
+        278.69476318359375,
+        279.62200927734375,
+        273.9251403808594,
+        278.7835388183594
+      ],
+      "triton_median_ms": 278.69476318359375,
+      "raw_max_abs_vs_fp32": 1.91020080819726e-06,
+      "raw_normalized_l2_vs_fp32": 0.00223953493771653,
+      "triton_max_abs_vs_fp32": 1.91020080819726e-06,
+      "triton_normalized_l2_vs_fp32": 0.002241632292063685,
+      "raw_max_abs_vs_triton": 1.9073486328125e-06,
+      "speedup_vs_triton": 1.2168815334492615
+    },
+    {
+      "target": "gfx1151",
+      "measurement_status": "measured_hip_events",
+      "tokens": 8192,
+      "prefix_tokens": 24576,
+      "raw_hip_event_ms": [
+        322.3169250488281,
+        323.87060546875,
+        322.83831787109375,
+        325.5281066894531,
+        324.126220703125
+      ],
+      "raw_median_ms": 323.87060546875,
+      "triton_hip_event_ms": [
+        391.4698486328125,
+        390.4969482421875,
+        385.19927978515625,
+        393.3293762207031,
+        392.0528259277344
+      ],
+      "triton_median_ms": 391.4698486328125,
+      "raw_max_abs_vs_fp32": 1.8210848793387413e-06,
+      "raw_normalized_l2_vs_fp32": 0.002270105575836555,
+      "triton_max_abs_vs_fp32": 1.8210848793387413e-06,
+      "triton_normalized_l2_vs_fp32": 0.002273835093651049,
+      "raw_max_abs_vs_triton": 1.9073486328125e-06,
+      "speedup_vs_triton": 1.2087229962293848
+    }
+  ],
+  "estimated_values": false
+}

@@ -76,6 +76,7 @@ set +e
   --attach "$scheduler_pid" \
   --attach-children false \
   --attach-sync-output true \
+  --disable-signal-handlers true \
   --attach-duration-msec "$attach_msec" \
   --kernel-trace true \
   --hip-runtime-trace true \

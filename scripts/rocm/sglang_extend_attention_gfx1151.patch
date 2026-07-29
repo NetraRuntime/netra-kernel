@@ -1,0 +1,82 @@
+diff --git a/python/sglang/kernels/ops/attention/extend_attention.py b/python/sglang/kernels/ops/attention/extend_attention.py
+index c41da1d..1775c6d 100644
+--- a/python/sglang/kernels/ops/attention/extend_attention.py
++++ b/python/sglang/kernels/ops/attention/extend_attention.py
+@@ -21,6 +21,7 @@ import triton
+ import triton.language as tl
+
+ from sglang.kernels.ops.attention.decode_attention import _extract_kv_strides
++from sglang.srt.utils.common import get_bool_env_var
+ from sglang.kernels.ops.attention.prefill_attention import (
+     context_attention_fwd,
+ )
+@@ -33,6 +34,15 @@ if _is_cuda:
+
+ _is_hip = is_hip()
+ _is_gfx95 = _is_hip and is_gfx95_supported()
++_use_netra_extend_attention = (
++    _is_hip
++    and get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
++    and not get_bool_env_var("SGLANG_NETRA_DISABLE_EXTEND_ATTENTION")
++)
++if _use_netra_extend_attention:
++    from sglang.srt.layers.quantization.netra_gfx1151 import (
++        netra_extend_attention_with_output,
++    )
+
+
+ def _get_block_sizes_for_extend_attention(Lq: int, Lv: int):
+@@ -718,6 +728,53 @@ def extend_attention_fwd(
+     batch_size, head_num = qo_indptr.shape[0] - 1, q_extend.shape[1]
+     kv_group_num = q_extend.shape[1] // k_extend.shape[1]
+
++    # Raw gfx1151 specialization for Qwen3.6's measured 8K chunk. Prefix
++    # length stays device-resident in kv_indptr, avoiding .item() and host sync.
++    use_netra_raw = (
++        _use_netra_extend_attention
++        and batch_size == 1
++        and max_len_extend == 8192
++        and q_extend.shape == (8192, 16, 256)
++        and k_extend.shape == (8192, 2, 256)
++        and v_extend.shape == (8192, 2, 256)
++        and o_extend.shape == q_extend.shape
++        and q_extend.dtype == torch.bfloat16
++        and k_extend.dtype == torch.bfloat16
++        and v_extend.dtype == torch.bfloat16
++        and o_extend.dtype == torch.bfloat16
++        and q_extend.is_contiguous()
++        and k_extend.is_contiguous()
++        and v_extend.is_contiguous()
++        and o_extend.is_contiguous()
++        and k_buffer.is_contiguous()
++        and v_buffer.is_contiguous()
++        and k_buffer.shape[-2:] == (2, 256)
++        and v_buffer.shape[-2:] == (2, 256)
++        and kv_indices.dtype == torch.int64
++        and kv_indptr.dtype == torch.int32
++        and custom_mask is None
++        and is_causal
++        and mask_indptr is None
++        and logit_cap == 0.0
++        and sliding_window_size < 0
++        and sinks is None
++        and lse_extend is None
++        and not skip_prefix
++        and not skip_extend
++        and page_size == 1
++        and score_mod is None
++        and isinstance(k_scale, (int, float))
++        and isinstance(v_scale, (int, float))
++        and k_scale == 1.0
++        and v_scale == 1.0
++    )
++    if use_netra_raw:
++        netra_extend_attention_with_output(
++            q_extend, k_extend, v_extend, o_extend, k_buffer, v_buffer,
++            kv_indices, kv_indptr, 8192, float(sm_scale),
++        )
++        return
++
+     USE_CUSTOM_MASK = custom_mask is not None
+     # Skip custom mask for prefix part
+     SKIP_PREFIX_CUSTOM_MASK = skip_prefix_custom_mask

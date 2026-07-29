@@ -29,6 +29,7 @@ Kernel prefill_down;
 Kernel linear_decode;
 Kernel linear_prefill;
 Kernel qkvzba_split;
+Kernel extend_attention;
 hipError_t init_status = hipSuccess;
 std::string init_error;
 
@@ -66,6 +67,8 @@ void initialize() {
        "mxfp4_sgl_linear_prefill_wmma_gfx1151");
   load(qkvzba_split, "qkvzba_split_copy_gfx1151.hsaco",
        "qkvzba_split_copy_gfx1151");
+  load(extend_attention, "extend_attention_wmma_n64_gfx1151.hsaco",
+       "extend_attention_wmma_n64_gfx1151");
 }
 
 template <typename Args>
@@ -114,6 +117,20 @@ struct alignas(8) LinearArgs {
   unsigned n;
   unsigned k;
 };
+
+struct alignas(8) ExtendAttentionArgs {
+  void* q;
+  void* k_extend;
+  void* v_extend;
+  void* output;
+  void* k_buffer;
+  void* v_buffer;
+  void* kv_indices;
+  void* kv_indptr;
+  unsigned tokens;
+  float sm_scale;
+};
+static_assert(sizeof(ExtendAttentionArgs) == 72);
 
 }  // namespace
 
@@ -250,4 +267,20 @@ extern "C" int netra_qkvzba_split_copy(
       qkvzba_split.function, 7, token_count, 256,
       reinterpret_cast<hipStream_t>(stream_ptr), args);
   return status == hipSuccess ? 0 : 94000 + static_cast<int>(status);
+}
+
+extern "C" int netra_extend_attention(
+    void* q, void* k_extend, void* v_extend, void* output,
+    void* k_buffer, void* v_buffer, void* kv_indices, void* kv_indptr,
+    unsigned tokens, float sm_scale, void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  if (tokens == 0 || (tokens & 63U)) return 95001;
+  ExtendAttentionArgs args{
+      q, k_extend, v_extend, output, k_buffer, v_buffer, kv_indices,
+      kv_indptr, tokens, sm_scale};
+  hipError_t status = launch(
+      extend_attention.function, tokens / 64, 16, 128,
+      reinterpret_cast<hipStream_t>(stream_ptr), args);
+  return status == hipSuccess ? 0 : 95000 + static_cast<int>(status);
 }
