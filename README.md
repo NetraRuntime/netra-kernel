@@ -103,6 +103,8 @@ references using real checkpoint weights.
 - [SGLang integration and serving results](docs/notes/gfx1151-mxfp4-sglang-integration-2026-07-29.md)
 - [Machine-readable SGLang results](docs/notes/gfx1151-mxfp4-sglang-results.json)
 - [Raw ASM versus Triton MXFP4 comparison](docs/notes/gfx1151-mxfp4-triton-comparison.md)
+- [Fast real-checkpoint shard loading](docs/notes/gfx1151-loading-report-2026-07-29.md)
+- [Accepted extend-attention K LDS swizzle](docs/notes/gfx1151-extend-attention-k-lds-swizzle-2026-07-29.md)
 
 Every reported performance number in those records is labeled measured or
 estimated and is specific to gfx1151.

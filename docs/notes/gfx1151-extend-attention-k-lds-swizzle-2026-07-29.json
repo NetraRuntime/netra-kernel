@@ -1,0 +1,76 @@
+{
+  "date": "2026-07-29",
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "estimated_values": false,
+  "kernel": "extend_attention_wmma_n64_gfx1151",
+  "change": "row-dependent 16-byte XOR permutation for current and prefix K in LDS",
+  "resources": {
+    "vgpr": 248,
+    "sgpr_profiler_reported": 128,
+    "lds_bytes": 65536,
+    "scratch_bytes": 0
+  },
+  "correctness": {
+    "bit_exact_to_previous_production": [
+      {"tokens": 64, "prefix_tokens": 0, "unscaled_bf16": true},
+      {"tokens": 64, "prefix_tokens": 64, "unscaled_bf16": true},
+      {"tokens": 128, "prefix_tokens": 64, "unscaled_bf16": true},
+      {"tokens": 128, "prefix_tokens": 192, "unscaled_bf16": true}
+    ],
+    "real_checkpoint_greedy_output_match": true,
+    "mxfp4_linear_exact_bf16_fraction": 1.0,
+    "mxfp4_decode_exact_bf16_fraction": 1.0
+  },
+  "hip_events": [
+    {"tokens": 8192, "prefix_tokens": 0, "baseline_median_ms": 45.215866089, "candidate_median_ms": 44.112869263, "speedup": 1.025003969},
+    {"tokens": 8192, "prefix_tokens": 8192, "baseline_median_ms": 130.738616943, "candidate_median_ms": 127.946815491, "speedup": 1.021820015},
+    {"tokens": 8192, "prefix_tokens": 16384, "baseline_median_ms": 222.880325317, "candidate_median_ms": 217.610031128, "speedup": 1.024218986},
+    {"tokens": 8192, "prefix_tokens": 24576, "baseline_median_ms": 316.454559326, "candidate_median_ms": 307.194183350, "speedup": 1.030145024}
+  ],
+  "rocprofv3_t8192_prefix24576": {
+    "method": "one counter per process-start profiler pass",
+    "baseline_lds_bank_conflict_percent": 49.789985,
+    "candidate_lds_bank_conflict_percent": 34.634323,
+    "relative_conflict_reduction_percent": 30.439178,
+    "baseline_sq_busy_cycles": 17989205750,
+    "candidate_sq_busy_cycles": 17400779332,
+    "sq_busy_cycle_reduction_percent": 3.270997,
+    "baseline_occupancy_percent": 7.377047,
+    "candidate_occupancy_percent": 7.618831,
+    "baseline_l2_hit_percent": 24.662958,
+    "candidate_l2_hit_percent": 30.299905,
+    "invalid_counter_excluded": "baseline MemUnitBusy reported 860299.543081 percent"
+  },
+  "paired_serving": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "baseline_host_e2e_ms": [29406.675239, 29242.680070],
+    "candidate_host_e2e_ms": [29144.950506, 29046.814831],
+    "baseline_mean_ms": 29324.6776545,
+    "candidate_mean_ms": 29095.8826685,
+    "mean_ms_removed": 228.794986,
+    "speedup": 1.007863483,
+    "percent_reduction": 0.780213,
+    "input_ids_match_per_pair": true,
+    "greedy_output_ids_baseline_and_candidate": [248045, 220],
+    "candidate_peak_vram_bytes_sysfs": [60921634816, 60923731968]
+  },
+  "graph_replay": {
+    "prefix_0_matches_eager_bitwise": true,
+    "prefix_64_matches_eager_bitwise": true,
+    "prefix_0_median_ms": 0.029375,
+    "prefix_64_median_ms": 0.040196,
+    "samples_each": 7
+  },
+  "static_disassembly": {
+    "baseline_instructions": 6480,
+    "candidate_instructions": 6800,
+    "candidate_v_xor_b32": 96,
+    "wmma_lds_wait_barrier_scratch_resources_unchanged": true
+  },
+  "decision": "accepted"
+}

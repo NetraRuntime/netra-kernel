@@ -4,6 +4,7 @@ repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 out_dir=${1:-"${repo_dir}/results/profiles/gfx1151/extend-attention-counters-$(date -u +%Y%m%dT%H%M%SZ)"}
 rocm=/opt/rocm-7.2.1
 binary=${out_dir}/extend_attention_counter
+hsaco=${2:-"${repo_dir}/build/sglang/extend_attention_wmma_n64_gfx1151.hsaco"}
 mkdir -p "${out_dir}"
 env -u LD_LIBRARY_PATH "${rocm}/bin/hipcc" --offload-arch=gfx1151 -O3 \
   "${repo_dir}/harness/gfx1151/attention/extend_attention_wmma_launcher.hip" \
@@ -20,7 +21,7 @@ for counter in "${counters[@]}"; do
   timeout -k 5 90 env -u LD_LIBRARY_PATH "${rocm}/bin/rocprofv3" \
     --disable-signal-handlers true -d "${pass_dir}" -o trace \
     --pmc "${counter}" -f csv -- "${binary}" \
-    "${repo_dir}/build/sglang/extend_attention_wmma_n64_gfx1151.hsaco" \
+    "${hsaco}" \
     8192 24576 >"${pass_dir}/run.log" 2>&1
   echo "gfx1151 measured attention counter ${counter}: PASS"
 done

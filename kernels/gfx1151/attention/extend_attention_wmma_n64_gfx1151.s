@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Raw gfx1151 online-softmax extend attention for Qwen3.6 standard attention.
 // Fixed B=1, Hq=16, Hkv=2, Dq=Dv=256, BF16, causal, page size 1.
-// Tile: M64 x N64, four wave32 WMMA producers. Grid=(M/64,16,1), block=128.
+// Tile: M64 x N64 with K-only LDS-bank swizzle. Grid=(M/64,16,1), block=128.
 
 .amdgcn_target "amdgcn-amd-amdhsa--gfx1151"
 .amdhsa_code_object_version 6
@@ -48,6 +48,28 @@
   v_mul_f32_e32 v[\BASE+7], v[\BASE+7], v55
 .endm
 
+// Physically permute 16-byte K chunks by the low three row bits.
+// V writes and all V reads remain byte-for-byte identical to production.
+.macro SWIZZLE_K_LDS_WRITE PTR
+  .if \PTR == 6
+    s_lshr_b32 s41, s39, 9
+    s_and_b32 s41, s41, 7
+    s_lshl_b32 s41, s41, 4
+    v_xor_b32_e32 v230, s41, v230
+  .elseif \PTR == 12
+    s_lshr_b32 s41, s39, 9
+    s_and_b32 s41, s41, 7
+    s_lshl_b32 s41, s41, 4
+    v_xor_b32_e32 v230, s41, v230
+  .endif
+.endm
+
+.macro SWIZZLE_K_LDS_READ
+  v_and_b32_e32 v235, 7, v3
+  v_lshlrev_b32_e32 v235, 4, v235
+  v_xor_b32_e32 v234, v235, v234
+.endm
+
 // One wave loads keys wave_id + {0,4,...,60}; every lane loads one 16-byte
 // head-dimension vector. PTR is the low SGPR of the selected K or V buffer.
 .macro LOAD_PREFIX_ONE KOFF PTR
@@ -66,6 +88,7 @@
   s_lshl_b32 s39, s39, 9
   v_add_nc_u32_e32 v230, s39, v229
   v_add_nc_u32_e32 v230, 32768, v230
+  SWIZZLE_K_LDS_WRITE \PTR
   ds_write_b128 v230, v[225:228]
 .endm
 
@@ -83,6 +106,7 @@
   s_lshl_b32 s39, s39, 9
   v_add_nc_u32_e32 v230, s39, v229
   v_add_nc_u32_e32 v230, 32768, v230
+  SWIZZLE_K_LDS_WRITE \PTR
   ds_write_b128 v230, v[225:228]
 .endm
 
@@ -119,6 +143,7 @@
     s_lshl_b32 s39, s39, 9
     v_add_nc_u32_e32 v230, s39, v229
     v_add_nc_u32_e32 v230, 32768, v230
+    SWIZZLE_K_LDS_WRITE \PTR
     .if BI < 4
       ds_write_b128 v230, v[8+BI*4:11+BI*4]
     .else
@@ -156,6 +181,7 @@
     s_lshl_b32 s39, s39, 9
     v_add_nc_u32_e32 v230, s39, v229
     v_add_nc_u32_e32 v230, 32768, v230
+    SWIZZLE_K_LDS_WRITE \PTR
     .if BI < 4
       ds_write_b128 v230, v[8+BI*4:11+BI*4]
     .elseif BI < 8
@@ -343,6 +369,7 @@ extend_attention_wmma_n64_gfx1151:
     v_lshlrev_b32_e32 v234, 9, v3
     v_lshl_add_u32 v234, v4, 4, v234
     v_add_nc_u32_e32 v234, (32768+DK*32), v234
+    SWIZZLE_K_LDS_READ
     ds_load_b128 v[16:19], v234
     s_waitcnt lgkmcnt(0)
     ds_swizzle_b32 v20, v16 offset:swizzle(SWAP,16)
@@ -355,6 +382,7 @@ extend_attention_wmma_n64_gfx1151:
         v_lshlrev_b32_e32 v234, 9, v3
         v_lshl_add_u32 v234, v4, 4, v234
         v_add_nc_u32_e32 v234, (32768+(KT+1)*8192+DK*32), v234
+        SWIZZLE_K_LDS_READ
         .if (KT % 2) == 0
           ds_load_b128 v[225:228], v234
         .else
