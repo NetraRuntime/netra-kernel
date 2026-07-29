@@ -39,6 +39,16 @@ for source_rel in "${sources[@]}"; do
     "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.dis"
 done
 
+split_stem=qkvzba_split_copy_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c \
+  "${repo_dir}/scripts/rocm/${split_stem}.s" \
+  -o "${out_dir}/${split_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${split_stem}.o" -o "${out_dir}/${split_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${split_stem}.hsaco" > "${out_dir}/${split_stem}.dis"
+
 "${hipcc_bin}" --offload-arch=gfx1151 -O3 -shared -fPIC \
   -DNETRA_HSACO_DIR="\"${out_dir}\"" \
   "${integration_dir}/netra_mxfp4_sgl_launcher.hip" \

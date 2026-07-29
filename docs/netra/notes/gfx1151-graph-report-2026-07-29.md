@@ -93,6 +93,12 @@ of `sum(ceil(tokens_per_expert / 64))`, so no routed group can exceed the
 preallocated workspace. It removes the CPU/GPU synchronization and keeps all
 raw compute in the existing gfx1151 `.s` kernels.
 
+The later raw QKVZ/BA split-copy capture exposed two additional direct-ctypes
+boundaries in the M=1 fused QKVZ+BA projection and general M=1 linear path.
+Both now use registered custom ops. The final gfx1151 M64 capture completed in
+12.06 s using 0.28 GB and replay matched eager output; the compute remains raw
+AMDGCN and module loading occurs before capture.
+
 All serving rows below are host-monotonic, uncached, exact-input/+1-output
 measurements on gfx1151. Each median has three matched-seed eager and piecewise
 runs except M64, which has five. Every matched pair has identical input-ID and

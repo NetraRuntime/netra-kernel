@@ -149,6 +149,11 @@ These are gfx1151 **measured** rocprofv3 counters with exact Qwen3.6 decode tens
 
 ## Evidence-backed priorities
 
+Post-inventory update: ranked kernel six,
+`fused_qkvzba_split_reshape_cat_contiguous_kernel`, now has an accepted
+bit-exact raw gfx1151 ASM replacement. It improves M8192 kernel time 7.0195x,
+uncached 8,192/+1 serving 1.0462x, and matched 32,768/+1 serving 1.0376x.
+
 1. Reprofile grouped prefill after the accepted `.item()` removal and fixed-capacity workspace. The original 32K trace measured 402 blocking copies and 34.094 s inside `hipMemcpyWithStream`; no portion is assumed eliminated until the replacement trace is captured.
 2. Optimize the top 32K GDN kernels first: `_fwd_kernel`, `chunk_fwd_kernel_o`, and `recompute_w_u` collectively dominate several seconds and use 256 VGPR with scratch in the first two cases.
 3. Continue raw gfx1151 ASM work on MXFP4 gate/linear/down. Decode linear alone is 34.05% of decode GPU time; the raw gate/down counter passes are 85.8–90.3% memory-unit busy with low measured L2 hit rate.

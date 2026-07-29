@@ -14,14 +14,20 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("root", type=Path)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--kernel-prefix", action="append")
+    parser.add_argument(
+        "--input-scope",
+        default="synthetic data with exact Qwen3.6 decode tensor shapes",
+    )
     args = parser.parse_args()
+    prefixes = tuple(args.kernel_prefix or ("mxfp4_", "silu_"))
     values: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     resources: dict[str, dict[str, int]] = {}
     for path in sorted(args.root.glob("*/*counter_collection.csv")):
         with path.open(newline="") as handle:
             for row in csv.DictReader(handle):
                 name = row["Kernel_Name"]
-                if not (name.startswith("mxfp4_") or name.startswith("silu_")):
+                if not name.startswith(prefixes):
                     continue
                 values[name][row["Counter_Name"]].append(float(row["Counter_Value"]))
                 resources[name] = {
@@ -47,7 +53,7 @@ def main() -> None:
     report = {
         "target": "gfx1151",
         "measurement_status": "measured",
-        "input_scope": "synthetic data with exact Qwen3.6 decode tensor shapes",
+        "input_scope": args.input_scope,
         "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
         "method": "one counter per process launch; identical raw-ASM kernel dispatch shapes",
         "units": {

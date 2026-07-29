@@ -24,7 +24,9 @@ def analyze(path: Path) -> dict:
     prefix = lambda value: sum(count for op, count in opcodes.items() if op.startswith(value))
     return {
         "target": "gfx1151", "measurement_status": "static_disassembly_count",
-        "file": str(path), "instructions": sum(opcodes.values()),
+        "file": str(path),
+        "instructions": sum(opcodes.values()) - opcodes["s_code_end"],
+        "s_code_end_padding": opcodes["s_code_end"],
         "s_waitcnt": opcodes["s_waitcnt"], "s_waitcnt_depctr": opcodes["s_waitcnt_depctr"],
         "s_barrier": prefix("s_barrier"), "s_nop": prefix("s_nop"),
         "global_load": prefix("global_load"), "global_store": prefix("global_store"),

@@ -1,0 +1,92 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "checkpoint": "/root/models/qwen36-sgl-mxfp4",
+  "quantization": "checkpoint-native MXFP4",
+  "timing_scope": "host serving end-to-end",
+  "eager_nonstream": [
+    {
+      "input_tokens": 210,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "repetitions": 5,
+      "baseline_median_ms": 536.056338,
+      "raw_asm_median_ms": 535.832129,
+      "speedup": 1.0004184314,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    },
+    {
+      "input_tokens": 8192,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "repetitions": 5,
+      "baseline_median_ms": 7073.980358,
+      "raw_asm_median_ms": 6761.488691,
+      "speedup": 1.0462164002,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    },
+    {
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "repetitions": 1,
+      "baseline_ms": 35399.052586,
+      "raw_asm_ms": 34114.980691,
+      "speedup": 1.0376424837,
+      "output_hash_match": true,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    }
+  ],
+  "eager_streamed_ttft": [
+    {
+      "input_tokens": 8192,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "baseline_ttft_ms": 7103.483492,
+      "raw_asm_ttft_ms": 6803.236063,
+      "baseline_input_tokens_per_s": 1153.237001,
+      "raw_asm_input_tokens_per_s": 1204.132846,
+      "baseline_total_ms": 7103.554134,
+      "raw_asm_total_ms": 6803.290335,
+      "output_throughput_tokens_per_s": null,
+      "output_hash_match": true,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    },
+    {
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "baseline_ttft_ms": 35226.947167,
+      "raw_asm_ttft_ms": 33941.125798,
+      "baseline_input_tokens_per_s": 930.196984,
+      "raw_asm_input_tokens_per_s": 965.436450,
+      "baseline_total_ms": 35227.054389,
+      "raw_asm_total_ms": 33941.271492,
+      "output_throughput_tokens_per_s": null,
+      "output_hash_match": true,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    }
+  ],
+  "piecewise_graph": {
+    "input_tokens": 64,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "backend": "tc_piecewise",
+    "capture_time_s": 12.06,
+    "graph_memory_gb": 0.28,
+    "replay_host_e2e_ms": 510.609981,
+    "eager_output_hash_match": true,
+    "dflash_mode": "disabled"
+  },
+  "kernel_correctness": {
+    "shapes": [1, 64, 210, 8192],
+    "bf16_bit_mismatches_qkv_z_b_a": [0, 0, 0, 0],
+    "oracle": "SGLang Triton"
+  },
+  "estimated_values": false
+}

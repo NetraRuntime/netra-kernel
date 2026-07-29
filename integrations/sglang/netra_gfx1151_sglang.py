@@ -50,6 +50,11 @@ class _Runtime:
             + [ctypes.c_void_p]
         )
         self.lib.netra_mxfp4_sgl_linear_prefill.restype = ctypes.c_int
+        self.lib.netra_qkvzba_split_copy.argtypes = (
+            [ctypes.c_void_p] * 6
+            + [ctypes.c_uint, ctypes.c_void_p]
+        )
+        self.lib.netra_qkvzba_split_copy.restype = ctypes.c_int
         status = self.lib.netra_mxfp4_sgl_init()
         if status:
             raise RuntimeError(self.lib.netra_mxfp4_sgl_error().decode())
@@ -75,6 +80,31 @@ def _get_runtime() -> _Runtime:
 
 
 @register_custom_op(mutates_args=["output"])
+def netra_mxfp4_linear_with_output(
+    packed: torch.Tensor,
+    scale: torch.Tensor,
+    activation: torch.Tensor,
+    output: torch.Tensor,
+    m: int,
+    n: int,
+    k: int,
+) -> None:
+    """Graph-safe launch boundary for a raw gfx1151 MXFP4 linear."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_mxfp4_sgl_linear(
+        _ptr(packed),
+        _ptr(scale),
+        _ptr(activation),
+        _ptr(output),
+        m,
+        n,
+        k,
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM MXFP4 linear")
+
+
+@register_custom_op(mutates_args=["output"])
 def netra_mxfp4_linear_prefill_with_output(
     packed: torch.Tensor,
     scale: torch.Tensor,
@@ -97,6 +127,70 @@ def netra_mxfp4_linear_prefill_with_output(
         runtime.stream(),
     )
     runtime.check(status, "Netra raw-ASM MXFP4 linear prefill")
+
+
+@register_custom_op(mutates_args=["mixed_qkv", "z", "b", "a"])
+def netra_qkvzba_split_copy_with_output(
+    mixed_qkvz: torch.Tensor,
+    mixed_ba: torch.Tensor,
+    mixed_qkv: torch.Tensor,
+    z: torch.Tensor,
+    b: torch.Tensor,
+    a: torch.Tensor,
+    token_count: int,
+) -> None:
+    """Torch-compile boundary for the raw gfx1151 split-copy kernel."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_qkvzba_split_copy(
+        _ptr(mixed_qkvz),
+        _ptr(mixed_ba),
+        _ptr(mixed_qkv),
+        _ptr(z),
+        _ptr(b),
+        _ptr(a),
+        token_count,
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM QKVZ/BA split-copy")
+
+
+def apply_qkvzba_split_copy(
+    mixed_qkvz: torch.Tensor, mixed_ba: torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Allocate graph-visible outputs and launch the gfx1151 raw ASM."""
+    if mixed_qkvz.shape[-1] != 12288 or mixed_ba.shape[-1] != 64:
+        raise RuntimeError(
+            "Netra QKVZ/BA split requires [...,12288] and [...,64] inputs"
+        )
+    if mixed_qkvz.dtype != torch.bfloat16 or mixed_ba.dtype != torch.bfloat16:
+        raise TypeError("Netra QKVZ/BA split requires BF16 inputs")
+    if not mixed_qkvz.is_contiguous() or not mixed_ba.is_contiguous():
+        raise RuntimeError("Netra QKVZ/BA split requires contiguous inputs")
+    token_count = mixed_qkvz.numel() // 12288
+    if mixed_ba.numel() != token_count * 64:
+        raise RuntimeError("Netra QKVZ and BA token counts must match")
+    mixed_qkv = torch.empty(
+        (token_count, 8192), dtype=mixed_qkvz.dtype, device=mixed_qkvz.device
+    )
+    z = torch.empty(
+        (token_count, 32, 128),
+        dtype=mixed_qkvz.dtype,
+        device=mixed_qkvz.device,
+    )
+    b = torch.empty(
+        (token_count, 32), dtype=mixed_ba.dtype, device=mixed_ba.device
+    )
+    a = torch.empty_like(b)
+    netra_qkvzba_split_copy_with_output(
+        mixed_qkvz,
+        mixed_ba,
+        mixed_qkv,
+        z,
+        b,
+        a,
+        token_count,
+    )
+    return mixed_qkv, z, b, a
 
 
 def _ensure_decode_workspace(
@@ -237,18 +331,15 @@ class NetraMxfp4LinearMethod(LinearMethodBase):
         flat_x = x.reshape(-1, k).contiguous()
         if flat_x.shape[0] == 1:
             output = torch.empty((1, n), dtype=torch.bfloat16, device=x.device)
-            runtime = _get_runtime()
-            status = runtime.lib.netra_mxfp4_sgl_linear(
-                _ptr(layer.netra_linear_weight),
-                _ptr(layer.netra_linear_scale),
-                _ptr(flat_x),
-                _ptr(output),
+            netra_mxfp4_linear_with_output(
+                layer.netra_linear_weight,
+                layer.netra_linear_scale,
+                flat_x,
+                output,
                 1,
                 n,
                 k,
-                runtime.stream(),
             )
-            runtime.check(status, "Netra raw-ASM MXFP4 linear decode")
         else:
             group_count = (flat_x.shape[0] + 63) // 64
             activation_groups = torch.zeros(
@@ -332,20 +423,17 @@ def apply_qkvz_ba_decode_fused(
     """One raw gfx1151 dispatch for Qwen3.6 M=1 QKVZ and BA projections."""
     if x.dtype != torch.bfloat16 or x.shape != (1, 2048):
         raise ValueError(f"QKVZ+BA fusion requires BF16 [1,2048], got {x.shape}")
-    runtime = _get_runtime()
     padded_n = qkvz_layer.netra_qkvz_ba_padded_n
     output = qkvz_layer.netra_qkvz_ba_output
-    status = runtime.lib.netra_mxfp4_sgl_linear(
-        _ptr(qkvz_layer.netra_qkvz_ba_weight),
-        _ptr(qkvz_layer.netra_qkvz_ba_scale),
-        _ptr(x.contiguous()),
-        _ptr(output),
+    netra_mxfp4_linear_with_output(
+        qkvz_layer.netra_qkvz_ba_weight,
+        qkvz_layer.netra_qkvz_ba_scale,
+        x.contiguous(),
+        output,
         1,
         padded_n,
         2048,
-        runtime.stream(),
     )
-    runtime.check(status, "Netra raw-ASM fused QKVZ+BA decode")
     return output[:, :12288], output[:, 12288:12352]
 
 

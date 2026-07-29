@@ -1,0 +1,64 @@
+
+/root/netra-mxfp4-gfx1151/build/sglang/qkvzba_split_copy_gfx1151.hsaco:	file format elf64-amdgpu
+
+Disassembly of section .text:
+
+0000000000001800 <qkvzba_split_copy_gfx1151>:
+	s_clause 0x2                                               // 000000001800: BF850002
+	s_load_b128 s[4:7], s[0:1], null                           // 000000001804: F4080100 F8000000
+	s_load_b128 s[8:11], s[0:1], 0x10                          // 00000000180C: F4080200 F8000010
+	s_load_b128 s[12:15], s[0:1], 0x20                         // 000000001814: F4080300 F8000020
+	s_waitcnt lgkmcnt(0)                                       // 00000000181C: BF89FC07
+	s_mul_i32 s16, s3, 0x6000                                  // 000000001820: 9610FF03 00006000
+	s_mul_i32 s17, s3, 0x80                                    // 000000001828: 9611FF03 00000080
+	s_lshl_b32 s18, s3, 14                                     // 000000001830: 84128E03
+	s_lshl_b32 s19, s3, 13                                     // 000000001834: 84138D03
+	s_lshl_b32 s20, s3, 6                                      // 000000001838: 84148603
+	s_add_u32 s4, s4, s16                                      // 00000000183C: 80041004
+	s_addc_u32 s5, s5, 0                                       // 000000001840: 82058005
+	s_add_u32 s6, s6, s17                                      // 000000001844: 80061106
+	s_addc_u32 s7, s7, 0                                       // 000000001848: 82078007
+	s_add_u32 s8, s8, s18                                      // 00000000184C: 80081208
+	s_addc_u32 s9, s9, 0                                       // 000000001850: 82098009
+	s_add_u32 s10, s10, s19                                    // 000000001854: 800A130A
+	s_addc_u32 s11, s11, 0                                     // 000000001858: 820B800B
+	s_add_u32 s12, s12, s20                                    // 00000000185C: 800C140C
+	s_addc_u32 s13, s13, 0                                     // 000000001860: 820D800D
+	s_add_u32 s14, s14, s20                                    // 000000001864: 800E140E
+	s_addc_u32 s15, s15, 0                                     // 000000001868: 820F800F
+	v_lshl_add_u32 v1, s2, 8, v0                               // 00000000186C: D6460001 04011002
+	s_cmp_lt_u32 s2, 4                                         // 000000001874: BF0A8402
+	s_cbranch_scc1 26                                          // 000000001878: BFA2001A <qkvzba_split_copy_gfx1151+0xe4>
+	s_cmp_lt_u32 s2, 6                                         // 00000000187C: BF0A8602
+	s_cbranch_scc1 31                                          // 000000001880: BFA2001F <qkvzba_split_copy_gfx1151+0x100>
+	v_cmp_gt_u32_e32 vcc_lo, 8, v0                             // 000000001884: 7C980088
+	s_and_b32 exec_lo, exec_lo, vcc_lo                         // 000000001888: 8B7E6A7E
+	s_cbranch_execz 36                                         // 00000000188C: BFA50024 <qkvzba_split_copy_gfx1151+0x120>
+	s_mov_b32 s21, exec_lo                                     // 000000001890: BE95007E
+	v_cmp_gt_u32_e32 vcc_lo, 4, v0                             // 000000001894: 7C980084
+	s_and_saveexec_b32 s22, vcc_lo                             // 000000001898: BE96206A
+	v_lshlrev_b32_e32 v2, 4, v0                                // 00000000189C: 30040084
+	global_load_b128 v[4:7], v2, s[6:7]                        // 0000000018A0: DC5E0000 04060002
+	s_waitcnt vmcnt(0)                                         // 0000000018A8: BF8903F7
+	global_store_b128 v2, v[4:7], s[12:13]                     // 0000000018AC: DC760000 000C0402
+	s_mov_b32 exec_lo, s21                                     // 0000000018B4: BEFE0015
+	v_cmp_le_u32_e32 vcc_lo, 4, v0                             // 0000000018B8: 7C960084
+	s_and_saveexec_b32 s22, vcc_lo                             // 0000000018BC: BE96206A
+	v_add_nc_u32_e32 v1, -4, v0                                // 0000000018C0: 4A0200C4
+	v_lshlrev_b32_e32 v2, 4, v1                                // 0000000018C4: 30040284
+	v_add_nc_u32_e32 v3, 64, v2                                // 0000000018C8: 4A0604C0
+	global_load_b128 v[4:7], v3, s[6:7]                        // 0000000018CC: DC5E0000 04060003
+	s_waitcnt vmcnt(0)                                         // 0000000018D4: BF8903F7
+	global_store_b128 v2, v[4:7], s[14:15]                     // 0000000018D8: DC760000 000E0402
+	s_branch 15                                                // 0000000018E0: BFA0000F <qkvzba_split_copy_gfx1151+0x120>
+	v_lshlrev_b32_e32 v2, 4, v1                                // 0000000018E4: 30040284
+	global_load_b128 v[4:7], v2, s[4:5]                        // 0000000018E8: DC5E0000 04040002
+	s_waitcnt vmcnt(0)                                         // 0000000018F0: BF8903F7
+	global_store_b128 v2, v[4:7], s[8:9]                       // 0000000018F4: DC760000 00080402
+	s_branch 8                                                 // 0000000018FC: BFA00008 <qkvzba_split_copy_gfx1151+0x120>
+	v_lshlrev_b32_e32 v2, 4, v1                                // 000000001900: 30040284
+	v_add_nc_u32_e32 v3, 0xffffc000, v2                        // 000000001904: 4A0604FF FFFFC000
+	global_load_b128 v[4:7], v2, s[4:5]                        // 00000000190C: DC5E0000 04040002
+	s_waitcnt vmcnt(0)                                         // 000000001914: BF8903F7
+	global_store_b128 v3, v[4:7], s[10:11]                     // 000000001918: DC760000 000A0403
+	s_endpgm                                                   // 000000001920: BFB00000

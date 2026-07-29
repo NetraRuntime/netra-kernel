@@ -1,11 +1,36 @@
 --- a/python/sglang/srt/models/qwen3_5.py
 +++ b/python/sglang/srt/models/qwen3_5.py
-@@ -17,0 +18,4 @@
+@@ -15,6 +15,10 @@
+ """Inference-only Qwen3.5 model and Qwen3.5 MoE model compatible with HuggingFace weights."""
+ 
+ import logging
 +import os
 +import re
 +import weakref
 +from contextlib import nullcontext
-@@ -288,0 +293,12 @@
+ from functools import lru_cache
+ from typing import Iterable, Optional, Set, Tuple, Union
+ 
+@@ -121,6 +125,15 @@
+ _is_cpu = is_cpu()
+ _is_gfx95 = is_gfx95_supported()
+ _is_hip = is_hip()
++_use_netra_qkvzba_split_copy = (
++    _is_hip
++    and get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
++    and not get_bool_env_var("SGLANG_NETRA_DISABLE_QKVZBA_SPLIT_COPY")
++)
++if _use_netra_qkvzba_split_copy:
++    from sglang.srt.layers.quantization.netra_gfx1151 import (
++        apply_qkvzba_split_copy,
++    )
+ _is_xpu = is_xpu()
+ _use_aiter = get_bool_env_var("SGLANG_USE_AITER") and _is_hip
+ _hip_use_alt_stream = get_bool_env_var("SGLANG_ALT_STREAM") and _is_hip
+@@ -286,6 +299,18 @@
+         # `weight_scale_inv` / `weight_scale` / `input_scale` if present.
+         self._bind_packed_weight_loaders(self.in_proj_qkvz)
+         self._bind_packed_weight_loaders(self.in_proj_ba)
 +        if _is_hip:
 +            # Weak links let the Netra quant post-load pass combine the two
 +            # raw MXFP4 layouts after BA (the second module) is processed,
@@ -18,7 +43,13 @@
 +            self.in_proj_ba._netra_qkvz_ba_peer = weakref.ref(
 +                self.in_proj_qkvz
 +            )
-@@ -549,0 +566,9 @@
+         self._fused_input_proj_cpu_enabled = LazyValue(
+             lambda: (
+                 _is_cpu
+@@ -547,6 +572,15 @@
+         if _use_aiter and isinstance(hidden_states, tuple):
+             return self._forward_input_proj_fused_quant_amd(hidden_states)
+ 
 +        if hidden_states.shape == (1, 2048) and hasattr(
 +            self.in_proj_qkvz, "netra_qkvz_ba_weight"
 +        ):
@@ -28,7 +59,52 @@
 +
 +            return apply_qkvz_ba_decode_fused(self.in_proj_qkvz, hidden_states)
 +
-@@ -1431,3 +1456,8 @@
+         if (
+             _is_cpu
+             or _is_npu
+@@ -632,20 +666,25 @@
+         )
+ 
+         if self.num_v_heads // self.num_k_heads in [1, 2, 4] and not _is_npu:
+-            if _is_cpu:
+-                num_k_heads_tp = self.num_k_heads // self.attn_tp_size
+-                num_v_heads_tp = self.num_v_heads // self.attn_tp_size
++            if _use_netra_qkvzba_split_copy:
++                mixed_qkv, z, b, a = apply_qkvzba_split_copy(
++                    projected_states_qkvz, projected_states_ba
++                )
+             else:
+-                num_k_heads_tp = triton.cdiv(self.num_k_heads, self.attn_tp_size)
+-                num_v_heads_tp = triton.cdiv(self.num_v_heads, self.attn_tp_size)
+-            mixed_qkv, z, b, a = fused_qkvzba_split_reshape_cat_contiguous(
+-                projected_states_qkvz,
+-                projected_states_ba,
+-                num_k_heads_tp,
+-                num_v_heads_tp,
+-                self.head_k_dim,
+-                self.head_v_dim,
+-            )
++                if _is_cpu:
++                    num_k_heads_tp = self.num_k_heads // self.attn_tp_size
++                    num_v_heads_tp = self.num_v_heads // self.attn_tp_size
++                else:
++                    num_k_heads_tp = triton.cdiv(self.num_k_heads, self.attn_tp_size)
++                    num_v_heads_tp = triton.cdiv(self.num_v_heads, self.attn_tp_size)
++                mixed_qkv, z, b, a = fused_qkvzba_split_reshape_cat_contiguous(
++                    projected_states_qkvz,
++                    projected_states_ba,
++                    num_k_heads_tp,
++                    num_v_heads_tp,
++                    self.head_k_dim,
++                    self.head_v_dim,
++                )
+         else:
+             query, key, value, z, b, a = self.fix_query_key_value_ordering(
+                 projected_states_qkvz, projected_states_ba
+@@ -1428,9 +1467,14 @@
+         # Pass through decoder layers
+         for layer_idx in range(self.start_layer, self.end_layer):
+             layer = self.layers[layer_idx]
 -            with get_global_expert_distribution_recorder().with_current_layer(
 -                layer_idx
 -            ):
@@ -40,7 +116,13 @@
 +                )
 +            )
 +            with ctx:
-@@ -2093,0 +2124,66 @@
+                 hidden_states, residual = layer(
+                     positions=positions,
+                     hidden_states=hidden_states,
+@@ -2091,6 +2135,72 @@
+ 
+         loaded_params: Set[str] = set()
+         params_dict = dict(self.named_parameters(remove_duplicate=False))
 +        batch_netra_experts = (
 +            _is_hip
 +            and os.environ.get("SGLANG_USE_NETRA_MXFP4_GFX1151") == "1"
@@ -107,11 +189,23 @@
 +            del expert_batches[key]
 +            loaded_params.add(target_name)
 +            return True
-@@ -2103,0 +2200,3 @@
+ 
+         for name, loaded_weight in weights:
+             if "rotary_emb.inv_freq" in name:
+@@ -2101,6 +2211,9 @@
+                 name = name.replace(r"model.language_model.", r"model.")
+             if ".self_attn." in name:
+                 name = name.replace(".self_attn", "")
 +            if maybe_batch_netra_expert(name, loaded_weight):
 +                continue
 +
-@@ -2293,0 +2393,8 @@
+             if (
+                 self.config.tie_word_embeddings
+                 and self.pp_group.is_last_rank
+@@ -2291,6 +2404,14 @@
+                         logger.warning(f"Parameter {name} not found in params_dict")
+             loaded_params.add(name)
+ 
 +        if expert_batches:
 +            incomplete = {key: len(value) for key, value in expert_batches.items()}
 +            raise RuntimeError(f"Incomplete Netra expert batches: {incomplete}")
@@ -120,3 +214,6 @@
 +                "Netra loaded %d MXFP4 expert tensors via 256-way host staging",
 +                batched_expert_tensors,
 +            )
+         self._routed_experts_weights_of_layer = LazyValue(
+             lambda: {
+                 layer_id: layer.mlp.get_moe_weights()

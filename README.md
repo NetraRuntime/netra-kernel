@@ -58,6 +58,8 @@ The validated integration base is SGLang commit
 cd /root/work/sglang-main
 git apply \
   /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-integration.patch
+git apply \
+  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-qkvz-ba-fusion.patch
 cp /root/netra-mxfp4-gfx1151/integrations/sglang/netra_gfx1151_sglang.py \
   python/sglang/srt/layers/quantization/netra_gfx1151.py
 

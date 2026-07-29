@@ -28,6 +28,7 @@ Kernel prefill_gate;
 Kernel prefill_down;
 Kernel linear_decode;
 Kernel linear_prefill;
+Kernel qkvzba_split;
 hipError_t init_status = hipSuccess;
 std::string init_error;
 
@@ -63,6 +64,8 @@ void initialize() {
        "mxfp4_sgl_linear_decode_gfx1151");
   load(linear_prefill, "mxfp4_sgl_linear_prefill_wmma_gfx1151.hsaco",
        "mxfp4_sgl_linear_prefill_wmma_gfx1151");
+  load(qkvzba_split, "qkvzba_split_copy_gfx1151.hsaco",
+       "qkvzba_split_copy_gfx1151");
 }
 
 template <typename Args>
@@ -92,6 +95,15 @@ struct alignas(8) ThreePointers {
   void* a;
   void* b;
   void* c;
+};
+
+struct alignas(8) SixPointers {
+  void* a;
+  void* b;
+  void* c;
+  void* d;
+  void* e;
+  void* f;
 };
 
 struct alignas(8) LinearArgs {
@@ -225,4 +237,17 @@ extern "C" int netra_mxfp4_sgl_linear_prefill(
   hipError_t status = launch(
       linear_prefill.function, n / 16, group_count, 32, stream, args);
   return status == hipSuccess ? 0 : 93000 + static_cast<int>(status);
+}
+
+extern "C" int netra_qkvzba_split_copy(
+    void* mixed_qkvz, void* mixed_ba, void* mixed_qkv, void* z, void* b,
+    void* a, unsigned token_count, void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  if (token_count == 0) return 0;
+  SixPointers args{mixed_qkvz, mixed_ba, mixed_qkv, z, b, a};
+  hipError_t status = launch(
+      qkvzba_split.function, 7, token_count, 256,
+      reinterpret_cast<hipStream_t>(stream_ptr), args);
+  return status == hipSuccess ? 0 : 94000 + static_cast<int>(status);
 }

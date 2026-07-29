@@ -1,0 +1,135 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "timing": "HIP events",
+  "raw_compute": "hand-written AMDGCN .s",
+  "baseline_compute": "SGLang Triton",
+  "warmup": 20,
+  "repetitions": 50,
+  "results": [
+    {
+      "tokens": 1,
+      "shape": [
+        [
+          1,
+          12288
+        ],
+        [
+          1,
+          64
+        ]
+      ],
+      "bytes_read_written": 49408,
+      "raw_asm_median_ms_hip_event": 0.007734999991953373,
+      "triton_median_ms_hip_event": 0.012432999908924103,
+      "speedup": 1.607369091384357,
+      "raw_asm_min_max_ms": [
+        0.005330000072717667,
+        0.019977999851107597
+      ],
+      "triton_min_max_ms": [
+        0.011270999908447266,
+        0.019036000594496727
+      ],
+      "bit_mismatches_qkv_z_b_a": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tokens": 64,
+      "shape": [
+        [
+          64,
+          12288
+        ],
+        [
+          64,
+          64
+        ]
+      ],
+      "bytes_read_written": 3162112,
+      "raw_asm_median_ms_hip_event": 0.00965800043195486,
+      "triton_median_ms_hip_event": 0.013660500291734934,
+      "speedup": 1.4144232429869474,
+      "raw_asm_min_max_ms": [
+        0.008496000431478024,
+        0.010058999992907047
+      ],
+      "triton_min_max_ms": [
+        0.007854999974370003,
+        0.05543399974703789
+      ],
+      "bit_mismatches_qkv_z_b_a": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tokens": 210,
+      "shape": [
+        [
+          210,
+          12288
+        ],
+        [
+          210,
+          64
+        ]
+      ],
+      "bytes_read_written": 10375680,
+      "raw_asm_median_ms_hip_event": 0.01839499920606613,
+      "triton_median_ms_hip_event": 0.027947000227868557,
+      "speedup": 1.5192716191394264,
+      "raw_asm_min_max_ms": [
+        0.01659099943935871,
+        0.031429000198841095
+      ],
+      "triton_min_max_ms": [
+        0.027571000158786774,
+        0.051867999136447906
+      ],
+      "bit_mismatches_qkv_z_b_a": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tokens": 8192,
+      "shape": [
+        [
+          8192,
+          12288
+        ],
+        [
+          8192,
+          64
+        ]
+      ],
+      "bytes_read_written": 404750336,
+      "raw_asm_median_ms_hip_event": 1.7718045115470886,
+      "triton_median_ms_hip_event": 12.437213897705078,
+      "speedup": 7.019518133434067,
+      "raw_asm_min_max_ms": [
+        1.7679979801177979,
+        1.8247840404510498
+      ],
+      "triton_min_max_ms": [
+        12.274933815002441,
+        12.780892372131348
+      ],
+      "bit_mismatches_qkv_z_b_a": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
