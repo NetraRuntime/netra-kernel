@@ -47,7 +47,13 @@ int main(int argc, char** argv) {
   if (rc) { std::fprintf(stderr, "launch: %s\n", hipGetErrorString((hipError_t)rc)); return 2; }
   HIP_CHECK(hipDeviceSynchronize());
   std::printf("gfx1151 measured dispatch tokens=%u prefix=%u\n",tokens,prefix);
-  hipFree(indptr); hipFree(indices); hipFree(vb); hipFree(kb);
-  hipFree(o); hipFree(v); hipFree(k); hipFree(q);
+  HIP_CHECK(hipFree(indptr));
+  HIP_CHECK(hipFree(indices));
+  HIP_CHECK(hipFree(vb));
+  HIP_CHECK(hipFree(kb));
+  HIP_CHECK(hipFree(o));
+  HIP_CHECK(hipFree(v));
+  HIP_CHECK(hipFree(k));
+  HIP_CHECK(hipFree(q));
   return 0;
 }

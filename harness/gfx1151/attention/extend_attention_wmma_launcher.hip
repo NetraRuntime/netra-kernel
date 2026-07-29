@@ -3,6 +3,12 @@
 #include <cstdint>
 #include <mutex>
 
+#ifndef NETRA_EXTEND_ATTENTION_KERNEL
+#define NETRA_EXTEND_ATTENTION_KERNEL extend_attention_wmma_n64_gfx1151
+#endif
+#define NETRA_STRINGIFY_IMPL(value) #value
+#define NETRA_STRINGIFY(value) NETRA_STRINGIFY_IMPL(value)
+
 namespace {
 hipModule_t module = nullptr;
 hipFunction_t kernel = nullptr;
@@ -28,7 +34,7 @@ extern "C" int netra_extend_attention_wmma_init(const char* hsaco_path) {
   if (kernel != nullptr) return hipSuccess;
   hipError_t status = hipModuleLoad(&module, hsaco_path);
   if (status != hipSuccess) return status;
-  status = hipModuleGetFunction(&kernel, module, "extend_attention_wmma_n64_gfx1151");
+  status = hipModuleGetFunction(&kernel, module, NETRA_STRINGIFY(NETRA_EXTEND_ATTENTION_KERNEL));
   return status;
 }
 
