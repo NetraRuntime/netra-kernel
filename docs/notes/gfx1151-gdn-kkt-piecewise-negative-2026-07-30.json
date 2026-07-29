@@ -1,0 +1,55 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "production_schedule": "BK64_w1",
+  "compiler_piecewise_vs_production": {
+    "bf16_bit_mismatches": 0,
+    "max_abs": 0.0,
+    "mean_abs": 0.0
+  },
+  "raw_piecewise_vs_production": {
+    "bf16_bit_mismatches": 145,
+    "max_abs": 6.103515625e-05,
+    "mean_abs": 2.367921136947615e-11
+  },
+  "production_samples_ms": [
+    5.292062759399414,
+    5.228662014007568,
+    5.2214789390563965,
+    5.13201904296875,
+    5.153159141540527
+  ],
+  "production_median_ms": 5.2214789390563965,
+  "compiler_builder_samples_ms": [
+    5.588834762573242,
+    5.513853073120117,
+    5.6024298667907715,
+    5.513411998748779,
+    5.573285102844238
+  ],
+  "compiler_builder_median_ms": 5.573285102844238,
+  "raw_builder_samples_ms": [
+    5.510166168212891,
+    5.468647003173828,
+    5.503512859344482,
+    5.441915988922119,
+    5.535653114318848
+  ],
+  "raw_builder_median_ms": 5.503512859344482,
+  "compiler_piecewise_samples_ms": [
+    9.538631439208984,
+    9.606751441955566,
+    9.602062225341797,
+    9.5452241897583,
+    9.523193359375
+  ],
+  "compiler_piecewise_median_ms": 9.5452241897583,
+  "raw_piecewise_samples_ms": [
+    9.504858016967773,
+    9.51054859161377,
+    9.505779266357422,
+    9.565412521362305,
+    9.440095901489258
+  ],
+  "raw_piecewise_median_ms": 9.505779266357422
+}
