@@ -60,24 +60,30 @@ repo=Path(__file__).resolve().parents[2]; build=repo/'build'/'experiments'
 lib=ctypes.CDLL(str(build/'libgdn_kkt_build.so'));lib.gdn_kkt_init.argtypes=[ctypes.c_char_p];lib.gdn_kkt_init.restype=ctypes.c_int
 lib.gdn_kkt_launch.argtypes=[ctypes.c_void_p]*5;lib.gdn_kkt_launch.restype=ctypes.c_int;lib.gdn_kkt_error.restype=ctypes.c_char_p
 assert lib.gdn_kkt_init(str(build/'gdn_kkt_build_fp32_gfx1151.hsaco').encode())==0,lib.gdn_kkt_error()
+lib_exact=ctypes.CDLL(str(build/'libgdn_kkt_build_compiler_frag.so'));lib_exact.gdn_kkt_init.argtypes=[ctypes.c_char_p];lib_exact.gdn_kkt_init.restype=ctypes.c_int
+lib_exact.gdn_kkt_launch.argtypes=[ctypes.c_void_p]*5;lib_exact.gdn_kkt_launch.restype=ctypes.c_int;lib_exact.gdn_kkt_error.restype=ctypes.c_char_p
+assert lib_exact.gdn_kkt_init(str(build/'gdn_kkt_build_fp32_compiler_frag_gfx1151.hsaco').encode())==0,lib_exact.gdn_kkt_error()
 torch.manual_seed(1151);B,T,H,Hg,K,BT,BC=1,8192,32,16,128,64,16;NT=T//BT
 k=(torch.randn((B,T,Hg,K),device='cuda')*.03).bfloat16().contiguous();g=torch.cumsum(torch.randn((B,T,H),device='cuda')*.001,dim=1).float().contiguous();beta=torch.sigmoid(torch.randn((B,T,H),device='cuda')).bfloat16().contiguous()
 cu=torch.tensor([0,T],device='cuda',dtype=torch.int64);ci=prepare_chunk_indices(cu,BT)
-prod=torch.zeros((B,T,H,BT),device='cuda',dtype=torch.bfloat16);from_ref=torch.zeros_like(prod);from_raw=torch.zeros_like(prod);ws_ref=torch.zeros((T,H,64),device='cuda');ws_raw=torch.zeros_like(ws_ref)
+prod=torch.zeros((B,T,H,BT),device='cuda',dtype=torch.bfloat16);from_ref=torch.zeros_like(prod);from_raw=torch.zeros_like(prod);from_exact=torch.zeros_like(prod);ws_ref=torch.zeros((T,H,64),device='cuda');ws_raw=torch.zeros_like(ws_ref);ws_exact=torch.zeros_like(ws_ref)
 def production():std.fn.fn[(NT,B*H)](k=k,g=g,beta=beta,A=prod,cu_seqlens=cu,chunk_indices=ci,T=T,H=H,Hg=Hg,K=K,BT=BT,BC=BC,BK=64,USE_G=True,IS_VARLEN=True,num_warps=1,num_stages=3)
 def build_ref():kkt_ref[(10,128,32)](k,g,beta,ws_ref,H=H,Hg=Hg,K=K,num_warps=1,num_stages=3)
 def build_raw():
  st=lib.gdn_kkt_launch(k.data_ptr(),g.data_ptr(),beta.data_ptr(),ws_raw.data_ptr(),torch.cuda.current_stream().cuda_stream);assert st==0,lib.gdn_kkt_error()
+def build_exact():
+ st=lib_exact.gdn_kkt_launch(k.data_ptr(),g.data_ptr(),beta.data_ptr(),ws_exact.data_ptr(),torch.cuda.current_stream().cuda_stream);assert st==0,lib_exact.gdn_kkt_error()
 def piece_ref():build_ref();solve_kernel[(128,32)](ws_ref,from_ref,H=H,num_warps=1,num_stages=3)
 def piece_raw():build_raw();solve_kernel[(128,32)](ws_raw,from_raw,H=H,num_warps=1,num_stages=3)
+def piece_exact():build_exact();solve_kernel[(128,32)](ws_exact,from_exact,H=H,num_warps=1,num_stages=3)
 def timed(fn,n=5):
  for _ in range(2):fn()
  torch.cuda.synchronize();v=[]
  for _ in range(n):
   a=torch.cuda.Event(enable_timing=True);b=torch.cuda.Event(enable_timing=True);a.record();fn();b.record();b.synchronize();v.append(a.elapsed_time(b))
  return v
-production();piece_ref();piece_raw();torch.cuda.synchronize()
+production();piece_ref();piece_raw();piece_exact();torch.cuda.synchronize()
 def errors(x,y):
  d=(x.float()-y.float()).abs();return {'bf16_bit_mismatches':int((x.view(torch.int16)!=y.view(torch.int16)).sum()),'max_abs':float(d.max()),'mean_abs':float(d.mean())}
-ps=timed(production);bc=timed(build_ref);br=timed(build_raw);cr=timed(piece_ref);rr=timed(piece_raw)
-print(json.dumps({'target':'gfx1151','measurement_status':'measured','production_schedule':'BK64_w1','compiler_piecewise_vs_production':errors(from_ref,prod),'raw_piecewise_vs_production':errors(from_raw,prod),'production_samples_ms':ps,'production_median_ms':statistics.median(ps),'compiler_builder_samples_ms':bc,'compiler_builder_median_ms':statistics.median(bc),'raw_builder_samples_ms':br,'raw_builder_median_ms':statistics.median(br),'compiler_piecewise_samples_ms':cr,'compiler_piecewise_median_ms':statistics.median(cr),'raw_piecewise_samples_ms':rr,'raw_piecewise_median_ms':statistics.median(rr)},indent=2))
+ps=timed(production);bc=timed(build_ref);br=timed(build_raw);be=timed(build_exact);cr=timed(piece_ref);rr=timed(piece_raw);re=timed(piece_exact)
+print(json.dumps({'target':'gfx1151','measurement_status':'measured','production_schedule':'BK64_w1','compiler_piecewise_vs_production':errors(from_ref,prod),'raw_lds_piecewise_vs_production':errors(from_raw,prod),'raw_exact_piecewise_vs_production':errors(from_exact,prod),'production_samples_ms':ps,'production_median_ms':statistics.median(ps),'compiler_builder_samples_ms':bc,'compiler_builder_median_ms':statistics.median(bc),'raw_lds_builder_samples_ms':br,'raw_lds_builder_median_ms':statistics.median(br),'raw_exact_builder_samples_ms':be,'raw_exact_builder_median_ms':statistics.median(be),'compiler_piecewise_samples_ms':cr,'compiler_piecewise_median_ms':statistics.median(cr),'raw_lds_piecewise_samples_ms':rr,'raw_lds_piecewise_median_ms':statistics.median(rr),'raw_exact_piecewise_samples_ms':re,'raw_exact_piecewise_median_ms':statistics.median(re)},indent=2))

@@ -1,0 +1,134 @@
+
+File: build/experiments/gdn_kkt_build_fp32_compiler_frag_gfx1151.hsaco
+Format: elf64-amdgpu
+Arch: amdgcn
+AddressSize: 64bit
+LoadName: <Not found>
+Symbols [
+  Symbol {
+    Name:  (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Undefined (0x0)
+  }
+  Symbol {
+    Name: DK (1)
+    Value: 0x8
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: RR (4)
+    Value: 0x8
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: _DYNAMIC (92)
+    Value: 0x35A0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other [ (0x2)
+      STV_HIDDEN (0x2)
+    ]
+    Section: .dynamic (0x8)
+  }
+  Symbol {
+    Name: gdn_kkt_build_fp32_compiler_frag_gfx1151 (7)
+    Value: 0x1700
+    Size: 3740
+    Binding: Global (0x1)
+    Type: Function (0x2)
+    Other [ (0x3)
+      STV_PROTECTED (0x3)
+    ]
+    Section: .text (0x7)
+  }
+  Symbol {
+    Name: gdn_kkt_build_fp32_compiler_frag_gfx1151.kd (48)
+    Value: 0x6C0
+    Size: 64
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other [ (0x3)
+      STV_PROTECTED (0x3)
+    ]
+    Section: .rodata (0x6)
+  }
+]
+NoteSections [
+  NoteSection {
+    Name: .note
+    Offset: 0x200
+    Size: 0x3A8
+    Notes [
+      {
+        Owner: AMDGPU
+        Data size: 0x393
+        Type: NT_AMDGPU_METADATA (AMDGPU Metadata)
+        AMDGPU Metadata: ---
+amdhsa.kernels:
+  - .args:
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           k
+        .offset:         0
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           g
+        .offset:         8
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           beta
+        .offset:         16
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  write_only
+        .address_space:  global
+        .name:           out_fp32
+        .offset:         24
+        .size:           8
+        .value_kind:     global_buffer
+    .group_segment_fixed_size: 0
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 32
+    .language:       OpenCL C
+    .language_version:
+      - 2
+      - 0
+    .max_flat_workgroup_size: 32
+    .name:           gdn_kkt_build_fp32_compiler_frag_gfx1151
+    .private_segment_fixed_size: 0
+    .sgpr_count:     32
+    .sgpr_spill_count: 0
+    .symbol:         gdn_kkt_build_fp32_compiler_frag_gfx1151.kd
+    .uniform_work_group_size: 1
+    .uses_dynamic_stack: false
+    .vgpr_count:     212
+    .vgpr_spill_count: 0
+    .wavefront_size: 32
+    .workgroup_processor_mode: 1
+amdhsa.target:   amdgcn-amd-amdhsa--gfx1151
+amdhsa.version:
+  - 1
+  - 2
+...
+
+      }
+    ]
+  }
+]
