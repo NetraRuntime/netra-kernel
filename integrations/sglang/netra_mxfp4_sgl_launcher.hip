@@ -33,6 +33,7 @@ Kernel linear_prefill_repack;
 Kernel qkvzba_split;
 Kernel extend_attention;
 Kernel gdn_chunk_o;
+Kernel recompute_w_u;
 Kernel activation_pack;
 hipError_t init_status = hipSuccess;
 std::string init_error;
@@ -80,6 +81,8 @@ void initialize() {
        "extend_attention_wmma_n64_gfx1151");
   load(gdn_chunk_o, "gdn_chunk_o_bv32_gfx1151.hsaco",
        "gdn_chunk_o_bv32_gfx1151");
+  load(recompute_w_u, "recompute_w_u_ordered_gfx1151.hsaco",
+       "recompute_w_u_reuse_a_ordered_gfx1151");
   load(activation_pack, "expert_activation_pack_gfx1151.hsaco",
        "expert_activation_pack_gfx1151");
 }
@@ -196,6 +199,20 @@ struct alignas(8) GdnChunkOArgs {
   unsigned tokens;
 };
 static_assert(sizeof(GdnChunkOArgs) == 72);
+
+struct alignas(8) RecomputeWUArgs {
+  void* k;
+  void* v;
+  void* beta;
+  void* w;
+  void* u;
+  void* A;
+  void* g;
+  void* cu_seqlens;
+  void* chunk_indices;
+  unsigned tokens;
+};
+static_assert(sizeof(RecomputeWUArgs) == 80);
 extern "C" int netra_mxfp4_sgl_init() {
   std::call_once(init_once, initialize);
   return static_cast<int>(init_status);
@@ -384,6 +401,20 @@ extern "C" int netra_gdn_chunk_o(
       gdn_chunk_o.function, 4, 128, 32, 128,
       reinterpret_cast<hipStream_t>(stream_ptr), args);
   return status == hipSuccess ? 0 : 96000 + static_cast<int>(status);
+}
+
+extern "C" int netra_gdn_recompute_w_u(
+    void* k, void* v, void* beta, void* w, void* u, void* A, void* g,
+    unsigned tokens, void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  if (tokens != 8192) return 96501;
+  RecomputeWUArgs args{
+      k, v, beta, w, u, A, g, nullptr, nullptr, tokens};
+  hipError_t status = launch(
+      recompute_w_u.function, 128, 32, 64,
+      reinterpret_cast<hipStream_t>(stream_ptr), args);
+  return status == hipSuccess ? 0 : 96500 + static_cast<int>(status);
 }
 
 extern "C" int netra_expert_activation_pack(

@@ -73,6 +73,11 @@ class _Runtime:
             + [ctypes.c_float, ctypes.c_uint, ctypes.c_void_p]
         )
         self.lib.netra_gdn_chunk_o.restype = ctypes.c_int
+        self.lib.netra_gdn_recompute_w_u.argtypes = (
+            [ctypes.c_void_p] * 7
+            + [ctypes.c_uint, ctypes.c_void_p]
+        )
+        self.lib.netra_gdn_recompute_w_u.restype = ctypes.c_int
         self.lib.netra_expert_activation_pack.argtypes = (
             [ctypes.c_void_p] * 4
             + [ctypes.c_uint] * 2
@@ -338,6 +343,32 @@ def netra_gdn_chunk_o_with_output(
         runtime.stream(),
     )
     runtime.check(status, "Netra raw-ASM GDN chunk output")
+
+@register_custom_op(mutates_args=["w", "u"])
+def netra_gdn_recompute_w_u_with_output(
+    k: torch.Tensor,
+    v: torch.Tensor,
+    beta: torch.Tensor,
+    w: torch.Tensor,
+    u: torch.Tensor,
+    A: torch.Tensor,
+    g: torch.Tensor,
+    token_count: int,
+) -> None:
+    """Graph-safe ordered raw-ASM GDN W/U recompute for Qwen3.6 8K."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_gdn_recompute_w_u(
+        _ptr(k),
+        _ptr(v),
+        _ptr(beta),
+        _ptr(w),
+        _ptr(u),
+        _ptr(A),
+        _ptr(g),
+        token_count,
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra ordered raw-ASM GDN W/U recompute")
 
 def _ensure_decode_workspace(
     layer: torch.nn.Module, device: torch.device

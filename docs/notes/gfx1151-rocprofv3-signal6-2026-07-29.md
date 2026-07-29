@@ -47,3 +47,20 @@ separately observed to terminate that scheduler, so process-start collection
 is the required SGLang path on this machine.
 The failed trace contains no valid GPU timing evidence. Only normally finalized
 CSV output is labeled measured on gfx1151.
+
+## Counter-path recurrence and resolution
+
+A later gfx1151 counter sweep reproduced signal 6 without any active SGLang
+server. The log identified the immediate cause before SIGABRT:
+`aqlprofile API table load failed: HSA_STATUS_ERROR`. The system ROCm 7.2
+profiler cannot preload the PyTorch wheel's ROCm 7.13 HIP library
+(`hsa_ext_image_create_v2` is unresolved), while the wheel profiler can trace
+that Python process but cannot bind the system `aqlprofile` counter API.
+
+This is why retry wrappers appeared to loop over new PIDs: every counter pass
+launched a fresh incompatible profiler process, each aborted with signal 6.
+The accepted fix is workload-dependent: use the ABI-matched wheel profiler
+with signal handlers disabled for PyTorch kernel/API traces, and use a pure
+ROCm 7.2 HIP executable plus `/opt/rocm-7.2.1/bin/rocprofv3` for hardware
+counter passes. The ordered recompute sweep completed fourteen counter passes
+with the latter path.

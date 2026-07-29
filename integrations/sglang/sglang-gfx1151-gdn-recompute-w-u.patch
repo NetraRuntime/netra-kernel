@@ -1,0 +1,44 @@
+--- a/python/sglang/kernels/ops/attention/fla/wy_fast.py
++++ b/python/sglang/kernels/ops/attention/fla/wy_fast.py
+@@ -9,6 +9,17 @@
+ import triton.language as tl
+
+ from sglang.kernels.ops.attention.fla.index import prepare_chunk_indices
++from sglang.srt.utils.common import get_bool_env_var, is_hip
++
++_use_netra_gdn_recompute_w_u = (
++    is_hip()
++    and get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
++    and not get_bool_env_var("SGLANG_NETRA_DISABLE_GDN_RECOMPUTE_W_U_RAW")
++)
++if _use_netra_gdn_recompute_w_u:
++    from sglang.srt.layers.quantization.netra_gfx1151 import (
++        netra_gdn_recompute_w_u_with_output,
++    )
+
+
+ # @triton.autotune(
+@@ -120,6 +131,23 @@
+     B, T, Hg, K, V = *k.shape, v.shape[-1]
+     H = v.shape[-2]
+     BT = A.shape[-1]
++    if (
++        _use_netra_gdn_recompute_w_u
++        and B == 1
++        and T == 8192
++        and Hg == 16
++        and H == 32
++        and K == 128
++        and V == 128
++        and BT == 64
++        and (cu_seqlens is None or cu_seqlens.numel() == 2)
++    ):
++        u = torch.empty_like(v)
++        w = k.new_empty(B, T, H, K)
++        netra_gdn_recompute_w_u_with_output(
++            k, v, beta, w, u, A, g_cumsum, T
++        )
++        return w, u
+
+     if chunk_indices is None and cu_seqlens is not None:
+         chunk_indices = prepare_chunk_indices(cu_seqlens, BT)

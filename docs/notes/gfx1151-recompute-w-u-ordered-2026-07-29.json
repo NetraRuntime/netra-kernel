@@ -1,0 +1,91 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "kernel": "recompute_w_u_reuse_a_ordered_gfx1151",
+  "decision": "accepted",
+  "shape": {
+    "B": 1,
+    "T": 8192,
+    "H": 32,
+    "Hg": 16,
+    "K": 128,
+    "V": 128,
+    "BT": 64
+  },
+  "correctness_fix": {
+    "rejected_order": "k * (beta * exp(g))",
+    "accepted_order": "(k * beta) * exp(g)",
+    "controlled_max_abs_w": 0.000244140625,
+    "controlled_max_abs_u": 0.00048828125,
+    "real_checkpoint_comparisons": 265,
+    "real_checkpoint_worst_w": 0.00048828125,
+    "real_checkpoint_worst_u": 0.03125,
+    "graph_replay_bit_exact_to_raw_eager": true
+  },
+  "resources": {
+    "vgpr": 136,
+    "sgpr": 128,
+    "lds_bytes": 16384,
+    "scratch_bytes": 0,
+    "grid": [8192, 32, 1],
+    "block": [64, 1, 1],
+    "waves": 8192
+  },
+  "rocprofv3_exact_32768_plus_1": {
+    "baseline_kernel": "recompute_w_u_fwd_kernel",
+    "baseline_request_calls": 120,
+    "baseline_total_gpu_ms": 2383.947096,
+    "baseline_mean_gpu_ms": 19.8662258,
+    "baseline_median_gpu_ms": 19.973305,
+    "raw_request_calls": 120,
+    "raw_total_gpu_ms": 1189.433566,
+    "raw_mean_gpu_ms": 9.911946383333333,
+    "raw_median_gpu_ms": 9.7937195,
+    "gpu_ms_saved": 1194.51353,
+    "speedup": 2.0042709102426657,
+    "trace": "results/profiles/gfx1151/recompute-w-u-ordered-full-32k"
+  },
+  "counters": {
+    "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+    "method": "one counter per pure HIP 7.2 process",
+    "OccupancyPercent": 24.442883,
+    "MeanOccupancyPerActiveCU": 15.871731,
+    "FETCH_SIZE_KiB": 122920.9375,
+    "WRITE_SIZE_KiB": 69271.75,
+    "L2CacheHit_percent": 49.049917,
+    "MemUnitBusy_percent": 95.046371,
+    "LDSBankConflict_percent": 41.904762,
+    "SQ_BUSY_CYCLES": 614984581,
+    "SQ_WAVE_CYCLES": 9633363066,
+    "SQ_INSTS_FLAT": 2818048,
+    "SQ_INSTS_LDS": 14221312,
+    "direct_dependency_stalls": null,
+    "direct_dependency_stalls_reason": "not exposed for gfx1151",
+    "result": "results/profiles/gfx1151/recompute-w-u-ordered-counters-hip72-20260729/summary.json"
+  },
+  "serving_exact_32768_plus_1": {
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "baseline_pair_ms": [28100.356803, 27904.237105],
+    "raw_pair_ms": [27653.933755, 26888.400422],
+    "baseline_mean_ms": 28002.296954,
+    "raw_mean_ms": 27271.1670885,
+    "saved_ms": 731.1298655,
+    "speedup": 1.0268096287601973,
+    "baseline_tokens": [248045, 220],
+    "raw_tokens": [248045, 220]
+  },
+  "disassembly_static": {
+    "rejected_raw_instructions": 8429,
+    "ordered_raw_instructions": 8541,
+    "ordered_wmma": 128,
+    "ordered_global_loads": 88,
+    "ordered_global_stores": 256,
+    "ordered_extra_multiply_instructions": 112
+  },
+  "negative_results": {
+    "deterministic_inference": "unrelated persistent matmul requires 99328 bytes LDS, gfx1151 limit 65536",
+    "python_counter_path": "aqlprofile API table load failed followed by rocprofv3 signal 6"
+  }
+}

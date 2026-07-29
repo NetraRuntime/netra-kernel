@@ -79,6 +79,15 @@ gdn_stem=gdn_chunk_o_bv32_gfx1151
 "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
   "${out_dir}/${gdn_stem}.hsaco" > "${out_dir}/${gdn_stem}.dis"
 
+recompute_stem=recompute_w_u_ordered_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c "${repo_dir}/kernels/gfx1151/gdn/${recompute_stem}.s" \
+  -o "${out_dir}/${recompute_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${recompute_stem}.o" -o "${out_dir}/${recompute_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${recompute_stem}.hsaco" > "${out_dir}/${recompute_stem}.dis"
+
 "${hipcc_bin}" --offload-arch=gfx1151 -O3 -shared -fPIC \
   -DNETRA_HSACO_DIR="\"${out_dir}\"" \
   "${integration_dir}/netra_mxfp4_sgl_launcher.hip" \

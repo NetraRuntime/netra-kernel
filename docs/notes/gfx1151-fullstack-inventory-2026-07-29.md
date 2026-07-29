@@ -197,3 +197,27 @@ uncached 8,192/+1 serving 1.0462x, and matched 32,768/+1 serving 1.0376x.
 - Explicit native `tc_piecewise` prefill capture now succeeds on HIP and matches eager hashes from M64 through M8,192. Its measured host-serving medians are neutral (0.9871x to 1.0073x), so it is retained as a graph-safe integration path but rejected as a default speed optimization.
 
 The raw JSON companion contains the top 80 kernels per scenario, full family tables, HIP API tables, allocation totals, and all collected hardware counters.
+
+## Post-ordered-recompute exact 32K ranking — gfx1151 measured
+
+The accepted ordered raw-ASM recompute replacement changes the top request
+costs in the process-start trace as follows. These are measured request-shape
+GPU totals; health-only compiler calls are excluded from recompute.
+
+| Rank | Kernel | Calls | Total GPU ms | Mean us |
+|---:|---|---:|---:|---:|
+| 1 | `extend_attention_wmma_n64_gfx1151` | 40 | 6960.867198 | 174021.680 |
+| 2 | `mxfp4_prefill_gate_wmma_gfx1151` | 320 | 2904.613761 | 9076.918 |
+| 3 | `mxfp4_sgl_linear_prefill_wmma_gfx1151` | 360 | 2485.034979 | 6902.875 |
+| 4 | `gdn_chunk_o_bv32_gfx1151` | 120 | 1368.860575 | 11407.171 |
+| 5 | `_causal_conv1d_fwd_kernel` | 180 | 1303.828436 | 7243.491 |
+| 6 | `mxfp4_prefill_down_wmma_gfx1151` | 160 | 1212.053803 | 7575.336 |
+| 7 | `recompute_w_u_reuse_a_ordered_gfx1151` | 120 | 1189.433566 | 9911.946 |
+| 8 | `indexFuncLargeIndex` | 160 | 1129.624508 | 7060.153 |
+| 9 | elementwise multiply family | 1216 | 1103.710523 | 907.657 |
+| 10 | `chunk_gated_delta_rule_fwd_kernel_h_blockdim64` | 180 | 1055.010362 | 5861.169 |
+
+The recompute family moved from rank 4 at 2,383.947096 ms request-only GPU
+time to rank 7 at 1,189.433566 ms. The next unaddressed high-cost model
+family is causal convolution; rank 1 attention and ranks 2–4 already have
+accepted raw replacements but retain measurable cache/LDS limitations.
