@@ -1,0 +1,260 @@
+// SPDX-License-Identifier: MIT
+// Raw gfx1151 Qwen3.6 GDN recompute W/U, one 64-column output tile per WG.
+// Fixed B1,T8192,H32,Hg16,K=V128,BT64. Grid=(4,128,32), block=128 wave32.
+
+.amdgcn_target "amdgcn-amd-amdhsa--gfx1151"
+.amdhsa_code_object_version 6
+.text
+
+.macro SCALE_BF16_PAIR src
+  v_lshlrev_b32_e32 v114, 16, \src
+  v_and_b32_e32 v115, 0xffff0000, \src
+  v_mul_f32_e32 v114, v112, v114
+  v_mul_f32_e32 v115, v112, v115
+  v_lshrrev_b32_e32 v116, 16, v114
+  v_and_b32_e32 v116, 1, v116
+  v_add_nc_u32_e32 v114, 0x7fff, v114
+  v_add_nc_u32_e32 v114, v116, v114
+  v_lshrrev_b32_e32 v114, 16, v114
+  v_lshrrev_b32_e32 v116, 16, v115
+  v_and_b32_e32 v116, 1, v116
+  v_add_nc_u32_e32 v115, 0x7fff, v115
+  v_add_nc_u32_e32 v115, v116, v115
+  v_and_b32_e32 v115, 0xffff0000, v115
+  v_or_b32_e32 \src, v114, v115
+.endm
+
+.protected recompute_w_u_tile64_gfx1151
+.globl recompute_w_u_tile64_gfx1151
+.p2align 8
+.type recompute_w_u_tile64_gfx1151,@function
+recompute_w_u_tile64_gfx1151:
+  // k,v,beta,w,u,A,g,cu_seqlens,chunk_indices,T
+  // s2=tile (U0,U1,W0,W1), s3=chunk, s4=head.
+  s_clause 0x5
+  s_load_b128 s[8:11], s[0:1], 0
+  s_load_b128 s[12:15], s[0:1], 16
+  s_load_b128 s[16:19], s[0:1], 32
+  s_load_b128 s[20:23], s[0:1], 48
+  s_load_b64 s[24:25], s[0:1], 64
+  s_load_b32 s26, s[0:1], 72
+  s_waitcnt lgkmcnt(0)
+
+  s_lshl_b32 s27, s3, 6            // first token
+  s_and_b32 s34, s2, 1             // 64-column tile in U or W
+  s_lshl_b32 s36, s4, 7            // A head byte offset
+  s_lshl_b32 s37, s4, 8            // output head byte offset
+  s_lshl_b32 s38, s34, 7           // output tile byte offset
+  s_add_u32 s37, s37, s38
+
+  s_cmp_lt_u32 s2, 2
+  s_cbranch_scc1 .Lselect_u
+  s_mov_b64 s[28:29], s[8:9]       // k input
+  s_mov_b64 s[30:31], s[14:15]     // w output
+  s_mov_b32 s32, 12                // k token byte stride
+  s_lshr_b32 s35, s4, 1
+  s_lshl_b32 s35, s35, 8
+  s_add_u32 s35, s35, s38
+  s_mov_b32 s33, 1                 // multiply exp(g)
+  s_branch .Lselected
+.Lselect_u:
+  s_mov_b64 s[28:29], s[10:11]     // v input
+  s_mov_b64 s[30:31], s[16:17]     // u output
+  s_mov_b32 s32, 13                // v token byte stride
+  s_lshl_b32 s35, s4, 8
+  s_add_u32 s35, s35, s38
+  s_mov_b32 s33, 0
+.Lselected:
+  s_cmp_eq_u32 s33, 0
+  s_cselect_b32 s39, 0xffffffff, 0
+
+  v_and_b32_e32 v1, 31, v0         // lane
+  v_lshrrev_b32_e32 v2, 5, v0      // wave 0..3
+  v_and_b32_e32 v3, 15, v0         // WMMA column lane
+  v_lshrrev_b32_e32 v4, 4, v1      // WMMA row parity
+  v_and_b32_e32 v96, 7, v0         // 16-byte vector in row
+  v_lshrrev_b32_e32 v97, 3, v0     // loader row 0..15
+
+  // A[64,64] BF16 row-major -> LDS 0..8191.
+  .set AR, 0
+  .rept 4
+    v_add_nc_u32_e32 v100, (AR*16), v97
+    v_add_nc_u32_e32 v101, s27, v100
+    v_lshlrev_b32_e32 v102, 12, v101
+    v_add_nc_u32_e32 v102, s36, v102
+    v_lshl_add_u32 v102, v96, 4, v102
+    global_load_b128 v[108:111], v102, s[18:19]
+    s_waitcnt vmcnt(0)
+    v_lshlrev_b32_e32 v103, 7, v100
+    v_lshl_add_u32 v103, v96, 4, v103
+    ds_write_b128 v103, v[108:111]
+    .set AR, AR+1
+  .endr
+
+  // RHS[64,64] row-major, fused beta and optional exp(g), -> LDS 8192.
+  .set BR, 0
+  .rept 4
+    v_add_nc_u32_e32 v100, (BR*16), v97
+    v_add_nc_u32_e32 v101, s27, v100
+    v_lshlrev_b32_e32 v102, s32, v101
+    v_add_nc_u32_e32 v102, s35, v102
+    v_lshl_add_u32 v102, v96, 4, v102
+    global_load_b128 v[108:111], v102, s[28:29]
+    v_lshlrev_b32_e32 v104, 7, v101
+    v_lshl_add_u32 v104, s4, 2, v104
+    global_load_dword v112, v104, s[12:13]
+    global_load_dword v113, v104, s[20:21]
+    s_waitcnt vmcnt(0)
+    v_mul_f32_e32 v113, 0x3fb8aa3b, v113
+    v_exp_f32_e32 v113, v113
+    s_mov_b32 vcc_lo, s39
+    v_mov_b32_e32 v114, 0x3f800000
+    v_cndmask_b32_e32 v113, v113, v114, vcc_lo
+    v_mul_f32_e32 v112, v112, v113
+    SCALE_BF16_PAIR v108
+    SCALE_BF16_PAIR v109
+    SCALE_BF16_PAIR v110
+    SCALE_BF16_PAIR v111
+    v_lshlrev_b32_e32 v103, 7, v100
+    v_lshl_add_u32 v103, v96, 4, v103
+    v_add_nc_u32_e32 v103, 8192, v103
+    ds_write_b128 v103, v[108:111]
+    .set BR, BR+1
+  .endr
+  s_waitcnt lgkmcnt(0)
+  s_barrier
+
+  // Four 16-column C fragments per wave.
+  .set CR, 64
+  .rept 32
+    v_mov_b32_e32 v[CR], 0
+    .set CR, CR+1
+  .endr
+  v_lshlrev_b32_e32 v5, 11, v2
+  v_lshl_add_u32 v5, v3, 7, v5
+  v_lshl_add_u32 v5, v4, 4, v5
+
+  .set KT, 0
+  .rept 4
+    ds_load_b128 v[8:11], v5 offset:(KT*32)
+    s_waitcnt lgkmcnt(0)
+    ds_swizzle_b32 v12, v8 offset:swizzle(SWAP,16)
+    ds_swizzle_b32 v13, v9 offset:swizzle(SWAP,16)
+    ds_swizzle_b32 v14, v10 offset:swizzle(SWAP,16)
+    ds_swizzle_b32 v15, v11 offset:swizzle(SWAP,16)
+    s_waitcnt lgkmcnt(0)
+    .set OB, 0
+    .rept 4
+      v_lshlrev_b32_e32 v106, 10, v4
+      v_lshl_add_u32 v106, v3, 1, v106
+      v_add_nc_u32_e32 v106, (8192+KT*2048+OB*32), v106
+      ds_load_u16 v16, v106 offset:0
+      ds_load_u16_d16_hi v16, v106 offset:128
+      ds_load_u16 v17, v106 offset:256
+      ds_load_u16_d16_hi v17, v106 offset:384
+      ds_load_u16 v18, v106 offset:512
+      ds_load_u16_d16_hi v18, v106 offset:640
+      ds_load_u16 v19, v106 offset:768
+      ds_load_u16_d16_hi v19, v106 offset:896
+      s_waitcnt lgkmcnt(0)
+      ds_swizzle_b32 v20, v16 offset:swizzle(SWAP,16)
+      ds_swizzle_b32 v21, v17 offset:swizzle(SWAP,16)
+      ds_swizzle_b32 v22, v18 offset:swizzle(SWAP,16)
+      ds_swizzle_b32 v23, v19 offset:swizzle(SWAP,16)
+      s_waitcnt lgkmcnt(0)
+      v_wmma_f32_16x16x16_bf16 v[64+OB*8:71+OB*8], v[8:15], v[16:23], v[64+OB*8:71+OB*8]
+      .set OB, OB+1
+    .endr
+    .set KT, KT+1
+  .endr
+
+  // Round and store C as BF16 to U/W.
+  v_lshlrev_b32_e32 v6, 4, v2
+  v_add_nc_u32_e32 v6, v4, v6
+  .set OB, 0
+  .rept 4
+    .set RR, 0
+    .rept 8
+      .set OREG, 64+OB*8+RR
+      v_lshrrev_b32_e32 v108, 16, v[OREG]
+      v_and_b32_e32 v108, 1, v108
+      v_add_nc_u32_e32 v109, 0x7fff, v[OREG]
+      v_add_nc_u32_e32 v109, v108, v109
+      v_lshrrev_b32_e32 v109, 16, v109
+      v_add_nc_u32_e32 v100, (RR*2), v6
+      v_add_nc_u32_e32 v101, s27, v100
+      v_lshlrev_b32_e32 v102, 13, v101
+      v_add_nc_u32_e32 v102, s37, v102
+      v_lshl_add_u32 v102, v3, 1, v102
+      v_add_nc_u32_e32 v102, (OB*32), v102
+      global_store_short v102, v109, s[30:31]
+      .set RR, RR+1
+    .endr
+    .set OB, OB+1
+  .endr
+  s_endpgm
+
+.section .rodata,"a",@progbits
+.p2align 6, 0
+.amdhsa_kernel recompute_w_u_tile64_gfx1151
+.amdhsa_group_segment_fixed_size 16384
+.amdhsa_private_segment_fixed_size 0
+.amdhsa_kernarg_size 80
+.amdhsa_user_sgpr_count 2
+.amdhsa_user_sgpr_kernarg_segment_ptr 1
+.amdhsa_wavefront_size32 1
+.amdhsa_enable_private_segment 0
+.amdhsa_system_sgpr_workgroup_id_x 1
+.amdhsa_system_sgpr_workgroup_id_y 1
+.amdhsa_system_sgpr_workgroup_id_z 1
+.amdhsa_system_vgpr_workitem_id 0
+.amdhsa_next_free_vgpr 117
+.amdhsa_next_free_sgpr 40
+.amdhsa_reserve_vcc 1
+.amdhsa_float_denorm_mode_32 3
+.amdhsa_float_denorm_mode_16_64 3
+.amdhsa_dx10_clamp 1
+.amdhsa_ieee_mode 1
+.amdhsa_workgroup_processor_mode 1
+.amdhsa_memory_ordered 1
+.amdhsa_forward_progress 1
+.end_amdhsa_kernel
+.text
+.Lfunc_end0:
+.size recompute_w_u_tile64_gfx1151, .Lfunc_end0-recompute_w_u_tile64_gfx1151
+
+.amdgpu_metadata
+---
+amdhsa.kernels:
+  - .args:
+      - { .name: k, .offset: 0, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
+      - { .name: v, .offset: 8, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
+      - { .name: beta, .offset: 16, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
+      - { .name: w, .offset: 24, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: write_only }
+      - { .name: u, .offset: 32, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: write_only }
+      - { .name: A, .offset: 40, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
+      - { .name: g, .offset: 48, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
+      - { .name: cu_seqlens, .offset: 56, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
+      - { .name: chunk_indices, .offset: 64, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
+      - { .name: T, .offset: 72, .size: 4, .value_kind: by_value }
+    .group_segment_fixed_size: 16384
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 80
+    .language: OpenCL C
+    .language_version: [2, 0]
+    .max_flat_workgroup_size: 128
+    .name: recompute_w_u_tile64_gfx1151
+    .private_segment_fixed_size: 0
+    .sgpr_count: 40
+    .sgpr_spill_count: 0
+    .symbol: recompute_w_u_tile64_gfx1151.kd
+    .uniform_work_group_size: 1
+    .uses_dynamic_stack: false
+    .vgpr_count: 117
+    .vgpr_spill_count: 0
+    .wavefront_size: 32
+    .workgroup_processor_mode: 1
+amdhsa.target: amdgcn-amd-amdhsa--gfx1151
+amdhsa.version: [1, 2]
+...
+.end_amdgpu_metadata
