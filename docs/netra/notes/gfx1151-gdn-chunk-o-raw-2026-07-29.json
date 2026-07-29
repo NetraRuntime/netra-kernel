@@ -1,0 +1,88 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "shape": {
+    "B": 1,
+    "T": 8192,
+    "H": 32,
+    "Hg": 16,
+    "K": 128,
+    "V": 128,
+    "BT": 64,
+    "BV": 32
+  },
+  "isolated": {
+    "raw_hip_event_ms": [
+      10.905342102050781,
+      11.038491249084473,
+      10.906225204467773,
+      10.940408706665039,
+      10.96842098236084,
+      10.9097900390625,
+      10.99631118774414,
+      10.88554573059082,
+      10.911232948303223,
+      10.928585052490234
+    ],
+    "raw_median_ms": 10.919909000396729,
+    "tuned_triton_hip_event_ms": [
+      15.163668632507324,
+      15.32846450805664,
+      15.190810203552246,
+      15.093149185180664,
+      15.30906867980957,
+      15.378718376159668,
+      15.128293991088867,
+      15.184477806091309,
+      15.263795852661133,
+      15.219422340393066
+    ],
+    "tuned_triton_median_ms": 15.205116271972656,
+    "speedup_vs_tuned_triton": 1.3924215184778777,
+    "max_abs_vs_tuned_triton": 0.000003814697265625,
+    "mean_abs_vs_tuned_triton": 1.1203248398428123E-11,
+    "raw_lds_bytes": 32768,
+    "raw_scratch_bytes": 0
+  },
+  "live_oracle": {
+    "before": {
+      "kernel": "chunk_fwd_kernel_o",
+      "invocations": 120,
+      "total_gpu_us": 3978249.58,
+      "mean_gpu_us": 33152.07983333333,
+      "median_gpu_us": 33185.6715,
+      "min_gpu_us": 31747.222,
+      "max_gpu_us": 33792.045,
+      "pct_of_kernel_time": 11.920980799087808,
+      "pct_of_trace_wall": 4.483102817672481,
+      "family": "other",
+      "vgpr": "256",
+      "sgpr": "128",
+      "lds": "0",
+      "scratch": "1632",
+      "grid": "256x128x32",
+      "workgroup": "128x1x1"
+    },
+    "after": {
+      "kernel": "chunk_fwd_kernel_o",
+      "invocations": 120,
+      "total_gpu_us": 1881298.842,
+      "mean_gpu_us": 15677.49035,
+      "median_gpu_us": 15674.508,
+      "min_gpu_us": 15310.601,
+      "max_gpu_us": 16080.374,
+      "pct_of_kernel_time": 5.945344309932681,
+      "pct_of_trace_wall": 3.0873658488081497,
+      "family": "other",
+      "vgpr": "256",
+      "sgpr": "128",
+      "lds": "0",
+      "scratch": "432",
+      "grid": "1024x128x32",
+      "workgroup": "256x1x1"
+    },
+    "before_profile_host_e2e_ms": 34232.846431,
+    "after_profile_host_e2e_ms": 32466.847051
+  },
+  "status": "raw isolated accepted; SGLang full-request integration pending"
+}
