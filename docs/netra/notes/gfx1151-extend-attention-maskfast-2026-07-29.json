@@ -1,0 +1,79 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "estimated_values": false,
+  "kernel": "extend_attention_wmma_n64_gfx1151",
+  "change": "scalar fast path skips per-score causal masking on provably full tiles",
+  "hip_event_rows": [
+    {
+      "prefix_tokens": 0,
+      "previous_raw_median_ms": 46.988,
+      "maskfast_median_ms": 45.483039856,
+      "speedup": 1.03309,
+      "max_abs_vs_triton": 0.0001220703125
+    },
+    {
+      "prefix_tokens": 8192,
+      "previous_raw_median_ms": 134.587,
+      "maskfast_median_ms": 130.315826416,
+      "speedup": 1.03278,
+      "max_abs_vs_triton": 0.000003814697265625
+    },
+    {
+      "prefix_tokens": 16384,
+      "previous_raw_median_ms": 229.024,
+      "maskfast_median_ms": 224.023666382,
+      "speedup": 1.02232,
+      "max_abs_vs_triton": 0.000003814697265625
+    },
+    {
+      "prefix_tokens": 24576,
+      "previous_raw_median_ms": 323.871,
+      "maskfast_median_ms": 315.925933838,
+      "speedup": 1.02515,
+      "max_abs_vs_triton": 0.0000019073486328125
+    }
+  ],
+  "bit_identical_to_previous_raw": {
+    "prefix_0": true,
+    "prefix_8192": true,
+    "prefix_16384": true,
+    "prefix_24576": true
+  },
+  "rocprofv3_exact_32768_plus_1": {
+    "calls": 40,
+    "previous_total_gpu_ms": 7324.711493,
+    "maskfast_total_gpu_ms": 7156.49692,
+    "gpu_ms_removed": 168.214573,
+    "speedup": 1.023505,
+    "trace": "results/profiles/gfx1151/attention-maskfast-32k-start"
+  },
+  "paired_serving": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "old_ttft_ms": [
+      30094.222335,
+      29959.600324
+    ],
+    "new_ttft_ms": [
+      29930.156535,
+      29806.835884
+    ],
+    "old_mean_ttft_ms": 30026.9113295,
+    "new_mean_ttft_ms": 29868.4962095,
+    "mean_ms_removed": 158.41512,
+    "speedup": 1.00530375,
+    "percent_reduction": 0.527577,
+    "greedy_tokens_match_per_pair": true
+  },
+  "graph_replay": {
+    "prefix_0_matches_eager_bitwise": true,
+    "prefix_8192_matches_eager_bitwise": true,
+    "prefix_8192_median_ms": 130.798873901,
+    "samples": 7
+  },
+  "decision": "accepted"
+}

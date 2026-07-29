@@ -116,3 +116,50 @@ signal 6` output was the profiler's installed SIGABRT handler recursively
 handling an abort from a Python multiprocessing resource-tracker process, not a
 GPU-kernel assertion. Process-start profiling is the retained path, and the
 attach script disables rocprofv3 signal handlers to prevent recursive logging.
+
+## Accepted scalar causal-mask fast path
+
+All durations below are measured on gfx1151; none are estimated. The original
+raw kernel performed per-score causal address arithmetic, comparison, and
+`v_cndmask` for every 64-key tile. With the exact 8192-token chunk geometry,
+only the single diagonal current-chunk tile in each query block can be
+partially causal. Prefix tiles and earlier current tiles are fully valid.
+
+The accepted revision compares the key-tile scalar index against
+`prefix + query_block_start`. Full tiles execute only score scaling; the
+existing elementwise causal path remains unchanged for the diagonal tile.
+Static source expansion removes seven vector instructions per score from the
+executed full-tile path (224 vector instructions per full tile), at the cost
+of one scalar add, compare, and branch. This instruction delta is static
+analysis; all timing claims are measured.
+
+| Prefix | Previous raw median ms | Mask-fast median ms | Improvement | Status |
+|---:|---:|---:|---:|---|
+| 0 | 46.988 | 45.483 | 1.0331x | gfx1151 measured, HIP events |
+| 8,192 | 134.587 | 130.316 | 1.0328x | gfx1151 measured, HIP events |
+| 16,384 | 229.024 | 224.024 | 1.0223x | gfx1151 measured, HIP events |
+| 24,576 | 323.871 | 315.926 | 1.0251x | gfx1151 measured, HIP events |
+| Four chunks | 734.469 | 715.748 | 1.0262x | gfx1151 measured sum |
+
+All four exact-shape output byte hashes were bit-identical to the previously
+accepted raw kernel. The max differences versus Triton were 1.2207e-4 at
+prefix zero and 3.8147e-6/3.8147e-6/1.9073e-6 at prefixes 8K/16K/24K.
+The larger prefix-zero difference is the existing accepted BF16-vs-FP32
+behavior, not introduced by this change.
+
+A normally finalized process-start rocprofv3 trace measured 40 calls at
+7,156.497 ms total, down from 7,324.711 ms for the same symbol and exact input
+in the immediately preceding trace. This removes 168.214 ms of GPU work and
+is a measured 1.0235x kernel-family improvement on gfx1151.
+
+Two paired non-profiled exact 32768/+1 uncached requests measured old/new TTFT
+of 30,094.222/29,930.157 ms and 29,959.600/29,806.836 ms. Greedy output token
+IDs matched in both pairs. Mean TTFT improved from 30,026.911 to 29,868.496 ms:
+158.415 ms, 1.00530x, or 0.5276% lower end-to-end latency. Graph mode and
+dFlash were disabled for these serving pairs.
+
+The stable-pointer custom-op launch also passed graph capture/replay. Prefix-0
+and prefix-8192 replay were bit-identical to eager output after changing only
+the device `kv_indptr` value. Prefix-8192 graph replay measured 130.799 ms
+median over seven HIP-event samples. No allocation, `.item()`, or host
+synchronization was added to the captured path.

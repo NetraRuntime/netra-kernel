@@ -389,8 +389,33 @@ extend_attention_wmma_n64_gfx1151:
     .endr
     .set DK, DK+1
   .endr
-
   RESTORE_Q_P_ADDRS
+  // Only the diagonal current-chunk tile is partially causal. Every prefix
+  // tile and every earlier current tile is fully valid and needs scaling only.
+  s_add_u32 s40, s19, s21
+  s_cmp_eq_u32 s28, s40
+  s_cbranch_scc1 .Lcausal_mask
+  .set FT, 0
+  .rept 4
+    .set FR, 0
+    .rept 8
+      .if FT == 0
+        .set FREG, 24+FR
+      .elseif FT == 1
+        .set FREG, 192+FR
+      .elseif FT == 2
+        .set FREG, 200+FR
+      .else
+        .set FREG, 208+FR
+      .endif
+      v_mul_f32_e32 v[FREG], s20, v[FREG]
+      .set FR, FR+1
+    .endr
+    .set FT, FT+1
+  .endr
+  s_branch .Lmask_done
+.Lcausal_mask:
+
   // Apply causal mask to four 16-column score fragments.
   .set MT, 0
   .rept 4
@@ -417,6 +442,7 @@ extend_attention_wmma_n64_gfx1151:
     .endr
     .set MT, MT+1
   .endr
+.Lmask_done:
 
   // One online-softmax update for all 64 columns.
   .set SR, 0
