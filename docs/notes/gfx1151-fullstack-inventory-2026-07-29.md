@@ -221,3 +221,22 @@ The recompute family moved from rank 4 at 2,383.947096 ms request-only GPU
 time to rank 7 at 1,189.433566 ms. The next unaddressed high-cost model
 family is causal convolution; rank 1 attention and ranks 2–4 already have
 accepted raw replacements but retain measurable cache/LDS limitations.
+
+## Post-ordered-causal-convolution exact 32K ranking — gfx1151 measured
+
+The accepted ordered raw causal convolution replaces the 120 long-prefill Triton calls. Triton used 1303.633029 ms GPU; raw convolution plus raw state writeback uses 166.231160 ms, saving 1137.401869 ms GPU at the identical request shape (7.842290x). The 60 short/decode forward calls and 90 update calls remain compiler kernels because they are outside the exact raw shape.
+
+| Rank | Kernel | Calls | Total GPU ms | Mean us |
+|---:|---|---:|---:|---:|
+| 1 | `extend_attention_wmma_n64_gfx1151` | 40 | 6954.057714 | 173851.443 |
+| 2 | `mxfp4_prefill_gate_wmma_gfx1151` | 320 | 2857.311398 | 8929.098 |
+| 3 | `mxfp4_sgl_linear_prefill_wmma_gfx1151` | 360 | 2408.417340 | 6690.048 |
+| 4 | `gdn_chunk_o_bv32_gfx1151` | 120 | 1334.647772 | 11122.065 |
+| 5 | `recompute_w_u_reuse_a_ordered_gfx1151` | 120 | 1236.328911 | 10302.741 |
+| 6 | `mxfp4_prefill_down_wmma_gfx1151` | 160 | 1202.059694 | 7512.873 |
+| 7 | `indexFuncLargeIndex` | 160 | 1130.480012 | 7065.500 |
+| 8 | elementwise multiply family | 1216 | 1097.929616 | 902.903 |
+| 9 | `chunk_gated_delta_rule_fwd_kernel_h_blockdim64` | 180 | 1066.006455 | 5922.258 |
+| 10 | `chunk_gated_delta_rule_fwd_kkt_solve_kernel` | 180 | 978.392810 | 5435.516 |
+
+The raw causal pair is now 166.231160 ms and is no longer a top-ten request cost. The next untargeted kernel by total request cost is `indexFuncLargeIndex` expert reduction; attention, gate, dense, GDN chunk-o, recompute, and prefill down retain higher absolute totals despite earlier accepted replacements.

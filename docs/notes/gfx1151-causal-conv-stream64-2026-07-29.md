@@ -42,3 +42,7 @@ The retained raw ASM and harness are:
 - `tools/benchmark/benchmark_causal_conv1d_stream64.py`
 
 Disassemblies are in `docs/notes/disassembly/causal-conv-gfx1151/`. Future work should reproduce Triton's packed BF16 dot/rounding order exactly before repeating the real-checkpoint gate.
+
+## Superseded by accepted ordered revision
+
+The rejected FP32-FMA prototype remains as negative evidence. The later `causal_conv1d_stream64_ordered_gfx1151` revision reproduces Triton's per-tap BF16 dot rounding, passes controlled and real-checkpoint bit-exact gates, and is enabled in production. See `gfx1151-causal-conv1d-ordered-2026-07-29.md`.

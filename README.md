@@ -69,6 +69,14 @@ git apply \
   /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-integration.patch
 git apply \
   /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-qkvz-ba-fusion.patch
+git apply \
+  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-extend-attention.patch
+git apply \
+  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-gdn-chunk-o.patch
+git apply \
+  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-gdn-recompute-w-u.patch
+git apply \
+  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-causal-conv1d.patch
 cp /root/netra-mxfp4-gfx1151/integrations/sglang/netra_gfx1151_sglang.py \
   python/sglang/srt/layers/quantization/netra_gfx1151.py
 

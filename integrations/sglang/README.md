@@ -11,6 +11,10 @@ This directory is the complete serving overlay for SGLang commit
 - `sglang-gfx1151-extend-attention.patch` adds the accepted exact-shape raw
   gfx1151 standard-attention dispatch.
 - `sglang-gfx1151-gdn-chunk-o.patch` adds the exact-shape raw gfx1151 GDN
+- `sglang-gfx1151-gdn-recompute-w-u.patch` adds the accepted operation-ordered
+  raw gfx1151 W/U recompute dispatch for the exact 8K GDN shape.
+- `sglang-gfx1151-causal-conv1d.patch` adds the accepted bit-exact ordered-BF16
+  raw gfx1151 causal-convolution and state-write dispatch for the exact 8K shape.
   chunk-output dispatch after the base integration patches.
 - `experiments/` retains integration patches for rejected design oracles.
 - The raw GDN bridge is graph-safe and retains Triton for all other shapes.

@@ -34,6 +34,8 @@ Kernel qkvzba_split;
 Kernel extend_attention;
 Kernel gdn_chunk_o;
 Kernel recompute_w_u;
+Kernel causal_conv;
+Kernel causal_state;
 Kernel activation_pack;
 hipError_t init_status = hipSuccess;
 std::string init_error;
@@ -83,6 +85,10 @@ void initialize() {
        "gdn_chunk_o_bv32_gfx1151");
   load(recompute_w_u, "recompute_w_u_ordered_gfx1151.hsaco",
        "recompute_w_u_reuse_a_ordered_gfx1151");
+  load(causal_conv, "causal_conv1d_stream64_ordered_gfx1151.hsaco",
+       "causal_conv1d_stream64_ordered_gfx1151");
+  load(causal_state, "causal_conv1d_state_update_gfx1151.hsaco",
+       "causal_conv1d_state_update_gfx1151");
   load(activation_pack, "expert_activation_pack_gfx1151.hsaco",
        "expert_activation_pack_gfx1151");
 }
@@ -182,6 +188,23 @@ struct alignas(8) ActivationPackArgs {
   unsigned total_rows;
 };
 static_assert(sizeof(ActivationPackArgs) == 40);
+
+struct alignas(8) CausalConvArgs {
+  void* x;
+  void* weight;
+  void* state;
+  void* cache_index;
+  void* has_initial;
+  void* output;
+};
+static_assert(sizeof(CausalConvArgs) == 48);
+
+struct alignas(8) CausalStateArgs {
+  void* x;
+  void* state;
+  void* cache_index;
+};
+static_assert(sizeof(CausalStateArgs) == 24);
 
 }  // namespace
 
@@ -415,6 +438,21 @@ extern "C" int netra_gdn_recompute_w_u(
       recompute_w_u.function, 128, 32, 64,
       reinterpret_cast<hipStream_t>(stream_ptr), args);
   return status == hipSuccess ? 0 : 96500 + static_cast<int>(status);
+}
+
+extern "C" int netra_causal_conv1d(
+    void* x, void* weight, void* state, void* cache_index,
+    void* has_initial, void* output, void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  auto stream = reinterpret_cast<hipStream_t>(stream_ptr);
+  CausalConvArgs conv_args{x, weight, state, cache_index, has_initial, output};
+  hipError_t status = launch(
+      causal_conv.function, 64, 128, 128, stream, conv_args);
+  if (status != hipSuccess) return 96700 + static_cast<int>(status);
+  CausalStateArgs state_args{x, state, cache_index};
+  status = launch(causal_state.function, 64, 1, 128, stream, state_args);
+  return status == hipSuccess ? 0 : 96800 + static_cast<int>(status);
 }
 
 extern "C" int netra_expert_activation_pack(

@@ -1,0 +1,63 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "status": "accepted",
+  "shape": {"batch": 1, "tokens": 8192, "dim": 8192, "width": 4, "dtype": "bfloat16", "activation": "silu"},
+  "correctness": {
+    "controlled_output_elements": 67108864,
+    "controlled_output_bit_mismatches": 0,
+    "controlled_state_bit_mismatches": 0,
+    "real_checkpoint_layers_compared": 30,
+    "real_checkpoint_output_bit_mismatches_each": 0,
+    "real_checkpoint_state_bit_mismatches_each": 0,
+    "graph_output_bit_mismatches": 0,
+    "graph_state_bit_mismatches": 0
+  },
+  "hip_events_ms": {"triton_median": 10.795752, "raw_pair_median": 1.394898, "speedup": 7.739456},
+  "rocprofv3_request": {
+    "baseline_long_calls": 120,
+    "baseline_long_total_gpu_us": 1303633.029,
+    "raw_conv_calls": 120,
+    "raw_conv_total_gpu_us": 166052.669,
+    "raw_state_calls": 120,
+    "raw_state_total_gpu_us": 178.491,
+    "raw_pair_total_gpu_us": 166231.160,
+    "gpu_saved_us": 1137401.869,
+    "speedup": 7.842290,
+    "trace": "results/profiles/gfx1151/causal-conv1d-ordered-full-32k"
+  },
+  "serving": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "baseline_pair_a_ms": 27279.751504,
+    "baseline_pair_b_ms": 26901.914056,
+    "baseline_mean_ms": 27090.832780,
+    "raw_pair_a_ms": 25802.060901,
+    "raw_pair_b_ms": 25955.106171,
+    "raw_mean_ms": 25878.583536,
+    "saved_ms": 1212.249244,
+    "speedup": 1.046844,
+    "reduction_percent": 4.474758,
+    "pair_a_token": 248045,
+    "pair_b_token": 220
+  },
+  "counters": {
+    "result": "results/profiles/gfx1151/causal-conv1d-ordered-counters-hip72-20260729/summary.json",
+    "conv_vgpr": 32,
+    "conv_sgpr": 128,
+    "conv_lds_bytes": 0,
+    "conv_scratch_bytes": 0,
+    "conv_waves": 32768,
+    "conv_occupancy_percent": 96.089033,
+    "conv_mean_occupancy_active_cu": 61.858593,
+    "conv_fetch_kib": 69353.375,
+    "conv_write_kib": 65103.750,
+    "conv_l2_hit_percent": 33.472447,
+    "conv_mem_unit_busy_percent": 99.145786,
+    "conv_lds_bank_conflict_percent": 0.0,
+    "direct_dependency_stall": "not exposed; not estimated"
+  }
+}

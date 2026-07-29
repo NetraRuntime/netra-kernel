@@ -78,6 +78,8 @@ class _Runtime:
             + [ctypes.c_uint, ctypes.c_void_p]
         )
         self.lib.netra_gdn_recompute_w_u.restype = ctypes.c_int
+        self.lib.netra_causal_conv1d.argtypes = [ctypes.c_void_p] * 7
+        self.lib.netra_causal_conv1d.restype = ctypes.c_int
         self.lib.netra_expert_activation_pack.argtypes = (
             [ctypes.c_void_p] * 4
             + [ctypes.c_uint] * 2
@@ -369,6 +371,29 @@ def netra_gdn_recompute_w_u_with_output(
         runtime.stream(),
     )
     runtime.check(status, "Netra ordered raw-ASM GDN W/U recompute")
+
+@register_custom_op(mutates_args=["state", "output"])
+def netra_causal_conv1d_with_output(
+    x: torch.Tensor,
+    weight: torch.Tensor,
+    state: torch.Tensor,
+    cache_index: torch.Tensor,
+    has_initial: torch.Tensor,
+    output: torch.Tensor,
+) -> None:
+    """Graph-safe exact-shape raw-ASM causal convolution for Qwen3.6 8K."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_causal_conv1d(
+        _ptr(x),
+        _ptr(weight),
+        _ptr(state),
+        _ptr(cache_index),
+        _ptr(has_initial),
+        _ptr(output),
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra ordered raw-ASM GDN causal convolution")
+
 
 def _ensure_decode_workspace(
     layer: torch.nn.Module, device: torch.device

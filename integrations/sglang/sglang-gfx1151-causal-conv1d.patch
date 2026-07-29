@@ -1,0 +1,57 @@
+diff --git a/python/sglang/kernels/ops/mamba/causal_conv1d_triton.py b/python/sglang/kernels/ops/mamba/causal_conv1d_triton.py
+index 6080d40..ff58339 100644
+--- a/python/sglang/kernels/ops/mamba/causal_conv1d_triton.py
++++ b/python/sglang/kernels/ops/mamba/causal_conv1d_triton.py
+@@ -11,6 +11,17 @@ import triton
+ import triton.language as tl
+
+ from sglang.kernels.jit.utils import is_arch_support_pdl
++from sglang.srt.utils.common import get_bool_env_var, is_hip
++
++_use_netra_causal_conv1d = (
++    is_hip()
++    and get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
++    and not get_bool_env_var("SGLANG_NETRA_DISABLE_CAUSAL_CONV1D_RAW")
++)
++if _use_netra_causal_conv1d:
++    from sglang.srt.layers.quantization.netra_gfx1151 import (
++        netra_causal_conv1d_with_output,
++    )
+
+ PAD_SLOT_ID = -1
+
+@@ -448,6 +459,34 @@ def causal_conv1d_fn(
+     state_len = width - 1
+     np2_statelen = triton.next_power_of_2(state_len)
+
++    if (
++        _use_netra_causal_conv1d
++        and bias is None
++        and activation in ["silu", "swish"]
++        and x.dtype == torch.bfloat16
++        and weight.dtype == torch.bfloat16
++        and x.shape == (8192, 8192)
++        and x.stride() == (1, 8192)
++        and weight.shape == (8192, 4)
++        and weight.stride() == (4, 1)
++        and conv_states is not None
++        and conv_states.dtype == torch.bfloat16
++        and conv_states.shape[1:] == (8192, 3)
++        and conv_states.stride()[1:] == (3, 1)
++        and cache_indices is not None
++        and cache_indices.numel() == 1
++        and has_initial_state is not None
++        and has_initial_state.numel() == 1
++        and query_start_loc is not None
++        and query_start_loc.numel() == 2
++        and len(seq_lens_cpu) == 1
++        and seq_lens_cpu[0] == 8192
++    ):
++        netra_causal_conv1d_with_output(
++            x, weight, conv_states, cache_indices, has_initial_state, out
++        )
++        return out
++
+     stride_x_seq = 0
+     stride_x_dim = x.stride(0)
+     stride_x_token = x.stride(1)
