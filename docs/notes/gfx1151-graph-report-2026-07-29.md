@@ -130,3 +130,17 @@ integration path, but it is not the default performance path.
 - Piecewise M64 through M8,192 matched eager input IDs and output hashes for every measured seed. Several seeds emitted non-empty text, so correctness does not rely on empty one-token decodes.
 - Native piecewise replay is rejected as a speed optimization on the measured tiers; its best median delta is below one percent.
 - dFlash graph modes remain unavailable until a compatible draft checkpoint and its `dflash_config` are supplied.
+
+## Post-FP64 expert-reduction graph regression gate
+
+The accepted deterministic expert reduction remains compatible with both native graph paths on gfx1151. All rows are measured, uncached, dFlash disabled, and use the real checkpoint.
+
+| Graph path | Exact input/output | Capture time | Graph memory | Host E2E | Correctness |
+|---|---:|---:|---:|---:|---|
+| Full decode, batch 1 | 1 / 32 | 1.58 s | 0.10 GB | 1,804.110 ms | all 32 token IDs equal to matched eager |
+| Eager decode reference | 1 / 32 | n/a | n/a | 1,832.379 ms | same input and output hashes |
+| `tc_piecewise` M64 | 64 / 1 | 12.37 s | 0.23 GB | 487.274 ms | historical eager/piecewise input and output hashes match |
+| `tc_piecewise` M8,192 | 8,192 / 1 | 30.78 s | 0.37 GB | 4,625.396 ms | token 220 and hashes equal to matched-seed eager |
+| Eager M8,192 reference | 8,192 / 1 | n/a | n/a | 4,800.412 ms | token 220 |
+
+Server logs explicitly report `cuda graph: True` for both M64 and M8,192 prefill requests. The single matched M8,192 pair is 1.037838x and the single full-decode pair is 1.015669x, but neither is promoted as a stable graph speedup without repeated fresh-server pairs. They are accepted as current-build compatibility and correctness gates.

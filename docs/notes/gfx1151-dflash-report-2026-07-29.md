@@ -2,7 +2,7 @@
 
 ## Status
 
-dFlash execution is **not measured and not integrated** on gfx1151 in the supplied environment. This is an input blocker, not a performance conclusion: both installed model directories lack `dflash_config`, and no separate DFlash draft checkpoint exists under `/root/models`. SGLang's pinned implementation requires `--speculative-draft-model-path`; inventing draft weights or treating the target/MTP checkpoint as DFlash would invalidate acceptance and throughput results.
+dFlash execution is **not measured and not integrated** on gfx1151 in the supplied environment. Rechecked after commit `b51e3ed` by enumerating all model configs under `/root/models`; the blocker is unchanged. This is an input blocker, not a performance conclusion: both installed model directories lack `dflash_config`, and no separate DFlash draft checkpoint exists under `/root/models`. SGLang's pinned implementation requires `--speculative-draft-model-path`; inventing draft weights or treating the target/MTP checkpoint as DFlash would invalidate acceptance and throughput results.
 
 ## Source-derived interface at SGLang `1eee8fbdcc25b44e13bc097d5ff6ac24e8c24af4`
 

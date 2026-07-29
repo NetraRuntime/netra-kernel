@@ -3,6 +3,7 @@
   "date": "2026-07-29",
   "measurement_status": "unavailable",
   "status": "blocked_missing_compatible_dflash_draft_checkpoint",
+  "rechecked_after_commit": "b51e3ed6e4328bec0579c9d3fa7259a7c4f37399",
   "target_checkpoint": "/root/models/qwen36-sgl-mxfp4",
   "target_has_dflash_config": false,
   "installed_model_directories": [

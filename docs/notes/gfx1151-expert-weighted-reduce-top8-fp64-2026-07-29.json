@@ -31,6 +31,12 @@
     "old_positive_launch_gaps_ms": 15264.834734,
     "raw_positive_launch_gaps_ms": 12326.289108
   },
+  "graph_regression_gate": {
+    "measurement_status": "measured",
+    "full_decode_bs1": {"input_tokens": 1, "output_tokens": 32, "capture_s": 1.58, "memory_gb": 0.10, "graph_e2e_ms": 1804.110372, "eager_e2e_ms": 1832.378809, "output_ids_match": true},
+    "piecewise_m64": {"input_tokens": 64, "output_tokens": 1, "capture_s": 12.37, "memory_gb": 0.23, "historical_hashes_match": true},
+    "piecewise_m8192": {"input_tokens": 8192, "output_tokens": 1, "capture_s": 30.78, "memory_gb": 0.37, "piecewise_e2e_ms": 4625.395654, "eager_e2e_ms": 4800.411558, "output_token": 220, "hashes_match": true}
+  },
   "serving_host_e2e": {
     "timing_scope": "host_e2e_http_monotonic",
     "graph_mode": "disabled",
