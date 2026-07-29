@@ -42,7 +42,7 @@ done
 split_stem=qkvzba_split_copy_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c \
-  "${repo_dir}/scripts/rocm/${split_stem}.s" \
+  "${repo_dir}/kernels/gfx1151/gdn/${split_stem}.s" \
   -o "${out_dir}/${split_stem}.o"
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   "${out_dir}/${split_stem}.o" -o "${out_dir}/${split_stem}.hsaco"
@@ -52,7 +52,7 @@ split_stem=qkvzba_split_copy_gfx1151
 attention_stem=extend_attention_wmma_n64_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c \
-  "${repo_dir}/scripts/rocm/${attention_stem}.s" \
+  "${repo_dir}/kernels/gfx1151/attention/${attention_stem}.s" \
   -o "${out_dir}/${attention_stem}.o"
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   "${out_dir}/${attention_stem}.o" -o "${out_dir}/${attention_stem}.hsaco"
@@ -61,7 +61,7 @@ attention_stem=extend_attention_wmma_n64_gfx1151
 
 pack_stem=expert_activation_pack_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  -x assembler -c "${repo_dir}/scripts/rocm/${pack_stem}.s" \
+  -x assembler -c "${repo_dir}/kernels/gfx1151/moe/${pack_stem}.s" \
   -o "${out_dir}/${pack_stem}.o"
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   "${out_dir}/${pack_stem}.o" -o "${out_dir}/${pack_stem}.hsaco"
@@ -70,7 +70,7 @@ pack_stem=expert_activation_pack_gfx1151
 
 gdn_stem=gdn_chunk_o_bv32_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  -x assembler -c "${repo_dir}/scripts/rocm/${gdn_stem}.s" \
+  -x assembler -c "${repo_dir}/kernels/gfx1151/gdn/${gdn_stem}.s" \
   -o "${out_dir}/${gdn_stem}.o"
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   "${out_dir}/${gdn_stem}.o" -o "${out_dir}/${gdn_stem}.hsaco"

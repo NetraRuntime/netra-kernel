@@ -8,8 +8,11 @@ This directory is the complete serving overlay for SGLang commit
   Qwen3.6 GDN M=1 QKVZ+BA raw-ASM fusion, batched MXFP4 expert loading, and the
   native `tc_piecewise` model-loop boundary, plus the accepted raw-ASM GDN
   QKVZ/BA split-copy path.
-- `scripts/rocm/sglang_gdn_chunk_o_gfx1151.patch` adds the exact-shape raw
-  gfx1151 GDN chunk-output dispatch after the base integration patches.
+- `sglang-gfx1151-extend-attention.patch` adds the accepted exact-shape raw
+  gfx1151 standard-attention dispatch.
+- `sglang-gfx1151-gdn-chunk-o.patch` adds the exact-shape raw gfx1151 GDN
+  chunk-output dispatch after the base integration patches.
+- `experiments/` retains integration patches for rejected design oracles.
 - The raw GDN bridge is graph-safe and retains Triton for all other shapes.
 - `netra_gfx1151_sglang.py` is copied into SGLang's quantization package.
 - `netra_mxfp4_sgl_launcher.hip` is launch-only host code for the raw HSACOs.
@@ -20,7 +23,7 @@ read without mmap by two bounded loader threads, then the Qwen integration
 stages each 256-expert MXFP4 group into a small number of device copies. On the
 16 GiB Netra system, do not raise `SGLANG_WEIGHT_LOADER_THREADS` without first
 checking peak host memory. The cold-cache gfx1151 result is documented in
-`docs/netra/notes/gfx1151-loading-report-2026-07-29.md`.
+`docs/notes/gfx1151-loading-report-2026-07-29.md`.
 
 Build the native artifacts first:
 

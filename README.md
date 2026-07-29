@@ -18,8 +18,16 @@ kernels/gfx1151/mxfp4/
   lm_head/       MXFP4 LM-head kernels
   serving/       SGLang ABI kernels
   epilogue/      Raw assembly epilogues
+kernels/gfx1151/attention/
+  ...            Standard-attention kernels and rejected experiments
+kernels/gfx1151/gdn/
+  ...            Gated-delta-network kernels and rejected experiments
+kernels/gfx1151/moe/
+  ...            MoE routing/packing kernels and rejected experiments
 harness/gfx1151/mxfp4/
   ...            HIP launch, timing, and correctness harnesses
+harness/gfx1151/{attention,gdn,moe}/
+  ...            Non-MXFP4 launch, timing, and correctness harnesses
 integrations/sglang/
   ...            SGLang bridge, launch script, and consolidated patch
 tools/
@@ -30,6 +38,7 @@ tools/
   triton/        MXFP4 reference-baseline preparation
 tests/gfx1151/   Real-checkpoint integration correctness gates
 docs/notes/      Measurements, negative results, and machine-readable data
+results/         Selected compact kernel, profiler, and serving evidence
 ```
 
 Files under an `experiments/` directory are retained measured negative results;
