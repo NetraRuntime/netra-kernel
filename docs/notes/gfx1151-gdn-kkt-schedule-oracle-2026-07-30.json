@@ -1,0 +1,167 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "shape": {
+    "B": 1,
+    "T": 8192,
+    "H": 32,
+    "Hg": 16,
+    "K": 128,
+    "BT": 64,
+    "BC": 16
+  },
+  "timing": "HIP events",
+  "results": [
+    {
+      "kind": "production",
+      "bk": 64,
+      "warps": 4,
+      "median_ms": 5.955926895141602,
+      "samples_ms": [
+        5.97285795211792,
+        6.002493858337402,
+        5.955926895141602,
+        5.926721096038818,
+        5.89752721786499
+      ],
+      "bit_mismatches": 0,
+      "max_abs": 0.0,
+      "speedup_vs_production": 1.0
+    },
+    {
+      "kind": "standard_schedule",
+      "bk": 64,
+      "warps": 1,
+      "median_ms": 5.184967041015625,
+      "samples_ms": [
+        5.1875410079956055,
+        5.173835754394531,
+        5.184967041015625
+      ],
+      "bit_mismatches": 0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "speedup_vs_production": 1.1486913702685682
+    },
+    {
+      "kind": "standard_schedule",
+      "bk": 64,
+      "warps": 2,
+      "median_ms": 6.099676132202148,
+      "samples_ms": [
+        6.169628143310547,
+        6.048911094665527,
+        6.099676132202148
+      ],
+      "bit_mismatches": 0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "speedup_vs_production": 0.976433300072827
+    },
+    {
+      "kind": "standard_schedule",
+      "bk": 32,
+      "warps": 1,
+      "median_ms": 5.349184989929199,
+      "samples_ms": [
+        5.349184989929199,
+        5.436219215393066,
+        5.234428882598877
+      ],
+      "bit_mismatches": 0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "speedup_vs_production": 1.1134269811858635
+    },
+    {
+      "kind": "standard_schedule",
+      "bk": 32,
+      "warps": 2,
+      "median_ms": 6.166210174560547,
+      "samples_ms": [
+        6.166210174560547,
+        6.164106845855713,
+        6.189946174621582
+      ],
+      "bit_mismatches": 0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "speedup_vs_production": 0.965897484278675
+    },
+    {
+      "kind": "standard_schedule",
+      "bk": 32,
+      "warps": 4,
+      "median_ms": 5.48302698135376,
+      "samples_ms": [
+        5.494709014892578,
+        5.475331783294678,
+        5.48302698135376
+      ],
+      "bit_mismatches": 0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "speedup_vs_production": 1.0862479640162346
+    },
+    {
+      "kind": "low_reg",
+      "bk": 64,
+      "warps": 4,
+      "median_ms": 20.237852096557617,
+      "samples_ms": [
+        20.45578384399414,
+        20.16965675354004,
+        20.237852096557617
+      ],
+      "bit_mismatches": 66258,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 2.306715529698522e-08,
+      "speedup_vs_production": 0.29429639404048624
+    },
+    {
+      "kind": "low_reg",
+      "bk": 64,
+      "warps": 8,
+      "median_ms": 11.89724349975586,
+      "samples_ms": [
+        11.908133506774902,
+        11.887737274169922,
+        11.89724349975586
+      ],
+      "bit_mismatches": 66258,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 2.306715529698522e-08,
+      "speedup_vs_production": 0.5006140199840259
+    },
+    {
+      "kind": "low_reg",
+      "bk": 32,
+      "warps": 4,
+      "median_ms": 18.12128448486328,
+      "samples_ms": [
+        18.20985984802246,
+        18.12128448486328,
+        17.567312240600586
+      ],
+      "bit_mismatches": 66258,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 2.306715529698522e-08,
+      "speedup_vs_production": 0.32867023858692745
+    },
+    {
+      "kind": "low_reg",
+      "bk": 32,
+      "warps": 8,
+      "median_ms": 13.209470748901367,
+      "samples_ms": [
+        13.209470748901367,
+        13.261819839477539,
+        13.161643028259277
+      ],
+      "bit_mismatches": 66258,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 2.306715529698522e-08,
+      "speedup_vs_production": 0.4508830829302496
+    }
+  ]
+}

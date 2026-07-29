@@ -1,0 +1,228 @@
+
+File: /root/.triton/cache/562RNRX62LPW4XKTSCG4DZOKFU5TG6TUVPBBX77OSBVPCEFLEBIA/chunk_gated_delta_rule_fwd_kkt_solve_kernel.hsaco
+Format: elf64-amdgpu
+Arch: amdgcn
+AddressSize: 64bit
+LoadName: <Not found>
+Symbols [
+  Symbol {
+    Name:  (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Undefined (0x0)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel.num_vgpr (1)
+    Value: 0x100
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel.num_agpr (54)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel.numbered_sgpr (107)
+    Value: 0x28
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel.private_seg_size (165)
+    Value: 0x394
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel.uses_vcc (226)
+    Value: 0x1
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel.uses_flat_scratch (279)
+    Value: 0x1
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel.has_dyn_sized_stack (341)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel.has_recursion (405)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel.has_indirect_call (463)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: amdgpu.max_num_vgpr (525)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: amdgpu.max_num_agpr (545)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: amdgpu.max_num_sgpr (565)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: _DYNAMIC (676)
+    Value: 0xE000
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other [ (0x2)
+      STV_HIDDEN (0x2)
+    ]
+    Section: .dynamic (0x8)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel (585)
+    Value: 0x1800
+    Size: 50764
+    Binding: Global (0x1)
+    Type: Function (0x2)
+    Other [ (0x3)
+      STV_PROTECTED (0x3)
+    ]
+    Section: .text (0x7)
+  }
+  Symbol {
+    Name: chunk_gated_delta_rule_fwd_kkt_solve_kernel.kd (629)
+    Value: 0x700
+    Size: 64
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other: 0
+    Section: .rodata (0x6)
+  }
+]
+NoteSections [
+  NoteSection {
+    Name: .note
+    Offset: 0x200
+    Size: 0x40C
+    Notes [
+      {
+        Owner: AMDGPU
+        Data size: 0x3F5
+        Type: NT_AMDGPU_METADATA (AMDGPU Metadata)
+        AMDGPU Metadata: ---
+amdhsa.kernels:
+  - .args:
+      - .address_space:  global
+        .offset:         0
+        .size:           8
+        .value_kind:     global_buffer
+      - .address_space:  global
+        .offset:         8
+        .size:           8
+        .value_kind:     global_buffer
+      - .address_space:  global
+        .offset:         16
+        .size:           8
+        .value_kind:     global_buffer
+      - .address_space:  global
+        .offset:         24
+        .size:           8
+        .value_kind:     global_buffer
+      - .address_space:  global
+        .offset:         32
+        .size:           8
+        .value_kind:     global_buffer
+      - .address_space:  global
+        .offset:         40
+        .size:           8
+        .value_kind:     global_buffer
+      - .offset:         48
+        .size:           4
+        .value_kind:     by_value
+      - .address_space:  global
+        .offset:         56
+        .size:           8
+        .value_kind:     global_buffer
+      - .address_space:  global
+        .offset:         64
+        .size:           8
+        .value_kind:     global_buffer
+    .group_segment_fixed_size: 0
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 72
+    .max_flat_workgroup_size: 32
+    .name:           chunk_gated_delta_rule_fwd_kkt_solve_kernel
+    .private_segment_fixed_size: 916
+    .sgpr_count:     42
+    .sgpr_spill_count: 0
+    .symbol:         chunk_gated_delta_rule_fwd_kkt_solve_kernel.kd
+    .uses_dynamic_stack: false
+    .vgpr_count:     256
+    .vgpr_spill_count: 319
+    .wavefront_size: 32
+    .workgroup_processor_mode: 1
+amdhsa.target:   amdgcn-amd-amdhsa--gfx1151
+amdhsa.version:
+  - 1
+  - 2
+...
+
+      }
+    ]
+  }
+]
