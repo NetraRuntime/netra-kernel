@@ -43,6 +43,8 @@ done
 
 m12_sources=(
   mxfp4_m12_group_gate_wmma_gfx1151.s
+  mxfp4_m12_group_gate_up_wmma_gfx1151.s
+  silu_mul_m12_group_bf16_gfx1151.s
   mxfp4_m12_group_down_wmma_gfx1151.s
 )
 for source_name in "${m12_sources[@]}"; do
@@ -145,5 +147,13 @@ reduce_stem=expert_weighted_reduce_top8_fp64_gfx1151
 "${hipcc_bin}" --offload-arch=gfx1151 -O3 \
   "${repo_dir}/scripts/rocm/harness/gfx1151/mxfp4/benchmark_m12_group_wmma_pair.hip" \
   -o "${out_dir}/benchmark_m12_group_wmma_pair"
+
+"${hipcc_bin}" --offload-arch=gfx1151 -O3 \
+  "${repo_dir}/scripts/rocm/harness/gfx1151/mxfp4/benchmark_m12_fused_gate_up_pair.hip" \
+  -o "${out_dir}/benchmark_m12_fused_gate_up_pair"
+
+"${hipcc_bin}" --offload-arch=gfx1151 -O3 \
+  "${repo_dir}/scripts/rocm/harness/gfx1151/mxfp4/benchmark_m12_group_silu_pair.hip" \
+  -o "${out_dir}/benchmark_m12_group_silu_pair"
 
 echo "Built Netra SGLang raw-ASM backend for gfx1151 in ${out_dir}"

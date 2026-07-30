@@ -1,0 +1,58 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "scope": "native_batch12_decode_not_speculative_verify_or_dflash",
+  "dflash_mode": "disabled_input_blocked",
+  "graph_mode": "full_decode_tiers_1_2_4_8_12_16",
+  "shape": {"tokens": 12, "topk": 8, "groups": 96, "storage_rows": 64, "valid_rows": 12},
+  "raw_asm": {
+    "fused_gate_up": {"vgpr_metadata": 87, "sgpr_metadata": 33, "rocprof_vgpr": 88, "rocprof_sgpr": 128, "lds_bytes": 0, "scratch_bytes": 0, "wmma_sites": 4, "wait_sites": 15, "barrier_sites": 0, "ds_sites": 40, "activation_load_b128_sites": 2},
+    "m12_group_silu": {"vgpr_metadata": 8, "sgpr_metadata": 14, "lds_bytes": 0, "scratch_bytes": 0, "grid": [24, 96, 1], "workgroup": [256, 1, 1]}
+  },
+  "isolated_hip_events": {
+    "fused_gate_up": {
+      "bit_equal": true,
+      "gate_mismatches": 0,
+      "up_mismatches": 0,
+      "baseline_two_launch_median_ms": 1.458701,
+      "candidate_one_launch_median_ms": 1.178976,
+      "speedup": 1.237261,
+      "baseline_samples_ms": [1.526989, 1.544502, 1.493486, 1.431811, 1.450565, 1.536568, 1.433694, 1.473809, 1.430930, 1.420831, 1.475413, 1.475694, 1.424037, 1.431050, 1.496452, 1.447521, 1.489359, 1.450847, 1.458701, 1.433174, 1.482146],
+      "candidate_samples_ms": [1.343645, 1.447641, 1.199213, 1.181660, 1.182943, 1.178976, 1.171241, 1.198132, 1.186510, 1.146795, 1.135895, 1.176090, 1.168636, 1.153368, 1.194726, 1.175329, 1.217689, 1.141386, 1.146595, 1.146635, 1.193723]
+    },
+    "m12_group_silu": {
+      "bit_equal": true,
+      "mismatches": 0,
+      "baseline_median_ms": 0.048611,
+      "candidate_median_ms": 0.011983,
+      "speedup": 4.056664,
+      "baseline_samples_ms": [0.051697, 0.051416, 0.048611, 0.050454, 0.048731, 0.050335, 0.048211, 0.049493, 0.048611, 0.049613, 0.047529, 0.048852, 0.047689, 0.048972, 0.047248, 0.048611, 0.046527, 0.048371, 0.046447, 0.048490, 0.046327],
+      "candidate_samples_ms": [0.012063, 0.012062, 0.012023, 0.011983, 0.012022, 0.012023, 0.012063, 0.012022, 0.011982, 0.011983, 0.011903, 0.011902, 0.012263, 0.011943, 0.011943, 0.011942, 0.011983, 0.011942, 0.011983, 0.011983, 0.011942]
+    }
+  },
+  "serving_host_e2e": {
+    "batch12_210_plus32": {"input_tokens_per_request": 210, "output_tokens_per_request": 32, "cached_tokens_total": 0, "generic_ms": 8083.524735, "prior_m12_ms": 5952.808559, "fused_ms": 5564.446348, "speedup_vs_generic": 1.4527096191529314, "speedup_vs_prior_m12": 1.0697935044588196, "fused_input_tokens_per_s": 452.8752444357291, "fused_output_tokens_per_s": 69.00956105687301, "fused_median_server_e2e_ms": 5547.368624000228, "peak_vram_bytes_sysfs": 100616454144, "exact_vs_generic": "12/12", "exact_vs_prior_m12": "12/12"},
+    "batch12_210_plus128": {"input_tokens_per_request": 210, "output_tokens_per_request": 128, "cached_tokens_total": 0, "generic_ms": 26192.816371, "prior_m12_ms": 18436.354072, "fused_ms": 16676.696393, "speedup_vs_generic": 1.570623806642805, "speedup_vs_prior_m12": 1.1055159629660591, "fused_input_tokens_per_s": 151.10906504586623, "fused_output_tokens_per_s": 92.10457298033752, "fused_median_server_e2e_ms": 16663.779397000326, "peak_vram_bytes_sysfs": 100616454144, "exact_vs_generic": "12/12", "exact_vs_prior_m12": "12/12", "ttft": "not_exposed_not_estimated"}
+  },
+  "rocprofv3_graph_replay": {
+    "profiler": "/root/venv1151/bin/rocprofv3",
+    "counter_collection": "disabled_to_avoid_known_python_counter_aql_signal6",
+    "graph_launches": 8,
+    "prior_kernels_per_replay": 3063,
+    "fused_kernels_per_replay": 3023,
+    "kernel_count_reduction": 40,
+    "prior_mean_gpu_span_us": 129865.403375,
+    "fused_mean_gpu_span_us": 118387.9915,
+    "gpu_span_speedup": 1.0969474330088622,
+    "prior_mean_summed_kernel_us": 121526.06825,
+    "fused_mean_summed_kernel_us": 110582.69425,
+    "summed_kernel_speedup": 1.0989609999486878,
+    "fused_mean_positive_gap_us": 2.5828250330906686,
+    "fused_median_positive_gap_us": 2.084,
+    "fused_gate_up": {"invocations": 320, "mean_gpu_us": 1084.81444375, "pct_graph_kernel_time": 39.23993536628811, "prior_pair_mean_gpu_us": 1230.53519375, "speedup": 1.1343278113962705},
+    "m12_group_silu": {"invocations": 320, "mean_gpu_us": 10.089709375, "pct_graph_kernel_time": 0.36496522149079397, "prior_padded_mean_gpu_us": 120.7146625, "speedup": 11.964136727179023},
+    "down": {"invocations": 320, "mean_gpu_us": 231.473696875, "pct_graph_kernel_time": 8.37287239002137}
+  },
+  "decision": "accepted",
+  "next_ranked_target": "fused_gate_up_internal_k_block_prefetch_and_precise_wait_scheduling"
+}

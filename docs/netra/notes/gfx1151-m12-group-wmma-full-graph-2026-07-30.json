@@ -90,6 +90,6 @@
     "cache_control": "warm_or_mixed_not_controlled_cold",
     "eight_threads": "rejected_after_sigkill_memory_pressure"
   },
-  "decision": "accepted",
+  "decision": "accepted_intermediate_then_superseded_by_fused_gate_up_and_m12_silu",
   "next_ranked_target": "share_gate_up_activation_loads_and_reduce_padded_silu_work"
 }

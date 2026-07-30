@@ -1,5 +1,7 @@
 # gfx1151 M12 routed-group WMMA and full-graph result (2026-07-30)
 
+> Superseded later on 2026-07-30 by the accepted fused gate+up and M12-strided SiLU result in `gfx1151-m12-gate-up-silu-fusion-full-graph-2026-07-30.md`. This note remains the measured intermediate baseline.
+
 All performance numbers in this note are measured on gfx1151 unless explicitly marked otherwise. This is native batch-12 decode, not speculative verification or dFlash.
 
 ## Trace-ranked cause
