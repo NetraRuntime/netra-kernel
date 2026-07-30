@@ -8,8 +8,8 @@ a prioritization, not an estimated speedup.
 | 1 | Separate Q and P LDS | Tried; accepted as global-Q/group4-P | The standalone 56 KiB split was 1.53% slower, but group4 removes Q restoration and packs four 8 KiB P workspaces beside shared K/V; combined result is 1.2279x isolated. |
 | 2 | Batch/pipeline Q global-to-LDS | Tried, accepted | qpipe8 was accepted at 1.0257x isolated and 1.0396x exact 32K/+1 host E2E, then superseded by group4 global-Q; it remains the retained oracle. qpipe16 was neutral/slower. |
 | 3 | Load next Q during current QK | Tried, accepted | Register double-buffering v8:v15 and v216:v223 adds 1.0209x-1.0320x over group4 without raising allocation. |
-| 4 | Reduce 244/248 VGPR | Partially tried | N32 reached 224 VGPR but was 56.9% slower. N64 register reduction remains a good high-priority target because current occupancy is low. |
-| 5 | Reduce 64 KiB LDS | Tried, rejected at 56 KiB | No residency step occurred. A design near or below 32 KiB is still worth testing; small reductions are not. |
+| 4 | Reduce 244/248 VGPR | Tried at N32 and N64; rejected alone | N32 reached 224 VGPR but was 56.9% slower. The bit-exact N64 candidate reduced measured allocation 248 to 224, but occupancy stayed ~10% because 64 KiB LDS remained limiting; its four-tier shared-output HIP-event sum regressed 0.232%. |
+| 5 | Reduce 64 KiB LDS | Tried, rejected at 56 KiB; confirmed residency limiter | No residency step occurred at 56 KiB. The N64 224-VGPR experiment also produced no occupancy step with 64 KiB LDS, so a design near or below 32 KiB must be co-designed with VGPR reduction. |
 | 6 | Reuse K/V across eight query heads per KV head | Tried, accepted in groups of four | A 512-thread workgroup shares each staged K/V tile across four query heads: 1.2279x isolated, 1.2374x full-trace attention, and 1.0509x unprofiled 32K/+1 host E2E. |
 | 7 | Cache page-table lookups | Tried, rejected | Full cache cut static scalar loads 33 to 17 and rocprof fetch 9.868%, but regressed prefix-tier time 0.567%. |
 | 8 | Pipeline next global K/V tile | Not independently tried | Good after a lower-LDS or register-staged design; current 64 KiB footprint blocks ordinary LDS double buffering. |
@@ -26,7 +26,7 @@ a prioritization, not an estimated speedup.
 
 ## Recommended order
 
-1. N64 VGPR reduction (#4) and a real LDS residency step (#5), enabling next-K/V overlap (#8).
+1. A real LDS residency step near or below 32 KiB (#5), retaining the proven 224-VGPR mapping from rejected #4 only as a component, then next-K/V overlap (#8).
 2. Larger contiguous KV pages (#16), co-designed with the accepted four-head reuse schedule.
 3. A materially different stable-max/deferred-rescale formulation (#12); the conditional skip failed serving acceptance. Retain kvbatch16 (#9).
 4. Q/K norm + RoPE + KV-store fusion (#17); M2-M16 verify kernels (#18) after dFlash inputs exist.
