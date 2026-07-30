@@ -33,6 +33,12 @@ struct LoadedKernel {
 static constexpr KernelDescriptor kDecodeGate{
     "mxfp4_sgl_decode_gate_gfx1151.hsaco", "mxfp4_decode_gate_gfx1151",
     {1, 16, 1, 128}};
+static constexpr KernelDescriptor kDecodeGateBlock64{
+    "mxfp4_decode_gate_block64_gfx1151.hsaco",
+    "mxfp4_decode_gate_block64_gfx1151", {1, 512, 1, 128}};
+static constexpr KernelDescriptor kDecodeGateBlock64Reduce{
+    "mxfp4_decode_gate_block64_reduce_gfx1151.hsaco",
+    "mxfp4_decode_gate_block64_reduce_gfx1151", {2, 8, 1, 128}};
 static constexpr KernelDescriptor kDecodeDown{
     "mxfp4_sgl_decode_down_gfx1151.hsaco", "mxfp4_decode_down_gfx1151",
     {2, 8, 1, 256}};
@@ -59,6 +65,12 @@ static constexpr KernelDescriptor kPrefillDown{
 static constexpr KernelDescriptor kLinearDecode{
     "mxfp4_sgl_linear_decode_gfx1151.hsaco",
     "mxfp4_sgl_linear_decode_gfx1151", {0, 1, 1, 0}};
+static constexpr KernelDescriptor kLinearDecodeN2048K4096Block128{
+    "mxfp4_linear_decode_n2048_k4096_block128_gfx1151.hsaco",
+    "mxfp4_linear_decode_n2048_k4096_block128_gfx1151", {4, 128, 1, 128}};
+static constexpr KernelDescriptor kLinearDecodeN2048Block128Reduce{
+    "mxfp4_linear_decode_n2048_block128_reduce_gfx1151.hsaco",
+    "mxfp4_linear_decode_n2048_block128_reduce_gfx1151", {16, 1, 1, 128}};
 static constexpr KernelDescriptor kBf16LmHead{
     "bf16_lm_head_decode_wave4_gfx1151.hsaco",
     "bf16_lm_head_decode_wave4_gfx1151", {7760, 1, 1, 256}};
@@ -114,6 +126,8 @@ static constexpr KernelDescriptor kExpertReduceFp64{
 
 struct ModuleRegistry {
   LoadedKernel gate{{}, {}, &kDecodeGate};
+  LoadedKernel gate_block64{{}, {}, &kDecodeGateBlock64};
+  LoadedKernel gate_block64_reduce{{}, {}, &kDecodeGateBlock64Reduce};
   LoadedKernel down{{}, {}, &kDecodeDown};
   LoadedKernel silu{{}, {}, &kSiluMul};
   LoadedKernel reduce{{}, {}, &kDecodeReduce};
@@ -122,6 +136,10 @@ struct ModuleRegistry {
   LoadedKernel prefill_repack{{}, {}, &kPrefillRepack};
   LoadedKernel prefill_down{{}, {}, &kPrefillDown};
   LoadedKernel linear_decode{{}, {}, &kLinearDecode};
+  LoadedKernel linear_decode_n2048_k4096_block128{
+      {}, {}, &kLinearDecodeN2048K4096Block128};
+  LoadedKernel linear_decode_n2048_block128_reduce{
+      {}, {}, &kLinearDecodeN2048Block128Reduce};
   LoadedKernel bf16_lm_head{{}, {}, &kBf16LmHead};
   LoadedKernel bf16_qkv{{}, {}, &kBf16Qkv};
   LoadedKernel bf16_shared_gate_up_silu{{}, {}, &kBf16SharedGateUpSilu};
@@ -202,6 +220,8 @@ struct ModuleRegistry {
 
   void initialize() {
     load(gate);
+    load(gate_block64);
+    load(gate_block64_reduce);
     load(down);
     load(silu);
     load(reduce);
@@ -210,6 +230,8 @@ struct ModuleRegistry {
     load(prefill_repack);
     load(prefill_down);
     load(linear_decode);
+    load(linear_decode_n2048_k4096_block128);
+    load(linear_decode_n2048_block128_reduce);
     load(bf16_lm_head);
     load(bf16_qkv);
     load(bf16_shared_gate_up_silu);

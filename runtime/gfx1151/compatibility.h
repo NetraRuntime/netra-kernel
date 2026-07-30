@@ -12,6 +12,12 @@ NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_decode(
     void* down_weight, void* down_scale, void* activation, void* expert_ids,
     void* topk_weights, void* gate_tmp, void* up_tmp, void* intermediate_tmp,
     void* expert_output_tmp, void* output, void* stream_ptr);
+NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_decode_block64(
+    void* gate_weight, void* gate_scale, void* up_weight, void* up_scale,
+    void* down_weight, void* down_scale, void* activation, void* expert_ids,
+    void* topk_weights, void* block_tmp, void* gate_tmp, void* up_tmp,
+    void* intermediate_tmp, void* expert_output_tmp, void* output,
+    void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_prefill_repack(
     void* source, void* destination, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_prefill_gate_up(
@@ -35,6 +41,9 @@ NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_m12_down(
 NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_linear(
     void* packed, void* scale, void* activation, void* output, unsigned m,
     unsigned n, unsigned k, void* stream_ptr);
+NETRA_GFX1151_EXPORT int netra_mxfp4_linear_n2048_k4096_block128(
+    void* packed, void* scale, void* activation, void* workspace,
+    void* output, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_bf16_qkv_decode(
     void* weight, void* activation, void* output, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_bf16_shared_gate_up_silu_decode(

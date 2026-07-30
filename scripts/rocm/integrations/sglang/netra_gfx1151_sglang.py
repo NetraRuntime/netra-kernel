@@ -25,6 +25,14 @@ _USE_M12_GROUP_WMMA = os.getenv(
     "SGLANG_NETRA_DISABLE_M12_GROUP_WMMA", "0"
 ).lower() not in {"1", "true", "yes", "on"}
 
+_USE_N2048_K4096_BLOCK128 = os.getenv(
+    "SGLANG_NETRA_DISABLE_N2048_K4096_BLOCK128", "0"
+).lower() not in {"1", "true", "yes", "on"}
+
+_USE_GATE_BLOCK64 = os.getenv(
+    "SGLANG_NETRA_DISABLE_GATE_BLOCK64", "0"
+).lower() not in {"1", "true", "yes", "on"}
+
 
 def _ptr(tensor: torch.Tensor) -> ctypes.c_void_p:
     return ctypes.c_void_p(tensor.data_ptr())
@@ -37,6 +45,8 @@ class _Runtime:
         self.lib.netra_mxfp4_sgl_error.restype = ctypes.c_char_p
         self.lib.netra_mxfp4_sgl_decode.argtypes = [ctypes.c_void_p] * 15
         self.lib.netra_mxfp4_sgl_decode.restype = ctypes.c_int
+        self.lib.netra_mxfp4_sgl_decode_block64.argtypes = [ctypes.c_void_p] * 16
+        self.lib.netra_mxfp4_sgl_decode_block64.restype = ctypes.c_int
         self.lib.netra_mxfp4_sgl_prefill_repack.argtypes = [ctypes.c_void_p] * 3
         self.lib.netra_mxfp4_sgl_prefill_repack.restype = ctypes.c_int
         self.lib.netra_mxfp4_sgl_prefill_gate_up.argtypes = (
@@ -65,6 +75,10 @@ class _Runtime:
             + [ctypes.c_void_p]
         )
         self.lib.netra_mxfp4_sgl_linear.restype = ctypes.c_int
+        self.lib.netra_mxfp4_linear_n2048_k4096_block128.argtypes = (
+            [ctypes.c_void_p] * 6
+        )
+        self.lib.netra_mxfp4_linear_n2048_k4096_block128.restype = ctypes.c_int
         self.lib.netra_bf16_qkv_decode.argtypes = [ctypes.c_void_p] * 4
         self.lib.netra_bf16_qkv_decode.restype = ctypes.c_int
         self.lib.netra_bf16_shared_gate_up_silu_decode.argtypes = [ctypes.c_void_p] * 4
@@ -366,6 +380,27 @@ def netra_mxfp4_linear_with_output(
         runtime.stream(),
     )
     runtime.check(status, "Netra raw-ASM MXFP4 linear")
+
+
+@register_custom_op(mutates_args=["workspace", "output"])
+def netra_mxfp4_linear_n2048_k4096_block128_with_output(
+    packed: torch.Tensor,
+    scale: torch.Tensor,
+    activation: torch.Tensor,
+    workspace: torch.Tensor,
+    output: torch.Tensor,
+) -> None:
+    """Graph-safe fixed N=2048, K=4096 raw gfx1151 decode launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_mxfp4_linear_n2048_k4096_block128(
+        _ptr(packed),
+        _ptr(scale),
+        _ptr(activation),
+        _ptr(workspace),
+        _ptr(output),
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM MXFP4 N2048 K4096 block128")
 
 
 @register_custom_op(mutates_args=["output"])
@@ -687,6 +722,7 @@ def _ensure_decode_workspace(
             torch.empty((8, 512), dtype=torch.bfloat16, device=device),
             torch.empty((8, 2048), dtype=torch.float32, device=device),
             torch.empty((1, 2048), dtype=torch.bfloat16, device=device),
+            torch.empty((64, 8, 512), dtype=torch.float32, device=device),
         )
         layer._netra_decode_workspace = workspace
     return workspace
@@ -802,6 +838,19 @@ class NetraMxfp4LinearMethod(LinearMethodBase):
         del layer.weight_packed
         del layer.weight_scale
         layer._mxfp4_backend = "netra_gfx1151_raw_asm_linear"
+        if (
+            _USE_N2048_K4096_BLOCK128
+            and layer.netra_output_size == 2048
+            and layer.netra_input_size == 4096
+        ):
+            layer.netra_linear_decode_workspace = torch.empty(
+                (128, 2048), dtype=torch.float32,
+                device=layer.netra_linear_weight.device,
+            )
+            layer.netra_linear_decode_output = torch.empty(
+                (1, 2048), dtype=torch.bfloat16,
+                device=layer.netra_linear_weight.device,
+            )
 
         # Qwen3.6 GDN marks the paired QKVZ and BA modules with weak peer
         # references. BA is visited second by SGLang's quant post-processing,
@@ -829,16 +878,28 @@ class NetraMxfp4LinearMethod(LinearMethodBase):
         n = layer.netra_output_size
         flat_x = x.reshape(-1, k).contiguous()
         if flat_x.shape[0] == 1:
-            output = torch.empty((1, n), dtype=torch.bfloat16, device=x.device)
-            netra_mxfp4_linear_with_output(
-                layer.netra_linear_weight,
-                layer.netra_linear_scale,
-                flat_x,
-                output,
-                1,
-                n,
-                k,
-            )
+            if hasattr(layer, "netra_linear_decode_workspace"):
+                output = layer.netra_linear_decode_output
+                netra_mxfp4_linear_n2048_k4096_block128_with_output(
+                    layer.netra_linear_weight,
+                    layer.netra_linear_scale,
+                    flat_x,
+                    layer.netra_linear_decode_workspace,
+                    output,
+                )
+            else:
+                output = torch.empty(
+                    (1, n), dtype=torch.bfloat16, device=x.device
+                )
+                netra_mxfp4_linear_with_output(
+                    layer.netra_linear_weight,
+                    layer.netra_linear_scale,
+                    flat_x,
+                    output,
+                    1,
+                    n,
+                    k,
+                )
         else:
             group_count = (flat_x.shape[0] + 63) // 64
             activation_groups = torch.zeros(
@@ -947,27 +1008,47 @@ def _decode(
     weights = topk_weights.reshape(8).to(dtype=torch.float32).contiguous()
     x = hidden_states.reshape(2048).contiguous()
 
-    gate_tmp, up_tmp, intermediate, expert_output, output = (
+    gate_tmp, up_tmp, intermediate, expert_output, output, block_tmp = (
         _ensure_decode_workspace(layer, x.device)
     )
 
-    status = runtime.lib.netra_mxfp4_sgl_decode(
-        _ptr(layer.netra_gate_weight),
-        _ptr(layer.netra_gate_scale),
-        _ptr(layer.netra_up_weight),
-        _ptr(layer.netra_up_scale),
-        _ptr(layer.netra_down_weight),
-        _ptr(layer.netra_down_scale),
-        _ptr(x),
-        _ptr(ids),
-        _ptr(weights),
-        _ptr(gate_tmp),
-        _ptr(up_tmp),
-        _ptr(intermediate),
-        _ptr(expert_output),
-        _ptr(output),
-        runtime.stream(),
-    )
+    if _USE_GATE_BLOCK64:
+        status = runtime.lib.netra_mxfp4_sgl_decode_block64(
+            _ptr(layer.netra_gate_weight),
+            _ptr(layer.netra_gate_scale),
+            _ptr(layer.netra_up_weight),
+            _ptr(layer.netra_up_scale),
+            _ptr(layer.netra_down_weight),
+            _ptr(layer.netra_down_scale),
+            _ptr(x),
+            _ptr(ids),
+            _ptr(weights),
+            _ptr(block_tmp),
+            _ptr(gate_tmp),
+            _ptr(up_tmp),
+            _ptr(intermediate),
+            _ptr(expert_output),
+            _ptr(output),
+            runtime.stream(),
+        )
+    else:
+        status = runtime.lib.netra_mxfp4_sgl_decode(
+            _ptr(layer.netra_gate_weight),
+            _ptr(layer.netra_gate_scale),
+            _ptr(layer.netra_up_weight),
+            _ptr(layer.netra_up_scale),
+            _ptr(layer.netra_down_weight),
+            _ptr(layer.netra_down_scale),
+            _ptr(x),
+            _ptr(ids),
+            _ptr(weights),
+            _ptr(gate_tmp),
+            _ptr(up_tmp),
+            _ptr(intermediate),
+            _ptr(expert_output),
+            _ptr(output),
+            runtime.stream(),
+        )
     runtime.check(status, "Netra raw-ASM decode")
     return output
 

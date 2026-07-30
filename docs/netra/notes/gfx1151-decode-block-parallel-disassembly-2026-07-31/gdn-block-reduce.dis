@@ -1,0 +1,36 @@
+
+/root/netra-mxfp4-gfx1151/build/sglang/mxfp4_linear_decode_n2048_block128_reduce_gfx1151.hsaco:	file format elf64-amdgpu
+
+Disassembly of section .text:
+
+0000000000001800 <mxfp4_linear_decode_n2048_block128_reduce_gfx1151>:
+	s_clause 0x1                                               // 000000001800: BF850001
+	s_load_b128 s[4:7], s[0:1], null                           // 000000001804: F4080100 F8000000
+	s_load_b64 s[8:9], s[0:1], 0x10                            // 00000000180C: F4040200 F8000010
+	s_waitcnt lgkmcnt(0)                                       // 000000001814: BF89FC07
+	s_lshl_b32 s14, s2, 7                                      // 000000001818: 840E8702
+	v_add_nc_u32_e32 v1, s14, v0                               // 00000000181C: 4A02000E
+	v_lshlrev_b32_e32 v7, 2, v1                                // 000000001820: 300E0282
+	v_mov_b32_e32 v2, 0                                        // 000000001824: 7E040280
+	s_mov_b32 s16, 0x80                                        // 000000001828: BE9000FF 00000080
+	global_load_b32 v3, v7, s[4:5]                             // 000000001830: DC520000 03040007
+	global_load_u8 v4, v1, s[6:7]                              // 000000001838: DC420000 04060001
+	s_waitcnt vmcnt(0)                                         // 000000001840: BF8903F7
+	v_lshlrev_b32_e32 v4, 23, v4                               // 000000001844: 30080897
+	v_fmac_f32_e32 v2, v3, v4                                  // 000000001848: 56040903
+	s_add_u32 s4, s4, 0x2000                                   // 00000000184C: 8004FF04 00002000
+	s_addc_u32 s5, s5, 0                                       // 000000001854: 82058005
+	s_add_u32 s6, s6, 0x800                                    // 000000001858: 8006FF06 00000800
+	s_addc_u32 s7, s7, 0                                       // 000000001860: 82078007
+	s_sub_u32 s16, s16, 1                                      // 000000001864: 80908110
+	s_waitcnt_depctr depctr_hold_cnt(0) depctr_sa_sdst(0) depctr_va_vdst(0) depctr_va_sdst(0) depctr_va_ssrc(0) depctr_va_vcc(0) depctr_vm_vsrc(0)// 000000001868: BF880000
+	s_cmp_lg_u32 s16, 0                                        // 00000000186C: BF078010
+	s_cbranch_scc1 65519                                       // 000000001870: BFA2FFEF <mxfp4_linear_decode_n2048_block128_reduce_gfx1151+0x30>
+	v_lshrrev_b32_e32 v6, 16, v2                               // 000000001874: 320C0490
+	v_and_b32_e32 v6, 1, v6                                    // 000000001878: 360C0C81
+	v_add_nc_u32_e32 v6, 0x7fff, v6                            // 00000000187C: 4A0C0CFF 00007FFF
+	v_add_nc_u32_e32 v2, v6, v2                                // 000000001884: 4A040506
+	v_lshrrev_b32_e32 v2, 16, v2                               // 000000001888: 32040490
+	v_lshlrev_b32_e32 v1, 1, v1                                // 00000000188C: 30020281
+	global_store_b16 v1, v2, s[8:9]                            // 000000001890: DC660000 00080201
+	s_endpgm                                                   // 000000001898: BFB00000

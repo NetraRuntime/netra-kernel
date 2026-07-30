@@ -1,0 +1,85 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "date": "2026-07-31",
+  "kernel_results": {
+    "gdn_n2048_k4096": {
+      "correctness": "bit_exact_all_30_real_layers",
+      "baseline_median_us": 325.00551541646325,
+      "candidate_median_us": 59.66350038846333,
+      "speedup": 5.447308878969277,
+      "timing": "hip_events_interleaved_rotated_weights"
+    },
+    "routed_gate_up_silu": {
+      "correctness": "bit_exact_real_layers_0_10_20_30",
+      "baseline_median_us": 184.58174914121628,
+      "candidate_median_us": 67.80249997973442,
+      "speedup": 2.722344296985895,
+      "timing": "hip_events_interleaved_rotated_weights"
+    }
+  },
+  "serving": [
+    {
+      "input_tokens": 1,
+      "output_tokens": 32,
+      "cached_tokens": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "variant": "baseline",
+      "server_e2e_ms": 1649.4194800034165,
+      "host_e2e_ms": 1662.516386,
+      "peak_vram_bytes_sysfs": 80637263872
+    },
+    {
+      "input_tokens": 1,
+      "output_tokens": 32,
+      "cached_tokens": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "variant": "combined",
+      "server_e2e_ms": 1311.2224970245734,
+      "host_e2e_ms": 1324.512378,
+      "peak_vram_bytes_sysfs": 77614411776,
+      "tokens_equal_to_baseline": true
+    },
+    {
+      "input_tokens": 210,
+      "output_tokens": 128,
+      "cached_tokens": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "variant": "baseline",
+      "server_e2e_ms": 6974.0741639980115,
+      "host_e2e_ms": 6987.464774,
+      "steady_decode_tokens_per_s_from_sglang_log": 19.58,
+      "peak_vram_bytes_sysfs": 78037295104
+    },
+    {
+      "input_tokens": 210,
+      "output_tokens": 128,
+      "cached_tokens": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "variant": "combined",
+      "server_e2e_ms": 5658.70463399915,
+      "host_e2e_ms": 5672.702003,
+      "steady_decode_tokens_per_s_from_sglang_log": 24.55,
+      "peak_vram_bytes_sysfs": 78153928704,
+      "tokens_equal_to_baseline": true,
+      "text_hash_equal_to_baseline": true
+    }
+  ],
+  "graph": {
+    "mode": "full_decode_tiers_1_2_4_8_12_16",
+    "capture_s": 3.23,
+    "capture_vram_gb_reported": 0.23,
+    "replay_request_status": 0,
+    "measurement_status": "measured_gfx1151_rocprofv3_includes_capture_overhead"
+  },
+  "estimated": {
+    "target_non_speculative_tokens_per_s": 30.0,
+    "current_measured_steady_tokens_per_s": 24.55,
+    "additional_latency_reduction_required_pct": 18.2
+  },
+  "rocprofv3_summary": "results/profiles/gfx1151/decode-m1-32-combined-block-candidates-20260731/summary.json"
+}

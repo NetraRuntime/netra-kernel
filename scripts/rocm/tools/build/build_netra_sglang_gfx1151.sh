@@ -21,6 +21,10 @@ sources=(
   serving/mxfp4_sgl_decode_down_gfx1151.s
   serving/mxfp4_sgl_reduce_gfx1151.s
   serving/mxfp4_sgl_linear_decode_gfx1151.s
+  decode/mxfp4_linear_decode_n2048_k4096_block128_gfx1151.s
+  decode/mxfp4_linear_decode_n2048_block128_reduce_gfx1151.s
+  decode/mxfp4_decode_gate_block64_gfx1151.s
+  decode/mxfp4_decode_gate_block64_reduce_gfx1151.s
   serving/mxfp4_sgl_linear_prefill_wmma_gfx1151.s
   serving/mxfp4_sgl_linear_prefill_repack_dword_gfx1151.s
   prefill/mxfp4_prefill_gate_wmma_gfx1151.s

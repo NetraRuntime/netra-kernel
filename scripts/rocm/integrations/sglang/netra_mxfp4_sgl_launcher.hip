@@ -31,6 +31,18 @@ extern "C" int netra_mxfp4_sgl_decode(
       expert_output_tmp, output, stream_ptr);
 }
 
+extern "C" int netra_mxfp4_sgl_decode_block64(
+    void* gate_weight, void* gate_scale, void* up_weight, void* up_scale,
+    void* down_weight, void* down_scale, void* activation, void* expert_ids,
+    void* topk_weights, void* block_tmp, void* gate_tmp, void* up_tmp,
+    void* intermediate_tmp, void* expert_output_tmp, void* output,
+    void* stream_ptr) {
+  return netra::gfx1151::decode::moe_block64(
+      gate_weight, gate_scale, up_weight, up_scale, down_weight, down_scale,
+      activation, expert_ids, topk_weights, block_tmp, gate_tmp, up_tmp,
+      intermediate_tmp, expert_output_tmp, output, stream_ptr);
+}
+
 extern "C" int netra_mxfp4_sgl_prefill_repack(
     void* source, void* destination, void* stream_ptr) {
   return netra::gfx1151::prefill::repack(source, destination, stream_ptr);
@@ -81,6 +93,13 @@ extern "C" int netra_mxfp4_sgl_linear(
     unsigned n, unsigned k, void* stream_ptr) {
   return netra::gfx1151::decode::linear(
       packed, scale, activation, output, m, n, k, stream_ptr);
+}
+
+extern "C" int netra_mxfp4_linear_n2048_k4096_block128(
+    void* packed, void* scale, void* activation, void* workspace,
+    void* output, void* stream_ptr) {
+  return netra::gfx1151::decode::linear_n2048_k4096_block128(
+      packed, scale, activation, workspace, output, stream_ptr);
 }
 
 extern "C" int netra_bf16_qkv_decode(
