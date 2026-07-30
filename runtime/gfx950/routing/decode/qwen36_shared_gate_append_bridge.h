@@ -16,6 +16,7 @@ int netra_qwen36_shared_gate_append_launch(
     const void* shared_gate_weight_bf16,
     const void* routed_ids_i32,
     const void* routed_weights_f32,
+    uint32_t rows,
     hipStream_t stream);
 
 int netra_qwen36_shared_gate_append_unload(void);

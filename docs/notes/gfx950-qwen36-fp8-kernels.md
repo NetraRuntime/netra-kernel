@@ -615,3 +615,69 @@ Artifacts:
   correctness/full_raw_1wave_fp8cktile_all_m210_20260730T041608Z/
   correctness/full_raw_2wave_fp8cktile_all_m210_20260730T041846Z/
 ```
+
+## Accepted M16 BF16 router projection
+
+The raw verification router is:
+
+```text
+kernels/gfx950/routing/verify/
+  qwen36_router_bf16_gemv_gfx950.s
+runtime/gfx950/routing/verify/
+  qwen36_router_bf16_bridge.h
+  qwen36_router_bf16_bridge.hip
+```
+
+It applies the exact deployed AITER M=1 skinny-GEMV arithmetic independently
+to 16 verification rows in one dispatch. Each wave64 computes one
+expert/row output. The lane-to-K mapping loads contiguous eight-BF16 groups
+at K offsets 0, 512, 1024, and 1536. Each group uses `v_pk_mul_f32` plus
+three `v_pk_fma_f32` instructions, followed by the deployed six-step DPP
+reduction through `row_bcast:31`.
+
+The final code object declares gfx950/wave64, 20 SGPRs, 47 VGPRs, no AGPRs,
+LDS, scratch, or spills. Its SHA-256 is
+`f69299027223f2f2f0f2cb76dfe102c5773ae0eadc6bbad0b4f92987efa991c6`.
+M1 and M16 real-capture validation each passed 100 iterations with no byte
+mismatches or nondeterminism, and 20 native HIP graph replays were exact.
+Their final retained HIP-event medians were 6.24 and 6.32 microseconds.
+
+Real-checkpoint SGLang shadow execution passed 1,680/1,680 router comparisons
+and 40/40 complete MoE layer comparisons. Exact 210-input/128-output dFlash
+serving retained hash `6285266a...25c3`. Against the accepted rowwise-router
+control, median eager throughput increased from 25.797 to 48.984 output
+tokens/s. Native full-graph throughput increased from 156.335 to 195.491
+tokens/s.
+
+The comparable scheduler-attached traces reduced HIP launches from 5,709 to
+3,669, queue gaps from 5,611 to 3,600, and HIP launch API time from 38.489
+to 23.371 ms. The profiler is intrusive; these are structural results, while
+the serving measurements above are uninstrumented.
+
+Three earlier variants remain rejected: a batched AITER router changed expert
+selection, a `v_dot2_f32_bf16`/XOR raw reduction failed 5/280 shadow checks,
+and the packed/DPP version with the wrong lane mapping failed 6/280. The final
+instruction order and lane mapping are therefore part of the correctness
+contract.
+
+Piecewise graph execution is also rejected despite reaching 201.113 output
+tokens/s: its stable 16-input/2-output tokens differ from eager and native
+full graph. The raw router is accepted only for eager and full graph until
+that independent state/capture defect is resolved.
+
+Artifacts:
+
+```text
+/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/
+  kernel_experiments/qwen36_router_bf16_final_20260730T140122Z/
+  dflash/eager_specv1_block16_moe_m16_raw_router_exact_shadow_20260730T133352Z/
+  dflash/eager_specv1_block16_moe_m16_raw_router_rocprof_attach_20260730T134313Z/
+  reports/router_batch_m16_20260730T135648Z/router_batch_summary.json
+```
+
+The fast edit-to-correctness entry point is:
+
+```bash
+ROWS=16 ITERATIONS=100 \
+  tools/benchmark/iterate_gfx950_qwen36_router_bf16.sh
+```

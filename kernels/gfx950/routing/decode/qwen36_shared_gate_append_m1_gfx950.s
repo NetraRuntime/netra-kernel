@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 //
-// Qwen3.6 decode shared-expert routing tail:
-//   BF16 hidden [2048], BF16 shared-gate weight [1,2048],
-//   routed IDs int32 [8], routed weights FP32 [8]
+// Qwen3.6 decode/verification shared-expert routing tail:
+//   BF16 hidden [rows,2048], BF16 shared-gate weight [1,2048],
+//   routed IDs int32 [rows,8], routed weights FP32 [rows,8]
 //     -> copy routed entries, append shared ID 256 and
 //        FP32(BF16(sigmoid(BF16(dot(hidden, weight))))).
 //
-// One wave64 performs sixteen packed BF16 dot steps per lane. The deployed
-// torch linear materializes a BF16 logit before its BF16 sigmoid, so both
-// rounding boundaries are explicit.
+// Grid Y selects an independent row. One wave64 performs sixteen packed BF16
+// dot steps per lane. The deployed torch linear materializes a BF16 logit
+// before its BF16 sigmoid, so both rounding boundaries are explicit.
 
 	.amdgcn_target "amdgcn-amd-amdhsa--gfx950"
 	.amdhsa_code_object_version 6
@@ -20,6 +20,9 @@
 qwen36_shared_gate_append_m1_gfx950:
 	// Kernargs: output IDs, output weights, hidden, shared-gate weight,
 	// routed IDs, routed weights.
+	// Workgroup ID Y arrives in s2 after the kernarg pointer. Preserve it
+	// before loading the first output pointer into the same SGPR pair.
+	s_mov_b32 s16, s2
 	s_load_dwordx2 s[2:3], s[0:1], 0
 	s_load_dwordx2 s[4:5], s[0:1], 8
 	s_load_dwordx2 s[6:7], s[0:1], 16
@@ -27,6 +30,22 @@ qwen36_shared_gate_append_m1_gfx950:
 	s_load_dwordx2 s[10:11], s[0:1], 32
 	s_load_dwordx2 s[12:13], s[0:1], 40
 	s_waitcnt lgkmcnt(0)
+
+	// Advance every row-major tensor pointer. The shared-gate weight is
+	// common to all rows and remains unchanged.
+	s_mul_i32 s17, s16, 36
+	s_add_u32 s2, s2, s17
+	s_addc_u32 s3, s3, 0
+	s_add_u32 s4, s4, s17
+	s_addc_u32 s5, s5, 0
+	s_lshl_b32 s17, s16, 12
+	s_add_u32 s6, s6, s17
+	s_addc_u32 s7, s7, 0
+	s_lshl_b32 s17, s16, 5
+	s_add_u32 s10, s10, s17
+	s_addc_u32 s11, s11, 0
+	s_add_u32 s12, s12, s17
+	s_addc_u32 s13, s13, 0
 
 	// Preserve the eight routed entries byte-for-byte.
 	v_cmp_gt_u32_e32 vcc, 8, v0
@@ -164,10 +183,11 @@ qwen36_shared_gate_append_m1_gfx950:
 		.amdhsa_user_sgpr_kernarg_segment_ptr 1
 		.amdhsa_enable_private_segment 0
 		.amdhsa_system_sgpr_workgroup_id_x 0
+		.amdhsa_system_sgpr_workgroup_id_y 1
 		.amdhsa_system_vgpr_workitem_id 0
 		.amdhsa_next_free_vgpr 42
 		.amdhsa_accum_offset 44
-		.amdhsa_next_free_sgpr 16
+		.amdhsa_next_free_sgpr 18
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_denorm_mode_32 3
 		.amdhsa_float_denorm_mode_16_64 3

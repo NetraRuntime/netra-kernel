@@ -3,11 +3,11 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_dir=$(cd "${script_dir}/../.." && pwd)
-build_dir=${BUILD_DIR:-"${repo_dir}/build/gfx950-qwen36-shared-gate-append"}
-capture_dir=${CAPTURE_DIR:-/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/correctness/shared_gate_append_layer0_capture}
+build_dir=${BUILD_DIR:-"${repo_dir}/build/gfx950-qwen36-router-bf16"}
+capture_dir=${CAPTURE_DIR:-/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/correctness/router_bf16_layer0_capture}
 iterations=${ITERATIONS:-1}
 rows=${ROWS:-1}
-stem=qwen36_shared_gate_append_m1_gfx950
+stem=qwen36_router_bf16_gemv_gfx950
 
 test -f "${capture_dir}/manifest.json"
 if docker ps --format '{{.Names}}' | grep -q '^netra-qwen36-'; then
@@ -16,7 +16,7 @@ if docker ps --format '{{.Names}}' | grep -q '^netra-qwen36-'; then
 fi
 
 start_ns=$(date +%s%N)
-"${repo_dir}/tools/build/build_gfx950_qwen36_shared_gate_append.sh" \
+"${repo_dir}/tools/build/build_gfx950_qwen36_router_bf16.sh" \
   "$repo_dir" "$build_dir"
 build_ns=$(date +%s%N)
 set +e
