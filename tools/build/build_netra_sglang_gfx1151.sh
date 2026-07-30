@@ -81,7 +81,7 @@ gdn_stem=gdn_chunk_o_bv32_gfx1151
 
 recompute_stem=recompute_w_u_ordered_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  -x assembler -c "${repo_dir}/kernels/gfx1151/gdn/${recompute_stem}.s" \
+  -x assembler -c "${repo_dir}/scripts/rocm/kernels/gfx1151/gdn/${recompute_stem}.s" \
   -o "${out_dir}/${recompute_stem}.o"
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   "${out_dir}/${recompute_stem}.o" -o "${out_dir}/${recompute_stem}.hsaco"

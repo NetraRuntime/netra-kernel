@@ -1,0 +1,138 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "date": "2026-07-30",
+  "decision": "accepted",
+  "kernel": "recompute_w_u_reuse_a_ordered_gfx1151",
+  "shape": "Qwen3.6 B1 T8192 H32 Hg16 K128 V128 BT64",
+  "optimization": "retain four RHS B fragments in v24:v55 and reuse them across both A row fragments",
+  "correctness": {
+    "raw_bit_equal_to_previous_asm": true,
+    "candidate_repeat_bit_equal": true,
+    "graph_replay_bit_equal_to_eager": true,
+    "w_max_abs_vs_triton": 0.00000762939453125,
+    "u_max_abs_vs_triton": 0.0000152587890625,
+    "real_checkpoint_pair_a_output_ids": [5525],
+    "real_checkpoint_pair_b_output_ids": [248045],
+    "real_checkpoint_tokens_and_hashes_match": true
+  },
+  "hip_event_shared_output_31_sample_runs": {
+    "timing_outputs_shared_between_variants": true,
+    "run_a": {
+      "baseline_median_ms": 10.715901374816895,
+      "candidate_median_ms": 10.359514236450195,
+      "speedup": 1.0344019159810354
+    },
+    "production_hsaco_run": {
+      "baseline_median_ms": 10.680647850036621,
+      "candidate_median_ms": 10.389461517333984,
+      "speedup": 1.0280270861215295
+    },
+    "run_b": {
+      "baseline_median_ms": 10.721274375915527,
+      "candidate_median_ms": 10.399711608886719,
+      "speedup": 1.0309203542484802
+    }
+  },
+  "discarded_unshared_output_timing": {
+    "used_for_claims": false,
+    "reason": "Separate 128 MiB output allocations caused several-percent physical-placement sensitivity on the unified-memory APU and could invert the comparison."
+  },
+  "static_disassembly": {
+    "baseline_lines": 8547,
+    "candidate_lines": 7459,
+    "baseline_ds_load": 1056,
+    "candidate_ds_load": 544,
+    "baseline_ds_swizzle": 640,
+    "candidate_ds_swizzle": 384,
+    "baseline_s_waitcnt": 366,
+    "candidate_s_waitcnt": 238,
+    "baseline_wmma": 128,
+    "candidate_wmma": 128
+  },
+  "rocprofv3": {
+    "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+    "method": "one counter per fresh process, signal handlers disabled",
+    "resources_unchanged": {
+      "vgpr": 136,
+      "sgpr": 128,
+      "lds_bytes": 16384,
+      "scratch_bytes": 0,
+      "waves": 8192
+    },
+    "baseline": {
+      "SQ_INSTS_LDS": 14221312,
+      "SQ_WAVE_CYCLES": 9864484730,
+      "VALUInsts": 6060,
+      "FETCH_SIZE_KiB": 123153.1875,
+      "WRITE_SIZE_KiB": 69623.25,
+      "L2CacheHit_percent": 48.651645,
+      "MeanOccupancyPerActiveCU": 15.904398,
+      "MemUnitBusy_percent": 98.770907,
+      "LDSBankConflict_percent": 41.904762
+    },
+    "candidate": {
+      "SQ_INSTS_LDS": 7929856,
+      "SQ_WAVE_CYCLES": 9656678747,
+      "VALUInsts": 5868,
+      "FETCH_SIZE_KiB": 122348.625,
+      "WRITE_SIZE_KiB": 68901.8125,
+      "L2CacheHit_percent": 51.95478,
+      "MeanOccupancyPerActiveCU": 15.817047,
+      "MemUnitBusy_percent": 99.236294,
+      "LDSBankConflict_percent": 43.076923
+    }
+  },
+  "full_rocprof_trace_32768_plus_1": {
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "cached_tokens": 0,
+    "invocations": 120,
+    "baseline_total_gpu_ms": 1211.034,
+    "candidate_total_gpu_ms": 1204.747768,
+    "baseline_mean_gpu_ms": 10.09195,
+    "candidate_mean_gpu_ms": 10.039564733333333,
+    "kernel_family_speedup": 1.005217877977879,
+    "candidate_pct_of_total_kernel_gpu_time": 5.3694313213061475,
+    "candidate_request_output_ids": [5525],
+    "candidate_host_e2e_ms_profiled": 22381.784775,
+    "candidate_total_kernel_gpu_ms": 22437.157604,
+    "candidate_trace_wall_ms": 35601.704523,
+    "candidate_positive_launch_gaps_ms": 13171.4786
+  },
+  "fresh_server_serving_32768_plus_1": {
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "cached_tokens": 0,
+    "pair_a": {
+      "seed": "group4-kvbatch16-pair-a",
+      "input_sha256": "cec98edb9b9131417d34fefef2e2723124853af29cdbfa02be23428f4b6dd9b7",
+      "output_ids": [5525],
+      "baseline_host_e2e_ms": 21572.144859,
+      "candidate_host_e2e_ms": 21513.83213,
+      "improvement_ms": 58.312729,
+      "baseline_launch_to_health_ms": 23158,
+      "candidate_launch_to_health_ms": 23145
+    },
+    "pair_b": {
+      "seed": "group4-kvbatch16-pair-b",
+      "input_sha256": "520316ac78b521b9a4717ec6d332dc55aff979a7ea39ef9c27a7696c2c767db8",
+      "output_ids": [248045],
+      "baseline_host_e2e_ms": 21619.550113,
+      "candidate_host_e2e_ms": 21561.194367,
+      "improvement_ms": 58.355746,
+      "baseline_launch_to_health_ms": 24152,
+      "candidate_launch_to_health_ms": 24148
+    },
+    "baseline_mean_host_e2e_ms": 21595.847486,
+    "candidate_mean_host_e2e_ms": 21537.5132485,
+    "mean_improvement_ms": 58.3342375,
+    "mean_speedup": 1.0027084945614166,
+    "peak_vram_bytes_candidate_max": 101356224512
+  },
+  "loading": {
+    "measurement_status": "measured",
+    "fresh_launch_to_health_ms_range": [23145, 24152],
+    "note": "The four fresh-server runs loaded in 23.145-24.152 seconds; no 10-20 minute shard-load recurrence."
+  }
+}

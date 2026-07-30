@@ -11,6 +11,11 @@ All build, validation, profiling, and benchmark commands must run inside the
 ## Repository layout
 
 ```text
+scripts/rocm/
+  kernels/        Canonical raw gfx1151 ASM for newly reorganized work
+  harness/        HIP launch, graph, correctness, and timing bridges
+  tools/          Reproducible build, benchmark, and profiling entry points
+docs/netra/notes/ Current findings, disassemblies, and machine-readable evidence
 kernels/gfx1151/mxfp4/
   decode/        M=1 decode kernels and retained experiments
   verify/        M=12 speculative-verification kernels
@@ -40,6 +45,11 @@ tests/gfx1151/   Real-checkpoint integration correctness gates
 docs/notes/      Measurements, negative results, and machine-readable data
 results/         Selected compact kernel, profiler, and serving evidence
 ```
+
+New mission work is canonical under `scripts/rocm/` and `docs/netra/notes/`.
+The older top-level kernel/tool and `docs/notes/` paths remain in place for
+reproducibility while they are migrated incrementally; new sources must not be
+duplicated into those legacy trees.
 
 Files under an `experiments/` directory are retained measured negative results;
 they are built for reproducibility but are not selected as shipping kernels.
