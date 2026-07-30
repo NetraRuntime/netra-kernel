@@ -345,7 +345,18 @@ Piecewise mode is not accepted. Although it reached about 0.8236 seconds for
 only output token index 1 (`220` to `95744`). This is recorded as a graph/state
 transition defect, not waived for the faster timing. A pure-Triton piecewise
 control likewise diverged once in ten runs, changing only output index 2 from
-`220` to `96834`; the defect is not unique to the raw kernels.
+`220` to `96834`; the defect is not unique to the raw kernels. Exact-operand
+capture later attributed the repeatability problem to untuned AITER CK dense
+prefill GEMMs, so those token drifts no longer establish a graph-state root
+cause.
+
+A controlled retest used deterministic CKTile for every untuned M=210 dense
+prefill call and the promoted two-wave raw decode path. Its first 210-token
+piecewise request caused an AMDGPU `VM_L2_PROTECTION_FAULT` from TCP clients
+on XCD0/XCD1 and aborted before the first generated-token event. The identical
+full-graph path passed 200/200 short probes and 40/40 exact 210+128 requests.
+Piecewise therefore remains rejected for memory safety while the offending
+replay kernel is localized.
 
 ROCm 7.2 rocprofv3 dynamic-attach and process-start tracing both crashed the
 scheduler in `at::cuda::CUDAGraph::replay()` after five output tokens. Their
@@ -373,6 +384,7 @@ Retained artifacts:
   performance/full_triton_raw_full_m1_baseline_20260730T023109Z/
   correctness/piecewise_triton_raw_full_m1_20260730T023309Z/
   correctness/piecewise_triton_control_20260730T024848Z/
+  correctness/piecewise_raw_2wave_fp8cktile_all_m210_20260730T042900Z/
   profiles/rocprof/full_raw_m1_attach_20260730T023811Z/
   profiles/rocprof/full_raw_m1_wrapped_20260730T024030Z/
 ```

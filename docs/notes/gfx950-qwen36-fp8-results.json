@@ -476,8 +476,21 @@
       "triton_control_first_divergent_output_index": 2,
       "triton_control_expected_token": 220,
       "triton_control_divergent_token": 96834,
-      "attribution": "shared_piecewise_state_not_raw_specific",
-      "status": "rejected_correctness"
+      "initial_attribution": "shared_piecewise_failure_not_raw_specific",
+      "initial_token_drift_confounded_by_aiter_ck_prefill": true,
+      "deterministic_dense_retest": {
+        "m210_dense_oracle": "cktile_for_all_untuned_block_fp8_calls",
+        "raw_down_reduce_variant": "two_wave",
+        "result": "amdgpu_vm_l2_protection_fault_before_first_generated_token",
+        "fault_client": "TCP",
+        "fault_xcds": [
+          0,
+          1
+        ],
+        "scheduler_exit_signal": 6,
+        "artifact": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/correctness/piecewise_raw_2wave_fp8cktile_all_m210_20260730T042900Z"
+      },
+      "status": "rejected_memory_safety"
     },
     "rocprofv3_full_graph": {
       "dynamic_attach": "scheduler_signal_11_after_5_output_tokens",
