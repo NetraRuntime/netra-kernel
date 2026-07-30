@@ -25,7 +25,7 @@
  _is_xpu = is_xpu()
  _use_aiter = get_bool_env_var("SGLANG_USE_AITER") and _is_hip
  _hip_use_alt_stream = get_bool_env_var("SGLANG_ALT_STREAM") and _is_hip
-@@ -1115,36 +1126,94 @@
+@@ -1115,36 +1126,99 @@
          q, k = self.rotary_emb(positions, q, k)
          return q, k, v, gate
 
@@ -108,6 +108,11 @@
 +                    key_cache,
 +                    value_cache,
 +                    cache_loc,
++                    capture_workspace_id=(
++                        self.layer_id
++                        if get_is_capture_mode() and seq_len <= 16
++                        else None
++                    ),
 +                )
 +                used_netra_qk_mrope_kv = True
 +            else:
@@ -136,7 +141,7 @@
 
      def forward_prepare_npu(self, positions, hidden_states, forward_batch):
          qkv, _ = self.qkv_proj(hidden_states)
-@@ -1173,15 +1242,17 @@
+@@ -1173,15 +1247,17 @@
          forward_batch: ForwardBatch,
      ) -> torch.Tensor:
          """Full attention forward pass."""
@@ -155,7 +160,7 @@
              )
          elif (
              not _is_npu
-@@ -1199,7 +1270,13 @@
+@@ -1199,7 +1275,13 @@
                  forward_batch=forward_batch,
              )
 

@@ -1,0 +1,225 @@
+{
+  "accepted_design": {
+    "all_m1_to_m16_tiers_total_workspace_bytes": 23674880,
+    "bytes_per_layer_per_token": 17408,
+    "explicit_preallocation_token_limit": 16,
+    "full_attention_layers": 10,
+    "m12_total_workspace_bytes": 2088960,
+    "m1_total_workspace_bytes": 174080,
+    "name": "per-attention-layer per-token-tier stable capture outputs"
+  },
+  "claims": {
+    "full_model_graph_median_host_e2e_speedup": 1.0054149468395377,
+    "full_model_graph_median_output_throughput_speedup": 1.0017628359473498,
+    "single_kernel_graph_is_not_a_speedup": true
+  },
+  "date": "2026-07-30",
+  "dflash_mode": "disabled",
+  "measurement_status": "measured",
+  "native_full_decode_graph": {
+    "backend": "full",
+    "capture_elapsed_s": 1.54,
+    "capture_memory_gb_log": 0.09,
+    "decode_graph_confirmed_in_server_log": true,
+    "tier_tokens": 1,
+    "weight_load_elapsed_s": 11.03
+  },
+  "negative_results": {
+    "capture_graph_pool_outputs": {
+      "status": "correct stable oracle but does not meet explicit preallocation requirement for this fusion",
+      "three_request_sequence": [
+        {
+          "cached_tokens": 0,
+          "host_decode_ms": 7064.920395,
+          "host_e2e_ms": 7587.230487,
+          "label": "qk-mrope-graph-allocating-ab-stream-seed7740",
+          "output_tokens_per_s": 17.976140267607363
+        },
+        {
+          "cached_tokens": 0,
+          "host_decode_ms": 7064.110455,
+          "host_e2e_ms": 7502.473555,
+          "label": "qk-mrope-graph-allocating-ab-stream-seed7741",
+          "output_tokens_per_s": 17.978201333206645
+        },
+        {
+          "cached_tokens": 0,
+          "host_decode_ms": 7064.61299,
+          "host_e2e_ms": 7504.830338,
+          "label": "qk-mrope-graph-allocating-ab-stream-seed7742",
+          "output_tokens_per_s": 17.97692246974735
+        }
+      ]
+    },
+    "loader_threads_8": {
+      "failure": "scheduler SIGKILL during shard loading at 0/26; eight concurrent shard loads exceeded safe host-memory headroom",
+      "status": "rejected on 16 GiB Netra container"
+    },
+    "shared_cross_layer_workspace": {
+      "post_sequence_nonstream_host_e2e_ms": 17258.091498,
+      "reason": "progressive full-graph replay slowdown despite exact outputs",
+      "status": "rejected",
+      "three_request_sequence": [
+        {
+          "cached_tokens": 0,
+          "host_decode_ms": 7036.002608000001,
+          "host_e2e_ms": 7554.544618,
+          "label": "qk-mrope-graph-stream-210p128-seed7720",
+          "output_tokens_per_s": 18.050021734727586
+        },
+        {
+          "cached_tokens": 0,
+          "host_decode_ms": 13503.67656,
+          "host_e2e_ms": 13942.379245,
+          "label": "qk-mrope-graph-stream-210p128-seed7721",
+          "output_tokens_per_s": 9.404846112516783
+        },
+        {
+          "cached_tokens": 0,
+          "host_decode_ms": 18936.115458,
+          "host_e2e_ms": 19677.786082,
+          "label": "qk-mrope-graph-stream-210p128-seed7722",
+          "output_tokens_per_s": 6.706760965926932
+        }
+      ]
+    }
+  },
+  "paired_serving": {
+    "all_outputs_exact": true,
+    "cached_tokens": 0,
+    "input_tokens": 210,
+    "median": {
+      "eager_host_decode_ms": 7076.6901339999995,
+      "eager_host_e2e_ms": 7544.393669,
+      "eager_host_ttft_ms": 464.045756,
+      "eager_output_tokens_per_s": 17.94624288971305,
+      "graph_host_decode_ms": 7064.237043,
+      "graph_host_e2e_ms": 7503.761201,
+      "graph_host_ttft_ms": 439.524158,
+      "graph_output_tokens_per_s": 17.977879171798907,
+      "host_e2e_speedup": 1.0054149468395377,
+      "output_throughput_speedup": 1.0017628359473498
+    },
+    "output_tokens": 128,
+    "rows": [
+      {
+        "dflash_mode": "disabled",
+        "eager_cached_tokens": 0,
+        "eager_host_decode_ms": 7072.972922,
+        "eager_host_e2e_ms": 7780.043987,
+        "eager_host_ttft_ms": 707.0710650000001,
+        "eager_input_tokens_per_s": 296.9998496544332,
+        "eager_output_sha256": "da08b0c3729c2827e8da80193f281dae52d2aca836c4f537163570472ecccad9",
+        "eager_output_tokens_per_s": 17.955674565779145,
+        "eager_peak_vram_bytes_sysfs": 102085820416,
+        "gfx": "gfx1151",
+        "graph_cached_tokens": 0,
+        "graph_host_decode_ms": 7066.765482,
+        "graph_host_e2e_ms": 7744.197872,
+        "graph_host_ttft_ms": 677.4323899999999,
+        "graph_input_tokens_per_s": 309.994034976686,
+        "graph_mode": "full-decode-m1-per-layer-preallocated",
+        "graph_output_sha256": "da08b0c3729c2827e8da80193f281dae52d2aca836c4f537163570472ecccad9",
+        "graph_output_tokens_per_s": 17.971446813041418,
+        "graph_peak_vram_bytes_sysfs": 99071188992,
+        "input_tokens": 210,
+        "measurement": "measured",
+        "output_tokens": 128,
+        "outputs_exact": true,
+        "seed": 7750
+      },
+      {
+        "dflash_mode": "disabled",
+        "eager_cached_tokens": 0,
+        "eager_host_decode_ms": 7080.347913,
+        "eager_host_e2e_ms": 7544.393669,
+        "eager_host_ttft_ms": 464.045756,
+        "eager_input_tokens_per_s": 452.5415808349727,
+        "eager_output_sha256": "38281a5a0cffad591f25c247f3a57c666c7259c9846cbed06fe02f427a5d1623",
+        "eager_output_tokens_per_s": 17.93697167999603,
+        "eager_peak_vram_bytes_sysfs": 102085820416,
+        "gfx": "gfx1151",
+        "graph_cached_tokens": 0,
+        "graph_host_decode_ms": 7063.688338999999,
+        "graph_host_e2e_ms": 7499.977833,
+        "graph_host_ttft_ms": 436.289494,
+        "graph_input_tokens_per_s": 481.3317828826747,
+        "graph_mode": "full-decode-m1-per-layer-preallocated",
+        "graph_output_sha256": "38281a5a0cffad591f25c247f3a57c666c7259c9846cbed06fe02f427a5d1623",
+        "graph_output_tokens_per_s": 17.97927568502821,
+        "graph_peak_vram_bytes_sysfs": 99071188992,
+        "input_tokens": 210,
+        "measurement": "measured",
+        "output_tokens": 128,
+        "outputs_exact": true,
+        "seed": 7751
+      },
+      {
+        "dflash_mode": "disabled",
+        "eager_cached_tokens": 0,
+        "eager_host_decode_ms": 7076.6901339999995,
+        "eager_host_e2e_ms": 7540.654594,
+        "eager_host_ttft_ms": 463.96446000000003,
+        "eager_input_tokens_per_s": 452.6208753144583,
+        "eager_output_sha256": "31b3383e1195b336643301998d5b03d668cf32c29a6903f093c9ddc474820127",
+        "eager_output_tokens_per_s": 17.94624288971305,
+        "eager_peak_vram_bytes_sysfs": 102085820416,
+        "gfx": "gfx1151",
+        "graph_cached_tokens": 0,
+        "graph_host_decode_ms": 7064.237043,
+        "graph_host_e2e_ms": 7503.761201,
+        "graph_host_ttft_ms": 439.524158,
+        "graph_input_tokens_per_s": 477.78943700291444,
+        "graph_mode": "full-decode-m1-per-layer-preallocated",
+        "graph_output_sha256": "31b3383e1195b336643301998d5b03d668cf32c29a6903f093c9ddc474820127",
+        "graph_output_tokens_per_s": 17.977879171798907,
+        "graph_peak_vram_bytes_sysfs": 99071188992,
+        "input_tokens": 210,
+        "measurement": "measured",
+        "output_tokens": 128,
+        "outputs_exact": true,
+        "seed": 7752
+      }
+    ]
+  },
+  "raw_kernel_graph_hip_events": {
+    "gfx": "gfx1151",
+    "measurement": "measured",
+    "shapes": [
+      {
+        "capture_host_ms": 0.357312,
+        "correct": true,
+        "direct_hip_event_ms_mean": 0.009585269894450903,
+        "graph_replay_hip_event_ms_mean": 0.01368657998740673,
+        "graph_replay_overhead_hip_event_ms_mean": 0.0041013100929558274,
+        "tokens": 1
+      },
+      {
+        "capture_host_ms": 0.353515,
+        "correct": true,
+        "direct_hip_event_ms_mean": 0.009540029875934124,
+        "graph_replay_hip_event_ms_mean": 0.013983879974111914,
+        "graph_replay_overhead_hip_event_ms_mean": 0.00444385009817779,
+        "tokens": 12
+      },
+      {
+        "capture_host_ms": 0.283132,
+        "correct": true,
+        "direct_hip_event_ms_mean": 0.012297660056501626,
+        "graph_replay_hip_event_ms_mean": 0.01670505989342928,
+        "graph_replay_overhead_hip_event_ms_mean": 0.004407399836927653,
+        "tokens": 64
+      },
+      {
+        "capture_host_ms": 1.406263,
+        "correct": true,
+        "direct_hip_event_ms_mean": 0.023210989870131017,
+        "graph_replay_hip_event_ms_mean": 0.028451069872826338,
+        "graph_replay_overhead_hip_event_ms_mean": 0.005240080002695321,
+        "tokens": 210
+      }
+    ],
+    "source": "docs/netra/notes/gfx1151-qk-mrope-kv-graph-hip-events-2026-07-30.json"
+  },
+  "target": "gfx1151"
+}

@@ -117,6 +117,10 @@ class _Runtime:
 
 
 _runtime: _Runtime | None = None
+_qk_mrope_capture_workspaces: dict[
+    tuple[torch.device, torch.dtype, int, int],
+    tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+] = {}
 
 
 def _get_runtime() -> _Runtime:
@@ -124,6 +128,31 @@ def _get_runtime() -> _Runtime:
     if _runtime is None:
         _runtime = _Runtime()
     return _runtime
+
+
+def _qk_mrope_outputs(
+    qkv: torch.Tensor,
+    token_count: int,
+    capture_workspace_id: int | None,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Return eager outputs or a stable graph-capture workspace for one layer and tier."""
+    if capture_workspace_id is None:
+        return (
+            torch.empty((token_count, 4096), dtype=qkv.dtype, device=qkv.device),
+            torch.empty((token_count, 512), dtype=qkv.dtype, device=qkv.device),
+            torch.empty((token_count, 4096), dtype=qkv.dtype, device=qkv.device),
+        )
+
+    key = (qkv.device, qkv.dtype, token_count, capture_workspace_id)
+    outputs = _qk_mrope_capture_workspaces.get(key)
+    if outputs is None:
+        outputs = (
+            torch.empty((token_count, 4096), dtype=qkv.dtype, device=qkv.device),
+            torch.empty((token_count, 512), dtype=qkv.dtype, device=qkv.device),
+            torch.empty((token_count, 4096), dtype=qkv.dtype, device=qkv.device),
+        )
+        _qk_mrope_capture_workspaces[key] = outputs
+    return outputs
 
 
 def _repack_prefill_weight(source: torch.Tensor) -> torch.Tensor:
@@ -368,8 +397,9 @@ def apply_qk_norm_mrope_gate_kv_store(
     key_cache: torch.Tensor,
     value_cache: torch.Tensor,
     cache_loc: torch.Tensor,
+    capture_workspace_id: int | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """Validate the fixed Qwen3.6 ABI and allocate graph-visible outputs."""
+    """Validate the fixed Qwen3.6 ABI and launch into eager or stable outputs."""
     token_count = qkv.shape[0]
     expected = {
         "qkv": (qkv, torch.bfloat16, (token_count, 9216)),
@@ -409,9 +439,9 @@ def apply_qk_norm_mrope_gate_kv_store(
                 f"Netra Q/K-MRoPE fusion requires page-1 contiguous BF16 {name} "
                 f"[slots,1,2,256], got {cache.dtype} {tuple(cache.shape)}"
             )
-    q_out = torch.empty((token_count, 4096), dtype=qkv.dtype, device=qkv.device)
-    k_out = torch.empty((token_count, 512), dtype=qkv.dtype, device=qkv.device)
-    gate_out = torch.empty_like(q_out)
+    q_out, k_out, gate_out = _qk_mrope_outputs(
+        qkv, token_count, capture_workspace_id
+    )
     netra_qk_norm_mrope_gate_kv_store_with_output(
         qkv,
         q_out,

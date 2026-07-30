@@ -4,6 +4,7 @@ import argparse
 import ctypes
 import json
 import os
+import time
 from pathlib import Path
 from statistics import mean, median
 
@@ -109,7 +110,7 @@ def event_time(fn, reps):
     return values
 
 
-def run_shape(lib, tokens, warmup, reps, multimodal):
+def run_shape(lib, tokens, warmup, reps, multimodal, graph):
     device = torch.device("cuda")
     gen = torch.Generator(device=device).manual_seed(20260730 + tokens + int(multimodal))
     max_pos = max(32768, tokens + 1024)
@@ -156,7 +157,62 @@ def run_shape(lib, tokens, warmup, reps, multimodal):
     torch.cuda.synchronize()
     baseline_ms = event_time(lambda: baseline_once(base), reps)
     candidate_ms = event_time(lambda: launch(lib, cand, tokens), reps)
-    return {
+    graph_result = None
+    if graph:
+        capture_stream = torch.cuda.Stream()
+        capture_stream.wait_stream(torch.cuda.current_stream())
+        with torch.cuda.stream(capture_stream):
+            for _ in range(warmup):
+                launch(lib, cand, tokens)
+        torch.cuda.current_stream().wait_stream(capture_stream)
+        torch.cuda.synchronize()
+        captured = torch.cuda.CUDAGraph()
+        capture_start_ns = time.perf_counter_ns()
+        with torch.cuda.graph(captured, stream=capture_stream):
+            launch(lib, cand, tokens)
+        torch.cuda.synchronize()
+        capture_host_ms = (time.perf_counter_ns() - capture_start_ns) / 1.0e6
+
+        cand["qkv"].copy_(
+            torch.randn(
+                (tokens, ROW),
+                device=device,
+                dtype=torch.bfloat16,
+                generator=gen,
+            )
+            * 0.25
+        )
+        cand["kc"].fill_(float("nan"))
+        cand["vc"].fill_(float("nan"))
+        base["kc"].fill_(float("nan"))
+        base["vc"].fill_(float("nan"))
+        captured.replay()
+        torch.cuda.synchronize()
+        graph_q_ref, graph_k_ref, graph_gate_ref = baseline_once(base)
+        torch.cuda.synchronize()
+        graph_checks = [
+            compare("q", cand["q"], graph_q_ref),
+            compare("k", cand["k"], graph_k_ref),
+            compare("gate", cand["gate"], graph_gate_ref),
+            compare("k_cache_selected", cand["kc"][loc], base["kc"][loc]),
+            compare("v_cache_selected", cand["vc"][loc], base["vc"][loc]),
+        ]
+        graph_ok = all(x["exact"] for x in graph_checks)
+        graph_ms = event_time(captured.replay, reps)
+        graph_result = {
+            "correct_after_input_mutation": graph_ok,
+            "checks": graph_checks,
+            "capture_host_ms": capture_host_ms,
+            "replay_hip_event_ms": {
+                "mean": mean(graph_ms),
+                "median": median(graph_ms),
+                "samples": graph_ms,
+            },
+            "replay_overhead_hip_event_ms_mean": mean(graph_ms) - mean(candidate_ms),
+        }
+        ok = ok and graph_ok
+
+    result = {
         "gfx": "gfx1151", "measurement": "measured", "tokens": tokens,
         "positions": "multimodal-3-axis" if multimodal else "text-identical-3-axis",
         "correct": ok, "checks": checks,
@@ -165,6 +221,9 @@ def run_shape(lib, tokens, warmup, reps, multimodal):
         "speedup_mean": mean(baseline_ms) / mean(candidate_ms),
         "speedup_median": median(baseline_ms) / median(candidate_ms),
     }
+    if graph_result is not None:
+        result["graph"] = graph_result
+    return result
 
 
 def main():
@@ -175,6 +234,7 @@ def main():
     ap.add_argument("--warmup", type=int, default=3)
     ap.add_argument("--reps", type=int, default=9)
     ap.add_argument("--multimodal", action="store_true")
+    ap.add_argument("--graph", action="store_true")
     ap.add_argument("--build-dir", type=Path, default=build)
     ap.add_argument("--output", type=Path)
     args = ap.parse_args()
@@ -184,7 +244,7 @@ def main():
     lib = bind(args.build_dir / "libqk_norm_mrope_kv_fusion.so", args.build_dir / f"{stem}.hsaco")
     result = {
         "gfx": "gfx1151", "measurement": "measured", "device": torch.cuda.get_device_name(),
-        "torch_hip": torch.version.hip, "results": [run_shape(lib, m, args.warmup, args.reps, args.multimodal) for m in args.tokens],
+        "torch_hip": torch.version.hip, "results": [run_shape(lib, m, args.warmup, args.reps, args.multimodal, args.graph) for m in args.tokens],
     }
     text = json.dumps(result, indent=2)
     print(text)

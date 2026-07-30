@@ -1,6 +1,6 @@
 # gfx1151 Q/K norm + MRoPE + KV-store fusion (2026-07-30)
 
-Status: **accepted for eager SGLang; graph replay still requires a separate gate**.
+Status: **accepted for eager SGLang and native full M1 decode graph; M2-M16 and piecewise graph gates remain**.
 
 Every runtime and counter value below is measured on gfx1151. No speedup is estimated.
 
@@ -84,7 +84,7 @@ Candidate output SHA256 is `a05e55f27281f5dd3edb28e6a686280718ffc8d4a06048317c53
 
 Accept the raw gfx1151 kernel and eager SGLang dispatch because it removes the separate Q/K norm, MRoPE, and KV-store critical-path launches while preserving exact model-native results and providing a measured isolated GPU-path win at every tested M.
 
-Do not claim graph-mode acceptance until capture/replay is validated with stable output pointers and no capture-time allocation. Treat the measured 1.295% 210/+1 median improvement as modest; the 210/+128 host result is neutral.
+Native full M1 decode graph replay is now accepted with distinct per-layer stable output workspaces and no fusion allocation during capture. A shared cross-layer workspace was rejected because repeated replay throughput degraded despite exact outputs. Treat the measured 1.295% 210/+1 eager median improvement and 0.5415% paired 210/+128 full-graph host-E2E improvement as modest; M2-M16 verify and piecewise prefill remain separate gates.
 
 ## Reproduction
 
