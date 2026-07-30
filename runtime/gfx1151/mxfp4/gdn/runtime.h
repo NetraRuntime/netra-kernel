@@ -31,7 +31,7 @@ NETRA_GFX1151_ALWAYS_INLINE int chunk_o(void* q, void* k, void* v, void* h, void
   GdnChunkOArgs args{
       q, k, v, h, g, output, cu_seqlens, chunk_indices, scale, tokens};
   hipError_t status = launch_3d(
-      registry.gdn_chunk_o.function, 4, 128, 32, 128,
+      registry.gdn_chunk_o.function, 4, 256, 32, 64,
       reinterpret_cast<hipStream_t>(stream_ptr), args);
   return status == hipSuccess ? 0 : 96000 + static_cast<int>(status);
 }

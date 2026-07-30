@@ -2,6 +2,8 @@
 
 Status: **rejected and quarantined**. Every number below is measured on gfx1151 (AMD Ryzen AI Max+ PRO 395). This is a correctness rejection, not a performance rejection.
 
+Update on 2026-07-31: this rejection remains authoritative for the old four-wave implementation. A newly derived and independently gated two-wave kernel supersedes its production quarantine; see `gfx1151-gdn-chunk-o-two-wave-2026-07-31.md`. The old invalid results below have not been rewritten.
+
 ## Why the prior acceptance was invalid
 
 The original raw `gdn_chunk_o_bv32_gfx1151` gate checked one output after warmups. A successful launch could therefore mask an intermittent dependency or execution-order defect. A later exact 32,768/+1 serving repeat changed its greedy token even though the new MoE up+SiLU intermediate was exact. Layer isolation placed the first divergence at layer 0 `linear_attn.attn`, before MoE.

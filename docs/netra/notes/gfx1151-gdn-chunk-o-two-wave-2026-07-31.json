@@ -1,0 +1,109 @@
+{
+  "date": "2026-07-31",
+  "target": "gfx1151",
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "measurement_status": "measured",
+  "decision": "accepted_fixed_T8192_shape",
+  "kernel": "gdn_chunk_o_bv32_gfx1151",
+  "shape": "B1_T8192_H32_Hg16_K128_V128_BT64_BV32",
+  "geometry": {
+    "grid_workgroups": [4, 256, 32],
+    "workgroup_size": 64,
+    "kernarg_size_bytes": 72,
+    "kernarg_alignment_bytes": 8
+  },
+  "production_hsaco_sha256": "4704b4b29a7dae7c3c6064ee33cad6beb2b88d1c6c0752703173dea8bc6b795a",
+  "correctness": {
+    "oracle": "tuned Triton BK64 BV32 num_warps8 model-native BF16/FP32",
+    "eager_repeats": 30,
+    "graph_repeats": 30,
+    "failures": 0,
+    "finite_all": true,
+    "max_abs_error": 0.0000019073486328125,
+    "tolerance": 0.000003814697265625,
+    "production_default_enabled": true,
+    "explicit_disable_env": "SGLANG_NETRA_DISABLE_GDN_CHUNK_O_RAW=1"
+  },
+  "hip_event": {
+    "production_best_repeated": {
+      "samples": 11,
+      "raw_eager_median_ms": 12.803239822387695,
+      "raw_graph_replay_median_ms": 12.770938873291016,
+      "triton_median_ms": 15.024556159973145,
+      "speedup": 1.1734964249987152
+    },
+    "production_final_after_clean_rebuild": {
+      "samples": 11,
+      "raw_eager_median_ms": 14.035581588745117,
+      "raw_graph_replay_median_ms": 14.048848152160645,
+      "triton_median_ms": 15.03612995147705,
+      "speedup": 1.0712865623989714
+    }
+  },
+  "rocprofv3_request_window": {
+    "raw": {
+      "invocations": 30,
+      "median_gpu_us": 13249.775,
+      "mean_gpu_us": 13630.042533333333,
+      "vgpr": 216,
+      "lds_bytes": 25088,
+      "scratch_bytes": 0
+    },
+    "prior_triton": {
+      "invocations": 29,
+      "median_gpu_us": 15633.829,
+      "mean_gpu_us": 15739.693172413792,
+      "vgpr": 256,
+      "lds_bytes": 0,
+      "scratch_bytes_per_work_item": 432
+    },
+    "median_speedup": 1.179930855051795
+  },
+  "hardware_counters": {
+    "method": "one counter per standalone /opt/rocm-7.2.1 HIP process",
+    "waves": 65536,
+    "occupancy_percent": 12.464943,
+    "mean_occupancy_per_active_cu": 7.984659,
+    "fetch_kib": 180400.4375,
+    "write_kib": 32768.0,
+    "l2_cache_hit_percent": 63.664587,
+    "memory_unit_busy_percent": 92.294034,
+    "lds_bank_conflict_percent": 52.114286,
+    "sq_wave_cycles": 6241831808,
+    "sq_busy_cycles": 778776764,
+    "direct_dependency_stall_counter": null
+  },
+  "serving": {
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "cached_tokens": 0,
+    "8192_input_1_output": {
+      "triton_ms": [4540.368664, 4531.914809],
+      "raw_ms": [4463.907717, 4455.55858],
+      "triton_median_ms": 4536.1417365,
+      "raw_median_ms": 4459.7331485,
+      "speedup": 1.017132998764608,
+      "latency_reduction_percent": 1.684422732171587,
+      "output_token": 220,
+      "identical_output_hash": true
+    },
+    "32768_input_1_output": {
+      "triton_ms": [21636.98087, 21582.497155],
+      "raw_ms": [21286.597835, 21342.921994],
+      "triton_median_ms": 21609.7390125,
+      "raw_median_ms": 21314.7599145,
+      "speedup": 1.0138391940225109,
+      "latency_reduction_percent": 1.3650285078842224,
+      "output_token": 95726,
+      "identical_output_hash": true
+    }
+  },
+  "negative_results": {
+    "one_wave_speedup_vs_triton": 0.6686762572949948,
+    "one_wave_correctness_failures_of_60": 0,
+    "first_two_wave_missing_q_rows": "QR*8 with four loader rows skipped rows 4..7 per group",
+    "first_two_wave_gate_address": "32-byte offset used where 32 FP32 elements required 128 bytes",
+    "three_dependency_waits": "correct but slower than final no-wait source",
+    "old_four_wave": "rejected for intermittent row-32-mod-64 corruption"
+  }
+}

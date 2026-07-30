@@ -12,7 +12,6 @@ index c2c0431..2592c99 100644
 +_use_netra_gdn_chunk_o = (
 +    is_hip()
 +    and get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
-+    and get_bool_env_var("SGLANG_NETRA_ENABLE_UNSAFE_GDN_CHUNK_O_RAW")
 +    and not get_bool_env_var("SGLANG_NETRA_DISABLE_GDN_CHUNK_O_RAW")
 +)
 +if _use_netra_gdn_chunk_o:

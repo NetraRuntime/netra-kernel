@@ -2,18 +2,18 @@
 // Raw gfx1151 Qwen3.6 GDN chunk-output: two-wave fused gated qh + causal qk + Av.
 // Fixed B=1,T=8192,H=32,Hg=16,K=V=128,BT=64,BV=32, BF16 q/h/o, FP32 g.
 // Grid=(4,256,32), block=64 wave32. Each workgroup owns one 32-row half chunk.
-// Production two-wave fixes the rejected prototype's missing Q rows 4..7 in every eight-row group.
+// NOWAIT fixes the rejected prototype's missing Q rows 4..7 in every eight-row group.
 // Raw full compute path; no compiler-generated compute or scratch.
 
 .amdgcn_target "amdgcn-amd-amdhsa--gfx1151"
 .amdhsa_code_object_version 6
 .text
 
-.protected gdn_chunk_o_bv32_gfx1151
-.globl gdn_chunk_o_bv32_gfx1151
+.protected gdn_chunk_o_bv32_two_wave_nowait_gfx1151
+.globl gdn_chunk_o_bv32_two_wave_nowait_gfx1151
 .p2align 8
-.type gdn_chunk_o_bv32_gfx1151,@function
-gdn_chunk_o_bv32_gfx1151:
+.type gdn_chunk_o_bv32_two_wave_nowait_gfx1151,@function
+gdn_chunk_o_bv32_two_wave_nowait_gfx1151:
   // q,k,v,h,g,o,cu_seqlens,chunk_indices,scale,T
   // System SGPRs: s2=BV tile, s3=(chunk*2+row_half), s4=head.
   s_mov_b32 s26, s4
@@ -394,7 +394,7 @@ gdn_chunk_o_bv32_gfx1151:
 
 .section .rodata,"a",@progbits
 .p2align 6, 0
-.amdhsa_kernel gdn_chunk_o_bv32_gfx1151
+.amdhsa_kernel gdn_chunk_o_bv32_two_wave_nowait_gfx1151
 .amdhsa_group_segment_fixed_size 25088
 .amdhsa_private_segment_fixed_size 0
 .amdhsa_kernarg_size 72
@@ -419,7 +419,7 @@ gdn_chunk_o_bv32_gfx1151:
 .end_amdhsa_kernel
 .text
 .Lfunc_end0:
-.size gdn_chunk_o_bv32_gfx1151, .Lfunc_end0-gdn_chunk_o_bv32_gfx1151
+.size gdn_chunk_o_bv32_two_wave_nowait_gfx1151, .Lfunc_end0-gdn_chunk_o_bv32_two_wave_nowait_gfx1151
 
 .amdgpu_metadata
 ---
@@ -441,11 +441,11 @@ amdhsa.kernels:
     .language: OpenCL C
     .language_version: [2, 0]
     .max_flat_workgroup_size: 64
-    .name: gdn_chunk_o_bv32_gfx1151
+    .name: gdn_chunk_o_bv32_two_wave_nowait_gfx1151
     .private_segment_fixed_size: 0
     .sgpr_count: 46
     .sgpr_spill_count: 0
-    .symbol: gdn_chunk_o_bv32_gfx1151.kd
+    .symbol: gdn_chunk_o_bv32_two_wave_nowait_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 212

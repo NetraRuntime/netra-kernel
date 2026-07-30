@@ -86,7 +86,7 @@ static constexpr KernelDescriptor kQkNormMropeKv{
     "qk_norm_mrope_gate_kv_store_gfx1151", {0, 1, 1, 128}};
 static constexpr KernelDescriptor kGdnChunkO{
     "gdn_chunk_o_bv32_gfx1151.hsaco", "gdn_chunk_o_bv32_gfx1151",
-    {4, 128, 32, 128}};
+    {4, 256, 32, 64}};
 static constexpr KernelDescriptor kRecomputeWU{
     "recompute_w_u_ordered_gfx1151.hsaco",
     "recompute_w_u_reuse_a_ordered_gfx1151", {128, 32, 1, 64}};

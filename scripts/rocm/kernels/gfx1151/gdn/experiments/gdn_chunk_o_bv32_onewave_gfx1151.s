@@ -1,21 +1,19 @@
 // SPDX-License-Identifier: MIT
-// Raw gfx1151 Qwen3.6 GDN chunk-output: two-wave fused gated qh + causal qk + Av.
+// Raw gfx1151 Qwen3.6 GDN chunk-output: fused gated qh + causal qk + Av, one-wave Q16.
 // Fixed B=1,T=8192,H=32,Hg=16,K=V=128,BT=64,BV=32, BF16 q/h/o, FP32 g.
-// Grid=(4,256,32), block=64 wave32. Each workgroup owns one 32-row half chunk.
-// Production two-wave fixes the rejected prototype's missing Q rows 4..7 in every eight-row group.
-// Raw full compute path; no compiler-generated compute or scratch.
+// Grid=(4,512,32), block=32 wave32. Raw full compute path; no compiler-generated compute or scratch.
 
 .amdgcn_target "amdgcn-amd-amdhsa--gfx1151"
 .amdhsa_code_object_version 6
 .text
 
-.protected gdn_chunk_o_bv32_gfx1151
-.globl gdn_chunk_o_bv32_gfx1151
+.protected gdn_chunk_o_bv32_onewave_gfx1151
+.globl gdn_chunk_o_bv32_onewave_gfx1151
 .p2align 8
-.type gdn_chunk_o_bv32_gfx1151,@function
-gdn_chunk_o_bv32_gfx1151:
+.type gdn_chunk_o_bv32_onewave_gfx1151,@function
+gdn_chunk_o_bv32_onewave_gfx1151:
   // q,k,v,h,g,o,cu_seqlens,chunk_indices,scale,T
-  // System SGPRs: s2=BV tile, s3=(chunk*2+row_half), s4=head.
+  // System SGPRs: s2=BV tile, s3=query-quarter workgroup, s4=head.
   s_mov_b32 s26, s4
   s_clause 0x4
   s_load_b128 s[8:11], s[0:1], 0
@@ -25,32 +23,31 @@ gdn_chunk_o_bv32_gfx1151:
   s_load_b64 s[24:25], s[0:1], 64
   s_waitcnt lgkmcnt(0)
 
-  // Scalar fixed-shape bases.
-  s_lshr_b32 s27, s26, 1              // grouped q/h head
-  s_and_b32 s43, s3, 1                // 32-row half within chunk
-  s_lshr_b32 s44, s3, 1               // 64-row chunk
-  s_lshl_b32 s45, s43, 5              // half row offset
-  s_lshl_b32 s28, s44, 6              // first token in chunk
-  s_add_u32 s28, s28, s45             // first query token in half
-  s_lshl_b32 s29, s27, 8              // q head byte offset
-  s_lshl_b32 s30, s44, 20             // h chunk byte offset
+  // Map workgroup-y to one 16-row query quarter within a 64-row chunk.
+  s_lshr_b32 s32, s3, 2               // chunk 0..127
+  s_and_b32 s33, s3, 3                // query quarter 0..3
+  s_lshl_b32 s34, s32, 6              // chunk first token
+  s_lshl_b32 s35, s33, 4              // query row offset in chunk
+  s_add_u32 s28, s34, s35             // query first token
+  s_lshr_b32 s27, s26, 1              // grouped q/k head
+  s_lshl_b32 s29, s27, 8              // q/k head byte offset
+  s_lshl_b32 s30, s32, 20             // h chunk byte offset
   s_lshl_b32 s31, s26, 15             // h head byte offset
   s_add_u32 s30, s30, s31
   s_lshl_b32 s31, s2, 13              // h BV32 byte offset
   s_add_u32 s30, s30, s31
-  s_lshl_b32 s31, s44, 6              // first token in full chunk
 
   v_and_b32_e32 v1, 31, v0            // lane
-  v_lshrrev_b32_e32 v2, 5, v0         // wave 0..1
+  v_mov_b32_e32 v2, 0                  // one wave owns local rows 0..15
   v_and_b32_e32 v3, 15, v0            // WMMA column lane
   v_lshrrev_b32_e32 v4, 4, v1         // WMMA row parity
   v_and_b32_e32 v200, 15, v0          // 16-byte vector index
-  v_lshrrev_b32_e32 v201, 4, v0       // loader row 0..3
+  v_lshrrev_b32_e32 v201, 4, v0       // loader row 0..1
 
-  // Stage this half's complete Q[32,128] row-major at LDS 0.
+  // Stage Q[16,128] row-major at LDS 0. Each thread loads eight b128s.
   .set QR, 0
   .rept 8
-    v_add_nc_u32_e32 v202, (QR*4), v201
+    v_add_nc_u32_e32 v202, (QR*2), v201
     v_add_nc_u32_e32 v203, s28, v202
     v_lshlrev_b32_e32 v204, 12, v203
     v_add_nc_u32_e32 v204, s29, v204
@@ -63,10 +60,10 @@ gdn_chunk_o_bv32_gfx1151:
     .set QR, QR+1
   .endr
 
-  // Stage H[BV32,128] row-major at LDS 8192.
+  // Stage H[BV32,128] row-major at LDS 16384. Each thread loads sixteen b128s.
   .set HR, 0
-  .rept 8
-    v_add_nc_u32_e32 v202, (HR*4), v201
+  .rept 16
+    v_add_nc_u32_e32 v202, (HR*2), v201
     v_lshlrev_b32_e32 v204, 8, v202
     v_add_nc_u32_e32 v204, s30, v204
     v_lshl_add_u32 v204, v200, 4, v204
@@ -74,40 +71,34 @@ gdn_chunk_o_bv32_gfx1151:
     s_waitcnt vmcnt(0)
     v_lshlrev_b32_e32 v205, 8, v202
     v_lshl_add_u32 v205, v200, 4, v205
-    v_add_nc_u32_e32 v205, 8192, v205
+    v_add_nc_u32_e32 v205, 16384, v205
     ds_write_b128 v205, v[208:211]
     .set HR, HR+1
   .endr
 
-  // Stage the full chunk's g[64,head] at LDS 16384.
-  v_add_nc_u32_e32 v202, s31, v0
+  // Stage the 16 query-row gates at LDS 24576.
+  v_cmp_gt_u32_e32 vcc_lo, 16, v0
+  s_and_saveexec_b32 s42, vcc_lo
+  v_add_nc_u32_e32 v202, s28, v0
   v_lshlrev_b32_e32 v204, 7, v202
   v_lshl_add_u32 v204, s26, 2, v204
   global_load_dword v208, v204, s[16:17]
   s_waitcnt vmcnt(0)
   v_lshlrev_b32_e32 v205, 2, v0
-  v_add_nc_u32_e32 v205, 16384, v205
+  v_add_nc_u32_e32 v205, 24576, v205
   ds_write_b32 v205, v208
+  s_mov_b32 exec_lo, s42
   s_waitcnt lgkmcnt(0)
-  s_barrier
 
   // C accumulators: two 16-column output fragments per wave.
-  v_mov_b32_e32 v64, 0
-  v_mov_b32_e32 v65, 0
-  v_mov_b32_e32 v66, 0
-  v_mov_b32_e32 v67, 0
-  v_mov_b32_e32 v68, 0
-  v_mov_b32_e32 v69, 0
-  v_mov_b32_e32 v70, 0
-  v_mov_b32_e32 v71, 0
-  v_mov_b32_e32 v72, 0
-  v_mov_b32_e32 v73, 0
-  v_mov_b32_e32 v74, 0
-  v_mov_b32_e32 v75, 0
-  v_mov_b32_e32 v76, 0
-  v_mov_b32_e32 v77, 0
-  v_mov_b32_e32 v78, 0
-  v_mov_b32_e32 v79, 0
+  v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
+  v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0
+  v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0
+  v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0
+  v_dual_mov_b32 v72, 0 :: v_dual_mov_b32 v73, 0
+  v_dual_mov_b32 v74, 0 :: v_dual_mov_b32 v75, 0
+  v_dual_mov_b32 v76, 0 :: v_dual_mov_b32 v77, 0
+  v_dual_mov_b32 v78, 0 :: v_dual_mov_b32 v79, 0
 
   // Q A-layout base for this wave's 16 rows.
   v_lshlrev_b32_e32 v5, 12, v2
@@ -127,7 +118,7 @@ gdn_chunk_o_bv32_gfx1151:
 
     v_lshlrev_b32_e32 v206, 8, v3
     v_lshl_add_u32 v206, v4, 4, v206
-    v_add_nc_u32_e32 v206, (8192+DK*32), v206
+    v_add_nc_u32_e32 v206, (16384+DK*32), v206
     ds_load_b128 v[16:19], v206
     s_waitcnt lgkmcnt(0)
     ds_swizzle_b32 v20, v16 offset:swizzle(SWAP,16)
@@ -155,9 +146,8 @@ gdn_chunk_o_bv32_gfx1151:
     v_lshlrev_b32_e32 v206, 4, v2
     v_add_nc_u32_e32 v206, v4, v206
     v_add_nc_u32_e32 v206, (MR*2), v206
-    v_add_nc_u32_e32 v206, s45, v206
     v_lshlrev_b32_e32 v206, 2, v206
-    v_add_nc_u32_e32 v206, 16384, v206
+    v_add_nc_u32_e32 v206, 24576, v206
     ds_load_b32 v208, v206
     s_waitcnt lgkmcnt(0)
     v_mul_f32_e32 v208, 0x3fb8aa3b, v208
@@ -167,12 +157,12 @@ gdn_chunk_o_bv32_gfx1151:
     .set MR, MR+1
   .endr
 
-  // All waves finished reading H. Replace it with K[64,128].
-  s_barrier
+  // Replace H with the full K[64,128] tile. One wave issues 1024 b128 loads.
+  s_waitcnt_depctr 0
   .set KR, 0
-  .rept 16
-    v_add_nc_u32_e32 v202, (KR*4), v201
-    v_add_nc_u32_e32 v203, s31, v202
+  .rept 32
+    v_add_nc_u32_e32 v202, (KR*2), v201
+    v_add_nc_u32_e32 v203, s34, v202
     v_lshlrev_b32_e32 v204, 12, v203
     v_add_nc_u32_e32 v204, s29, v204
     v_lshl_add_u32 v204, v200, 4, v204
@@ -180,12 +170,11 @@ gdn_chunk_o_bv32_gfx1151:
     s_waitcnt vmcnt(0)
     v_lshlrev_b32_e32 v205, 8, v202
     v_lshl_add_u32 v205, v200, 4, v205
-    v_add_nc_u32_e32 v205, 8192, v205
+    v_add_nc_u32_e32 v205, 16384, v205
     ds_write_b128 v205, v[208:211]
     .set KR, KR+1
   .endr
   s_waitcnt lgkmcnt(0)
-  s_barrier
 
   // Four 16-column q @ k^T fragments. These become gated causal A.
   .set AR, 24
@@ -206,7 +195,7 @@ gdn_chunk_o_bv32_gfx1151:
     .rept 4
       v_lshlrev_b32_e32 v206, 8, v3
       v_lshl_add_u32 v206, v4, 4, v206
-      v_add_nc_u32_e32 v206, (8192+KT*4096+DK*32), v206
+      v_add_nc_u32_e32 v206, (16384+KT*4096+DK*32), v206
       ds_load_b128 v[16:19], v206
       s_waitcnt lgkmcnt(0)
       ds_swizzle_b32 v20, v16 offset:swizzle(SWAP,16)
@@ -220,35 +209,39 @@ gdn_chunk_o_bv32_gfx1151:
     .set DK, DK+1
   .endr
 
-  // Q is dead. Reload full-chunk g at LDS 24576; A uses LDS 0..4095.
-  v_add_nc_u32_e32 v202, s31, v0
-  v_lshlrev_b32_e32 v204, 7, v202
-  v_lshl_add_u32 v204, s26, 2, v204
-  global_load_dword v208, v204, s[16:17]
-  s_waitcnt vmcnt(0)
-  v_lshlrev_b32_e32 v205, 2, v0
-  v_add_nc_u32_e32 v205, 24576, v205
-  ds_write_b32 v205, v208
+  s_waitcnt_depctr 0
+  // Q is dead. Stage g for all 64 key rows at LDS 8192.
+  .set GI, 0
+  .rept 2
+    v_add_nc_u32_e32 v202, (GI*32), v0
+    v_add_nc_u32_e32 v203, s34, v202
+    v_lshlrev_b32_e32 v204, 7, v203
+    v_lshl_add_u32 v204, s26, 2, v204
+    global_load_dword v208, v204, s[16:17]
+    s_waitcnt vmcnt(0)
+    v_lshlrev_b32_e32 v205, 2, v202
+    v_add_nc_u32_e32 v205, 8192, v205
+    ds_write_b32 v205, v208
+    .set GI, GI+1
+  .endr
   s_waitcnt lgkmcnt(0)
-  s_barrier
 
   // Cache four column gates and eight row gates in VGPRs.
   .set GC, 0
   .rept 4
     v_add_nc_u32_e32 v206, (GC*16), v3
     v_lshlrev_b32_e32 v206, 2, v206
-    v_add_nc_u32_e32 v206, 24576, v206
+    v_add_nc_u32_e32 v206, 8192, v206
     ds_load_b32 v[80+GC], v206
     .set GC, GC+1
   .endr
   .set GR, 0
   .rept 8
-    v_lshlrev_b32_e32 v206, 4, v2
+    v_mov_b32_e32 v206, s35
     v_add_nc_u32_e32 v206, v4, v206
     v_add_nc_u32_e32 v206, (GR*2), v206
-    v_add_nc_u32_e32 v206, s45, v206
     v_lshlrev_b32_e32 v206, 2, v206
-    v_add_nc_u32_e32 v206, 24576, v206
+    v_add_nc_u32_e32 v206, 8192, v206
     ds_load_b32 v[84+GR], v206
     .set GR, GR+1
   .endr
@@ -266,10 +259,9 @@ gdn_chunk_o_bv32_gfx1151:
       v_cndmask_b32_e32 v92, 0xff800000, v92, vcc_lo
       v_mul_f32_e32 v92, 0x3fb8aa3b, v92
       v_exp_f32_e32 v92, v92
-      v_lshlrev_b32_e32 v93, 4, v2
+      v_mov_b32_e32 v93, s35
       v_add_nc_u32_e32 v93, v4, v93
       v_add_nc_u32_e32 v93, (RR*2), v93
-      v_add_nc_u32_e32 v93, s45, v93
       v_add_nc_u32_e32 v94, (MT*16), v3
       v_cmp_le_u32_e32 vcc_lo, v94, v93
       v_cndmask_b32_e32 v92, 0, v92, vcc_lo
@@ -288,15 +280,14 @@ gdn_chunk_o_bv32_gfx1151:
     .set MT, MT+1
   .endr
   s_waitcnt lgkmcnt(0)
-  s_barrier
 
-  // Stage V[64,32] row-major at LDS 8192.
+  // Stage V[64,32] row-major at LDS 16384. One wave issues 512 b128 loads.
   v_and_b32_e32 v200, 3, v0
   v_lshrrev_b32_e32 v201, 2, v0
   .set VR, 0
-  .rept 4
-    v_add_nc_u32_e32 v202, (VR*16), v201
-    v_add_nc_u32_e32 v203, s31, v202
+  .rept 8
+    v_add_nc_u32_e32 v202, (VR*8), v201
+    v_add_nc_u32_e32 v203, s34, v202
     v_lshlrev_b32_e32 v204, 13, v203
     v_lshl_add_u32 v204, s26, 8, v204
     v_lshl_add_u32 v204, s2, 6, v204
@@ -305,14 +296,13 @@ gdn_chunk_o_bv32_gfx1151:
     s_waitcnt vmcnt(0)
     v_lshlrev_b32_e32 v205, 6, v202
     v_lshl_add_u32 v205, v200, 4, v205
-    v_add_nc_u32_e32 v205, 8192, v205
+    v_add_nc_u32_e32 v205, 16384, v205
     ds_write_b128 v205, v[208:211]
     .set VR, VR+1
   .endr
   s_waitcnt lgkmcnt(0)
-  s_barrier
 
-  // A[32,64] @ V[64,32], accumulating directly into gated qh C registers.
+  // A[16,64] @ V[64,32], accumulating directly into gated qh C registers.
   v_lshlrev_b32_e32 v7, 11, v2
   v_lshl_add_u32 v7, v3, 7, v7
   v_lshl_add_u32 v7, v4, 4, v7
@@ -329,7 +319,7 @@ gdn_chunk_o_bv32_gfx1151:
     .rept 2
       v_lshlrev_b32_e32 v206, 9, v4
       v_lshl_add_u32 v206, v3, 1, v206
-      v_add_nc_u32_e32 v206, (8192+VT*1024+OB*32), v206
+      v_add_nc_u32_e32 v206, (16384+VT*1024+OB*32), v206
       ds_load_u16 v16, v206 offset:0
       ds_load_u16_d16_hi v16, v206 offset:64
       ds_load_u16 v17, v206 offset:128
@@ -354,6 +344,7 @@ gdn_chunk_o_bv32_gfx1151:
     .set VT, VT+1
   .endr
 
+  s_waitcnt_depctr 0
   // Shared model scale applies to qh and Av after their FP32 sum.
   .set OR, 64
   .rept 16
@@ -394,8 +385,8 @@ gdn_chunk_o_bv32_gfx1151:
 
 .section .rodata,"a",@progbits
 .p2align 6, 0
-.amdhsa_kernel gdn_chunk_o_bv32_gfx1151
-.amdhsa_group_segment_fixed_size 25088
+.amdhsa_kernel gdn_chunk_o_bv32_onewave_gfx1151
+.amdhsa_group_segment_fixed_size 32768
 .amdhsa_private_segment_fixed_size 0
 .amdhsa_kernarg_size 72
 .amdhsa_user_sgpr_count 2
@@ -407,19 +398,19 @@ gdn_chunk_o_bv32_gfx1151:
 .amdhsa_system_sgpr_workgroup_id_z 1
 .amdhsa_system_vgpr_workitem_id 0
 .amdhsa_next_free_vgpr 212
-.amdhsa_next_free_sgpr 46
+.amdhsa_next_free_sgpr 44
 .amdhsa_reserve_vcc 1
 .amdhsa_float_denorm_mode_32 3
 .amdhsa_float_denorm_mode_16_64 3
 .amdhsa_dx10_clamp 1
 .amdhsa_ieee_mode 1
-.amdhsa_workgroup_processor_mode 0
+.amdhsa_workgroup_processor_mode 1
 .amdhsa_memory_ordered 1
 .amdhsa_forward_progress 1
 .end_amdhsa_kernel
 .text
 .Lfunc_end0:
-.size gdn_chunk_o_bv32_gfx1151, .Lfunc_end0-gdn_chunk_o_bv32_gfx1151
+.size gdn_chunk_o_bv32_onewave_gfx1151, .Lfunc_end0-gdn_chunk_o_bv32_onewave_gfx1151
 
 .amdgpu_metadata
 ---
@@ -435,23 +426,23 @@ amdhsa.kernels:
       - { .name: chunk_indices, .offset: 56, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
       - { .name: scale, .offset: 64, .size: 4, .value_kind: by_value }
       - { .name: T, .offset: 68, .size: 4, .value_kind: by_value }
-    .group_segment_fixed_size: 25088
+    .group_segment_fixed_size: 32768
     .kernarg_segment_align: 8
     .kernarg_segment_size: 72
     .language: OpenCL C
     .language_version: [2, 0]
-    .max_flat_workgroup_size: 64
-    .name: gdn_chunk_o_bv32_gfx1151
+    .max_flat_workgroup_size: 32
+    .name: gdn_chunk_o_bv32_onewave_gfx1151
     .private_segment_fixed_size: 0
-    .sgpr_count: 46
+    .sgpr_count: 44
     .sgpr_spill_count: 0
-    .symbol: gdn_chunk_o_bv32_gfx1151.kd
+    .symbol: gdn_chunk_o_bv32_onewave_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 212
     .vgpr_spill_count: 0
     .wavefront_size: 32
-    .workgroup_processor_mode: 0
+    .workgroup_processor_mode: 1
 amdhsa.target: amdgcn-amd-amdhsa--gfx1151
 amdhsa.version: [1, 2]
 ...
