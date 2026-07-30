@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Raw gfx1151 online-softmax extend attention for Qwen3.6 standard attention.
 // Fixed B=1, Hq=16, Hkv=2, Dq=Dv=256, BF16, causal, page size 1.
-// Production group4-qpipe: overlap the next global Q fragment; four query heads share each staged K/V tile. Grid=(M/64,4,1), block=512.
+// Retained pre-group4 production qpipe8 baseline.
+// Tile: M64 x N64 with K-only LDS-bank swizzle. Grid=(M/64,16,1), block=128.
 
 .amdgcn_target "amdgcn-amd-amdhsa--gfx1151"
 .amdhsa_code_object_version 6
@@ -205,21 +206,20 @@
 .endm
 
 .macro RESTORE_Q_P_ADDRS
-  // Q remains global; compact four per-head P workspaces into LDS[0:32K].
   v_lshlrev_b32_e32 v231, 4, v2
   v_add_nc_u32_e32 v231, s21, v231
   v_add_nc_u32_e32 v231, v231, v3
   v_lshlrev_b32_e32 v240, 13, v231
   v_add_nc_u32_e32 v240, s24, v240
   v_lshl_add_u32 v240, v4, 4, v240
-  v_mov_b32_e32 v231, s43
-  v_lshlrev_b32_e32 v231, 13, v231
-  v_lshl_add_u32 v231, v2, 11, v231
+  v_lshlrev_b32_e32 v231, 13, v2
   v_lshl_add_u32 v232, v4, 7, v231
   v_lshl_add_u32 v232, v3, 1, v232
+  v_add_nc_u32_e32 v232, 6144, v232
   v_lshl_add_u32 v233, v3, 7, v231
   v_lshlrev_b32_e32 v229, 4, v1
   v_lshl_add_u32 v233, v4, 4, v233
+  v_add_nc_u32_e32 v233, 6144, v233
 .endm
 
 // Load or restore all 16 Q depth fragments in two batches. v192:v223 are
@@ -243,11 +243,11 @@
   .endr
 .endm
 
-.protected extend_attention_wmma_n64_gfx1151
-.globl extend_attention_wmma_n64_gfx1151
+.protected extend_attention_wmma_n64_qpipe8_baseline_gfx1151
+.globl extend_attention_wmma_n64_qpipe8_baseline_gfx1151
 .p2align 8
-.type extend_attention_wmma_n64_gfx1151,@function
-extend_attention_wmma_n64_gfx1151:
+.type extend_attention_wmma_n64_qpipe8_baseline_gfx1151,@function
+extend_attention_wmma_n64_qpipe8_baseline_gfx1151:
   // q, k_extend, v_extend, o, k_buffer, v_buffer, kv_indices,
   // tokens, prefix_tokens, sm_scale, reserved
   s_clause 0x3
@@ -266,8 +266,8 @@ extend_attention_wmma_n64_gfx1151:
   s_lshl_b32 s21, s2, 6
   s_cmp_ge_u32 s21, s18
   s_cbranch_scc1 .Lend
-  // Workgroup Y selects a four-head group; four waves serve each query head.
-  s_lshr_b32 s23, s3, 1
+  s_lshr_b32 s23, s3, 3
+  s_lshl_b32 s24, s3, 9
   s_lshl_b32 s25, s23, 9
   s_add_u32 s26, s21, 64
   s_min_u32 s26, s26, s18
@@ -279,21 +279,36 @@ extend_attention_wmma_n64_gfx1151:
   v_and_b32_e32 v3, 15, v0
   v_lshrrev_b32_e32 v4, 4, v0
   v_and_b32_e32 v4, 1, v4
-  v_readfirstlane_b32 s43, v2
-  s_lshr_b32 s43, s43, 2
-  v_and_b32_e32 v2, 3, v2
   v_readfirstlane_b32 s29, v2
-  s_lshl_b32 s24, s3, 2
-  s_add_u32 s24, s24, s43
-  s_lshl_b32 s24, s24, 9
   v_lshlrev_b32_e32 v229, 4, v1
 
-  RESTORE_Q_P_ADDRS
+  // Global Q address and persistent row-major Q LDS address.
+  v_lshlrev_b32_e32 v231, 4, v2
+  v_add_nc_u32_e32 v231, s21, v231
+  v_add_nc_u32_e32 v231, v231, v3
+  v_lshlrev_b32_e32 v240, 13, v231
+  v_add_nc_u32_e32 v240, s24, v240
+  v_lshl_add_u32 v240, v4, 4, v240
+  v_lshlrev_b32_e32 v5, 13, v2
+  v_lshl_add_u32 v5, v3, 9, v5
+  v_lshl_add_u32 v5, v4, 4, v5
+  LOAD_Q_PIPE8
+  s_waitcnt lgkmcnt(0)
+  s_barrier
 
   // C-layout row base: parity in lane[4], accumulator index enumerates row/2.
   v_lshlrev_b32_e32 v6, 4, v2
   v_add_nc_u32_e32 v6, s21, v6
   v_add_nc_u32_e32 v6, v6, v4
+
+  // P overlays Q rows 12..15 after QK. Store is C->row-major; load is A layout.
+  v_lshlrev_b32_e32 v231, 13, v2
+  v_lshl_add_u32 v232, v4, 7, v231
+  v_lshl_add_u32 v232, v3, 1, v232
+  v_add_nc_u32_e32 v232, 6144, v232
+  v_lshl_add_u32 v233, v3, 7, v231
+  v_lshl_add_u32 v233, v4, 4, v233
+  v_add_nc_u32_e32 v233, 6144, v233
 
   v_mov_b32_e32 v32, 0xff800000
   v_mov_b32_e32 v33, v32
@@ -314,12 +329,14 @@ extend_attention_wmma_n64_gfx1151:
   .endr
 
 .Ltile_loop:
-  // All four heads must finish PV before the leader overwrites shared LDS.
+  // Restore the four Q rows occupied by the preceding tile's P transpose.
+  v_cmp_le_u32_e32 vcc_lo, 12, v3
+  s_and_saveexec_b32 s42, vcc_lo
+  LOAD_Q_PIPE8
+  s_mov_b32 exec_lo, s42
+  s_waitcnt lgkmcnt(0)
   s_barrier
-  // Only head-group lane 0 stages the K tile shared by all four heads.
-  // Every wave still participates in the following workgroup barrier.
-  s_cmp_eq_u32 s43, 0
-  s_cbranch_scc0 .Lk_loaded
+
   // K phase: the 32 KiB data half of LDS holds 64x256 BF16 K.
   s_cmp_lt_u32 s28, s19
   s_cbranch_scc0 .Lload_k_current
@@ -349,23 +366,15 @@ extend_attention_wmma_n64_gfx1151:
   v_dual_mov_b32 v212, 0 :: v_dual_mov_b32 v213, 0
   v_dual_mov_b32 v214, 0 :: v_dual_mov_b32 v215, 0
 
-  // Double-buffer Q in registers: overlap DK+1 global fetch with current QK.
-  global_load_b128 v[8:11], v240, s[4:5] offset:0
-  s_waitcnt vmcnt(0)
-  ds_swizzle_b32 v12, v8 offset:swizzle(SWAP,16)
-  ds_swizzle_b32 v13, v9 offset:swizzle(SWAP,16)
-  ds_swizzle_b32 v14, v10 offset:swizzle(SWAP,16)
-  ds_swizzle_b32 v15, v11 offset:swizzle(SWAP,16)
-  s_waitcnt lgkmcnt(0)
   .set DK, 0
   .rept 16
-    .if DK < 15
-      .if (DK % 2) == 0
-        global_load_b128 v[216:219], v240, s[4:5] offset:((DK+1)*32)
-      .else
-        global_load_b128 v[8:11], v240, s[4:5] offset:((DK+1)*32)
-      .endif
-    .endif
+    ds_load_b128 v[8:11], v5 offset:(DK*32)
+    s_waitcnt lgkmcnt(0)
+    ds_swizzle_b32 v12, v8 offset:swizzle(SWAP,16)
+    ds_swizzle_b32 v13, v9 offset:swizzle(SWAP,16)
+    ds_swizzle_b32 v14, v10 offset:swizzle(SWAP,16)
+    ds_swizzle_b32 v15, v11 offset:swizzle(SWAP,16)
+    s_waitcnt lgkmcnt(0)
     .set KT, 0
     v_lshlrev_b32_e32 v234, 9, v3
     v_lshl_add_u32 v234, v4, 4, v234
@@ -390,26 +399,14 @@ extend_attention_wmma_n64_gfx1151:
           ds_load_b128 v[16:19], v234
         .endif
       .endif
-      .if (DK % 2) == 0
-        .if KT == 0
-          v_wmma_f32_16x16x16_bf16 v[24:31], v[8:15], v[16:23], v[24:31]
-        .elseif KT == 1
-          v_wmma_f32_16x16x16_bf16 v[192:199], v[8:15], v[225:232], v[192:199]
-        .elseif KT == 2
-          v_wmma_f32_16x16x16_bf16 v[200:207], v[8:15], v[16:23], v[200:207]
-        .else
-          v_wmma_f32_16x16x16_bf16 v[208:215], v[8:15], v[225:232], v[208:215]
-        .endif
+      .if KT == 0
+        v_wmma_f32_16x16x16_bf16 v[24:31], v[8:15], v[16:23], v[24:31]
+      .elseif KT == 1
+        v_wmma_f32_16x16x16_bf16 v[192:199], v[8:15], v[225:232], v[192:199]
+      .elseif KT == 2
+        v_wmma_f32_16x16x16_bf16 v[200:207], v[8:15], v[16:23], v[200:207]
       .else
-        .if KT == 0
-          v_wmma_f32_16x16x16_bf16 v[24:31], v[216:223], v[16:23], v[24:31]
-        .elseif KT == 1
-          v_wmma_f32_16x16x16_bf16 v[192:199], v[216:223], v[225:232], v[192:199]
-        .elseif KT == 2
-          v_wmma_f32_16x16x16_bf16 v[200:207], v[216:223], v[16:23], v[200:207]
-        .else
-          v_wmma_f32_16x16x16_bf16 v[208:215], v[216:223], v[225:232], v[208:215]
-        .endif
+        v_wmma_f32_16x16x16_bf16 v[208:215], v[8:15], v[225:232], v[208:215]
       .endif
       .if KT < 3
         s_waitcnt lgkmcnt(0)
@@ -428,21 +425,6 @@ extend_attention_wmma_n64_gfx1151:
       .endif
       .set KT, KT+1
     .endr
-    .if DK < 15
-      s_waitcnt vmcnt(0)
-      .if (DK % 2) == 0
-        ds_swizzle_b32 v220, v216 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v221, v217 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v222, v218 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v223, v219 offset:swizzle(SWAP,16)
-      .else
-        ds_swizzle_b32 v12, v8 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v13, v9 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v14, v10 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v15, v11 offset:swizzle(SWAP,16)
-      .endif
-      s_waitcnt lgkmcnt(0)
-    .endif
     .set DK, DK+1
   .endr
   RESTORE_Q_P_ADDRS
@@ -580,9 +562,6 @@ extend_attention_wmma_n64_gfx1151:
   s_waitcnt lgkmcnt(0)
   s_barrier
 
-  // Only head-group lane 0 stages V; all four heads reuse it after the barrier.
-  s_cmp_eq_u32 s43, 0
-  s_cbranch_scc0 .Lv_loaded
   // V phase overwrites the K data half after all QK consumers finish.
   s_cmp_lt_u32 s28, s19
   s_cbranch_scc0 .Lload_v_current
@@ -709,7 +688,7 @@ extend_attention_wmma_n64_gfx1151:
 
 .section .rodata,"a",@progbits
 .p2align 6, 0
-.amdhsa_kernel extend_attention_wmma_n64_gfx1151
+.amdhsa_kernel extend_attention_wmma_n64_qpipe8_baseline_gfx1151
 .amdhsa_group_segment_fixed_size 65536
 .amdhsa_private_segment_fixed_size 0
 .amdhsa_kernarg_size 72
@@ -734,7 +713,7 @@ extend_attention_wmma_n64_gfx1151:
 .end_amdhsa_kernel
 .text
 .Lfunc_end0:
-.size extend_attention_wmma_n64_gfx1151, .Lfunc_end0-extend_attention_wmma_n64_gfx1151
+.size extend_attention_wmma_n64_qpipe8_baseline_gfx1151, .Lfunc_end0-extend_attention_wmma_n64_qpipe8_baseline_gfx1151
 
 .amdgpu_metadata
 ---
@@ -756,12 +735,12 @@ amdhsa.kernels:
     .kernarg_segment_size: 72
     .language: OpenCL C
     .language_version: [2, 0]
-    .max_flat_workgroup_size: 512
-    .name: extend_attention_wmma_n64_gfx1151
+    .max_flat_workgroup_size: 128
+    .name: extend_attention_wmma_n64_qpipe8_baseline_gfx1151
     .private_segment_fixed_size: 0
     .sgpr_count: 48
     .sgpr_spill_count: 0
-    .symbol: extend_attention_wmma_n64_gfx1151.kd
+    .symbol: extend_attention_wmma_n64_qpipe8_baseline_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 244

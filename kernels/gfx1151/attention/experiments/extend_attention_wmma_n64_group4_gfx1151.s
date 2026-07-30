@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Raw gfx1151 online-softmax extend attention for Qwen3.6 standard attention.
 // Fixed B=1, Hq=16, Hkv=2, Dq=Dv=256, BF16, causal, page size 1.
-// Production group4-qpipe: overlap the next global Q fragment; four query heads share each staged K/V tile. Grid=(M/64,4,1), block=512.
+// Experimental group4: four query heads share each staged K/V tile. Grid=(M/64,4,1), block=512.
 
 .amdgcn_target "amdgcn-amd-amdhsa--gfx1151"
 .amdhsa_code_object_version 6
@@ -243,11 +243,11 @@
   .endr
 .endm
 
-.protected extend_attention_wmma_n64_gfx1151
-.globl extend_attention_wmma_n64_gfx1151
+.protected extend_attention_wmma_n64_group4_gfx1151
+.globl extend_attention_wmma_n64_group4_gfx1151
 .p2align 8
-.type extend_attention_wmma_n64_gfx1151,@function
-extend_attention_wmma_n64_gfx1151:
+.type extend_attention_wmma_n64_group4_gfx1151,@function
+extend_attention_wmma_n64_group4_gfx1151:
   // q, k_extend, v_extend, o, k_buffer, v_buffer, kv_indices,
   // tokens, prefix_tokens, sm_scale, reserved
   s_clause 0x3
@@ -349,23 +349,15 @@ extend_attention_wmma_n64_gfx1151:
   v_dual_mov_b32 v212, 0 :: v_dual_mov_b32 v213, 0
   v_dual_mov_b32 v214, 0 :: v_dual_mov_b32 v215, 0
 
-  // Double-buffer Q in registers: overlap DK+1 global fetch with current QK.
-  global_load_b128 v[8:11], v240, s[4:5] offset:0
-  s_waitcnt vmcnt(0)
-  ds_swizzle_b32 v12, v8 offset:swizzle(SWAP,16)
-  ds_swizzle_b32 v13, v9 offset:swizzle(SWAP,16)
-  ds_swizzle_b32 v14, v10 offset:swizzle(SWAP,16)
-  ds_swizzle_b32 v15, v11 offset:swizzle(SWAP,16)
-  s_waitcnt lgkmcnt(0)
   .set DK, 0
   .rept 16
-    .if DK < 15
-      .if (DK % 2) == 0
-        global_load_b128 v[216:219], v240, s[4:5] offset:((DK+1)*32)
-      .else
-        global_load_b128 v[8:11], v240, s[4:5] offset:((DK+1)*32)
-      .endif
-    .endif
+    global_load_b128 v[8:11], v240, s[4:5] offset:(DK*32)
+    s_waitcnt vmcnt(0)
+    ds_swizzle_b32 v12, v8 offset:swizzle(SWAP,16)
+    ds_swizzle_b32 v13, v9 offset:swizzle(SWAP,16)
+    ds_swizzle_b32 v14, v10 offset:swizzle(SWAP,16)
+    ds_swizzle_b32 v15, v11 offset:swizzle(SWAP,16)
+    s_waitcnt lgkmcnt(0)
     .set KT, 0
     v_lshlrev_b32_e32 v234, 9, v3
     v_lshl_add_u32 v234, v4, 4, v234
@@ -390,26 +382,14 @@ extend_attention_wmma_n64_gfx1151:
           ds_load_b128 v[16:19], v234
         .endif
       .endif
-      .if (DK % 2) == 0
-        .if KT == 0
-          v_wmma_f32_16x16x16_bf16 v[24:31], v[8:15], v[16:23], v[24:31]
-        .elseif KT == 1
-          v_wmma_f32_16x16x16_bf16 v[192:199], v[8:15], v[225:232], v[192:199]
-        .elseif KT == 2
-          v_wmma_f32_16x16x16_bf16 v[200:207], v[8:15], v[16:23], v[200:207]
-        .else
-          v_wmma_f32_16x16x16_bf16 v[208:215], v[8:15], v[225:232], v[208:215]
-        .endif
+      .if KT == 0
+        v_wmma_f32_16x16x16_bf16 v[24:31], v[8:15], v[16:23], v[24:31]
+      .elseif KT == 1
+        v_wmma_f32_16x16x16_bf16 v[192:199], v[8:15], v[225:232], v[192:199]
+      .elseif KT == 2
+        v_wmma_f32_16x16x16_bf16 v[200:207], v[8:15], v[16:23], v[200:207]
       .else
-        .if KT == 0
-          v_wmma_f32_16x16x16_bf16 v[24:31], v[216:223], v[16:23], v[24:31]
-        .elseif KT == 1
-          v_wmma_f32_16x16x16_bf16 v[192:199], v[216:223], v[225:232], v[192:199]
-        .elseif KT == 2
-          v_wmma_f32_16x16x16_bf16 v[200:207], v[216:223], v[16:23], v[200:207]
-        .else
-          v_wmma_f32_16x16x16_bf16 v[208:215], v[216:223], v[225:232], v[208:215]
-        .endif
+        v_wmma_f32_16x16x16_bf16 v[208:215], v[8:15], v[225:232], v[208:215]
       .endif
       .if KT < 3
         s_waitcnt lgkmcnt(0)
@@ -428,21 +408,6 @@ extend_attention_wmma_n64_gfx1151:
       .endif
       .set KT, KT+1
     .endr
-    .if DK < 15
-      s_waitcnt vmcnt(0)
-      .if (DK % 2) == 0
-        ds_swizzle_b32 v220, v216 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v221, v217 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v222, v218 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v223, v219 offset:swizzle(SWAP,16)
-      .else
-        ds_swizzle_b32 v12, v8 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v13, v9 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v14, v10 offset:swizzle(SWAP,16)
-        ds_swizzle_b32 v15, v11 offset:swizzle(SWAP,16)
-      .endif
-      s_waitcnt lgkmcnt(0)
-    .endif
     .set DK, DK+1
   .endr
   RESTORE_Q_P_ADDRS
@@ -709,7 +674,7 @@ extend_attention_wmma_n64_gfx1151:
 
 .section .rodata,"a",@progbits
 .p2align 6, 0
-.amdhsa_kernel extend_attention_wmma_n64_gfx1151
+.amdhsa_kernel extend_attention_wmma_n64_group4_gfx1151
 .amdhsa_group_segment_fixed_size 65536
 .amdhsa_private_segment_fixed_size 0
 .amdhsa_kernarg_size 72
@@ -734,7 +699,7 @@ extend_attention_wmma_n64_gfx1151:
 .end_amdhsa_kernel
 .text
 .Lfunc_end0:
-.size extend_attention_wmma_n64_gfx1151, .Lfunc_end0-extend_attention_wmma_n64_gfx1151
+.size extend_attention_wmma_n64_group4_gfx1151, .Lfunc_end0-extend_attention_wmma_n64_group4_gfx1151
 
 .amdgpu_metadata
 ---
@@ -757,11 +722,11 @@ amdhsa.kernels:
     .language: OpenCL C
     .language_version: [2, 0]
     .max_flat_workgroup_size: 512
-    .name: extend_attention_wmma_n64_gfx1151
+    .name: extend_attention_wmma_n64_group4_gfx1151
     .private_segment_fixed_size: 0
     .sgpr_count: 48
     .sgpr_spill_count: 0
-    .symbol: extend_attention_wmma_n64_gfx1151.kd
+    .symbol: extend_attention_wmma_n64_group4_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 244

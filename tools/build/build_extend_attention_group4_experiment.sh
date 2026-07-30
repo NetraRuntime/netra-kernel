@@ -3,11 +3,11 @@ set -euo pipefail
 [[ $(hostname) == Netra ]] || { echo "refusing to build outside the Netra LXC" >&2; exit 1; }
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_dir=$(cd "${script_dir}/../.." && pwd)
-out_dir=${1:-"${repo_dir}/build/experiments/attention-n64-split-kv"}
+out_dir=${1:-"${repo_dir}/build/experiments/attention-group4"}
 rocm=/opt/rocm-7.2.1
 clang=${rocm}/llvm/bin/clang
 hipcc=${rocm}/bin/hipcc
-stem=extend_attention_wmma_n64_split_kv_gfx1151
+stem=extend_attention_wmma_n64_group4_gfx1151
 baseline_stem=extend_attention_wmma_n64_qpipe8_baseline_gfx1151
 mkdir -p "${out_dir}"
 for name in "${baseline_stem}" "${stem}"; do
@@ -22,12 +22,12 @@ done
   -DNETRA_EXTEND_ATTENTION_KERNEL=${baseline_stem} \
   -DNETRA_EXTEND_ATTENTION_GRID_Y=16 -DNETRA_EXTEND_ATTENTION_BLOCK_X=128 \
   "${repo_dir}/harness/gfx1151/attention/extend_attention_wmma_launcher.hip" \
-  -o "${out_dir}/libextend_attention_n64_baseline.so"
+  -o "${out_dir}/libextend_attention_qpipe8.so"
 "${hipcc}" --offload-arch=gfx1151 -O3 -shared -fPIC \
   -DNETRA_EXTEND_ATTENTION_KERNEL=${stem} \
-  -DNETRA_EXTEND_ATTENTION_GRID_Y=16 -DNETRA_EXTEND_ATTENTION_BLOCK_X=128 \
+  -DNETRA_EXTEND_ATTENTION_GRID_Y=4 -DNETRA_EXTEND_ATTENTION_BLOCK_X=512 \
   "${repo_dir}/harness/gfx1151/attention/extend_attention_wmma_launcher.hip" \
-  -o "${out_dir}/libextend_attention_n64_split_kv.so"
+  -o "${out_dir}/libextend_attention_group4.so"
 "${hipcc}" --offload-arch=gfx1151 -O3 \
   -DNETRA_EXTEND_ATTENTION_KERNEL=${baseline_stem} \
   -DNETRA_EXTEND_ATTENTION_GRID_Y=16 -DNETRA_EXTEND_ATTENTION_BLOCK_X=128 \
@@ -36,8 +36,8 @@ done
   -o "${out_dir}/extend_attention_counter_baseline"
 "${hipcc}" --offload-arch=gfx1151 -O3 \
   -DNETRA_EXTEND_ATTENTION_KERNEL=${stem} \
-  -DNETRA_EXTEND_ATTENTION_GRID_Y=16 -DNETRA_EXTEND_ATTENTION_BLOCK_X=128 \
+  -DNETRA_EXTEND_ATTENTION_GRID_Y=4 -DNETRA_EXTEND_ATTENTION_BLOCK_X=512 \
   "${repo_dir}/harness/gfx1151/attention/extend_attention_wmma_launcher.hip" \
   "${repo_dir}/harness/gfx1151/attention/extend_attention_counter_harness.hip" \
   -o "${out_dir}/extend_attention_counter_candidate"
-echo "Built gfx1151 N64 split-KV attention experiment in ${out_dir}"
+echo "Built gfx1151 group4 shared-KV attention experiment in ${out_dir}"

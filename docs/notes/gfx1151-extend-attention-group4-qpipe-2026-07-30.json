@@ -1,0 +1,802 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "estimated_values": false,
+  "status": "accepted_and_integrated",
+  "design": {
+    "shape": "B1 Hq16 Hkv2 D256 BF16 causal N64, page size 1",
+    "baseline_grid_workgroup": "(M/64,16,1), 128 threads",
+    "candidate_grid_workgroup": "(M/64,4,1), 512 threads",
+    "change": "four query heads share one staged K/V tile; Q fragments remain global and are register-double-buffered during QK",
+    "lds_layout": "four independent 8 KiB P workspaces + one shared 32 KiB K/V tile",
+    "required_tile_boundary_barrier": true
+  },
+  "development_negative": {
+    "measurement_status": "measured_gfx1151_development_repetition",
+    "rejected_variant": "group4 without tile-boundary barrier",
+    "failure": "nondeterministic corruption: 217 BF16 values in row 8064/head 4 at prefix 24576",
+    "cause": "leader wave overwrote shared K/V LDS before all four query-head groups completed PV",
+    "fix": "workgroup barrier at tile-loop boundary",
+    "post_fix_gate": "eight repeated exact T8192/prefix24576 launches byte-identical to qpipe8"
+  },
+  "resources": {
+    "baseline": {
+      "vgpr_metadata": 244,
+      "vgpr_profiler_allocation": 248,
+      "sgpr_profiler_allocation": 128,
+      "lds_bytes": 65536,
+      "scratch_bytes": 0,
+      "workgroup_threads": 128
+    },
+    "candidate": {
+      "vgpr_metadata": 244,
+      "vgpr_profiler_allocation": 248,
+      "sgpr_profiler_allocation": 128,
+      "lds_bytes": 65536,
+      "scratch_bytes": 0,
+      "workgroup_threads": 512
+    },
+    "static_disassembly": {
+      "baseline_waitcnt_sites": 317,
+      "candidate_waitcnt_sites": 311,
+      "baseline_barrier_sites": 5,
+      "candidate_barrier_sites": 4,
+      "baseline_global_load_sites": 96,
+      "candidate_global_load_sites": 80,
+      "wmma_sites_each": 128
+    }
+  },
+  "isolated_hip_event": {
+    "target": "gfx1151",
+    "measurement_status": "measured_hip_events",
+    "estimated_values": false,
+    "tokens": 8192,
+    "candidate_label": "group4-qpipe-vs-production",
+    "sample_order": "alternating_ab_ba",
+    "rows": [
+      {
+        "prefix_tokens": 0,
+        "bit_equal": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "baseline_median_ms": 42.35273742675781,
+        "candidate_median_ms": 34.59676742553711,
+        "speedup": 1.224181927340869,
+        "baseline_samples_ms": [
+          42.35273742675781,
+          42.051124572753906,
+          42.02667999267578,
+          42.28215026855469,
+          42.69937515258789,
+          41.909454345703125,
+          43.00495147705078,
+          43.07912826538086,
+          41.983150482177734,
+          43.10770797729492,
+          43.12458038330078
+        ],
+        "candidate_samples_ms": [
+          34.11909103393555,
+          34.59676742553711,
+          34.43219757080078,
+          34.38642120361328,
+          35.72633743286133,
+          34.388267517089844,
+          34.04521942138672,
+          35.30001449584961,
+          35.34987258911133,
+          35.70293426513672,
+          35.07619857788086
+        ]
+      },
+      {
+        "prefix_tokens": 8192,
+        "bit_equal": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "baseline_median_ms": 124.51687622070312,
+        "candidate_median_ms": 101.5734634399414,
+        "speedup": 1.2258799887662366,
+        "baseline_samples_ms": [
+          124.2069091796875,
+          124.50332641601562,
+          124.38619995117188,
+          124.51158142089844,
+          124.51687622070312,
+          124.8348617553711,
+          124.60861206054688,
+          124.82598114013672,
+          125.1411361694336,
+          124.43232727050781,
+          124.830322265625
+        ],
+        "candidate_samples_ms": [
+          101.71261596679688,
+          101.64405059814453,
+          102.05386352539062,
+          101.5734634399414,
+          101.55464935302734,
+          101.37378692626953,
+          101.56397247314453,
+          101.43262481689453,
+          102.16383361816406,
+          101.4848403930664,
+          101.9715805053711
+        ]
+      },
+      {
+        "prefix_tokens": 16384,
+        "bit_equal": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "baseline_median_ms": 211.12843322753906,
+        "candidate_median_ms": 171.76316833496094,
+        "speedup": 1.229183388232631,
+        "baseline_samples_ms": [
+          211.17881774902344,
+          209.963134765625,
+          209.6651153564453,
+          211.12843322753906,
+          212.16429138183594,
+          210.78358459472656,
+          211.7928009033203,
+          210.6561737060547,
+          211.70594787597656,
+          212.4548797607422,
+          211.05506896972656
+        ],
+        "candidate_samples_ms": [
+          172.0326385498047,
+          171.71267700195312,
+          172.96234130859375,
+          171.89309692382812,
+          171.45547485351562,
+          171.52008056640625,
+          172.8121337890625,
+          172.32598876953125,
+          171.62892150878906,
+          171.76316833496094,
+          171.56329345703125
+        ]
+      },
+      {
+        "prefix_tokens": 24576,
+        "bit_equal": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "baseline_median_ms": 297.594970703125,
+        "candidate_median_ms": 242.2637939453125,
+        "speedup": 1.228392265541349,
+        "baseline_samples_ms": [
+          295.65087890625,
+          297.0258483886719,
+          298.2877197265625,
+          297.1855773925781,
+          297.6597900390625,
+          298.5544738769531,
+          297.8023376464844,
+          298.1846008300781,
+          296.4490661621094,
+          296.6127624511719,
+          297.594970703125
+        ],
+        "candidate_samples_ms": [
+          241.65200805664062,
+          241.3076171875,
+          242.31155395507812,
+          242.18966674804688,
+          242.31942749023438,
+          243.06858825683594,
+          242.56021118164062,
+          241.71510314941406,
+          243.71287536621094,
+          242.2637939453125,
+          242.0372772216797
+        ]
+      }
+    ]
+  },
+  "fp32_oracle": {
+    "target": "gfx1151",
+    "measurement_status": "measured",
+    "rows": [
+      {
+        "target": "gfx1151",
+        "measurement_status": "measured_hip_events",
+        "tokens": 64,
+        "prefix_tokens": 0,
+        "raw_hip_event_ms": [
+          0.1571349948644638,
+          0.052379000931978226,
+          0.03254200145602226,
+          0.031939998269081116,
+          0.032099999487400055
+        ],
+        "raw_median_ms": 0.03254200145602226,
+        "triton_hip_event_ms": [
+          0.1028829962015152,
+          0.10070899873971939,
+          0.08428800106048584,
+          0.0943169966340065,
+          0.089137002825737
+        ],
+        "triton_median_ms": 0.0943169966340065,
+        "raw_max_abs_vs_fp32": 0.00012329593300819397,
+        "raw_normalized_l2_vs_fp32": 0.0016013258848673643,
+        "triton_max_abs_vs_fp32": 0.00012329593300819397,
+        "triton_normalized_l2_vs_fp32": 0.0016013354131762202,
+        "raw_max_abs_vs_triton": 0.000030517578125,
+        "speedup_vs_triton": 2.8983157892567815
+      },
+      {
+        "target": "gfx1151",
+        "measurement_status": "measured_hip_events",
+        "tokens": 64,
+        "prefix_tokens": 64,
+        "raw_hip_event_ms": [
+          0.05173699930310249,
+          0.05173699930310249,
+          0.05161700025200844,
+          0.05105600133538246,
+          0.05129599943757057
+        ],
+        "raw_median_ms": 0.05161700025200844,
+        "triton_hip_event_ms": [
+          0.12057600170373917,
+          0.11303199827671051,
+          0.11625800281763077,
+          0.10822299867868423,
+          0.10778199881315231
+        ],
+        "triton_median_ms": 0.11303199827671051,
+        "raw_max_abs_vs_fp32": 0.00004065223038196564,
+        "raw_normalized_l2_vs_fp32": 0.0019641079180087425,
+        "triton_max_abs_vs_fp32": 0.00004065223038196564,
+        "triton_normalized_l2_vs_fp32": 0.001964109807633328,
+        "raw_max_abs_vs_triton": 0.00000762939453125,
+        "speedup_vs_triton": 2.189821138866209
+      },
+      {
+        "target": "gfx1151",
+        "measurement_status": "measured_hip_events",
+        "tokens": 64,
+        "prefix_tokens": 192,
+        "raw_hip_event_ms": [
+          0.09040900319814682,
+          0.09000899642705917,
+          0.09029000252485275,
+          0.09457799792289734,
+          0.09453699737787247
+        ],
+        "raw_median_ms": 0.09040900319814682,
+        "triton_hip_event_ms": [
+          0.15845699608325958,
+          0.159620001912117,
+          0.159169003367424,
+          0.15428899228572845,
+          0.16578100621700287
+        ],
+        "triton_median_ms": 0.159169003367424,
+        "raw_max_abs_vs_fp32": 0.000020708423107862473,
+        "raw_normalized_l2_vs_fp32": 0.0019623083312699818,
+        "triton_max_abs_vs_fp32": 0.000020708423107862473,
+        "triton_normalized_l2_vs_fp32": 0.001962300617848545,
+        "raw_max_abs_vs_triton": 0.00000762939453125,
+        "speedup_vs_triton": 1.7605437261439314
+      }
+    ],
+    "estimated_values": false
+  },
+  "graph": {
+    "capture_prefix_tokens": 0,
+    "eager_equal_replay_prefix": true,
+    "eager_equal_replay_prefix0": true,
+    "estimated_values": false,
+    "graph_capture_host_ms": 7.230393,
+    "graph_memory_allocated_delta_bytes": 1024,
+    "graph_memory_reserved_delta_bytes": 2097152,
+    "graph_replay_hip_event_ms": [
+      101.31828308105469,
+      101.18920135498047,
+      101.41883087158203,
+      101.3680191040039,
+      100.96222686767578,
+      102.1239242553711,
+      102.0080337524414,
+      102.27533721923828,
+      101.5489730834961,
+      101.57010650634766,
+      101.91547393798828
+    ],
+    "graph_replay_median_hip_event_ms": 101.5489730834961,
+    "measurement_status": "measured",
+    "replay_prefix_tokens": 8192,
+    "stable_device_pointers": true,
+    "target": "gfx1151",
+    "tokens": 8192
+  },
+  "rocprofv3_counters": {
+    "method": "three standalone process launches per counter at exact T8192/prefix24576",
+    "baseline": {
+      "target": "gfx1151",
+      "measurement_status": "measured",
+      "input_scope": "synthetic zeros exact Qwen3.6 T8192 prefix24576 Hq16 Hkv2 D256 qpipe8 N64",
+      "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+      "method": "one counter per process launch; identical raw-ASM kernel dispatch shapes",
+      "units": {
+        "FETCH_SIZE": "KiB fetched from video memory per dispatch",
+        "WRITE_SIZE": "KiB written to video memory per dispatch",
+        "OccupancyPercent": "percent of device maximum",
+        "L2CacheHit": "percent",
+        "MemUnitBusy": "percent of GPUTime",
+        "WriteUnitStalled": "percent of GPUTime"
+      },
+      "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+      "kernels": [
+        {
+          "kernel": "extend_attention_wmma_n64_qpipe8_baseline_gfx1151",
+          "grid_size": 262144,
+          "workgroup_size": 128,
+          "lds_bytes": 65536,
+          "scratch_bytes": 0,
+          "vgpr": 248,
+          "sgpr": 128,
+          "counters": {
+            "FETCH_SIZE": {
+              "samples": 3,
+              "mean": 16320695.416666666,
+              "min": 15704652.75,
+              "max": 16942647.9375
+            },
+            "L2CacheHit": {
+              "samples": 3,
+              "mean": 31.179682333333336,
+              "min": 29.504544,
+              "max": 32.047172
+            },
+            "LDSBankConflict": {
+              "samples": 3,
+              "mean": 34.65811266666666,
+              "min": 34.656945,
+              "max": 34.659338
+            },
+            "MeanOccupancyPerActiveCU": {
+              "samples": 3,
+              "mean": 5.0668706666666665,
+              "min": 5.056545,
+              "max": 5.087277
+            },
+            "OccupancyPercent": {
+              "samples": 3,
+              "mean": 230989.52685033335,
+              "min": 7.83184,
+              "max": 408926.11044
+            },
+            "VALUInsts": {
+              "samples": 3,
+              "mean": 906046.0,
+              "min": 906046.0,
+              "max": 906046.0
+            },
+            "Wavefronts": {
+              "samples": 3,
+              "mean": 8192.0,
+              "min": 8192.0,
+              "max": 8192.0
+            }
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "target": "gfx1151",
+      "measurement_status": "measured",
+      "input_scope": "synthetic zeros exact Qwen3.6 T8192 prefix24576 Hq16 Hkv2 D256 group4 qpipe shared-KV",
+      "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+      "method": "one counter per process launch; identical raw-ASM kernel dispatch shapes",
+      "units": {
+        "FETCH_SIZE": "KiB fetched from video memory per dispatch",
+        "WRITE_SIZE": "KiB written to video memory per dispatch",
+        "OccupancyPercent": "percent of device maximum",
+        "L2CacheHit": "percent",
+        "MemUnitBusy": "percent of GPUTime",
+        "WriteUnitStalled": "percent of GPUTime"
+      },
+      "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+      "kernels": [
+        {
+          "kernel": "extend_attention_wmma_n64_group4_qpipe_gfx1151",
+          "grid_size": 262144,
+          "workgroup_size": 512,
+          "lds_bytes": 65536,
+          "scratch_bytes": 0,
+          "vgpr": 248,
+          "sgpr": 128,
+          "counters": {
+            "FETCH_SIZE": {
+              "samples": 3,
+              "mean": 17424780.6875,
+              "min": 17213075.875,
+              "max": 17633852.25
+            },
+            "L2CacheHit": {
+              "samples": 3,
+              "mean": 13.965580000000001,
+              "min": 13.343508,
+              "max": 15.003215
+            },
+            "LDSBankConflict": {
+              "samples": 3,
+              "mean": 29.133858,
+              "min": 29.133858,
+              "max": 29.133858
+            },
+            "MeanOccupancyPerActiveCU": {
+              "samples": 3,
+              "mean": 6.314654,
+              "min": 6.308823,
+              "max": 6.322862
+            },
+            "OccupancyPercent": {
+              "samples": 3,
+              "mean": 185128.224451,
+              "min": 9.70762,
+              "max": 280485.095646
+            },
+            "VALUInsts": {
+              "samples": 3,
+              "mean": 878687.5,
+              "min": 878687.5,
+              "max": 878687.5
+            },
+            "Wavefronts": {
+              "samples": 3,
+              "mean": 8192.0,
+              "min": 8192.0,
+              "max": 8192.0
+            }
+          }
+        }
+      ]
+    },
+    "occupancy_percent_note": "rocprofv3 OccupancyPercent is invalid on gfx1151 and excluded; MeanOccupancyPerActiveCU is reported"
+  },
+  "full_request_rocprofv3": {
+    "scenario": "exact 32768 input +1 output, uncached, graph disabled, dFlash disabled, same seed",
+    "baseline": {
+      "request": {
+        "cached_tokens": 0,
+        "completion_tokens_observed": 1,
+        "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+        "dflash_mode": "disabled",
+        "graph_mode": "disabled",
+        "host_decode_ms_measured": null,
+        "host_e2e_ms": 24324.723384,
+        "host_ttft_ms_measured": null,
+        "input_ids_sha256": "d570954796ca5658203615db7ea9ba6ef1b27e29dbb685d27ddc19a0a5d77582",
+        "input_throughput_tokens_per_s": null,
+        "input_tokens_requested": 32768,
+        "label": "post-qpipe8-ranked-full-32k-20260730",
+        "measurement_status": "measured",
+        "output_ids": [
+          220
+        ],
+        "output_text_prefix": " ",
+        "output_text_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+        "output_throughput_tokens_per_s": null,
+        "output_tokens_requested": 1,
+        "peak_vram_bytes_sysfs_measured": 101487054848,
+        "prompt_tokens_observed": 32768,
+        "server_meta_info": {
+          "cached_tokens": 0,
+          "cached_tokens_details": null,
+          "completion_tokens": 1,
+          "dp_rank": null,
+          "e2e_latency": 24.307322397013195,
+          "finish_reason": {
+            "length": 1,
+            "type": "length"
+          },
+          "id": "ffa25d446d924a45a845203082f566f2",
+          "num_retractions": 0,
+          "prompt_tokens": 32768,
+          "reasoning_tokens": 0,
+          "response_sent_to_client_ts": 1785373803.2082367,
+          "weight_version": "default"
+        },
+        "stream_events": 0,
+        "target": "gfx1151",
+        "timing_scope": "host_e2e_http_monotonic",
+        "ttft_s_from_server_or_stream": null,
+        "vram_samples": 4764
+      },
+      "trace_wall_us": 41574277.855,
+      "total_kernel_gpu_us": 24486023.712,
+      "positive_launch_gaps_us": 17108147.256,
+      "attention": {
+        "kernel": "extend_attention_wmma_n64_gfx1151",
+        "invocations": 40,
+        "total_gpu_us": 6791151.101,
+        "mean_gpu_us": 169778.777525,
+        "median_gpu_us": 168509.393,
+        "min_gpu_us": 42315.716,
+        "max_gpu_us": 300437.263,
+        "pct_of_kernel_time": 27.73480570335241,
+        "pct_of_trace_wall": 16.334982713796556,
+        "family": "triton_attention",
+        "vgpr": "248",
+        "sgpr": "128",
+        "lds": "65536",
+        "scratch": "0",
+        "grid": "16384x16x1",
+        "workgroup": "128x1x1"
+      }
+    },
+    "candidate": {
+      "request": {
+        "cached_tokens": 0,
+        "completion_tokens_observed": 1,
+        "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+        "dflash_mode": "disabled",
+        "graph_mode": "disabled",
+        "host_decode_ms_measured": null,
+        "host_e2e_ms": 22993.793996,
+        "host_ttft_ms_measured": null,
+        "input_ids_sha256": "d570954796ca5658203615db7ea9ba6ef1b27e29dbb685d27ddc19a0a5d77582",
+        "input_throughput_tokens_per_s": null,
+        "input_tokens_requested": 32768,
+        "label": "group4-qpipe-full-32k-20260730",
+        "measurement_status": "measured",
+        "output_ids": [
+          220
+        ],
+        "output_text_prefix": " ",
+        "output_text_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+        "output_throughput_tokens_per_s": null,
+        "output_tokens_requested": 1,
+        "peak_vram_bytes_sysfs_measured": 101993529344,
+        "prompt_tokens_observed": 32768,
+        "server_meta_info": {
+          "cached_tokens": 0,
+          "cached_tokens_details": null,
+          "completion_tokens": 1,
+          "dp_rank": null,
+          "e2e_latency": 22.974246532015968,
+          "finish_reason": {
+            "length": 1,
+            "type": "length"
+          },
+          "id": "ed002c1ff7714a90aa2522e1e927b6f9",
+          "num_retractions": 0,
+          "prompt_tokens": 32768,
+          "reasoning_tokens": 0,
+          "response_sent_to_client_ts": 1785377659.1043305,
+          "weight_version": "default"
+        },
+        "stream_events": 0,
+        "target": "gfx1151",
+        "timing_scope": "host_e2e_http_monotonic",
+        "ttft_s_from_server_or_stream": null,
+        "vram_samples": 4519
+      },
+      "trace_wall_us": 37991277.729,
+      "total_kernel_gpu_us": 23136476.187,
+      "positive_launch_gaps_us": 14869767.919,
+      "attention": {
+        "kernel": "extend_attention_wmma_n64_gfx1151",
+        "invocations": 40,
+        "total_gpu_us": 5488215.448,
+        "mean_gpu_us": 137205.38619999998,
+        "median_gpu_us": 135968.7045,
+        "min_gpu_us": 34020.706,
+        "max_gpu_us": 242720.214,
+        "pct_of_kernel_time": 23.721051570868585,
+        "pct_of_trace_wall": 14.445988069021073,
+        "family": "triton_attention",
+        "vgpr": "248",
+        "sgpr": "128",
+        "lds": "65536",
+        "scratch": "0",
+        "grid": "65536x4x1",
+        "workgroup": "512x1x1"
+      }
+    },
+    "attention_speedup": 1.2374060685745878,
+    "total_kernel_speedup": 1.0583298646730954,
+    "trace_wall_speedup": 1.0943111245575448
+  },
+  "unprofiled_serving": {
+    "scenario": "exact 32768 input +1 output, fresh server per request, uncached, graph disabled, dFlash disabled",
+    "qpipe8_baseline": [
+      {
+        "cached_tokens": 0,
+        "completion_tokens_observed": 1,
+        "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+        "dflash_mode": "disabled",
+        "graph_mode": "disabled",
+        "host_decode_ms_measured": null,
+        "host_e2e_ms": 23402.155779,
+        "host_ttft_ms_measured": null,
+        "input_ids_sha256": "8cfb812e7790bde7f17f4b8efe163eac3213b9ee841eac9c6a2f098a036e7aee",
+        "input_throughput_tokens_per_s": null,
+        "input_tokens_requested": 32768,
+        "label": "qpipe8-candidate-32k-1",
+        "measurement_status": "measured",
+        "output_ids": [
+          5525
+        ],
+        "output_text_prefix": "ا",
+        "output_text_sha256": "be0fa08bb8f12a376ccebf5e748b860328f74eca15696fb2653f984fbfe67ba5",
+        "output_throughput_tokens_per_s": null,
+        "output_tokens_requested": 1,
+        "peak_vram_bytes_sysfs_measured": 102884691968,
+        "prompt_tokens_observed": 32768,
+        "server_meta_info": {
+          "cached_tokens": 0,
+          "cached_tokens_details": null,
+          "completion_tokens": 1,
+          "dp_rank": null,
+          "e2e_latency": 23.38716104501509,
+          "finish_reason": {
+            "length": 1,
+            "type": "length"
+          },
+          "id": "615bc8cf7df6470a852ed81512aae0c3",
+          "num_retractions": 0,
+          "prompt_tokens": 32768,
+          "reasoning_tokens": 0,
+          "response_sent_to_client_ts": 1785369736.156082,
+          "weight_version": "default"
+        },
+        "stream_events": 0,
+        "target": "gfx1151",
+        "timing_scope": "host_e2e_http_monotonic",
+        "ttft_s_from_server_or_stream": null,
+        "vram_samples": 4593
+      },
+      {
+        "cached_tokens": 0,
+        "completion_tokens_observed": 1,
+        "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+        "dflash_mode": "disabled",
+        "graph_mode": "disabled",
+        "host_decode_ms_measured": null,
+        "host_e2e_ms": 23207.569851,
+        "host_ttft_ms_measured": null,
+        "input_ids_sha256": "8908c10f61078db90bea52eba17288020b6d7435f81c15fdc8744ded3e7d092a",
+        "input_throughput_tokens_per_s": null,
+        "input_tokens_requested": 32768,
+        "label": "qpipe8-candidate-32k-1-b",
+        "measurement_status": "measured",
+        "output_ids": [
+          220
+        ],
+        "output_text_prefix": " ",
+        "output_text_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+        "output_throughput_tokens_per_s": null,
+        "output_tokens_requested": 1,
+        "peak_vram_bytes_sysfs_measured": 102884691968,
+        "prompt_tokens_observed": 32768,
+        "server_meta_info": {
+          "cached_tokens": 0,
+          "cached_tokens_details": null,
+          "completion_tokens": 1,
+          "dp_rank": null,
+          "e2e_latency": 23.193481096008327,
+          "finish_reason": {
+            "length": 1,
+            "type": "length"
+          },
+          "id": "2970f20f11b541f8bebe36c3864f9767",
+          "num_retractions": 0,
+          "prompt_tokens": 32768,
+          "reasoning_tokens": 0,
+          "response_sent_to_client_ts": 1785369793.0836115,
+          "weight_version": "default"
+        },
+        "stream_events": 0,
+        "target": "gfx1151",
+        "timing_scope": "host_e2e_http_monotonic",
+        "ttft_s_from_server_or_stream": null,
+        "vram_samples": 4552
+      }
+    ],
+    "group4_qpipe_candidate": [
+      {
+        "cached_tokens": 0,
+        "completion_tokens_observed": 1,
+        "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+        "dflash_mode": "disabled",
+        "graph_mode": "disabled",
+        "host_decode_ms_measured": null,
+        "host_e2e_ms": 22147.81032,
+        "host_ttft_ms_measured": null,
+        "input_ids_sha256": "8cfb812e7790bde7f17f4b8efe163eac3213b9ee841eac9c6a2f098a036e7aee",
+        "input_throughput_tokens_per_s": null,
+        "input_tokens_requested": 32768,
+        "label": "group4-qpipe-candidate-32k-1",
+        "measurement_status": "measured",
+        "output_ids": [
+          5525
+        ],
+        "output_text_prefix": "ا",
+        "output_text_sha256": "be0fa08bb8f12a376ccebf5e748b860328f74eca15696fb2653f984fbfe67ba5",
+        "output_throughput_tokens_per_s": null,
+        "output_tokens_requested": 1,
+        "peak_vram_bytes_sysfs_measured": 102142775296,
+        "prompt_tokens_observed": 32768,
+        "server_meta_info": {
+          "cached_tokens": 0,
+          "cached_tokens_details": null,
+          "completion_tokens": 1,
+          "dp_rank": null,
+          "e2e_latency": 22.132685398013564,
+          "finish_reason": {
+            "length": 1,
+            "type": "length"
+          },
+          "id": "077bebf51d334afaaeaa73eb4973dae4",
+          "num_retractions": 0,
+          "prompt_tokens": 32768,
+          "reasoning_tokens": 0,
+          "response_sent_to_client_ts": 1785377825.2936425,
+          "weight_version": "default"
+        },
+        "stream_events": 0,
+        "target": "gfx1151",
+        "timing_scope": "host_e2e_http_monotonic",
+        "ttft_s_from_server_or_stream": null,
+        "vram_samples": 4344
+      },
+      {
+        "cached_tokens": 0,
+        "completion_tokens_observed": 1,
+        "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+        "dflash_mode": "disabled",
+        "graph_mode": "disabled",
+        "host_decode_ms_measured": null,
+        "host_e2e_ms": 22203.472239,
+        "host_ttft_ms_measured": null,
+        "input_ids_sha256": "8908c10f61078db90bea52eba17288020b6d7435f81c15fdc8744ded3e7d092a",
+        "input_throughput_tokens_per_s": null,
+        "input_tokens_requested": 32768,
+        "label": "group4-qpipe-candidate-32k-1-b",
+        "measurement_status": "measured",
+        "output_ids": [
+          220
+        ],
+        "output_text_prefix": " ",
+        "output_text_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+        "output_throughput_tokens_per_s": null,
+        "output_tokens_requested": 1,
+        "peak_vram_bytes_sysfs_measured": 102587011072,
+        "prompt_tokens_observed": 32768,
+        "server_meta_info": {
+          "cached_tokens": 0,
+          "cached_tokens_details": null,
+          "completion_tokens": 1,
+          "dp_rank": null,
+          "e2e_latency": 22.188680057006422,
+          "finish_reason": {
+            "length": 1,
+            "type": "length"
+          },
+          "id": "c3fb5895d0ba4b1c9c71a3f8096051f0",
+          "num_retractions": 0,
+          "prompt_tokens": 32768,
+          "reasoning_tokens": 0,
+          "response_sent_to_client_ts": 1785377883.5631607,
+          "weight_version": "default"
+        },
+        "stream_events": 0,
+        "target": "gfx1151",
+        "timing_scope": "host_e2e_http_monotonic",
+        "ttft_s_from_server_or_stream": null,
+        "vram_samples": 4365
+      }
+    ],
+    "qpipe8_mean_host_e2e_ms": 23304.862815,
+    "candidate_mean_host_e2e_ms": 22175.6412795,
+    "mean_speedup": 1.0509217082503899
+  }
+}

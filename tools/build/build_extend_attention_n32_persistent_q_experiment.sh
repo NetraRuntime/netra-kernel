@@ -16,9 +16,9 @@ mkdir -p "${out_dir}"
 "${rocm}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.dis"
 "${hipcc}" --offload-arch=gfx1151 -O3 -shared -fPIC \
   "${repo_dir}/harness/gfx1151/attention/extend_attention_wmma_launcher.hip" -o "${out_dir}/libextend_attention_n64_baseline.so"
-"${hipcc}" --offload-arch=gfx1151 -O3 -shared -fPIC -DNETRA_EXTEND_ATTENTION_KERNEL=${stem} \
+"${hipcc}" --offload-arch=gfx1151 -O3 -shared -fPIC -DNETRA_EXTEND_ATTENTION_KERNEL=${stem} -DNETRA_EXTEND_ATTENTION_GRID_Y=16 -DNETRA_EXTEND_ATTENTION_BLOCK_X=128 \
   "${repo_dir}/harness/gfx1151/attention/extend_attention_wmma_launcher.hip" -o "${out_dir}/libextend_attention_n32_persistent_q.so"
-"${hipcc}" --offload-arch=gfx1151 -O3 -DNETRA_EXTEND_ATTENTION_KERNEL=${stem} \
+"${hipcc}" --offload-arch=gfx1151 -O3 -DNETRA_EXTEND_ATTENTION_KERNEL=${stem} -DNETRA_EXTEND_ATTENTION_GRID_Y=16 -DNETRA_EXTEND_ATTENTION_BLOCK_X=128 \
   "${repo_dir}/harness/gfx1151/attention/extend_attention_wmma_launcher.hip" \
   "${repo_dir}/harness/gfx1151/attention/extend_attention_counter_harness.hip" -o "${out_dir}/extend_attention_counter"
 echo "Built rejected gfx1151 N32 persistent-Q attention experiment in ${out_dir}"

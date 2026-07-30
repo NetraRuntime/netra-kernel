@@ -6,6 +6,12 @@
 #ifndef NETRA_EXTEND_ATTENTION_KERNEL
 #define NETRA_EXTEND_ATTENTION_KERNEL extend_attention_wmma_n64_gfx1151
 #endif
+#ifndef NETRA_EXTEND_ATTENTION_GRID_Y
+#define NETRA_EXTEND_ATTENTION_GRID_Y 4
+#endif
+#ifndef NETRA_EXTEND_ATTENTION_BLOCK_X
+#define NETRA_EXTEND_ATTENTION_BLOCK_X 512
+#endif
 #define NETRA_STRINGIFY_IMPL(value) #value
 #define NETRA_STRINGIFY(value) NETRA_STRINGIFY_IMPL(value)
 
@@ -51,6 +57,7 @@ extern "C" int netra_extend_attention_wmma(
   void* config[] = {HIP_LAUNCH_PARAM_BUFFER_POINTER, &args,
                     HIP_LAUNCH_PARAM_BUFFER_SIZE, &arg_size,
                     HIP_LAUNCH_PARAM_END};
-  return hipModuleLaunchKernel(kernel, tokens / 64, 16, 1, 128, 1, 1,
+  return hipModuleLaunchKernel(kernel, tokens / 64, NETRA_EXTEND_ATTENTION_GRID_Y, 1,
+                               NETRA_EXTEND_ATTENTION_BLOCK_X, 1, 1,
                                0, stream, nullptr, config);
 }

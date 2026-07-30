@@ -112,4 +112,8 @@ reduce_stem=expert_weighted_reduce_top8_fp64_gfx1151
   "${integration_dir}/netra_mxfp4_sgl_launcher.hip" \
   -o "${out_dir}/libnetra_mxfp4_sgl.so"
 
+"${hipcc_bin}" --offload-arch=gfx1151 -O3 -shared -fPIC \
+  "${repo_dir}/harness/gfx1151/attention/extend_attention_wmma_launcher.hip" \
+  -o "${out_dir}/libextend_attention_wmma.so"
+
 echo "Built Netra SGLang raw-ASM backend for gfx1151 in ${out_dir}"

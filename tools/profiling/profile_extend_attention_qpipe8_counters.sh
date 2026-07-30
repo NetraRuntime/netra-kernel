@@ -6,7 +6,7 @@ repo_dir=$(cd "${script_dir}/../.." && pwd)
 build_dir=${repo_dir}/build/experiments/attention-qpipe
 out_dir=${1:-"${repo_dir}/results/profiles/gfx1151/extend-attention-qpipe8-$(date -u +%Y%m%dT%H%M%SZ)"}
 baseline_hsaco=${build_dir}/extend_attention_wmma_n64_qserial_gfx1151.hsaco
-candidate_hsaco=${build_dir}/extend_attention_wmma_n64_gfx1151.hsaco
+candidate_hsaco=${build_dir}/extend_attention_wmma_n64_qpipe8_baseline_gfx1151.hsaco
 [[ -x ${build_dir}/extend_attention_counter_candidate && -f ${candidate_hsaco} && -f ${baseline_hsaco} ]] || \
   "${repo_dir}/tools/build/build_extend_attention_qpipe_experiment.sh"
 mkdir -p "${out_dir}"

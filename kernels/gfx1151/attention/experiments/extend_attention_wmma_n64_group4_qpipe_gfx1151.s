@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Raw gfx1151 online-softmax extend attention for Qwen3.6 standard attention.
 // Fixed B=1, Hq=16, Hkv=2, Dq=Dv=256, BF16, causal, page size 1.
-// Production group4-qpipe: overlap the next global Q fragment; four query heads share each staged K/V tile. Grid=(M/64,4,1), block=512.
+// Experimental group4-qpipe: overlap the next global Q fragment; four query heads share each staged K/V tile. Grid=(M/64,4,1), block=512.
 
 .amdgcn_target "amdgcn-amd-amdhsa--gfx1151"
 .amdhsa_code_object_version 6
@@ -243,11 +243,11 @@
   .endr
 .endm
 
-.protected extend_attention_wmma_n64_gfx1151
-.globl extend_attention_wmma_n64_gfx1151
+.protected extend_attention_wmma_n64_group4_qpipe_gfx1151
+.globl extend_attention_wmma_n64_group4_qpipe_gfx1151
 .p2align 8
-.type extend_attention_wmma_n64_gfx1151,@function
-extend_attention_wmma_n64_gfx1151:
+.type extend_attention_wmma_n64_group4_qpipe_gfx1151,@function
+extend_attention_wmma_n64_group4_qpipe_gfx1151:
   // q, k_extend, v_extend, o, k_buffer, v_buffer, kv_indices,
   // tokens, prefix_tokens, sm_scale, reserved
   s_clause 0x3
@@ -709,7 +709,7 @@ extend_attention_wmma_n64_gfx1151:
 
 .section .rodata,"a",@progbits
 .p2align 6, 0
-.amdhsa_kernel extend_attention_wmma_n64_gfx1151
+.amdhsa_kernel extend_attention_wmma_n64_group4_qpipe_gfx1151
 .amdhsa_group_segment_fixed_size 65536
 .amdhsa_private_segment_fixed_size 0
 .amdhsa_kernarg_size 72
@@ -734,7 +734,7 @@ extend_attention_wmma_n64_gfx1151:
 .end_amdhsa_kernel
 .text
 .Lfunc_end0:
-.size extend_attention_wmma_n64_gfx1151, .Lfunc_end0-extend_attention_wmma_n64_gfx1151
+.size extend_attention_wmma_n64_group4_qpipe_gfx1151, .Lfunc_end0-extend_attention_wmma_n64_group4_qpipe_gfx1151
 
 .amdgpu_metadata
 ---
@@ -757,11 +757,11 @@ amdhsa.kernels:
     .language: OpenCL C
     .language_version: [2, 0]
     .max_flat_workgroup_size: 512
-    .name: extend_attention_wmma_n64_gfx1151
+    .name: extend_attention_wmma_n64_group4_qpipe_gfx1151
     .private_segment_fixed_size: 0
     .sgpr_count: 48
     .sgpr_spill_count: 0
-    .symbol: extend_attention_wmma_n64_gfx1151.kd
+    .symbol: extend_attention_wmma_n64_group4_qpipe_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 244

@@ -12,6 +12,13 @@
 #define NETRA_HSACO_DIR "/root/netra-mxfp4-gfx1151/build/sglang"
 #endif
 
+#ifndef NETRA_EXTEND_ATTENTION_GRID_Y
+#define NETRA_EXTEND_ATTENTION_GRID_Y 4
+#endif
+#ifndef NETRA_EXTEND_ATTENTION_BLOCK_X
+#define NETRA_EXTEND_ATTENTION_BLOCK_X 512
+#endif
+
 namespace {
 
 struct Kernel {
@@ -416,7 +423,8 @@ extern "C" int netra_extend_attention(
       q, k_extend, v_extend, output, k_buffer, v_buffer, kv_indices,
       kv_indptr, tokens, sm_scale};
   hipError_t status = launch(
-      extend_attention.function, tokens / 64, 16, 128,
+      extend_attention.function, tokens / 64, NETRA_EXTEND_ATTENTION_GRID_Y,
+      NETRA_EXTEND_ATTENTION_BLOCK_X,
       reinterpret_cast<hipStream_t>(stream_ptr), args);
   return status == hipSuccess ? 0 : 95000 + static_cast<int>(status);
 }

@@ -50,6 +50,7 @@ def main() -> None:
     parser.add_argument("--prefix", type=int, nargs="+", default=[0, 64])
     parser.add_argument("--warmup", type=int, default=2)
     parser.add_argument("--repetitions", type=int, default=5)
+    parser.add_argument("--graph-repetitions", type=int, default=10)
     parser.add_argument("--library", type=Path, default=Path("build/sglang/libextend_attention_wmma.so"))
     parser.add_argument("--hsaco", type=Path, default=Path("build/sglang/extend_attention_wmma_n64_gfx1151.hsaco"))
     parser.add_argument("--output", type=Path)
@@ -85,7 +86,8 @@ def main() -> None:
         def raw_call() -> None:
             result = launch(q.data_ptr(), k.data_ptr(), v.data_ptr(), raw.data_ptr(),
                             k_buffer.data_ptr(), v_buffer.data_ptr(), indices.data_ptr(),
-                            kv_indptr.data_ptr(), args.tokens, 0.0625, 0)
+                            kv_indptr.data_ptr(), args.tokens, 0.0625,
+                            torch.cuda.current_stream().cuda_stream)
             if result:
                 raise RuntimeError(f"raw launch failed: {result}")
 
@@ -97,6 +99,16 @@ def main() -> None:
 
         raw_samples = event_samples(raw_call, args.warmup, args.repetitions)
         triton_samples = event_samples(triton_call, args.warmup, args.repetitions)
+        eager_raw = raw.clone()
+        graph = torch.cuda.CUDAGraph()
+        raw_call()
+        torch.cuda.synchronize()
+        with torch.cuda.graph(graph):
+            raw_call()
+        graph.replay()
+        torch.cuda.synchronize()
+        graph_samples = event_samples(graph.replay, args.warmup, args.graph_repetitions)
+        graph_raw = raw.clone()
         reference = fp32_reference(q, k, v, k_buffer, v_buffer, prefix)
         raw_delta = raw.float() - reference
         triton_delta = triton.float() - reference
@@ -109,11 +121,14 @@ def main() -> None:
             "raw_median_ms": statistics.median(raw_samples),
             "triton_hip_event_ms": triton_samples,
             "triton_median_ms": statistics.median(triton_samples),
+            "graph_replay_hip_event_ms": graph_samples,
+            "graph_replay_median_ms": statistics.median(graph_samples),
             "raw_max_abs_vs_fp32": raw_delta.abs().max().item(),
             "raw_normalized_l2_vs_fp32": raw_delta.norm().item() / reference.norm().item(),
             "triton_max_abs_vs_fp32": triton_delta.abs().max().item(),
             "triton_normalized_l2_vs_fp32": triton_delta.norm().item() / reference.norm().item(),
             "raw_max_abs_vs_triton": (raw.float() - triton.float()).abs().max().item(),
+            "graph_raw_max_abs_vs_eager": (graph_raw.float() - eager_raw.float()).abs().max().item(),
         }
         row["speedup_vs_triton"] = row["triton_median_ms"] / row["raw_median_ms"]
         rows.append(row)

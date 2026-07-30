@@ -5,7 +5,7 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_dir=$(cd "${script_dir}/../.." && pwd)
 build_dir=${repo_dir}/build/experiments/attention-n64-split-kv
 out_dir=${1:-"${repo_dir}/results/profiles/gfx1151/extend-attention-n64-split-kv-$(date -u +%Y%m%dT%H%M%SZ)"}
-baseline_hsaco=${build_dir}/extend_attention_wmma_n64_gfx1151.hsaco
+baseline_hsaco=${build_dir}/extend_attention_wmma_n64_qpipe8_baseline_gfx1151.hsaco
 candidate_hsaco=${build_dir}/extend_attention_wmma_n64_split_kv_gfx1151.hsaco
 [[ -x ${build_dir}/extend_attention_counter_candidate && -f ${candidate_hsaco} && -f ${baseline_hsaco} ]] || \
   "${repo_dir}/tools/build/build_extend_attention_n64_split_kv_experiment.sh"
