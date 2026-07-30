@@ -464,6 +464,46 @@ Both dense variants are retained as **rejected experiments**. The SGLang flag
 defaults off. No isolated repeated-weight result can promote a later variant
 without cold-weight full-graph evidence.
 
+## Rejected Gemma residual-add + RMSNorm replacement
+
+The exact `M=1,N=2048` AITER fused residual-add/Gemma-RMSNorm family appeared
+10,240 times and consumed 32.150834 ms in the exact 210-input/128-output
+trace. Its raw gfx950 replacement is:
+
+```text
+kernels/gfx950/norm/decode/experiments/
+  qwen36_gemma_add_rmsnorm_m1_n2048_gfx950.s
+```
+
+One 256-thread workgroup handles eight BF16 values per lane across four
+wave64s. It preserves the deployed unrounded FP32 residual sum for RMS
+statistics, the deployed DPP/LDS reduction order, FP64 epsilon addition, and
+BF16 output/residual stores. The final code object declares gfx950, wave64,
+27 VGPRs, 16 SGPRs, 16 bytes of LDS, no scratch or spills, and SHA-256
+`80cff34406ce2c466930120a1a26917ee6bbd7bd7bb663ddcac8c7b233c36b8f`.
+
+The gfx950 schedule requires dependency spacing before DPP source reads and
+before consuming special-function results. Misplacing the DPP waits produced
+397/500 nondeterministic launches; leaving reciprocal/rsqrt consumption
+compact still produced 52/500. The stable specialization uses exact
+`1/2048`, schedules BF16 weight unpacking into four DPP dependency bubbles,
+and spaces rsqrt consumption. It passed 1,000/1,000 deterministic launches,
+0/2,048 output mismatches, 0/2,048 residual mismatches, and 20/20 graph
+replays. The build plus 500-launch validation loop takes about 0.42 seconds.
+
+Five alternating same-process AITER/raw runs had a median raw/AITER ratio of
+0.98016, but matched full-graph 210+128 serving rejected the replacement:
+
+| 40 repeats | Control | Raw norm | Change |
+|---|---:|---:|---:|
+| median wall | 0.7660878365 s | 0.7675273305 s | +0.18790% |
+| median generation | 0.7115828485 s | 0.7127509915 s | +0.16416% |
+| output throughput | 178.475353 tok/s | 178.182846 tok/s | -0.16389% |
+
+Both paths produced the same stable token hash in 40/40 requests. The raw
+assembly and graph-safe HIP module bridge remain as a reproducible rejected
+experiment; the SGLang switch defaults off.
+
 ## Two-wave down/reduce promotion and deterministic prefill oracle
 
 The one-wave down/reduce kernel launches only 128 waves on the 256-CU MI350X.
