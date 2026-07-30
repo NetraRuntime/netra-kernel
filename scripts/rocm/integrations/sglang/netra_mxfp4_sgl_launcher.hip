@@ -45,6 +45,7 @@ Kernel m12_group_gate_up_silu;
 Kernel m12_group_down;
 Kernel linear_decode;
 Kernel linear_prefill;
+Kernel linear_prefill_group4;
 Kernel linear_prefill_repack;
 Kernel qkvzba_split;
 Kernel extend_attention;
@@ -102,6 +103,9 @@ void initialize() {
        "mxfp4_sgl_linear_prefill_repack_dword_gfx1151");
   load(linear_prefill, "mxfp4_sgl_linear_prefill_wmma_gfx1151.hsaco",
        "mxfp4_sgl_linear_prefill_wmma_gfx1151");
+  load(linear_prefill_group4,
+       "mxfp4_sgl_linear_prefill_group4_a_gfx1151.hsaco",
+       "mxfp4_sgl_linear_prefill_group4_a_gfx1151");
   load(qkvzba_split, "qkvzba_split_copy_gfx1151.hsaco",
        "qkvzba_split_copy_gfx1151");
   load(extend_attention, "extend_attention_wmma_n64_gfx1151.hsaco",
@@ -471,8 +475,16 @@ extern "C" int netra_mxfp4_sgl_linear_prefill(
   auto stream = reinterpret_cast<hipStream_t>(stream_ptr);
   LinearArgs args{
       packed, scale, activation_groups, output_groups, n, k};
+  hipFunction_t function = linear_prefill.function;
+  unsigned grid_x = n / 16;
+  unsigned block_x = 32;
+  if (n == 64 || n == 2048) {
+    function = linear_prefill_group4.function;
+    grid_x = n / 64;
+    block_x = 128;
+  }
   hipError_t status = launch(
-      linear_prefill.function, n / 16, group_count, 32, stream, args);
+      function, grid_x, group_count, block_x, stream, args);
   return status == hipSuccess ? 0 : 93000 + static_cast<int>(status);
 }
 

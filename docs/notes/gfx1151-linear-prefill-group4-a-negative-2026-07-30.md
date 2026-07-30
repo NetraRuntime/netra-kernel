@@ -1,5 +1,11 @@
 # gfx1151 linear-prefill group4-A reuse (rejected, 2026-07-30)
 
+Historical status: **superseded** by the accepted 2026-07-30 reevaluation in
+`docs/netra/notes/gfx1151-linear-prefill-group4-a-accepted-2026-07-30.md`.
+The original rejection and measurements below are preserved verbatim. The later
+investigation compared every real-activation call and did not reproduce the
+one process-start mismatch in five fresh candidate servers.
+
 Status: **rejected from production**. Every runtime number is measured on
 `gfx1151`; no runtime is estimated. MXFP4 weights and the accepted persistent
 dword layout remain unchanged.

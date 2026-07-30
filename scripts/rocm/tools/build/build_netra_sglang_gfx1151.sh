@@ -43,6 +43,7 @@ done
 
 script_mxfp4_sources=(
   mxfp4_prefill_up_silu_wmma_gfx1151.s
+  mxfp4_sgl_linear_prefill_group4_a_gfx1151.s
   mxfp4_m12_group_gate_wmma_gfx1151.s
   mxfp4_m12_group_gate_up_wmma_gfx1151.s
   mxfp4_m12_group_gate_up_silu_wmma_gfx1151.s
@@ -52,7 +53,7 @@ script_mxfp4_sources=(
 for source_name in "${script_mxfp4_sources[@]}"; do
   stem=${source_name%.s}
   "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-    -x assembler -c \
+    -I "${kernel_dir}/prefill" -x assembler -c \
     "${repo_dir}/scripts/rocm/kernels/gfx1151/mxfp4/${source_name}" \
     -o "${out_dir}/${stem}.o"
   "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \

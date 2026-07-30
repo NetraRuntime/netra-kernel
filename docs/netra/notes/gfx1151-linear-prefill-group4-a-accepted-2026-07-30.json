@@ -1,0 +1,86 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "decision": "accepted_n64_n2048_only",
+  "quantization": "MXFP4",
+  "hsaco_sha256": "1a376353494b460fba13a86416a9141c07712bf3869f47aee51b32a57f3b50cb",
+  "isolated_hip_events": [
+    {
+      "shape": "M64_N64_K2048_G128",
+      "samples": 31,
+      "baseline_median_ms": 0.782355,
+      "candidate_median_ms": 0.231249,
+      "speedup": 3.383171,
+      "bit_exact": true,
+      "graph_exact": true,
+      "graph_replay_median_ms": 0.251488
+    },
+    {
+      "shape": "M64_N2048_K4096_G128",
+      "samples": 21,
+      "baseline_median_ms": 4.974259,
+      "candidate_median_ms": 4.824928,
+      "speedup": 1.03095,
+      "bit_exact": true,
+      "graph_exact": true,
+      "graph_replay_median_ms": 4.88032
+    },
+    {
+      "shape": "M64_N12288_K2048_G128",
+      "samples": 11,
+      "baseline_median_ms": 13.740413,
+      "candidate_median_ms": 14.31032,
+      "speedup": 0.960175,
+      "bit_exact": true,
+      "graph_exact": true,
+      "selected": false
+    }
+  ],
+  "real_activation_comparison": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "n64_calls_bit_exact": 120,
+    "n2048_calls_bit_exact": 120,
+    "output_token": 82
+  },
+  "serving_ab": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "input_ids_sha256": "cec98edb9b9131417d34fefef2e2723124853af29cdbfa02be23428f4b6dd9b7",
+    "baseline_host_e2e_ms": [21704.270853, 21716.420955],
+    "candidate_host_e2e_ms": [21596.623229, 21574.944732],
+    "baseline_mean_ms": 21710.345904,
+    "candidate_mean_ms": 21585.783981,
+    "mean_delta_ms": -124.561924,
+    "speedup": 1.0057706,
+    "matching_output_token": 5525,
+    "matching_output_hash": true
+  },
+  "rocprofv3_request_trace": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "output_token": 82,
+    "kernel_launches": 16888,
+    "trace_wall_ms": 22384.159537,
+    "total_kernel_gpu_ms": 21526.865735,
+    "positive_launch_gaps_ms": 894.009969,
+    "kernel_occupancy_of_wall_pct": 96.1700871521,
+    "linear_original_n12288_calls": 120,
+    "linear_original_n12288_gpu_ms": 1659.005691,
+    "linear_group4_n64_n2048_calls": 240,
+    "linear_group4_n64_n2048_gpu_ms": 653.345204,
+    "linear_combined_gpu_ms": 2312.350895,
+    "prior_linear_combined_gpu_ms": 2433.851,
+    "linear_gpu_saved_ms": 121.500105,
+    "hip_module_launch_calls": 3705,
+    "hip_module_launch_total_cpu_ms": 39.697581,
+    "hip_module_launch_mean_cpu_us": 10.7145967611,
+    "profiled_host_e2e_ms": 22336.012757
+  }
+}
