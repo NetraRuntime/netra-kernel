@@ -1,0 +1,116 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured_rocprofv3",
+  "estimated_values": false,
+  "shape": {
+    "tokens": 8192,
+    "prefix_tokens": 24576,
+    "Hq": 16,
+    "Hkv": 2,
+    "head_dim": 256
+  },
+  "method": "one counter per fresh process; --disable-signal-handlers true",
+  "direct_dependency_stall_counter": "not exposed by the gfx1151 rocprofv3 metric set",
+  "n32_group4_lowlds": {
+    "baseline": {
+      "kernel": "extend_attention_wmma_n64_gfx1151",
+      "grid_size": 262144,
+      "workgroup_size": 512,
+      "lds_bytes": 65536,
+      "scratch_bytes": 0,
+      "vgpr": 248,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": 19176317.625,
+        "L2CacheHit": 9.065595,
+        "LDSBankConflict": 29.133858,
+        "MeanOccupancyPerActiveCU": 6.517015,
+        "MemUnitBusy": 18.730445,
+        "OccupancyPercent": 10.033116,
+        "SQ_INSTS_LDS": 4453023744.0,
+        "SQ_INSTS_SALU": 263948288.0,
+        "SQ_WAVES": 8192.0,
+        "VALUInsts": 878687.5,
+        "WRITE_SIZE": 32423.0
+      }
+    },
+    "candidate": {
+      "kernel": "extend_attention_wmma_n32_group4_qpipe_kvbatch8_lowlds_gfx1151",
+      "grid_size": 262144,
+      "workgroup_size": 512,
+      "lds_bytes": 32768,
+      "scratch_bytes": 0,
+      "vgpr": 224,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": 32471217.4375,
+        "L2CacheHit": 7.29226,
+        "LDSBankConflict": 25.984252,
+        "MeanOccupancyPerActiveCU": 5.896687,
+        "MemUnitBusy": 27.065821,
+        "OccupancyPercent": 9.100424,
+        "SQ_INSTS_LDS": 4688166912.0,
+        "SQ_INSTS_SALU": 285200384.0,
+        "SQ_WAVES": 8192.0,
+        "VALUInsts": 988442.0,
+        "WRITE_SIZE": 32423.0
+      }
+    }
+  },
+  "n64_pv_overlay32k": {
+    "baseline": {
+      "kernel": "extend_attention_wmma_n64_gfx1151",
+      "grid_size": 262144,
+      "workgroup_size": 512,
+      "lds_bytes": 65536,
+      "scratch_bytes": 0,
+      "vgpr": 248,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": 19134162.75,
+        "L2CacheHit": 10.467415,
+        "LDSBankConflict": 29.133858,
+        "MeanOccupancyPerActiveCU": 6.549848,
+        "MemUnitBusy": 19.716245,
+        "SQ_INSTS_LDS": 4453023744.0,
+        "SQ_INSTS_SALU": 263948288.0,
+        "SQ_WAVES": 8192.0,
+        "VALUInsts": 878687.5,
+        "WRITE_SIZE": 32384.0,
+        "OccupancyPercent_valid_reruns": [
+          10.029379,
+          10.005679
+        ],
+        "OccupancyPercent_valid_median": 10.017529
+      }
+    },
+    "candidate": {
+      "kernel": "extend_attention_wmma_n64_group4_qpipe_kvbatch4_overlay32k_gfx1151",
+      "grid_size": 262144,
+      "workgroup_size": 512,
+      "lds_bytes": 32768,
+      "scratch_bytes": 0,
+      "vgpr": 224,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": 17491366.25,
+        "L2CacheHit": 15.213691,
+        "LDSBankConflict": 26.229508,
+        "MeanOccupancyPerActiveCU": 6.147695,
+        "MemUnitBusy": 23.261292,
+        "SQ_INSTS_LDS": 4453023744.0,
+        "SQ_INSTS_SALU": 284804096.0,
+        "SQ_WAVES": 8192.0,
+        "VALUInsts": 902009.5,
+        "WRITE_SIZE": 32384.0,
+        "OccupancyPercent_valid_reruns": [
+          9.452329,
+          9.412202,
+          9.464421
+        ],
+        "OccupancyPercent_valid_median": 9.452329
+      }
+    }
+  },
+  "occupancy_note": "One baseline OccupancyPercent sample was >100 and excluded as invalid; two valid baseline and three valid candidate fresh-process reruns are retained."
+}

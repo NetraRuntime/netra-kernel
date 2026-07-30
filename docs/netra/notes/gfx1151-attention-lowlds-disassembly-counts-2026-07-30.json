@@ -1,0 +1,44 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "static_disassembly",
+  "estimated_values": false,
+  "tool": "/opt/rocm-7.2.1/llvm/bin/llvm-objdump -d --mcpu=gfx1151",
+  "variants": {
+    "baseline": {
+      "disassembly_instruction_lines": 6695,
+      "wmma": 128,
+      "global_load": 80,
+      "ds_load": 580,
+      "ds_store": 96,
+      "ds_swizzle": 592,
+      "s_waitcnt": 307,
+      "s_barrier": 4,
+      "v_exp": 40,
+      "s_load": 38
+    },
+    "n32_group4_lowlds": {
+      "disassembly_instruction_lines": 4555,
+      "wmma": 64,
+      "global_load": 48,
+      "ds_load": 290,
+      "ds_store": 48,
+      "ds_swizzle": 328,
+      "s_waitcnt": 175,
+      "s_barrier": 4,
+      "v_exp": 24,
+      "s_load": 22
+    },
+    "n64_overlay32k": {
+      "disassembly_instruction_lines": 6763,
+      "wmma": 128,
+      "global_load": 80,
+      "ds_load": 580,
+      "ds_store": 96,
+      "ds_swizzle": 592,
+      "s_waitcnt": 319,
+      "s_barrier": 12,
+      "v_exp": 40,
+      "s_load": 38
+    }
+  }
+}
