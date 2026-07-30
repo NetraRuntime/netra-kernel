@@ -16,7 +16,7 @@ a prioritization, not an estimated speedup.
 | 9 | Precise waits/barriers | Tried, accepted incrementally | Shared-KV cut static waits 317 to 311 and barriers 5 to 4. kvbatch16 then cuts waits 311 to 307, improves prefix-24K 1.0311x and matched full-trace attention 1.0269x. The tile-boundary barrier remains mandatory; omitting it caused nondeterministic LDS overwrite corruption. |
 | 10 | Cheaper V layout/wide LDS loads | Tried, rejected | Correct raw V-transpose was byte-identical but four-tier time regressed from 678.713 to 1,148.812 ms; scatter stores doubled bank-conflict metric. |
 | 11 | Softmax exponent/reduction scheduling | Tried, rejected | Issuing all eight rows of exponentials before unchanged reductions is bit-identical but only 1.000325x over the exact T8192 four-tier sum; prefix 8K and 24K are neutral/slower. The current schedule already hides this dependency adequately. |
-| 12 | Reduce/defer output rescaling | Indirect evidence only | N32's doubled softmax/rescale work was costly. Reducing rescale is promising, but requires a stable-max/deferred-scale formulation. |
+| 12 | Reduce/defer output rescaling | Tried, rejected conditional skip | A bit-identical all-alpha-one ballot cuts dynamic VALUInsts 6.11% and improves full-trace attention 1.00406x, but fresh 32K/+1 pairs split faster/slower and mean serving changes only 0.057%. True deferred scaling remains untested. |
 | 13 | Branch-free full/diagonal kernels | Partially accepted | The scalar full-tile mask fast path is production. Separate kernel launches are untested and likely lower value than keeping one graph-safe uniform branch. |
 | 14 | Raw M64xN32 persistent Q | Tried, rejected | Correct candidate used 52 KiB and 224 VGPR but was 56.9% slower due twice as many softmax/rescale tile updates. |
 | 15 | Prefix 0/8K/16K/24K specializations | Shapes measured, code not specialized | Low-to-medium priority; current loop bounds already specialize dynamically and duplicated code/graphs have a memory cost. |
@@ -28,7 +28,7 @@ a prioritization, not an estimated speedup.
 
 1. N64 VGPR reduction (#4) and a real LDS residency step (#5), enabling next-K/V overlap (#8).
 2. Larger contiguous KV pages (#16), co-designed with the accepted four-head reuse schedule.
-3. Deferred/stable-max output-rescale work (#12); retain the accepted dependency-proven kvbatch16 wait cleanup (#9).
+3. A materially different stable-max/deferred-rescale formulation (#12); the conditional skip failed serving acceptance. Retain kvbatch16 (#9).
 4. Q/K norm + RoPE + KV-store fusion (#17); M2-M16 verify kernels (#18) after dFlash inputs exist.
 5. Prefix specializations (#15) only if the new full trace shows a tier-specific branch cost.
 
