@@ -15,6 +15,9 @@ are raw AMDGCN assembly.
 - `lm_head/`: checkpoint-repacked MXFP4 LM-head kernels.
 - `serving/`: runtime-shape kernels implementing the SGLang bridge ABI.
 - `epilogue/`: standalone raw-assembly epilogues.
+- `routing/`: routing projections and bookkeeping fusions. The accepted
+  Qwen3.6 M=1 shared-gate/route-append kernel is under
+  `gfx950/routing/decode/`.
 
 The `experiments/` directories contain measured negative-result variants.
 They remain buildable so disassembly and performance records stay

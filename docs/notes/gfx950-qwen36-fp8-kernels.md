@@ -242,6 +242,42 @@ Status is **correctness seed, not accepted**. MFMA performance, full layer
 integration, Triton-oracle parity, graph replay, and uncached request impact
 remain open gates.
 
+## Accepted M=1 shared-gate and route-append fusion
+
+The accepted routing kernel is:
+
+```text
+kernels/gfx950/routing/decode/qwen36_shared_gate_append_m1_gfx950.s
+```
+
+It fuses the BF16 shared-gate dot, BF16 sigmoid, FP32 expansion, routed-entry
+copy, and shared expert-ID append. One wave64 uses native
+`v_dot2_f32_bf16` and a six-stage `ds_bpermute_b32` reduction. The
+real-checkpoint capture is byte-exact, 5,000 launches are deterministic, and
+20 HIP graph replays match.
+
+The steady-state build plus one validation takes about 0.40 seconds; build
+plus 5,000 timed validations takes about 0.62 seconds. The uninstrumented
+HIP-event median is 5.96 microseconds. A serving trace recorded 5,120
+dispatches at 3.160 microseconds median and confirmed removal of 5,120 decode
+GEMVs, sigmoids, conversions, and appends.
+
+Matched 40-request 210+128 tests passed one accepted hash in each mode. Versus
+the accepted skip-sorting control, decode throughput improved 27.3142% in full
+graph and 27.0773% in piecewise graph. Ten separate gfx950 counter passes
+record one wave, 51 VALU, 38 VMEM, six LDS-crosslane instructions, 322 median
+TCC read sectors, eight write sectors, and zero LDS bank conflicts.
+
+Artifacts are under:
+
+```text
+/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/
+  performance/full_raw_2wave_shared_gate_cktile_candidate_20260730T090245Z/
+  performance/piecewise_raw_2wave_shared_gate_cktile_candidate_20260730T090509Z/
+  profiles/rocprof/eager_raw_2wave_shared_gate_attach_20260730T090844Z/
+  profiles/rocprof/isolated_shared_gate_append_20260730T091309Z/
+```
+
 ## Native CDNA4 MFMA decode projections
 
 The scalar seed has now been re-tiled around the gfx950-native
