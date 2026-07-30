@@ -1,0 +1,112 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "estimated_values": [],
+  "checkpoint_quantization": "MXFP4 unchanged",
+  "decision": "rejected_restored_production",
+  "reason": "nondeterministic real-checkpoint greedy-token mismatch",
+  "isolated": [
+    {
+      "n": 64,
+      "k": 2048,
+      "groups": 128,
+      "samples": 31,
+      "production_median_ms": 0.80467,
+      "candidate_median_ms": 0.2342,
+      "speedup": 3.43582408198,
+      "bit_equal": true,
+      "graph_equal": true
+    },
+    {
+      "n": 2048,
+      "k": 4096,
+      "groups": 128,
+      "samples": 21,
+      "production_median_ms": 4.869499,
+      "candidate_median_ms": 4.776739,
+      "speedup": 1.0194191058,
+      "bit_equal": true,
+      "graph_equal": true
+    },
+    {
+      "n": 12288,
+      "k": 2048,
+      "groups": 128,
+      "samples": 11,
+      "production_median_ms": 12.978018,
+      "candidate_median_ms": 13.814508,
+      "speedup": 0.9394484407,
+      "bit_equal": true,
+      "graph_equal": true
+    }
+  ],
+  "matched_full_trace": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "production_linear_gpu_ms": 2398.024717,
+    "candidate_linear_gpu_ms": 2275.429984,
+    "linear_speedup": 1.0538776116,
+    "production_total_gpu_ms": 22503.266195,
+    "candidate_total_gpu_ms": 22268.774323,
+    "total_gpu_speedup": 1.0105300754,
+    "production_host_e2e_ms": 22436.712989,
+    "candidate_host_e2e_ms": 22210.897725,
+    "production_token": 5525,
+    "candidate_token": 0,
+    "correct": false
+  },
+  "fresh_servers": [
+    {
+      "prompt": "pair-a",
+      "candidate_host_e2e_ms": 21413.087958,
+      "production_token": 5525,
+      "candidate_token": 5525,
+      "correct": true
+    },
+    {
+      "prompt": "pair-b",
+      "candidate_host_e2e_ms": 21503.24639,
+      "production_token": 248045,
+      "candidate_token": 248045,
+      "correct": true
+    },
+    {
+      "prompt": "pair-a",
+      "candidate_host_e2e_ms": 21451.248751,
+      "production_token": 5525,
+      "candidate_token": 0,
+      "correct": false
+    }
+  ],
+  "resources": {
+    "production": {
+      "workgroup": 32,
+      "lds_bytes": 0,
+      "vgpr_profiler": 112,
+      "sgpr_profiler": 128,
+      "scratch_bytes": 0
+    },
+    "candidate": {
+      "workgroup": 128,
+      "lds_bytes": 4096,
+      "vgpr_profiler": 112,
+      "sgpr_profiler": 128,
+      "scratch_bytes": 0
+    }
+  },
+  "source_evidence": {
+    "isolated_dir": "results/kernels/gfx1151/linear-prefill-group4-a-20260730",
+    "trace_dir": "results/profiles/gfx1151/linear-prefill-group4-a-full-32k-20260730",
+    "serving_dir": "results/serving/gfx1151/linear-prefill-group4-a-check",
+    "disassembly_dir": "docs/notes/gfx1151-linear-prefill-group4-a-negative-disassembly-2026-07-30"
+  },
+  "post_restore_control": {
+    "prompt": "pair-a",
+    "host_e2e_ms": 21625.647009,
+    "token": 5525,
+    "correct": true
+  }
+}
