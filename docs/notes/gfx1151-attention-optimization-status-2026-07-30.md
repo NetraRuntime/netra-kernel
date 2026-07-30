@@ -13,7 +13,7 @@ a prioritization, not an estimated speedup.
 | 6 | Reuse K/V across eight query heads per KV head | Tried, accepted in groups of four | A 512-thread workgroup shares each staged K/V tile across four query heads: 1.2279x isolated, 1.2374x full-trace attention, and 1.0509x unprofiled 32K/+1 host E2E. |
 | 7 | Cache page-table lookups | Tried, rejected | Full cache cut static scalar loads 33 to 17 and rocprof fetch 9.868%, but regressed prefix-tier time 0.567%. |
 | 8 | Pipeline next global K/V tile | Not independently tried | Good after a lower-LDS or register-staged design; current 64 KiB footprint blocks ordinary LDS double buffering. |
-| 9 | Precise waits/barriers | Partially accepted | Static waits fall 317 to 311 and barriers 5 to 4. A tile-boundary barrier is mandatory: omitting it caused nondeterministic LDS overwrite corruption. |
+| 9 | Precise waits/barriers | Tried, accepted incrementally | Shared-KV cut static waits 317 to 311 and barriers 5 to 4. kvbatch16 then cuts waits 311 to 307, improves prefix-24K 1.0311x and matched full-trace attention 1.0269x. The tile-boundary barrier remains mandatory; omitting it caused nondeterministic LDS overwrite corruption. |
 | 10 | Cheaper V layout/wide LDS loads | Tried, rejected | Correct raw V-transpose was byte-identical but four-tier time regressed from 678.713 to 1,148.812 ms; scatter stores doubled bank-conflict metric. |
 | 11 | Softmax exponent/reduction scheduling | Not isolated | Good next compute target now that K/V reuse is accepted; preserve exact online-softmax ordering as the correctness oracle. |
 | 12 | Reduce/defer output rescaling | Indirect evidence only | N32's doubled softmax/rescale work was costly. Reducing rescale is promising, but requires a stable-max/deferred-scale formulation. |
@@ -28,7 +28,7 @@ a prioritization, not an estimated speedup.
 
 1. N64 VGPR reduction (#4) and a real LDS residency step (#5), enabling next-K/V overlap (#8).
 2. Larger contiguous KV pages (#16), co-designed with the accepted four-head reuse schedule.
-3. Softmax scheduling/rescale work (#11/#12), then only dependency-proven wait cleanup (#9).
+3. Softmax scheduling/rescale work (#11/#12); retain the accepted dependency-proven kvbatch16 wait cleanup (#9).
 4. Q/K norm + RoPE + KV-store fusion (#17); M2-M16 verify kernels (#18) after dFlash inputs exist.
 5. Prefix specializations (#15) only if the new full trace shows a tier-specific branch cost.
 
