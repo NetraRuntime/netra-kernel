@@ -16,7 +16,7 @@ a prioritization, not an estimated speedup.
 | 9 | Precise waits/barriers | Tried, accepted incrementally | Shared-KV cut static waits 317 to 311 and barriers 5 to 4. kvbatch16 then cuts waits 311 to 307, improves prefix-24K 1.0311x and matched full-trace attention 1.0269x. The tile-boundary barrier remains mandatory; omitting it caused nondeterministic LDS overwrite corruption. |
 | 10 | Cheaper V layout/wide LDS loads | Tried, rejected | Correct raw V-transpose was byte-identical but four-tier time regressed from 678.713 to 1,148.812 ms; scatter stores doubled bank-conflict metric. |
 | 11 | Softmax exponent/reduction scheduling | Tried, rejected | Issuing all eight rows of exponentials before unchanged reductions is bit-identical but only 1.000325x over the exact T8192 four-tier sum; prefix 8K and 24K are neutral/slower. The current schedule already hides this dependency adequately. |
-| 12 | Reduce/defer output rescaling | Tried, rejected conditional skip | A bit-identical all-alpha-one ballot cuts dynamic VALUInsts 6.11% and improves full-trace attention 1.00406x, but fresh 32K/+1 pairs split faster/slower and mean serving changes only 0.057%. True deferred scaling remains untested. |
+| 12 | Reduce/defer output rescaling | Tried twice; rejected | The bit-identical all-alpha-one ballot was serving-neutral. A bounded fixed-anchor raw ASM variant then cut measured VALUInsts 5.2938% and improved the four-tier HIP-event sum 1.00581x, but increased FP64-reference RMSE 3.79% at normalized Q/K amplitude and improved paired exact 32K/+1 serving only 1.000905x. Production remains bit-stable. |
 | 13 | Branch-free full/diagonal kernels | Partially accepted | The scalar full-tile mask fast path is production. Separate kernel launches are untested and likely lower value than keeping one graph-safe uniform branch. |
 | 14 | Raw M64xN32 persistent/global Q | Tried twice, rejected | Persistent-Q at 52 KiB was 56.9% slower. The stronger 32 KiB global-Q/group4 design reduced the regression to 9.919% but still doubled softmax/rescale updates and fetched 69% more bytes. |
 | 15 | Prefix 0/8K/16K/24K specializations | Shapes measured, code not specialized | Low-to-medium priority; current loop bounds already specialize dynamically and duplicated code/graphs have a memory cost. |
@@ -29,7 +29,7 @@ a prioritization, not an estimated speedup.
 1. Shared activation loads and register-resident gate + SiLU x up are now accepted; precise waits and zero-extra-VGPR K-block prefetch were rejected, so continue only with a materially different weight-transaction or accumulator schedule, then validate piecewise prefill. Native full graph tiers M1-M16 are complete, while true speculative verify remains input-blocked.
 2. Revisit contiguous pages (#16) only with cooperative K/V transaction reduction, not index-load reduction alone.
 3. Revisit LDS residency (#5) only with a materially smaller accumulator/register footprint or smaller workgroup; 224 VGPR plus 32 KiB was measured insufficient.
-4. A materially different stable-max/deferred-rescale formulation (#12); retain accepted kvbatch16 (#9).
+4. Do not revisit output rescaling (#12) without a bit-stable formulation or a larger measured end-to-end opportunity; retain accepted kvbatch16 (#9).
 5. M2-M16 verify kernels (#18) after real dFlash inputs exist; prefix specialization (#15) only if a new full trace proves tier-specific branch cost.
 
 No unmeasured proposal above is assigned a performance number.
