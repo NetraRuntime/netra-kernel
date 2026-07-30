@@ -379,6 +379,12 @@
       "first_divergent_output_index": 1,
       "expected_token": 220,
       "divergent_token": 95744,
+      "triton_control_repetitions": 10,
+      "triton_control_unique_output_hashes": 2,
+      "triton_control_first_divergent_output_index": 2,
+      "triton_control_expected_token": 220,
+      "triton_control_divergent_token": 96834,
+      "attribution": "shared_piecewise_state_not_raw_specific",
       "status": "rejected_correctness"
     },
     "rocprofv3_full_graph": {

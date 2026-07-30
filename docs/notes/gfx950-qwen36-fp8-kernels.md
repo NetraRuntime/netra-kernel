@@ -343,7 +343,9 @@ the performance control but it did not pass its own repeatability gate.
 Piecewise mode is not accepted. Although it reached about 0.8236 seconds for
 210+128 and about 22 ms for exact 210+1, one of five long requests changed
 only output token index 1 (`220` to `95744`). This is recorded as a graph/state
-transition defect, not waived for the faster timing.
+transition defect, not waived for the faster timing. A pure-Triton piecewise
+control likewise diverged once in ten runs, changing only output index 2 from
+`220` to `96834`; the defect is not unique to the raw kernels.
 
 ROCm 7.2 rocprofv3 dynamic-attach and process-start tracing both crashed the
 scheduler in `at::cuda::CUDAGraph::replay()` after five output tokens. Their
@@ -370,6 +372,7 @@ Retained artifacts:
   performance/full_triton_raw_full_m1_candidate_20260730T022931Z/
   performance/full_triton_raw_full_m1_baseline_20260730T023109Z/
   correctness/piecewise_triton_raw_full_m1_20260730T023309Z/
+  correctness/piecewise_triton_control_20260730T024848Z/
   profiles/rocprof/full_raw_m1_attach_20260730T023811Z/
   profiles/rocprof/full_raw_m1_wrapped_20260730T024030Z/
 ```
