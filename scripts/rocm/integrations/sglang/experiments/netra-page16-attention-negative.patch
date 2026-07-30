@@ -1,0 +1,96 @@
+--- a/scripts/rocm/integrations/sglang/netra_gfx1151_sglang.py
++++ b/scripts/rocm/integrations/sglang/netra_gfx1151_sglang.py
+@@ -73,6 +73,11 @@
+             + [ctypes.c_uint, ctypes.c_float, ctypes.c_void_p]
+         )
+         self.lib.netra_extend_attention.restype = ctypes.c_int
++        self.lib.netra_extend_attention_page16.argtypes = (
++            [ctypes.c_void_p] * 8
++            + [ctypes.c_uint, ctypes.c_float, ctypes.c_void_p]
++        )
++        self.lib.netra_extend_attention_page16.restype = ctypes.c_int
+         self.lib.netra_gdn_chunk_o.argtypes = (
+             [ctypes.c_void_p] * 8
+             + [ctypes.c_float, ctypes.c_uint, ctypes.c_void_p]
+@@ -327,10 +332,18 @@
+     kv_indptr: torch.Tensor,
+     token_count: int,
+     sm_scale: float,
++    page_size: int = 1,
+ ) -> None:
+     """Graph-safe raw gfx1151 M64xN64 extend-attention launch."""
+     runtime = _get_runtime()
+-    status = runtime.lib.netra_extend_attention(
++    if page_size not in (1, 16):
++        raise ValueError(f"Netra raw attention does not support page_size={page_size}")
++    function = (
++        runtime.lib.netra_extend_attention_page16
++        if page_size == 16
++        else runtime.lib.netra_extend_attention
++    )
++    status = function(
+         _ptr(q_extend),
+         _ptr(k_extend),
+         _ptr(v_extend),
+--- a/scripts/rocm/integrations/sglang/netra_mxfp4_sgl_launcher.hip
++++ b/scripts/rocm/integrations/sglang/netra_mxfp4_sgl_launcher.hip
+@@ -45,6 +45,7 @@
+ Kernel linear_prefill_repack;
+ Kernel qkvzba_split;
+ Kernel extend_attention;
++Kernel extend_attention_page16;
+ Kernel gdn_chunk_o;
+ Kernel recompute_w_u;
+ Kernel causal_conv;
+@@ -95,6 +96,8 @@
+        "qkvzba_split_copy_gfx1151");
+   load(extend_attention, "extend_attention_wmma_n64_gfx1151.hsaco",
+        "extend_attention_wmma_n64_gfx1151");
++  load(extend_attention_page16, "extend_attention_wmma_n64_page16_gfx1151.hsaco",
++       "extend_attention_wmma_n64_page16_gfx1151");
+   load(gdn_chunk_o, "gdn_chunk_o_bv32_gfx1151.hsaco",
+        "gdn_chunk_o_bv32_gfx1151");
+   load(recompute_w_u, "recompute_w_u_ordered_gfx1151.hsaco",
+@@ -437,6 +440,23 @@
+   return status == hipSuccess ? 0 : 95000 + static_cast<int>(status);
+ }
+
++extern "C" int netra_extend_attention_page16(
++    void* q, void* k_extend, void* v_extend, void* output,
++    void* k_buffer, void* v_buffer, void* kv_indices, void* kv_indptr,
++    unsigned tokens, float sm_scale, void* stream_ptr) {
++  std::call_once(init_once, initialize);
++  if (init_status != hipSuccess) return static_cast<int>(init_status);
++  if (tokens == 0 || (tokens & 63U)) return 95101;
++  ExtendAttentionArgs args{
++      q, k_extend, v_extend, output, k_buffer, v_buffer, kv_indices,
++      kv_indptr, tokens, sm_scale};
++  hipError_t status = launch(
++      extend_attention_page16.function, tokens / 64, NETRA_EXTEND_ATTENTION_GRID_Y,
++      NETRA_EXTEND_ATTENTION_BLOCK_X,
++      reinterpret_cast<hipStream_t>(stream_ptr), args);
++  return status == hipSuccess ? 0 : 95100 + static_cast<int>(status);
++}
++
+ extern "C" int netra_gdn_chunk_o(
+     void* q, void* k, void* v, void* h, void* g, void* output,
+     void* cu_seqlens, void* chunk_indices, float scale, unsigned tokens,
+--- a/scripts/rocm/tools/build/build_netra_sglang_gfx1151.sh
++++ b/scripts/rocm/tools/build/build_netra_sglang_gfx1151.sh
+@@ -61,6 +61,16 @@
+ "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+   "${out_dir}/${attention_stem}.hsaco" > "${out_dir}/${attention_stem}.dis"
+
++attention_page16_stem=extend_attention_wmma_n64_page16_gfx1151
++"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
++  -x assembler -c \
++  "${repo_dir}/scripts/rocm/kernels/gfx1151/attention/experiments/${attention_page16_stem}.s" \
++  -o "${out_dir}/${attention_page16_stem}.o"
++"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
++  "${out_dir}/${attention_page16_stem}.o" -o "${out_dir}/${attention_page16_stem}.hsaco"
++"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
++  "${out_dir}/${attention_page16_stem}.hsaco" > "${out_dir}/${attention_page16_stem}.dis"
++
+ pack_stem=expert_activation_pack_gfx1151
+ "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+   -x assembler -c "${repo_dir}/kernels/gfx1151/moe/${pack_stem}.s" \

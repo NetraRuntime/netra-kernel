@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 [[ $(hostname) == Netra ]] || { echo "refusing to profile outside the Netra LXC" >&2; exit 1; }
-repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+repo_dir=$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)
 out_dir=${1:-"${repo_dir}/results/profiles/gfx1151/gdn-kkt-blockwise-counters-$(date -u +%Y%m%dT%H%M%SZ)"}
 rocm=/opt/rocm-7.2.1
 profiler=${rocm}/bin/rocprofv3
 binary=${repo_dir}/build/experiments/benchmark_gdn_kkt_blockwise
 hsaco=${repo_dir}/build/experiments/gdn_kkt_solve_blockwise_gfx1151.hsaco
-"${repo_dir}/tools/build/build_gdn_kkt_piecewise_experiment.sh" >/dev/null 2>&1
+"${repo_dir}/scripts/rocm/tools/build/build_gdn_kkt_piecewise_experiment.sh" >/dev/null 2>&1
 mkdir -p "${out_dir}"
 counters=(
   OccupancyPercent MeanOccupancyPerActiveCU Wavefronts L2CacheHit

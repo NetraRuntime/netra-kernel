@@ -31,7 +31,7 @@ runtime in the other direction.
   finalized normally and emitted kernel trace/stats CSVs.
 - Use `/opt/rocm-7.2.1/bin/rocprofv3` with `env -u LD_LIBRARY_PATH` only for a
   harness compiled and linked entirely with `/opt/rocm-7.2.1/bin/hipcc`.
-- `tools/profiling/profile_sglang_request.sh` detects the mapped registration
+- `scripts/rocm/tools/profiling/profile_sglang_request.sh` detects the mapped registration
   library and selects the matching profiler automatically.
 - Prefer `--output-format csv`: an independent RocPD/SQLite empty-name writer
   bug also aborts during some traces, while CSV bypasses that writer.

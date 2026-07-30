@@ -141,13 +141,13 @@ contains the accepted raw ASM. Both launch bridges default to grid Y=4 and
 block X=512 while retaining compile-time overrides for the qpipe8 oracle.
 Reproduce with:
 
-- `tools/build/build_netra_sglang_gfx1151.sh`
+- `scripts/rocm/tools/build/build_netra_sglang_gfx1151.sh`
 - `tools/build/build_extend_attention_group4_qpipe_experiment.sh`
 - `tools/benchmark/benchmark_extend_attention_variants.py`
 - `tools/benchmark/benchmark_extend_attention_raw.py`
 - `tools/benchmark/benchmark_extend_attention_graph.py`
 - `tools/profiling/profile_extend_attention_group4_qpipe_counters.sh`
-- `tools/profiling/profile_sglang_request.sh`
+- `scripts/rocm/tools/profiling/profile_sglang_request.sh`
 
 Machine-readable correctness, HIP-event, graph, counter, serving, full-trace,
 and complete before/after disassembly evidence are adjacent to this note.

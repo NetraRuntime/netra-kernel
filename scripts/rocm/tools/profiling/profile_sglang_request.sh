@@ -56,7 +56,7 @@ SGLANG_CONTEXT_LENGTH="$context_len" SGLANG_WEIGHT_LOADER_THREADS=2 \
     --output-format csv \
     --output-directory "$out_dir" \
     --output-file trace \
-    -- /usr/bin/env bash "${repo}/integrations/sglang/launch.sh" \
+    -- /usr/bin/env bash "${repo}/scripts/rocm/integrations/sglang/launch.sh" \
     > "${out_dir}/server.stdout" 2> "${out_dir}/server.stderr" &
 profile_pid=$!
 echo profile_pid="$profile_pid" >> "${out_dir}/manifest.txt"

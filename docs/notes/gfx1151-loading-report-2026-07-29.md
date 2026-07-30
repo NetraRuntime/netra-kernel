@@ -45,7 +45,7 @@ not retained as a claimed material optimization on this unified-memory GPU.
 
 ## Accepted configuration
 
-The standard `integrations/sglang/launch.sh` now supplies:
+The standard `scripts/rocm/integrations/sglang/launch.sh` now supplies:
 
 ```text
 --weight-loader-disable-mmap
@@ -58,7 +58,7 @@ serialized MXFP4 representation, stages each complete 256-expert projection,
 and copies it to the existing `w13_weight`, `w13_weight_scale`, `w2_weight`, or
 `w2_weight_scale` parameter. It rejects incomplete or mismatched batches.
 
-`tools/benchmark/benchmark_sglang_fast_load.sh` reproduces the load test. It
+`scripts/rocm/tools/benchmark/benchmark_sglang_fast_load.sh` reproduces the load test. It
 refuses to run while another SGLang server is active, uses scoped
 `POSIX_FADV_DONTNEED` only on the selected checkpoint's safetensors files for a
 cold-cache run, waits for health, and stops only the server process it started.

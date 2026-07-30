@@ -1,0 +1,53 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "input_scope": "T8192 prefix24576 Hq16 Hkv2 D256 baseline",
+  "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+  "method": "one counter per process launch; identical raw-ASM kernel dispatch shapes",
+  "units": {
+    "FETCH_SIZE": "KiB fetched from video memory per dispatch",
+    "WRITE_SIZE": "KiB written to video memory per dispatch",
+    "OccupancyPercent": "percent of device maximum",
+    "L2CacheHit": "percent",
+    "MemUnitBusy": "percent of GPUTime",
+    "WriteUnitStalled": "percent of GPUTime"
+  },
+  "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+  "kernels": [
+    {
+      "kernel": "extend_attention_wmma_n64_gfx1151",
+      "grid_size": 262144,
+      "workgroup_size": 512,
+      "lds_bytes": 65536,
+      "scratch_bytes": 0,
+      "vgpr": 248,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": {
+          "samples": 1,
+          "mean": 19699149.75,
+          "min": 19699149.75,
+          "max": 19699149.75
+        },
+        "L2CacheHit": {
+          "samples": 1,
+          "mean": 11.624896,
+          "min": 11.624896,
+          "max": 11.624896
+        },
+        "OccupancyPercent": {
+          "samples": 1,
+          "mean": 267355.340362,
+          "min": 267355.340362,
+          "max": 267355.340362
+        },
+        "SALUInsts": {
+          "samples": 1,
+          "mean": 32220.25,
+          "min": 32220.25,
+          "max": 32220.25
+        }
+      }
+    }
+  ]
+}

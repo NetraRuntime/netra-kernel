@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+repo_dir=$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)
 out_dir=${1:-"${repo_dir}/results/profiles/gfx1151/causal-conv1d-ordered-counters-$(date -u +%Y%m%dT%H%M%SZ)"}
 rocm=/opt/rocm-7.2.1
 profiler=${rocm}/bin/rocprofv3
 binary=${repo_dir}/build/experiments/benchmark_causal_conv1d_ordered
 mkdir -p "${out_dir}"
-"${repo_dir}/tools/build/build_netra_sglang_gfx1151.sh" >/dev/null
+"${repo_dir}/scripts/rocm/tools/build/build_netra_sglang_gfx1151.sh" >/dev/null
 "${rocm}/bin/hipcc" --offload-arch=gfx1151 -O3 \
   "${repo_dir}/harness/gfx1151/gdn/benchmark_causal_conv1d_ordered.hip" \
   -o "${binary}"

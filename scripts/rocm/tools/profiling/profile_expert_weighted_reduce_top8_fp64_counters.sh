@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+repo_dir=$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)
 out_dir=${1:-"${repo_dir}/results/profiles/gfx1151/expert-reduce-fp64-counters-$(date -u +%Y%m%dT%H%M%SZ)"}
 rocm=/opt/rocm-7.2.1
 profiler=${rocm}/bin/rocprofv3
 binary=${repo_dir}/build/experiments/benchmark_expert_weighted_reduce_top8_fp64
 mkdir -p "${out_dir}" "${repo_dir}/build/experiments"
-"${repo_dir}/tools/build/build_netra_sglang_gfx1151.sh" >/dev/null
+"${repo_dir}/scripts/rocm/tools/build/build_netra_sglang_gfx1151.sh" >/dev/null
 "${rocm}/bin/hipcc" --offload-arch=gfx1151 -O3 \
   "${repo_dir}/harness/gfx1151/moe/benchmark_expert_weighted_reduce_top8_fp64.hip" \
   -o "${binary}"

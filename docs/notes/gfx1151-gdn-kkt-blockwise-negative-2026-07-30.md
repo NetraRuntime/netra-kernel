@@ -80,13 +80,13 @@ The measured production comparator selected `BK=64`, one wave, and FP32 `beta`. 
 Inside the Netra LXC:
 
 ```bash
-tools/build/build_gdn_kkt_piecewise_experiment.sh
+scripts/rocm/tools/build/build_gdn_kkt_piecewise_experiment.sh
 python tools/benchmark/benchmark_gdn_kkt_blockwise.py --iterations 15
 # Optional real-input capture produced during a diagnostic server run:
 python tools/benchmark/benchmark_gdn_kkt_blockwise.py \
   --real-inputs /tmp/netra-kkt-real/real-inputs.pt --iterations 15
 
-tools/profiling/profile_gdn_kkt_blockwise_counters.sh
+scripts/rocm/tools/profiling/profile_gdn_kkt_blockwise_counters.sh
 ```
 
 The production SGLang bridge and dispatch hook were deliberately removed after rejection. The raw `.s`, experimental bridge, standalone harness, build path, benchmark, and counter script remain for future scheduling work.

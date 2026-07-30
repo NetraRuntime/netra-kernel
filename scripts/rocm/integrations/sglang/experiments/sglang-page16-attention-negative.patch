@@ -1,0 +1,54 @@
+--- a/python/sglang/kernels/ops/attention/extend_attention.py
++++ b/python/sglang/kernels/ops/attention/extend_attention.py
+@@ -761,7 +761,7 @@
+         and lse_extend is None
+         and not skip_prefix
+         and not skip_extend
+-        and page_size == 1
++        and page_size in (1, 16)
+         and score_mod is None
+         and isinstance(k_scale, (int, float))
+         and isinstance(v_scale, (int, float))
+@@ -771,7 +771,7 @@
+     if use_netra_raw:
+         netra_extend_attention_with_output(
+             q_extend, k_extend, v_extend, o_extend, k_buffer, v_buffer,
+-            kv_indices, kv_indptr, 8192, float(sm_scale),
++            kv_indices, kv_indptr, 8192, float(sm_scale), page_size,
+         )
+         return
+
+--- a/python/sglang/srt/layers/quantization/netra_gfx1151.py
++++ b/python/sglang/srt/layers/quantization/netra_gfx1151.py
+@@ -73,6 +73,11 @@
+             + [ctypes.c_uint, ctypes.c_float, ctypes.c_void_p]
+         )
+         self.lib.netra_extend_attention.restype = ctypes.c_int
++        self.lib.netra_extend_attention_page16.argtypes = (
++            [ctypes.c_void_p] * 8
++            + [ctypes.c_uint, ctypes.c_float, ctypes.c_void_p]
++        )
++        self.lib.netra_extend_attention_page16.restype = ctypes.c_int
+         self.lib.netra_gdn_chunk_o.argtypes = (
+             [ctypes.c_void_p] * 8
+             + [ctypes.c_float, ctypes.c_uint, ctypes.c_void_p]
+@@ -327,10 +332,18 @@
+     kv_indptr: torch.Tensor,
+     token_count: int,
+     sm_scale: float,
++    page_size: int = 1,
+ ) -> None:
+     """Graph-safe raw gfx1151 M64xN64 extend-attention launch."""
+     runtime = _get_runtime()
+-    status = runtime.lib.netra_extend_attention(
++    if page_size not in (1, 16):
++        raise ValueError(f"Netra raw attention does not support page_size={page_size}")
++    function = (
++        runtime.lib.netra_extend_attention_page16
++        if page_size == 16
++        else runtime.lib.netra_extend_attention
++    )
++    status = function(
+         _ptr(q_extend),
+         _ptr(k_extend),
+         _ptr(v_extend),

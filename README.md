@@ -33,7 +33,7 @@ harness/gfx1151/mxfp4/
   ...            HIP launch, timing, and correctness harnesses
 harness/gfx1151/{attention,gdn,moe}/
   ...            Non-MXFP4 launch, timing, and correctness harnesses
-integrations/sglang/
+scripts/rocm/integrations/sglang/
   ...            SGLang bridge, launch script, and consolidated patch
 tools/
   build/         Reproducible gfx1151 builds
@@ -61,7 +61,7 @@ Run inside Netra:
 ```bash
 cd /root/netra-mxfp4-gfx1151
 bash tools/build/build_gfx1151_mxfp4_raw.sh
-bash tools/build/build_netra_sglang_gfx1151.sh
+bash scripts/rocm/tools/build/build_netra_sglang_gfx1151.sh
 ```
 
 The raw build writes to `build/raw` by default. The serving build writes to
@@ -76,22 +76,22 @@ The validated integration base is SGLang commit
 ```bash
 cd /root/work/sglang-main
 git apply \
-  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-integration.patch
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-integration.patch
 git apply \
-  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-qkvz-ba-fusion.patch
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-qkvz-ba-fusion.patch
 git apply \
-  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-extend-attention.patch
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-extend-attention.patch
 git apply \
-  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-gdn-chunk-o.patch
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-gdn-chunk-o.patch
 git apply \
-  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-gdn-recompute-w-u.patch
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-gdn-recompute-w-u.patch
 git apply \
-  /root/netra-mxfp4-gfx1151/integrations/sglang/sglang-gfx1151-causal-conv1d.patch
-cp /root/netra-mxfp4-gfx1151/integrations/sglang/netra_gfx1151_sglang.py \
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-causal-conv1d.patch
+cp /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/netra_gfx1151_sglang.py \
   python/sglang/srt/layers/quantization/netra_gfx1151.py
 
 cd /root/netra-mxfp4-gfx1151
-bash integrations/sglang/launch.sh
+bash scripts/rocm/integrations/sglang/launch.sh
 ```
 
 The launch script defaults to the real transformed checkpoint at

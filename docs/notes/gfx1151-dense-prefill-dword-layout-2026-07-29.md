@@ -154,8 +154,8 @@ LDS, and no scratch.
 
 - Production compute: `kernels/gfx1151/mxfp4/serving/mxfp4_sgl_linear_prefill_wmma_gfx1151.s`
 - Production repacker: `kernels/gfx1151/mxfp4/serving/mxfp4_sgl_linear_prefill_repack_dword_gfx1151.s`
-- HIP launch/graph bridge: `integrations/sglang/netra_mxfp4_sgl_launcher.hip`
-- SGLang load-time integration: `integrations/sglang/netra_gfx1151_sglang.py`
+- HIP launch/graph bridge: `scripts/rocm/integrations/sglang/netra_mxfp4_sgl_launcher.hip`
+- SGLang load-time integration: `scripts/rocm/integrations/sglang/netra_gfx1151_sglang.py`
 - Correctness/timing harness: `harness/gfx1151/mxfp4/serving/benchmark_linear_prefill_dword_layout.hip`
 - Counter runner: `tools/profiling/profile_dense_prefill_dword_layout_counters.sh`
 - Full JSON: `docs/notes/gfx1151-dense-prefill-dword-layout-2026-07-29.json`

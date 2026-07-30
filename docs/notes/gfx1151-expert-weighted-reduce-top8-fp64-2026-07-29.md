@@ -58,9 +58,9 @@ All serving timings are measured host E2E HTTP monotonic timings and are labeled
 
 ## Reproduction
 
-- Build: `tools/build/build_netra_sglang_gfx1151.sh`
+- Build: `scripts/rocm/tools/build/build_netra_sglang_gfx1151.sh`
 - Correctness and HIP events: `tools/benchmark/benchmark_expert_weighted_reduce_top8_fp64.py`
-- Pure-HIP counters: `tools/profiling/profile_expert_weighted_reduce_top8_fp64_counters.sh`
-- Full request: `tools/profiling/profile_sglang_request.sh expert-reduce-fp64-full-32k 32768 1 49152`
+- Pure-HIP counters: `scripts/rocm/tools/profiling/profile_expert_weighted_reduce_top8_fp64_counters.sh`
+- Full request: `scripts/rocm/tools/profiling/profile_sglang_request.sh expert-reduce-fp64-full-32k 32768 1 49152`
 
 Raw traces remain under `results/profiles/gfx1151/`; serving JSON remains under `results/serving/gfx1151/` and both trees are intentionally gitignored.

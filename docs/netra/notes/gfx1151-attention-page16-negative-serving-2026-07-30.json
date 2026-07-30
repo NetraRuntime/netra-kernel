@@ -1,0 +1,140 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured_host_serving_e2e",
+  "estimated_values": false,
+  "scenario": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "seed": 20260730
+  },
+  "runs": [
+    {
+      "label": "attention-page1-control-a",
+      "page_size": "default",
+      "host_e2e_ms": 21569.101109,
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "peak_vram_bytes": 101209571328,
+      "output_ids": [
+        82
+      ],
+      "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+      "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "measurement_status": "measured",
+      "target": "gfx1151",
+      "launch_to_health_ms": 23166
+    },
+    {
+      "label": "attention-page16-a",
+      "page_size": "16",
+      "host_e2e_ms": 21551.813776,
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "peak_vram_bytes": 101284179968,
+      "output_ids": [
+        82
+      ],
+      "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+      "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "measurement_status": "measured",
+      "target": "gfx1151",
+      "launch_to_health_ms": 26154
+    },
+    {
+      "label": "attention-page1-control-b",
+      "page_size": "default",
+      "host_e2e_ms": 21563.09523,
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "peak_vram_bytes": 101060505600,
+      "output_ids": [
+        82
+      ],
+      "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+      "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "measurement_status": "measured",
+      "target": "gfx1151",
+      "launch_to_health_ms": 22126
+    },
+    {
+      "label": "attention-page16-b",
+      "page_size": "16",
+      "host_e2e_ms": 21532.38613,
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "peak_vram_bytes": 100691415040,
+      "output_ids": [
+        82
+      ],
+      "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+      "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "measurement_status": "measured",
+      "target": "gfx1151",
+      "launch_to_health_ms": 23147
+    },
+    {
+      "label": "attention-page16-c",
+      "page_size": "16",
+      "host_e2e_ms": 21521.612851,
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "peak_vram_bytes": 101602697216,
+      "output_ids": [
+        82
+      ],
+      "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+      "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "measurement_status": "measured",
+      "target": "gfx1151",
+      "launch_to_health_ms": 23162
+    },
+    {
+      "label": "attention-page1-control-c",
+      "page_size": "default",
+      "host_e2e_ms": 21515.386865,
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "peak_vram_bytes": 101907271680,
+      "output_ids": [
+        82
+      ],
+      "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+      "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "measurement_status": "measured",
+      "target": "gfx1151",
+      "launch_to_health_ms": 22139
+    }
+  ],
+  "page1_mean_ms": 21549.194401333334,
+  "page16_mean_ms": 21535.270919,
+  "page1_sample_stdev_ms": 29.431781807051003,
+  "page16_sample_stdev_ms": 15.305733350439676,
+  "paired_page16_minus_page1_ms": [
+    -17.287333000000217,
+    -30.709100000000035,
+    6.225986000001285
+  ],
+  "page1_over_page16_speedup": 1.0006465431703044,
+  "decision": "rejected_as_noise; production remains page_size_1"
+}

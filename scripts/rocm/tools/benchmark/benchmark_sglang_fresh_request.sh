@@ -14,6 +14,12 @@ context_len=${5:-49152}
 repo=/root/netra-mxfp4-gfx1151
 out_dir=${repo}/results/serving/gfx1151/${label}
 port=${SGLANG_PORT:-30000}
+page_size=${SGLANG_PAGE_SIZE:-}
+page_args=()
+if [[ -n $page_size ]]; then
+  [[ $page_size =~ ^[0-9]+$ && $page_size -gt 0 ]] || usage
+  page_args=(--page-size "$page_size")
+fi
 
 [[ $(hostname) == Netra ]] || { echo "must run in Netra" >&2; exit 1; }
 [[ $label =~ ^[a-zA-Z0-9._/-]+$ && $label != /* && $label != *..* ]] || usage
@@ -32,7 +38,7 @@ detected=$(/opt/rocm-7.2.1/bin/amd-smi static --asic 2>/dev/null | awk '/TARGET_
 mkdir -p "$out_dir"
 start_ns=$(date +%s%N)
 SGLANG_PORT="$port" SGLANG_CONTEXT_LENGTH="$context_len" SGLANG_WEIGHT_LOADER_THREADS=2 \
-  bash "${repo}/integrations/sglang/launch.sh" \
+  bash "${repo}/scripts/rocm/integrations/sglang/launch.sh" "${page_args[@]}" \
   >"${out_dir}/server.stdout" 2>"${out_dir}/server.stderr" &
 server_pid=$!
 cleanup() {
@@ -82,6 +88,7 @@ trap - EXIT INT TERM
   echo input_len="$input_len"
   echo output_len="$output_len"
   echo context_len="$context_len"
+  echo page_size="${page_size:-default}"
   echo launch_to_health_ms=$(( (ready_ns - start_ns) / 1000000 ))
   echo server_status="$server_status"
   git -C "$repo" rev-parse HEAD | sed 's/^/repository_head=/'

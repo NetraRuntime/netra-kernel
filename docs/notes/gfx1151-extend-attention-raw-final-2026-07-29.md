@@ -102,10 +102,10 @@ Before/after disassemblies and machine-readable counts are under
 The SGLang dispatch is deliberately narrow: batch 1, exact 8,192-token BF16
 chunk, Hq=16, Hkv=2, D=256, causal, page size 1, contiguous tensors, unit K/V
 scales, and no custom masks, sinks, LSE, score modification, or skip stage.
-Every other case falls back to Triton. `integrations/sglang/sglang-gfx1151-extend-attention.patch`
+Every other case falls back to Triton. `scripts/rocm/integrations/sglang/sglang-gfx1151-extend-attention.patch`
 contains the SGLang source patch; the launch/custom-op bridge is in
-`integrations/sglang/` and the reproducible build is
-`tools/build/build_netra_sglang_gfx1151.sh`.
+`scripts/rocm/integrations/sglang/` and the reproducible build is
+`scripts/rocm/tools/build/build_netra_sglang_gfx1151.sh`.
 
 ## Profiler attach negative result
 

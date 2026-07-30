@@ -31,7 +31,7 @@ The original correctness difference was WMMA fragment packing, not address calcu
 ```bash
 source /root/sglvenv1151/bin/activate
 cd /root/netra-mxfp4-gfx1151
-bash tools/build/build_gdn_kkt_piecewise_experiment.sh
+bash scripts/rocm/tools/build/build_gdn_kkt_piecewise_experiment.sh
 python tools/benchmark/benchmark_gdn_kkt_piecewise.py \
   > results/kernels/gfx1151/gdn-kkt-piecewise-experiment-v2.json
 ```

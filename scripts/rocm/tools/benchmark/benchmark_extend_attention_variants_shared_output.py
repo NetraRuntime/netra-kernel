@@ -89,10 +89,16 @@ def main() -> None:
     parser.add_argument("--interleaved", action="store_true")
     parser.add_argument("--seed", type=int, default=20260729)
     parser.add_argument("--scale", type=float, default=0.02)
+    parser.add_argument("--page-size", type=int, default=1)
+    parser.add_argument("--shuffle-pages", action="store_true")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     if args.tokens % 64:
         raise SystemExit("raw specialization requires tokens divisible by 64")
+    if args.page_size < 1 or 64 % args.page_size:
+        raise SystemExit("page size must be a positive divisor of the N64 tile")
+    if any(prefix % args.page_size for prefix in args.prefix):
+        raise SystemExit("all prefixes must be page aligned")
 
     baseline_handle, baseline = load(args.baseline_library, args.baseline_hsaco)
     candidate_handle, candidate = load(args.candidate_library, args.candidate_hsaco)
@@ -109,7 +115,17 @@ def main() -> None:
         cache_shape = (max(prefix, 1), 2, 256)
         k_buffer = (torch.randn(cache_shape, device="cuda", dtype=torch.bfloat16) * args.scale).contiguous()
         v_buffer = (torch.randn(cache_shape, device="cuda", dtype=torch.bfloat16) * args.scale).contiguous()
-        indices = torch.arange(prefix, device="cuda", dtype=torch.int64)
+        if args.shuffle_pages and prefix:
+            page_count = prefix // args.page_size
+            page_ids = torch.randperm(page_count, device="cuda", dtype=torch.int64)
+            page_offsets = torch.arange(
+                args.page_size, device="cuda", dtype=torch.int64
+            )
+            indices = (
+                page_ids[:, None] * args.page_size + page_offsets[None, :]
+            ).reshape(-1)
+        else:
+            indices = torch.arange(prefix, device="cuda", dtype=torch.int64)
         indptr = torch.tensor([0, prefix], device="cuda", dtype=torch.int32)
         baseline_output = torch.empty_like(q)
         candidate_output = torch.empty_like(q)
@@ -163,6 +179,9 @@ def main() -> None:
         "estimated_values": False,
         "tokens": args.tokens,
         "candidate_label": args.candidate_label,
+        "page_size": args.page_size,
+        "page_order": "deterministically_shuffled" if args.shuffle_pages else "sequential",
+        "indices_contiguous_within_each_page": True,
         "sample_order": "alternating_ab_ba" if args.interleaved else "sequential_a_then_b",
         "rows": rows,
     }

@@ -4,7 +4,7 @@ set -euo pipefail
 # Execute inside the Netra LXC. This benchmark evicts only the selected
 # checkpoint files from page cache, starts the validated fast loader, waits for
 # health, and stops the exact server process it launched.
-repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+repo_dir=$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)
 model_dir=${MODEL_DIR:-/root/models/qwen36-sgl-mxfp4}
 out_dir=${1:-"${repo_dir}/results/loading/gfx1151/fast-load-$(date -u +%Y%m%dT%H%M%SZ)"}
 port=${SGLANG_PORT:-30000}
@@ -34,7 +34,7 @@ fi
 
 start_ns=$(date +%s%N)
 SGLANG_PORT="${port}" MODEL_DIR="${model_dir}" \
-  bash "${repo_dir}/integrations/sglang/launch.sh" \
+  bash "${repo_dir}/scripts/rocm/integrations/sglang/launch.sh" \
   >"${out_dir}/server.log" 2>&1 &
 server_pid=$!
 

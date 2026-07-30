@@ -3,11 +3,11 @@ set -euo pipefail
 
 # Execute inside the Netra LXC.
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-default_repo=$(cd "${script_dir}/../.." && pwd)
+default_repo=$(git -C "${script_dir}" rev-parse --show-toplevel)
 repo_dir=${1:-"${default_repo}"}
 out_dir=${2:-"${repo_dir}/build/sglang"}
 kernel_dir=${repo_dir}/kernels/gfx1151/mxfp4
-integration_dir=${repo_dir}/integrations/sglang
+integration_dir=${repo_dir}/scripts/rocm/integrations/sglang
 rocm_dir=/opt/rocm-7.2.1
 clang_bin=${rocm_dir}/llvm/bin/clang
 hipcc_bin=${rocm_dir}/bin/hipcc

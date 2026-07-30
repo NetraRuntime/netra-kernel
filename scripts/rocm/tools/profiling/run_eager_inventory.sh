@@ -8,7 +8,7 @@ scheduler_pid=${SCHEDULER_PID:-$(pgrep -f '^sglang::scheduler$' | head -1)}
 
 run_case() {
   local name=$1 input_len=$2 output_len=$3 attach_msec=$4
-  "$repo/tools/profiling/profile_sglang_request.sh" \
+  "$repo/scripts/rocm/tools/profiling/profile_sglang_request.sh" \
     "eager-${name}-${run_tag}" "$input_len" "$output_len" "$attach_msec" \
     "$scheduler_pid"
 }

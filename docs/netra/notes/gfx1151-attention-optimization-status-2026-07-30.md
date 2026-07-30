@@ -20,14 +20,14 @@ a prioritization, not an estimated speedup.
 | 13 | Branch-free full/diagonal kernels | Partially accepted | The scalar full-tile mask fast path is production. Separate kernel launches are untested and likely lower value than keeping one graph-safe uniform branch. |
 | 14 | Raw M64xN32 persistent/global Q | Tried twice, rejected | Persistent-Q at 52 KiB was 56.9% slower. The stronger 32 KiB global-Q/group4 design reduced the regression to 9.919% but still doubled softmax/rescale updates and fetched 69% more bytes. |
 | 15 | Prefix 0/8K/16K/24K specializations | Shapes measured, code not specialized | Low-to-medium priority; current loop bounds already specialize dynamically and duplicated code/graphs have a memory cost. |
-| 16 | Larger pages/contiguous page loads | Not tried | Good co-design target. Page-table caching alone failed, while counters show repeated random K/V traffic remains the real boundary. |
+| 16 | Larger pages/contiguous page loads | Page size 16 tried; rejected | Byte-identical raw ASM cut 24 static `s_load` sites but added 32 `s_add` sites and raised measured SALUInsts. Four-tier HIP time was neutral (1.000920x); three exact 32K/+1 pairs averaged only 1.000647x with one pair reversing sign. Production remains page size 1. |
 | 17 | Fuse Q/K norm + RoPE + KV store | Pending | Sound next fusion target; requires exact KV-cache and RoPE validation before timing. |
 | 18 | M2-M16 verify/dFlash attention | Not tried; input-blocked for dFlash | Strategically important. Current checkpoint has no `dflash_config` and no compatible draft checkpoint is installed, so no speedup is estimated. |
 
 ## Recommended order
 
-1. Larger contiguous KV pages (#16), co-designed with the accepted four-head reuse schedule.
-2. Q/K norm + RoPE + KV-store fusion (#17), with exact KV-cache validation.
+1. Q/K norm + RoPE + KV-store fusion (#17), with exact KV-cache validation.
+2. Revisit contiguous pages (#16) only with cooperative K/V transaction reduction, not index-load reduction alone.
 3. Revisit LDS residency (#5) only with a materially smaller accumulator/register footprint or smaller workgroup; 224 VGPR plus 32 KiB was measured insufficient.
 4. A materially different stable-max/deferred-rescale formulation (#12); retain accepted kvbatch16 (#9).
 5. M2-M16 verify kernels (#18) after real dFlash inputs exist; prefix specialization (#15) only if a new full trace proves tier-specific branch cost.

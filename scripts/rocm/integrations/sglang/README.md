@@ -37,7 +37,7 @@ phase at 9.01 seconds and passes the 49K context tier. Its evidence is in
 Build the native artifacts first:
 
 ```bash
-bash tools/build/build_netra_sglang_gfx1151.sh
+bash scripts/rocm/tools/build/build_netra_sglang_gfx1151.sh
 ```
 
 Then follow the patch, copy, and launch commands in the repository

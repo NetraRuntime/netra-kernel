@@ -63,4 +63,4 @@ the serving claim.
 The accepted trace is
 `results/profiles/gfx1151/raw-gdn-chunk-o-live-shape-32k-start`. The exact
 benchmark is `tools/benchmark/benchmark_gdn_chunk_o.py`; the SGLang source patch is
-`integrations/sglang/sglang-gfx1151-gdn-chunk-o.patch`.
+`scripts/rocm/integrations/sglang/sglang-gfx1151-gdn-chunk-o.patch`.

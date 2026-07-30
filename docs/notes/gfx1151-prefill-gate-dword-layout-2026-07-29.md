@@ -130,7 +130,7 @@ dword store, no LDS, and no scratch.
 
 ## Profiler signal-6 fix
 
-`tools/profiling/profile_sglang_request.sh` now uses the confirmed safe
+`scripts/rocm/tools/profiling/profile_sglang_request.sh` now uses the confirmed safe
 process-start flow. It selects `/root/venv1151/bin/rocprofv3`, disables signal
 handlers, and emits CSV. It refuses to attach to a live scheduler, eliminating
 the inherited resource-tracker SIGABRT recursion that produced repeated
