@@ -340,23 +340,28 @@ The raw full-graph path produced one hash across all five long runs. The
 matched full-Triton control produced two hashes, so its timing is retained as
 the performance control but it did not pass its own repeatability gate.
 
-Piecewise mode is not accepted. Although it reached about 0.8236 seconds for
-210+128 and about 22 ms for exact 210+1, one of five long requests changed
-only output token index 1 (`220` to `95744`). This is recorded as a graph/state
-transition defect, not waived for the faster timing. A pure-Triton piecewise
-control likewise diverged once in ten runs, changing only output index 2 from
-`220` to `96834`; the defect is not unique to the raw kernels. Exact-operand
-capture later attributed the repeatability problem to untuned AITER CK dense
-prefill GEMMs, so those token drifts no longer establish a graph-state root
-cause.
+The first piecewise runs exposed rare token drift in both raw and pure-Triton
+controls. Exact-operand capture later proved that untuned AITER CK dense M=210
+prefill GEMMs were independently nondeterministic, so those token drifts no
+longer establish a graph-state or raw-kernel defect.
 
-A controlled retest used deterministic CKTile for every untuned M=210 dense
-prefill call and the promoted two-wave raw decode path. Its first 210-token
-piecewise request caused an AMDGPU `VM_L2_PROTECTION_FAULT` from TCP clients
-on XCD0/XCD1 and aborted before the first generated-token event. The identical
-full-graph path passed 200/200 short probes and 40/40 exact 210+128 requests.
-Piecewise therefore remains rejected for memory safety while the offending
-replay kernel is localized.
+Experimental compiled M=210 CKTile and Triton integrations subsequently caused
+AMDGPU `VM_L2_PROTECTION_FAULT` events. The faults reproduced with one-wave
+raw, two-wave raw, and raw disabled. Restoring the pinned SGLang FP8 graph path
+made both raw-off and two-wave controls memory-safe. The fault is therefore
+attributed to the rejected compiled-M210 integration, not the raw gfx950
+decode objects.
+
+The accepted interim policy makes exact M=210 prefill an explicit eager graph
+break, uses deterministic CKTile for its untuned block-FP8 GEMMs, retains
+piecewise capture for other buckets, and keeps the two-wave raw M=1 decode
+path. It produced one hash in 200/200 seeded 210+8 probes, 40/40 exact 210+1
+requests, and 40/40 exact 210+128 requests. Median walls were 96.848 ms,
+54.057 ms, and 815.616 ms respectively. The long-run hash was
+`6285266a2fb67a34940db360925b075d4f0c60efc8955bbf4a884558223025c3`.
+Capture evidence excludes bucket 210 and records its prefill as
+`cuda graph: False`. Native M=210 piecewise capture remains rejected; this
+explicit graph-break policy is accepted for continued validation.
 
 ROCm 7.2 rocprofv3 dynamic-attach and process-start tracing both crashed the
 scheduler in `at::cuda::CUDAGraph::replay()` after five output tokens. Their
@@ -385,13 +390,26 @@ Retained artifacts:
   correctness/piecewise_triton_raw_full_m1_20260730T023309Z/
   correctness/piecewise_triton_control_20260730T024848Z/
   correctness/piecewise_raw_2wave_fp8cktile_all_m210_20260730T042900Z/
+  correctness/piecewise_selective_two_m210_20260730T044202Z/
+  correctness/piecewise_qkvz_only_m210_20260730T044511Z/
+  correctness/piecewise_m210_graph_cktile_20260730T045227Z/
+  correctness/piecewise_m210_graph_triton_20260730T045709Z/
+  correctness/piecewise_raw_off_fp8utils_head_20260730T050953Z/
+  correctness/piecewise_raw_two_wave_fp8utils_head_20260730T051214Z/
+  correctness/piecewise_raw_two_wave_m210_eager_cktile_20260730T051615Z/
+  kernel_experiments/qwen36_fp8_qkvz_m210_graph_20260730T044400Z/
+  kernel_experiments/qwen36_fp8_qkvz_m210_compiled_custom_op_20260730T045100Z/
+  kernel_experiments/qwen36_fp8_attn_qkv_m210_compiled_custom_op_20260730T045130Z/
+  kernel_experiments/qwen36_fp8_qkvz_m210_compiled_custom_triton_20260730T045600Z/
+  kernel_experiments/qwen36_fp8_attn_qkv_m210_compiled_custom_triton_20260730T045630Z/
   profiles/rocprof/full_raw_m1_attach_20260730T023811Z/
   profiles/rocprof/full_raw_m1_wrapped_20260730T024030Z/
 ```
 
-Status: **accepted for continued full-graph validation**. Counter evidence,
-complete layer/state tolerances, longer required cases, and the piecewise
-transition defect remain open before production promotion.
+Status: **accepted for continued full-graph and explicit-M210-break piecewise
+validation**. Counter evidence, complete layer/state tolerances, longer
+required cases, and native M=210 piecewise capture remain open before
+production promotion.
 
 ## Two-wave down/reduce promotion and deterministic prefill oracle
 

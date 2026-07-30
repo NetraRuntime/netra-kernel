@@ -58,6 +58,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--iterations", type=int, default=20)
     parser.add_argument("--warmup", type=int, default=3)
     parser.add_argument(
+        "--graph-replays",
+        type=int,
+        default=0,
+        help=(
+            "Capture CKTile with preallocated and capture-allocated outputs, "
+            "then validate this many native HIP graph replays."
+        ),
+    )
+    parser.add_argument(
         "--projection",
         choices=tuple(PROJECTIONS),
         default="gdn_qkvz",
@@ -291,12 +300,93 @@ def measure_variant(
     }
 
 
+def measure_cktile_graph_replay(
+    input_tensor: torch.Tensor,
+    weight: torch.Tensor,
+    weight_scale: torch.Tensor,
+    replays: int,
+    allocate_during_capture: bool,
+) -> dict:
+    q_input, x_scale = quantize(input_tensor)
+    reference = torch.empty(
+        (M, N), dtype=torch.bfloat16, device=input_tensor.device
+    )
+    gemm_a8w8_blockscale_bpreshuffle_cktile(
+        q_input, weight, x_scale, weight_scale, reference
+    )
+    torch.cuda.synchronize()
+    reference = reference.detach().clone()
+
+    graph = torch.cuda.CUDAGraph()
+    output = None
+    if not allocate_during_capture:
+        output = torch.empty(
+            (M, N), dtype=torch.bfloat16, device=input_tensor.device
+        )
+    torch.cuda.synchronize()
+    with torch.cuda.graph(graph):
+        if allocate_during_capture:
+            output = torch.empty(
+                (M, N), dtype=torch.bfloat16, device=input_tensor.device
+            )
+        output = gemm_a8w8_blockscale_bpreshuffle_cktile(
+            q_input, weight, x_scale, weight_scale, output
+        )
+    torch.cuda.synchronize()
+
+    hashes: list[str] = []
+    maximum_mismatch_count = 0
+    maximum_abs_error = 0.0
+    durations_us: list[float] = []
+    for _ in range(replays):
+        start = torch.cuda.Event(enable_timing=True)
+        end = torch.cuda.Event(enable_timing=True)
+        start.record()
+        graph.replay()
+        end.record()
+        end.synchronize()
+        durations_us.append(float(start.elapsed_time(end)) * 1000.0)
+        hashes.append(tensor_sha256(output))
+        maximum_mismatch_count = max(
+            maximum_mismatch_count,
+            int(torch.ne(reference, output).sum().item()),
+        )
+        maximum_abs_error = max(
+            maximum_abs_error,
+            float(
+                (reference.float() - output.float()).abs().max().item()
+            ),
+        )
+
+    return {
+        "allocate_during_capture": allocate_during_capture,
+        "replays": replays,
+        "unique_output_hashes": len(set(hashes)),
+        "output_hashes": hashes,
+        "reference_sha256": tensor_sha256(reference),
+        "maximum_mismatch_count_from_eager": maximum_mismatch_count,
+        "maximum_abs_error_from_eager": maximum_abs_error,
+        "duration_us": {
+            "minimum": min(durations_us),
+            "median": statistics.median(durations_us),
+            "maximum": max(durations_us),
+        },
+    }
+
+
 def main() -> None:
     global N
 
     args = parse_args()
-    if args.iterations <= 0 or args.warmup < 0:
-        raise ValueError("iterations must be positive and warmup nonnegative")
+    if (
+        args.iterations <= 0
+        or args.warmup < 0
+        or args.graph_replays < 0
+    ):
+        raise ValueError(
+            "iterations must be positive; warmup and graph-replays "
+            "must be nonnegative"
+        )
     if torch.version.hip is None:
         raise RuntimeError("This harness requires ROCm")
     props = torch.cuda.get_device_properties(0)
@@ -341,6 +431,25 @@ def main() -> None:
             }
         report["variants"].append(result)
         print(json.dumps(result, sort_keys=True), flush=True)
+
+    if args.graph_replays:
+        report["cktile_graph_replay"] = []
+        for allocate_during_capture in (False, True):
+            try:
+                result = measure_cktile_graph_replay(
+                    input_tensor,
+                    weight,
+                    weight_scale,
+                    args.graph_replays,
+                    allocate_during_capture,
+                )
+            except Exception as error:
+                result = {
+                    "allocate_during_capture": allocate_during_capture,
+                    "error": f"{type(error).__name__}: {error}",
+                }
+            report["cktile_graph_replay"].append(result)
+            print(json.dumps(result, sort_keys=True), flush=True)
 
     q_input, x_scale = quantize(input_tensor)
     oracle_fp32 = fp32_oracle(q_input, x_scale, weight, weight_scale)
