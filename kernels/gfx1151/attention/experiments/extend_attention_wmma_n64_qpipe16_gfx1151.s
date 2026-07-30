@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Raw gfx1151 online-softmax extend attention for Qwen3.6 standard attention.
 // Fixed B=1, Hq=16, Hkv=2, Dq=Dv=256, BF16, causal, page size 1.
-// Tile: M64 x N64 with K-only LDS-bank swizzle. Grid=(M/64,16,1), block=128.
+// Tile: M64 x N64 with sixteen-way Q load/restore issue batch with K-only LDS-bank swizzle. Grid=(M/64,16,1), block=128.
 
 .amdgcn_target "amdgcn-amd-amdhsa--gfx1151"
 .amdhsa_code_object_version 6
@@ -221,32 +221,43 @@
   v_add_nc_u32_e32 v233, 6144, v233
 .endm
 
-// Load or restore all 16 Q depth fragments in two batches. v192:v223 are
-// dead at both call sites; retaining eight VMEM operations before vmcnt(0)
-// exposes memory-level parallelism without changing the 248-VGPR allocation.
-.macro LOAD_Q_PIPE8
-  .set QP, 0
-  .rept 2
-    .set QI, 0
-    .rept 8
-      global_load_b128 v[192+QI*4:195+QI*4], v240, s[4:5] offset:((QP*8+QI)*32)
-      .set QI, QI+1
-    .endr
-    s_waitcnt vmcnt(0)
-    .set QI, 0
-    .rept 8
-      ds_write_b128 v5, v[192+QI*4:195+QI*4] offset:((QP*8+QI)*32)
-      .set QI, QI+1
-    .endr
-    .set QP, QP+1
+// Load or restore all 16 Q depth fragments in one issue batch. The scattered
+// destinations are dead at both call sites and remain below existing v240.
+.macro LOAD_Q_PIPE16
+  .set QI, 0
+  .rept 16
+    .if QI < 6
+      global_load_b128 v[8+QI*4:11+QI*4], v240, s[4:5] offset:(QI*32)
+    .elseif QI < 14
+      global_load_b128 v[192+(QI-6)*4:195+(QI-6)*4], v240, s[4:5] offset:(QI*32)
+    .elseif QI == 14
+      global_load_b128 v[225:228], v240, s[4:5] offset:(QI*32)
+    .else
+      global_load_b128 v[231:234], v240, s[4:5] offset:(QI*32)
+    .endif
+    .set QI, QI+1
+  .endr
+  s_waitcnt vmcnt(0)
+  .set QI, 0
+  .rept 16
+    .if QI < 6
+      ds_write_b128 v5, v[8+QI*4:11+QI*4] offset:(QI*32)
+    .elseif QI < 14
+      ds_write_b128 v5, v[192+(QI-6)*4:195+(QI-6)*4] offset:(QI*32)
+    .elseif QI == 14
+      ds_write_b128 v5, v[225:228] offset:(QI*32)
+    .else
+      ds_write_b128 v5, v[231:234] offset:(QI*32)
+    .endif
+    .set QI, QI+1
   .endr
 .endm
 
-.protected extend_attention_wmma_n64_gfx1151
-.globl extend_attention_wmma_n64_gfx1151
+.protected extend_attention_wmma_n64_qpipe16_gfx1151
+.globl extend_attention_wmma_n64_qpipe16_gfx1151
 .p2align 8
-.type extend_attention_wmma_n64_gfx1151,@function
-extend_attention_wmma_n64_gfx1151:
+.type extend_attention_wmma_n64_qpipe16_gfx1151,@function
+extend_attention_wmma_n64_qpipe16_gfx1151:
   // q, k_extend, v_extend, o, k_buffer, v_buffer, kv_indices,
   // tokens, prefix_tokens, sm_scale, reserved
   s_clause 0x3
@@ -291,7 +302,7 @@ extend_attention_wmma_n64_gfx1151:
   v_lshlrev_b32_e32 v5, 13, v2
   v_lshl_add_u32 v5, v3, 9, v5
   v_lshl_add_u32 v5, v4, 4, v5
-  LOAD_Q_PIPE8
+  LOAD_Q_PIPE16
   s_waitcnt lgkmcnt(0)
   s_barrier
 
@@ -331,7 +342,7 @@ extend_attention_wmma_n64_gfx1151:
   // Restore the four Q rows occupied by the preceding tile's P transpose.
   v_cmp_le_u32_e32 vcc_lo, 12, v3
   s_and_saveexec_b32 s42, vcc_lo
-  LOAD_Q_PIPE8
+  LOAD_Q_PIPE16
   s_mov_b32 exec_lo, s42
   s_waitcnt lgkmcnt(0)
   s_barrier
@@ -687,7 +698,7 @@ extend_attention_wmma_n64_gfx1151:
 
 .section .rodata,"a",@progbits
 .p2align 6, 0
-.amdhsa_kernel extend_attention_wmma_n64_gfx1151
+.amdhsa_kernel extend_attention_wmma_n64_qpipe16_gfx1151
 .amdhsa_group_segment_fixed_size 65536
 .amdhsa_private_segment_fixed_size 0
 .amdhsa_kernarg_size 72
@@ -712,7 +723,7 @@ extend_attention_wmma_n64_gfx1151:
 .end_amdhsa_kernel
 .text
 .Lfunc_end0:
-.size extend_attention_wmma_n64_gfx1151, .Lfunc_end0-extend_attention_wmma_n64_gfx1151
+.size extend_attention_wmma_n64_qpipe16_gfx1151, .Lfunc_end0-extend_attention_wmma_n64_qpipe16_gfx1151
 
 .amdgpu_metadata
 ---
@@ -735,11 +746,11 @@ amdhsa.kernels:
     .language: OpenCL C
     .language_version: [2, 0]
     .max_flat_workgroup_size: 128
-    .name: extend_attention_wmma_n64_gfx1151
+    .name: extend_attention_wmma_n64_qpipe16_gfx1151
     .private_segment_fixed_size: 0
     .sgpr_count: 48
     .sgpr_spill_count: 0
-    .symbol: extend_attention_wmma_n64_gfx1151.kd
+    .symbol: extend_attention_wmma_n64_qpipe16_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 244

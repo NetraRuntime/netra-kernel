@@ -163,3 +163,12 @@ and prefix-8192 replay were bit-identical to eager output after changing only
 the device `kv_indptr` value. Prefix-8192 graph replay measured 130.799 ms
 median over seven HIP-event samples. No allocation, `.item()`, or host
 synchronization was added to the captured path.
+
+## Accepted qpipe8 follow-up (2026-07-30)
+
+The production raw N64 kernel now batches the prologue and per-tile Q restore
+loads eight at a time. Exact T8192 four-tier HIP-event cost improves 696.698 to
+679.227 ms (1.0257x), and two exact 32K/+1 matched real-checkpoint pairs improve
+mean host E2E 24,227.707 to 23,304.863 ms with identical greedy outputs. Graph
+replay remains byte-identical. All runtime values are measured on gfx1151; see
+`docs/notes/gfx1151-extend-attention-qpipe8-2026-07-30.md` for full evidence.

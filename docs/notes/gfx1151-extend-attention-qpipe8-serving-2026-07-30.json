@@ -1,0 +1,87 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured_host_serving_end_to_end",
+  "estimated_values": false,
+  "scenario": "exact 32768 input +1 output, uncached, batch1, graph disabled, dFlash disabled",
+  "nonstream_pairs": [
+    {
+      "pair": "A",
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens_baseline": 0,
+      "cached_tokens_qpipe8": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "baseline_host_e2e_ms": 24797.658146,
+      "qpipe8_host_e2e_ms": 23402.155779,
+      "speedup": 1.059631359613983,
+      "input_ids_sha256": "8cfb812e7790bde7f17f4b8efe163eac3213b9ee841eac9c6a2f098a036e7aee",
+      "input_hash_match": true,
+      "baseline_output_ids": [
+        5525
+      ],
+      "qpipe8_output_ids": [
+        5525
+      ],
+      "output_ids_match": true,
+      "baseline_output_text_sha256": "be0fa08bb8f12a376ccebf5e748b860328f74eca15696fb2653f984fbfe67ba5",
+      "qpipe8_output_text_sha256": "be0fa08bb8f12a376ccebf5e748b860328f74eca15696fb2653f984fbfe67ba5",
+      "output_hash_match": true,
+      "baseline_peak_vram_bytes": 102990295040,
+      "qpipe8_peak_vram_bytes": 102884691968
+    },
+    {
+      "pair": "B",
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens_baseline": 0,
+      "cached_tokens_qpipe8": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "baseline_host_e2e_ms": 23657.756741,
+      "qpipe8_host_e2e_ms": 23207.569851,
+      "speedup": 1.0193982779278634,
+      "input_ids_sha256": "8908c10f61078db90bea52eba17288020b6d7435f81c15fdc8744ded3e7d092a",
+      "input_hash_match": true,
+      "baseline_output_ids": [
+        220
+      ],
+      "qpipe8_output_ids": [
+        220
+      ],
+      "output_ids_match": true,
+      "baseline_output_text_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+      "qpipe8_output_text_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+      "output_hash_match": true,
+      "baseline_peak_vram_bytes": 102694227968,
+      "qpipe8_peak_vram_bytes": 102884691968
+    }
+  ],
+  "mean_baseline_host_e2e_ms": 24227.707443500003,
+  "mean_qpipe8_host_e2e_ms": 23304.862815,
+  "mean_delta_ms": 922.8446285000027,
+  "mean_speedup": 1.0395988011526085,
+  "mean_latency_reduction_percent": 3.8090464425993003,
+  "matched_streaming_pair": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens_baseline": 0,
+    "cached_tokens_qpipe8": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "baseline_host_ttft_ms": 23671.592243,
+    "qpipe8_host_ttft_ms": 23398.246169000002,
+    "ttft_speedup": 1.0116823317451096,
+    "baseline_input_tokens_per_s": 1384.2752808354041,
+    "qpipe8_input_tokens_per_s": 1400.4468438926783,
+    "baseline_host_e2e_ms": 23671.72909,
+    "qpipe8_host_e2e_ms": 23398.398045,
+    "input_hash_match": true,
+    "output_ids_match": true,
+    "output_hash_match": true,
+    "output_throughput_tokens_per_s": null,
+    "output_throughput_reason": "single output token",
+    "baseline_peak_vram_bytes": 102249635840,
+    "qpipe8_peak_vram_bytes": 102438154240
+  }
+}

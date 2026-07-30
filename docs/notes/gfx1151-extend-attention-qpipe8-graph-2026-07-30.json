@@ -1,0 +1,21 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured_hip_events",
+  "estimated_values": false,
+  "tokens": 8192,
+  "capture_prefix_tokens": 0,
+  "replay_prefix_tokens": 8192,
+  "stable_device_pointers": true,
+  "eager_equal_replay_prefix0": true,
+  "eager_equal_replay_prefix8192": true,
+  "prefix8192_replay_samples_ms": [
+    124.3975601196289,
+    124.62815856933594,
+    124.74534606933594,
+    124.64383697509766,
+    124.9132308959961,
+    124.96147918701172,
+    124.84342956542969
+  ],
+  "prefix8192_replay_median_ms": 124.74534606933594
+}
