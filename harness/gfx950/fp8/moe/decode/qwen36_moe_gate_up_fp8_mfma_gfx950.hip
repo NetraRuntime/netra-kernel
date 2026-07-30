@@ -30,6 +30,15 @@ static std::vector<uint8_t> read_binary(const std::string& path) {
   return data;
 }
 
+static std::vector<uint8_t> repeat_rows(
+    const std::vector<uint8_t>& row, int rows) {
+  std::vector<uint8_t> result(row.size() * rows);
+  for (int i = 0; i < rows; ++i) {
+    std::memcpy(result.data() + i * row.size(), row.data(), row.size());
+  }
+  return result;
+}
+
 struct DeviceBuffer {
   void* pointer = nullptr;
   explicit DeviceBuffer(size_t bytes) { HIP_CHECK(hipMalloc(&pointer, bytes)); }
@@ -40,14 +49,17 @@ struct DeviceBuffer {
 
 int main(int argc, char** argv) {
   try {
-    if (argc < 3 || argc > 4) {
+    if (argc < 3 || argc > 5) {
       std::cerr << "usage: " << argv[0]
-                << " KERNEL.hsaco CAPTURE_DIR [iterations]\n";
+                << " KERNEL.hsaco CAPTURE_DIR [iterations] [rows]\n";
       return 2;
     }
     const std::string hsaco = argv[1];
     const std::string capture = argv[2];
-    const int iterations = argc == 4 ? std::stoi(argv[3]) : 100;
+    const int iterations = argc >= 4 ? std::stoi(argv[3]) : 100;
+    const int rows = argc == 5 ? std::stoi(argv[4]) : 1;
+    if (iterations <= 0 || rows <= 0)
+      throw std::runtime_error("iterations and rows must be positive");
 
     int device = 0;
     HIP_CHECK(hipGetDevice(&device));
@@ -75,6 +87,12 @@ int main(int argc, char** argv) {
         aiter.size() != reference.size())
       throw std::runtime_error("capture binary size mismatch");
 
+    hidden = repeat_rows(hidden, rows);
+    hidden_scale = repeat_rows(hidden_scale, rows);
+    topk_ids = repeat_rows(topk_ids, rows);
+    reference = repeat_rows(reference, rows);
+    aiter = repeat_rows(aiter, rows);
+
     DeviceBuffer d_hidden(hidden.size()), d_hidden_scale(hidden_scale.size());
     DeviceBuffer d_weights(weights.size()), d_weight_scale(weight_scale.size());
     DeviceBuffer d_topk_ids(topk_ids.size()), d_output(reference.size());
@@ -101,7 +119,8 @@ int main(int argc, char** argv) {
     };
     auto launch = [&]() {
       HIP_CHECK(hipModuleLaunchKernel(
-          function, 576, 1, 1, 64, 1, 1, 0, nullptr, kernel_args, nullptr));
+          function, 576, static_cast<unsigned>(rows), 1, 64, 1, 1, 0,
+          nullptr, kernel_args, nullptr));
     };
     for (int i = 0; i < 10; ++i) launch();
     HIP_CHECK(hipDeviceSynchronize());
@@ -110,7 +129,7 @@ int main(int argc, char** argv) {
     HIP_CHECK(hipEventCreate(&start));
     HIP_CHECK(hipEventCreate(&stop));
     std::vector<float> timings;
-    std::vector<float> output(9 * 1024), first_output;
+    std::vector<float> output(rows * 9 * 1024), first_output;
     size_t nondeterministic_iterations = 0;
     for (int i = 0; i < iterations; ++i) {
       HIP_CHECK(hipEventRecord(start));
@@ -150,6 +169,7 @@ int main(int argc, char** argv) {
     const double aiter_cosine =
         aiter_dot / (std::sqrt(out_norm) * std::sqrt(aiter_norm));
     std::cout << "architecture=" << architecture << "\n"
+              << "rows=" << rows << "\n"
               << "nondeterministic_iterations=" << nondeterministic_iterations
               << "/" << iterations << "\n"
               << "max_abs_error_f32=" << max_absolute << "\n"

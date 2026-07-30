@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 //
-// Native-CDNA4 Qwen3.6 M=1 routed gate/up projection.
-// One wave64 computes 16 columns for one routed slot. Each 128-wide K block
-// maps to one gfx950 E4M3 16x16x128 MFMA followed by the checkpoint's FP32
-// activation and weight block scales.
+// Native-CDNA4 Qwen3.6 rowwise routed gate/up projection.
+// Grid Y selects an independent token. Grid X retains the validated M=1
+// slot/tile organization, so an M=16 verification launch has exactly the
+// same reduction order within every row. One wave64 computes 16 columns for
+// one routed slot.
 
 	.amdgcn_target "amdgcn-amd-amdhsa--gfx950"
 	.amdhsa_code_object_version 6
@@ -23,10 +24,22 @@ qwen36_moe_gate_up_fp8_mfma_gfx950:
 	s_load_dwordx2 s[14:15], s[0:1], 40
 	s_waitcnt lgkmcnt(0)
 
+	// Token-local hidden/scales. Each token owns 2048 FP8 bytes and 16 f32
+	// activation scales.
+	s_lshl_b32 s36, s3, 11
+	s_add_u32 s4, s4, s36
+	s_addc_u32 s5, s5, 0
+	s_lshl_b32 s36, s3, 6
+	s_add_u32 s6, s6, s36
+	s_addc_u32 s7, s7, 0
+
 	// slot = workgroup/64, tile = workgroup%64, N = tile*16 + lane%16.
+	// route = token*9 + slot indexes routing and output rows.
 	s_lshr_b32 s18, s2, 6
 	s_and_b32 s19, s2, 63
-	s_lshl_b32 s20, s18, 2
+	s_mul_i32 s35, s3, 9
+	s_add_u32 s35, s35, s18
+	s_lshl_b32 s20, s35, 2
 	s_load_dword s21, s[12:13], s20
 	v_and_b32_e32 v1, 15, v0
 	v_and_b32_e32 v2, 48, v0
@@ -76,8 +89,8 @@ qwen36_moe_gate_up_fp8_mfma_gfx950:
 
 	v_cmp_gt_u32_e32 vcc, 16, v0
 	s_and_saveexec_b64 s[36:37], vcc
-	// output[(slot*1024)+N]
-	s_lshl_b32 s34, s18, 12
+	// output[(route*1024)+N]
+	s_lshl_b32 s34, s35, 12
 	v_lshlrev_b32_e32 v8, 2, v3
 	v_add_u32_e32 v8, s34, v8
 	global_store_dword v8, v6, s[14:15]
@@ -94,7 +107,7 @@ qwen36_moe_gate_up_fp8_mfma_gfx950:
 		.amdhsa_user_sgpr_kernarg_segment_ptr 1
 		.amdhsa_enable_private_segment 0
 		.amdhsa_system_sgpr_workgroup_id_x 1
-		.amdhsa_system_sgpr_workgroup_id_y 0
+		.amdhsa_system_sgpr_workgroup_id_y 1
 		.amdhsa_system_sgpr_workgroup_id_z 0
 		.amdhsa_system_vgpr_workitem_id 0
 		.amdhsa_next_free_vgpr 30

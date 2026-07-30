@@ -34,6 +34,7 @@ std::mutex down_module_mutex;
 hipModule_t down_module = nullptr;
 hipFunction_t down_function = nullptr;
 unsigned int down_threads = kDownThreadsOneWave;
+bool down_supports_rows = false;
 std::string down_loaded_path;
 std::mutex gate_up_module_mutex;
 hipModule_t gate_up_module = nullptr;
@@ -209,6 +210,7 @@ extern "C" int netra_qwen36_moe_down_reduce_load(
       two_wave ? kDownKernelNameTwoWave : kDownKernelNameOneWave;
   down_threads =
       two_wave ? kDownThreadsTwoWave : kDownThreadsOneWave;
+  down_supports_rows = two_wave;
   error = hipModuleGetFunction(
       &down_function, down_module, down_kernel_name);
   if (error != hipSuccess) {
@@ -230,6 +232,7 @@ extern "C" int netra_qwen36_moe_down_reduce_launch(
     const float* topk_weights_f32,
     const int32_t* topk_ids_i32,
     void* output_bf16,
+    int rows,
     hipStream_t stream) {
   if (down_function == nullptr) {
     return fail_message("raw down-reduce module is not loaded");
@@ -239,6 +242,12 @@ extern "C" int netra_qwen36_moe_down_reduce_launch(
       topk_weights_f32 == nullptr || topk_ids_i32 == nullptr ||
       output_bf16 == nullptr) {
     return fail_message("down-reduce launch pointers must be nonnull");
+  }
+  if (rows <= 0) {
+    return fail_message("down-reduce rows must be positive");
+  }
+  if (!down_supports_rows && rows != 1) {
+    return fail_message("selected down-reduce variant supports only one row");
   }
 
   void* arguments[] = {
@@ -253,7 +262,7 @@ extern "C" int netra_qwen36_moe_down_reduce_launch(
   hipError_t error = hipModuleLaunchKernel(
       down_function,
       kDownGrid,
-      1,
+      static_cast<unsigned int>(rows),
       1,
       down_threads,
       1,
@@ -282,6 +291,7 @@ extern "C" int netra_qwen36_moe_down_reduce_unload(void) {
   down_module = nullptr;
   down_function = nullptr;
   down_threads = kDownThreadsOneWave;
+  down_supports_rows = false;
   down_loaded_path.clear();
   last_error.clear();
   return 0;
@@ -342,6 +352,7 @@ extern "C" int netra_qwen36_moe_gate_up_launch(
     const float* w13_scale_f32,
     const int32_t* topk_ids_i32,
     float* output_f32,
+    int rows,
     hipStream_t stream) {
   if (gate_up_function == nullptr)
     return fail_message("raw gate/up module is not loaded");
@@ -349,12 +360,15 @@ extern "C" int netra_qwen36_moe_gate_up_launch(
       w13_fp8 == nullptr || w13_scale_f32 == nullptr ||
       topk_ids_i32 == nullptr || output_f32 == nullptr)
     return fail_message("gate/up launch pointers must be nonnull");
+  if (rows <= 0)
+    return fail_message("gate/up rows must be positive");
   void* arguments[] = {
       &hidden_fp8,       &hidden_scale_f32, &w13_fp8,
       &w13_scale_f32,    &topk_ids_i32,     &output_f32,
   };
   hipError_t error = hipModuleLaunchKernel(
-      gate_up_function, kGateUpGrid, 1, 1, kThreads, 1, 1, 0, stream,
+      gate_up_function, kGateUpGrid, static_cast<unsigned int>(rows), 1,
+      kThreads, 1, 1, 0, stream,
       arguments, nullptr);
   if (error != hipSuccess)
     return fail("hipModuleLaunchKernel(gate/up)", error);

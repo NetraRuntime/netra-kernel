@@ -33,6 +33,15 @@ static std::vector<uint8_t> read_binary(const std::string& path) {
   return data;
 }
 
+static std::vector<uint8_t> repeat_rows(
+    const std::vector<uint8_t>& row, int rows) {
+  std::vector<uint8_t> result(row.size() * rows);
+  for (int i = 0; i < rows; ++i) {
+    std::memcpy(result.data() + i * row.size(), row.data(), row.size());
+  }
+  return result;
+}
+
 static float bf16_to_float(uint16_t value) {
   uint32_t bits = static_cast<uint32_t>(value) << 16;
   float result;
@@ -52,10 +61,10 @@ struct DeviceBuffer {
 
 int main(int argc, char** argv) {
   try {
-    if (argc < 3 || argc > 7) {
+    if (argc < 3 || argc > 8) {
       std::cerr << "usage: " << argv[0]
                 << " KERNEL.hsaco CAPTURE_DIR [iterations] [symbol] [grid_x]"
-                   " [block_x]\n";
+                   " [block_x] [rows]\n";
       return 2;
     }
     const std::string hsaco = argv[1];
@@ -63,9 +72,13 @@ int main(int argc, char** argv) {
     const int iterations = argc >= 4 ? std::stoi(argv[3]) : 100;
     const std::string symbol =
         argc >= 5 ? argv[4] : "qwen36_moe_down_reduce_fp8_gfx950";
-    const unsigned grid_x = argc >= 6 ? std::stoul(argv[5]) : 32;
-    const unsigned block_x = argc >= 7 ? std::stoul(argv[6]) : 64;
+    const bool two_wave = symbol.find("_2wave_") != std::string::npos;
+    const unsigned grid_x = argc >= 6 ? std::stoul(argv[5]) : 128;
+    const unsigned block_x =
+        argc >= 7 ? std::stoul(argv[6]) : (two_wave ? 128 : 64);
+    const int rows = argc >= 8 ? std::stoi(argv[7]) : 1;
     if (iterations <= 0) throw std::runtime_error("iterations must be positive");
+    if (rows <= 0) throw std::runtime_error("rows must be positive");
     if (block_x != 64 && block_x != 128) {
       throw std::runtime_error("block_x must be 64 or 128");
     }
@@ -105,6 +118,14 @@ int main(int argc, char** argv) {
       throw std::runtime_error("capture binary size mismatch");
     }
 
+    activation = repeat_rows(activation, rows);
+    activation_scale = repeat_rows(activation_scale, rows);
+    topk_weights = repeat_rows(topk_weights, rows);
+    topk_ids = repeat_rows(topk_ids, rows);
+    reference_f32 = repeat_rows(reference_f32, rows);
+    reference_bf16 = repeat_rows(reference_bf16, rows);
+    aiter_bf16 = repeat_rows(aiter_bf16, rows);
+
     DeviceBuffer d_activation(activation.size());
     DeviceBuffer d_activation_scale(activation_scale.size());
     DeviceBuffer d_weights(weights.size());
@@ -137,8 +158,9 @@ int main(int argc, char** argv) {
         &output_pointer,
     };
     auto launch = [&]() {
-      HIP_CHECK(hipModuleLaunchKernel(function, grid_x, 1, 1, block_x, 1, 1, 0,
-                                      nullptr, kernel_args, nullptr));
+      HIP_CHECK(hipModuleLaunchKernel(
+          function, grid_x, static_cast<unsigned>(rows), 1, block_x, 1, 1,
+          0, nullptr, kernel_args, nullptr));
     };
     for (int i = 0; i < 10; ++i) launch();
     HIP_CHECK(hipDeviceSynchronize());
@@ -148,7 +170,7 @@ int main(int argc, char** argv) {
     HIP_CHECK(hipEventCreate(&stop));
     std::vector<float> timings;
     timings.reserve(iterations);
-    std::vector<uint16_t> iteration_output(2048);
+    std::vector<uint16_t> iteration_output(rows * 2048);
     std::vector<uint16_t> first_iteration_output;
     size_t nondeterministic_iterations = 0;
     for (int i = 0; i < iterations; ++i) {
@@ -170,7 +192,7 @@ int main(int argc, char** argv) {
     HIP_CHECK(hipEventDestroy(start));
     HIP_CHECK(hipEventDestroy(stop));
 
-    std::vector<uint16_t> output(2048);
+    std::vector<uint16_t> output(rows * 2048);
     HIP_CHECK(hipMemcpy(output.data(), d_output.pointer, reference_bf16.size(),
                         hipMemcpyDeviceToHost));
     const auto* reference_values =
@@ -203,8 +225,11 @@ int main(int argc, char** argv) {
     const double cosine =
         dot / (std::sqrt(output_norm) * std::sqrt(reference_norm));
     std::cout << "architecture=" << architecture << "\n"
-              << "reference_bf16_mismatches=" << reference_mismatches << "/2048\n"
-              << "aiter_bf16_mismatches=" << aiter_mismatches << "/2048\n"
+              << "rows=" << rows << "\n"
+              << "reference_bf16_mismatches=" << reference_mismatches << "/"
+              << output.size() << "\n"
+              << "aiter_bf16_mismatches=" << aiter_mismatches << "/"
+              << output.size() << "\n"
               << "nondeterministic_iterations=" << nondeterministic_iterations
               << "/" << iterations << "\n"
               << "max_abs_error_f32=" << max_absolute << "\n"

@@ -40,6 +40,7 @@ int netra_qwen36_moe_down_reduce_launch(
     const float* topk_weights_f32,
     const int32_t* topk_ids_i32,
     void* output_bf16,
+    int rows,
     hipStream_t stream);
 
 int netra_qwen36_moe_down_reduce_unload(void);
@@ -55,6 +56,7 @@ int netra_qwen36_moe_gate_up_launch(
     const float* w13_scale_f32,
     const int32_t* topk_ids_i32,
     float* output_f32,
+    int rows,
     hipStream_t stream);
 
 int netra_qwen36_moe_gate_up_unload(void);

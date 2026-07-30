@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 //
-// Experimental native-CDNA4 MFMA Qwen3.6 M=1 MoE down projection.
+// Native-CDNA4 MFMA Qwen3.6 rowwise MoE down projection.
 //
 // Two wave64s share each 16-column output tile. Wave 0 evaluates routed slots
 // 0..4. Wave 1 evaluates slots 5..8 and writes each individually scaled K-block
 // contribution to LDS. After a workgroup barrier, wave 0 consumes those
-// contributions in the original slot/K order. This preserves the one-wave
-// kernel's FP32 accumulation order while launching 256 waves across the 256-CU
-// MI350X instead of 128.
+// contributions in the original slot/K order. Grid Y selects an independent
+// token without changing that validated M=1 accumulation order.
 
 	.amdgcn_target "amdgcn-amd-amdhsa--gfx950"
 	.amdhsa_code_object_version 6
@@ -27,6 +26,30 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 	s_load_dwordx2 s[14:15], s[0:1], 40
 	s_load_dwordx2 s[16:17], s[0:1], 48
 	s_waitcnt lgkmcnt(0)
+
+	// Token-local activation, scale, routing, and output bases. Grid Y is the
+	// token index. Per-token byte strides are 9*512, 9*4*f32, 9*f32,
+	// and 2048*bf16 respectively.
+	s_lshl_b32 s32, s3, 12
+	s_lshl_b32 s33, s3, 9
+	s_add_u32 s32, s32, s33
+	s_add_u32 s4, s4, s32
+	s_addc_u32 s5, s5, 0
+	s_lshl_b32 s32, s3, 7
+	s_lshl_b32 s33, s3, 4
+	s_add_u32 s32, s32, s33
+	s_add_u32 s6, s6, s32
+	s_addc_u32 s7, s7, 0
+	s_lshl_b32 s32, s3, 5
+	s_lshl_b32 s33, s3, 2
+	s_add_u32 s32, s32, s33
+	s_add_u32 s12, s12, s32
+	s_addc_u32 s13, s13, 0
+	s_add_u32 s14, s14, s32
+	s_addc_u32 s15, s15, 0
+	s_lshl_b32 s32, s3, 12
+	s_add_u32 s16, s16, s32
+	s_addc_u32 s17, s17, 0
 
 	// v0 is the 0..127 workitem id and v30 is the wave-local lane id.
 	v_and_b32_e32 v30, 63, v0
@@ -215,7 +238,7 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 		.amdhsa_user_sgpr_kernarg_segment_ptr 1
 		.amdhsa_enable_private_segment 0
 		.amdhsa_system_sgpr_workgroup_id_x 1
-		.amdhsa_system_sgpr_workgroup_id_y 0
+		.amdhsa_system_sgpr_workgroup_id_y 1
 		.amdhsa_system_sgpr_workgroup_id_z 0
 		.amdhsa_system_vgpr_workitem_id 0
 		.amdhsa_next_free_vgpr 32
