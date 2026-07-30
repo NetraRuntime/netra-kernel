@@ -1,0 +1,166 @@
+
+File: /root/netra-mxfp4-gfx1151/build/experiments/qk-norm-mrope-kv-fusion/qk_norm_mrope_gate_kv_store_gfx1151.hsaco
+Format: elf64-amdgpu
+Arch: amdgcn
+AddressSize: 64bit
+LoadName: <Not found>
+Symbols [
+  Symbol {
+    Name:  (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Undefined (0x0)
+  }
+  Symbol {
+    Name: _DYNAMIC (76)
+    Value: 0x47A0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other [ (0x2)
+      STV_HIDDEN (0x2)
+    ]
+    Section: .dynamic (0x8)
+  }
+  Symbol {
+    Name: qk_norm_mrope_gate_kv_store_gfx1151 (1)
+    Value: 0x1B00
+    Size: 7328
+    Binding: Global (0x1)
+    Type: Function (0x2)
+    Other [ (0x3)
+      STV_PROTECTED (0x3)
+    ]
+    Section: .text (0x7)
+  }
+  Symbol {
+    Name: qk_norm_mrope_gate_kv_store_gfx1151.kd (37)
+    Value: 0xA00
+    Size: 64
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other [ (0x3)
+      STV_PROTECTED (0x3)
+    ]
+    Section: .rodata (0x6)
+  }
+]
+NoteSections [
+  NoteSection {
+    Name: .note
+    Offset: 0x200
+    Size: 0x6FC
+    Notes [
+      {
+        Owner: AMDGPU
+        Data size: 0x6E8
+        Type: NT_AMDGPU_METADATA (AMDGPU Metadata)
+        AMDGPU Metadata: ---
+amdhsa.kernels:
+  - .args:
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           qkv
+        .offset:         0
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  write_only
+        .address_space:  global
+        .name:           q_out
+        .offset:         8
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  write_only
+        .address_space:  global
+        .name:           k_out
+        .offset:         16
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  write_only
+        .address_space:  global
+        .name:           gate_out
+        .offset:         24
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           q_weight
+        .offset:         32
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           k_weight
+        .offset:         40
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           cos_sin
+        .offset:         48
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           positions
+        .offset:         56
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  write_only
+        .address_space:  global
+        .name:           k_cache
+        .offset:         64
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  write_only
+        .address_space:  global
+        .name:           v_cache
+        .offset:         72
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           cache_loc
+        .offset:         80
+        .size:           8
+        .value_kind:     global_buffer
+      - .name:           tokens
+        .offset:         88
+        .size:           4
+        .value_kind:     by_value
+      - .name:           position_stride_bytes
+        .offset:         92
+        .size:           4
+        .value_kind:     by_value
+    .group_segment_fixed_size: 128
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 96
+    .language:       OpenCL C
+    .language_version:
+      - 2
+      - 0
+    .max_flat_workgroup_size: 128
+    .name:           qk_norm_mrope_gate_kv_store_gfx1151
+    .private_segment_fixed_size: 0
+    .sgpr_count:     48
+    .sgpr_spill_count: 0
+    .symbol:         qk_norm_mrope_gate_kv_store_gfx1151.kd
+    .uniform_work_group_size: 1
+    .uses_dynamic_stack: false
+    .vgpr_count:     34
+    .vgpr_spill_count: 0
+    .wavefront_size: 32
+    .workgroup_processor_mode: 1
+amdhsa.target:   amdgcn-amd-amdhsa--gfx1151
+amdhsa.version:
+  - 1
+  - 2
+...
+
+      }
+    ]
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "input_tokens": 210,
+  "output_tokens": 128,
+  "cached_tokens": 0,
+  "graph_mode": "disabled",
+  "dflash_mode": "disabled",
+  "seed": 7702,
+  "input_ids_sha256": "6fb0847f841c6098d35f0fdc40e4118f1ba89edb04d7bb17ed5467abbe546ca0",
+  "exact_output_sequence_match": true,
+  "output_text_sha256": "a05e55f27281f5dd3edb28e6a686280718ffc8d4a06048317c5389f74309a91b",
+  "baseline_runs": [
+    {
+      "host_e2e_ms": 7746.01595,
+      "peak_vram_bytes": 99880947712
+    },
+    {
+      "host_e2e_ms": 7598.096069,
+      "peak_vram_bytes": 99774193664
+    }
+  ],
+  "candidate": {
+    "host_e2e_ms": 7767.909637,
+    "peak_vram_bytes": 100029636608
+  },
+  "decision": "correct; serving timing neutral/noisy; accept for isolated GPU-path reduction without E2E speedup claim"
+}

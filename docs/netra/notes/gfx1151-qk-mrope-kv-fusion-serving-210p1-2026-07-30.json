@@ -1,0 +1,26 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "input_tokens": 210,
+  "output_tokens": 1,
+  "cached_tokens": 0,
+  "graph_mode": "disabled",
+  "dflash_mode": "disabled",
+  "seed": 7702,
+  "input_ids_sha256": "6fb0847f841c6098d35f0fdc40e4118f1ba89edb04d7bb17ed5467abbe546ca0",
+  "exact_output_sequence_match": true,
+  "baseline_host_e2e_ms": [
+    705.168781,
+    563.165699,
+    560.136376
+  ],
+  "candidate_host_e2e_ms": [
+    554.865842,
+    561.419327,
+    555.965971
+  ],
+  "baseline_median_ms": 563.165699,
+  "candidate_median_ms": 555.965971,
+  "median_ratio": 1.0129499436576128,
+  "decision": "measured 1.295% median nominal improvement; one baseline outlier makes mean unsuitable"
+}

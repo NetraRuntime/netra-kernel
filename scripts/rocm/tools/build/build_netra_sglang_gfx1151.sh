@@ -61,6 +61,16 @@ attention_stem=extend_attention_wmma_n64_gfx1151
 "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
   "${out_dir}/${attention_stem}.hsaco" > "${out_dir}/${attention_stem}.dis"
 
+qk_mrope_stem=qk_norm_mrope_gate_kv_store_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c \
+  "${repo_dir}/kernels/gfx1151/attention/${qk_mrope_stem}.s" \
+  -o "${out_dir}/${qk_mrope_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${qk_mrope_stem}.o" -o "${out_dir}/${qk_mrope_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${qk_mrope_stem}.hsaco" > "${out_dir}/${qk_mrope_stem}.dis"
+
 pack_stem=expert_activation_pack_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c "${repo_dir}/kernels/gfx1151/moe/${pack_stem}.s" \

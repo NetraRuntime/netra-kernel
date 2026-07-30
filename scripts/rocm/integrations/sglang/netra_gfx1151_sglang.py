@@ -73,6 +73,12 @@ class _Runtime:
             + [ctypes.c_uint, ctypes.c_float, ctypes.c_void_p]
         )
         self.lib.netra_extend_attention.restype = ctypes.c_int
+        self.lib.netra_qk_norm_mrope_gate_kv_store.argtypes = (
+            [ctypes.c_void_p] * 11
+            + [ctypes.c_uint] * 2
+            + [ctypes.c_void_p]
+        )
+        self.lib.netra_qk_norm_mrope_gate_kv_store.restype = ctypes.c_int
         self.lib.netra_gdn_chunk_o.argtypes = (
             [ctypes.c_void_p] * 8
             + [ctypes.c_float, ctypes.c_uint, ctypes.c_void_p]
@@ -314,6 +320,114 @@ def apply_qkvzba_split_copy(
         token_count,
     )
     return mixed_qkv, z, b, a
+
+@register_custom_op(
+    mutates_args=["q_out", "k_out", "gate_out", "key_cache", "value_cache"]
+)
+def netra_qk_norm_mrope_gate_kv_store_with_output(
+    qkv: torch.Tensor,
+    q_out: torch.Tensor,
+    k_out: torch.Tensor,
+    gate_out: torch.Tensor,
+    q_weight: torch.Tensor,
+    k_weight: torch.Tensor,
+    cos_sin: torch.Tensor,
+    positions: torch.Tensor,
+    key_cache: torch.Tensor,
+    value_cache: torch.Tensor,
+    cache_loc: torch.Tensor,
+    token_count: int,
+) -> None:
+    """Graph-safe raw gfx1151 Q/K norm + MRoPE + KV-store launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_qk_norm_mrope_gate_kv_store(
+        _ptr(qkv),
+        _ptr(q_out),
+        _ptr(k_out),
+        _ptr(gate_out),
+        _ptr(q_weight),
+        _ptr(k_weight),
+        _ptr(cos_sin),
+        _ptr(positions),
+        _ptr(key_cache),
+        _ptr(value_cache),
+        _ptr(cache_loc),
+        token_count,
+        positions.stride(0) * positions.element_size(),
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM Q/K norm + MRoPE + KV-store")
+
+
+def apply_qk_norm_mrope_gate_kv_store(
+    qkv: torch.Tensor,
+    q_weight: torch.Tensor,
+    k_weight: torch.Tensor,
+    cos_sin: torch.Tensor,
+    positions: torch.Tensor,
+    key_cache: torch.Tensor,
+    value_cache: torch.Tensor,
+    cache_loc: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Validate the fixed Qwen3.6 ABI and allocate graph-visible outputs."""
+    token_count = qkv.shape[0]
+    expected = {
+        "qkv": (qkv, torch.bfloat16, (token_count, 9216)),
+        "q_weight": (q_weight, torch.bfloat16, (256,)),
+        "k_weight": (k_weight, torch.bfloat16, (256,)),
+        "cache_loc": (cache_loc, torch.int64, (token_count,)),
+    }
+    for name, (tensor, dtype, shape) in expected.items():
+        if tensor.dtype != dtype or tuple(tensor.shape) != shape or not tensor.is_contiguous():
+            raise ValueError(
+                f"Netra Q/K-MRoPE fusion requires contiguous {name} {dtype} {shape}, "
+                f"got {tensor.dtype} {tuple(tensor.shape)} contiguous={tensor.is_contiguous()}"
+            )
+    if (
+        positions.dtype != torch.int64
+        or tuple(positions.shape) != (3, token_count)
+        or positions.stride(1) != 1
+    ):
+        raise ValueError(
+            "Netra Q/K-MRoPE fusion requires int64 positions [3,M] with unit token stride"
+        )
+    if (
+        cos_sin.dtype != torch.bfloat16
+        or cos_sin.ndim != 2
+        or cos_sin.shape[1] != 64
+        or not cos_sin.is_contiguous()
+    ):
+        raise ValueError("Netra Q/K-MRoPE fusion requires contiguous BF16 cos_sin [P,64]")
+    for name, cache in (("key_cache", key_cache), ("value_cache", value_cache)):
+        if (
+            cache.dtype != torch.bfloat16
+            or cache.ndim != 4
+            or tuple(cache.shape[1:]) != (1, 2, 256)
+            or not cache.is_contiguous()
+        ):
+            raise ValueError(
+                f"Netra Q/K-MRoPE fusion requires page-1 contiguous BF16 {name} "
+                f"[slots,1,2,256], got {cache.dtype} {tuple(cache.shape)}"
+            )
+    q_out = torch.empty((token_count, 4096), dtype=qkv.dtype, device=qkv.device)
+    k_out = torch.empty((token_count, 512), dtype=qkv.dtype, device=qkv.device)
+    gate_out = torch.empty_like(q_out)
+    netra_qk_norm_mrope_gate_kv_store_with_output(
+        qkv,
+        q_out,
+        k_out,
+        gate_out,
+        q_weight,
+        k_weight,
+        cos_sin,
+        positions,
+        key_cache,
+        value_cache,
+        cache_loc,
+        token_count,
+    )
+    return q_out, k_out, gate_out
+
 
 @register_custom_op(mutates_args=["output"])
 def netra_extend_attention_with_output(

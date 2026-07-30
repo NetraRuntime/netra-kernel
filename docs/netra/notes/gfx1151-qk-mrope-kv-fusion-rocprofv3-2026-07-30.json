@@ -1,0 +1,89 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "input_scope": "M8192 Hq16 Hkv2 D256 rotary64 page1",
+  "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+  "method": "one counter per process launch; identical raw-ASM kernel dispatch shapes",
+  "units": {
+    "FETCH_SIZE": "KiB fetched from video memory per dispatch",
+    "WRITE_SIZE": "KiB written to video memory per dispatch",
+    "OccupancyPercent": "percent of device maximum",
+    "L2CacheHit": "percent",
+    "MemUnitBusy": "percent of GPUTime",
+    "WriteUnitStalled": "percent of GPUTime"
+  },
+  "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+  "kernels": [
+    {
+      "kernel": "qk_norm_mrope_gate_kv_store_gfx1151",
+      "grid_size": 1048576,
+      "workgroup_size": 128,
+      "lds_bytes": 512,
+      "scratch_bytes": 0,
+      "vgpr": 40,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": {
+          "samples": 2,
+          "mean": 73950.3125,
+          "min": 73949.0,
+          "max": 73951.625
+        },
+        "L2CacheHit": {
+          "samples": 2,
+          "mean": 41.758534499999996,
+          "min": 41.754629,
+          "max": 41.76244
+        },
+        "LDSBankConflict": {
+          "samples": 2,
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "MeanOccupancyPerActiveCU": {
+          "samples": 2,
+          "mean": 35.391669,
+          "min": 35.309662,
+          "max": 35.473676
+        },
+        "OccupancyPercent": {
+          "samples": 2,
+          "mean": 59.022965,
+          "min": 57.921888,
+          "max": 60.124042
+        },
+        "SALUInsts": {
+          "samples": 2,
+          "mean": 88.0,
+          "min": 88.0,
+          "max": 88.0
+        },
+        "VALUInsts": {
+          "samples": 2,
+          "mean": 758.0,
+          "min": 758.0,
+          "max": 758.0
+        },
+        "WRITE_SIZE": {
+          "samples": 2,
+          "mean": 69230.8125,
+          "min": 69228.25,
+          "max": 69233.375
+        },
+        "Wavefronts": {
+          "samples": 2,
+          "mean": 32768.0,
+          "min": 32768.0,
+          "max": 32768.0
+        },
+        "WriteUnitStalled": {
+          "samples": 2,
+          "mean": 32.5874525,
+          "min": 31.339191,
+          "max": 33.835714
+        }
+      }
+    }
+  ]
+}

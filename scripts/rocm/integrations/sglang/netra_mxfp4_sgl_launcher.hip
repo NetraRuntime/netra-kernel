@@ -45,6 +45,7 @@ Kernel linear_prefill;
 Kernel linear_prefill_repack;
 Kernel qkvzba_split;
 Kernel extend_attention;
+Kernel qk_norm_mrope_kv;
 Kernel gdn_chunk_o;
 Kernel recompute_w_u;
 Kernel causal_conv;
@@ -95,6 +96,8 @@ void initialize() {
        "qkvzba_split_copy_gfx1151");
   load(extend_attention, "extend_attention_wmma_n64_gfx1151.hsaco",
        "extend_attention_wmma_n64_gfx1151");
+  load(qk_norm_mrope_kv, "qk_norm_mrope_gate_kv_store_gfx1151.hsaco",
+       "qk_norm_mrope_gate_kv_store_gfx1151");
   load(gdn_chunk_o, "gdn_chunk_o_bv32_gfx1151.hsaco",
        "gdn_chunk_o_bv32_gfx1151");
   load(recompute_w_u, "recompute_w_u_ordered_gfx1151.hsaco",
@@ -201,6 +204,23 @@ struct alignas(8) ExtendAttentionArgs {
   float sm_scale;
 };
 static_assert(sizeof(ExtendAttentionArgs) == 72);
+
+struct alignas(8) QkNormMropeKvArgs {
+  void* qkv;
+  void* q_out;
+  void* k_out;
+  void* gate_out;
+  void* q_weight;
+  void* k_weight;
+  void* cos_sin;
+  void* positions;
+  void* k_cache;
+  void* v_cache;
+  void* cache_loc;
+  unsigned tokens;
+  unsigned position_stride_bytes;
+};
+static_assert(sizeof(QkNormMropeKvArgs) == 96);
 
 struct alignas(8) ActivationPackArgs {
   void* hidden;
@@ -435,6 +455,24 @@ extern "C" int netra_extend_attention(
       NETRA_EXTEND_ATTENTION_BLOCK_X,
       reinterpret_cast<hipStream_t>(stream_ptr), args);
   return status == hipSuccess ? 0 : 95000 + static_cast<int>(status);
+}
+
+extern "C" int netra_qk_norm_mrope_gate_kv_store(
+    void* qkv, void* q_out, void* k_out, void* gate_out,
+    void* q_weight, void* k_weight, void* cos_sin, void* positions,
+    void* k_cache, void* v_cache, void* cache_loc, unsigned tokens,
+    unsigned position_stride_bytes,
+    void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  if (tokens == 0) return 95501;
+  QkNormMropeKvArgs args{
+      qkv, q_out, k_out, gate_out, q_weight, k_weight, cos_sin,
+      positions, k_cache, v_cache, cache_loc, tokens, position_stride_bytes};
+  hipError_t status = launch(
+      qk_norm_mrope_kv.function, tokens, 1, 128,
+      reinterpret_cast<hipStream_t>(stream_ptr), args);
+  return status == hipSuccess ? 0 : 95500 + static_cast<int>(status);
 }
 
 extern "C" int netra_gdn_chunk_o(
