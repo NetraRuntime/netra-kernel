@@ -1,0 +1,174 @@
+{
+  "target": "gfx1151",
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "date": "2026-07-30",
+  "measurement_status": "measured",
+  "checkpoint": "/root/models/qwen36-sgl-mxfp4",
+  "quantization": "MXFP4 weights; model-native BF16/FP32 operations unchanged",
+  "dflash_mode": "disabled",
+  "accepted_graph_configuration": {
+    "backend": "full",
+    "decode_tiers": [1, 2, 4, 8, 12, 16],
+    "prefill_backend": "disabled",
+    "max_running_requests": 16,
+    "mamba_radix_cache_strategy": "extra_buffer_lazy",
+    "mamba_full_memory_ratio": 1.5,
+    "capture_elapsed_s_representative": 3.3,
+    "capture_memory_gb_log": 0.17,
+    "mamba_cache_slots": 69,
+    "kv_cache_tokens": 146907,
+    "resolved_max_running_requests": 16,
+    "capture_repeated_successfully": true
+  },
+  "workspace": {
+    "bytes_per_attention_layer_per_token": 17408,
+    "full_attention_layers": 10,
+    "captured_tier_token_sum": 43,
+    "captured_tiers_total_workspace_bytes": 7485440,
+    "allocation_policy": "stable per-layer workspace for token_count <= 16"
+  },
+  "capture_capacity_findings": [
+    {
+      "configuration": "default extra_buffer overlap, automatic pool",
+      "requested_tiers": [1, 2, 4, 8, 12, 16],
+      "captured_tiers": [1, 2, 4, 8, 11],
+      "resolved_max_running_requests": 11,
+      "mamba_cache_slots": 59,
+      "mamba_slots_per_request": 5,
+      "status": "rejected for M12/M16 coverage"
+    },
+    {
+      "configuration": "default extra_buffer overlap plus requested max_running_requests=16",
+      "captured_tiers": [1, 2, 4, 8, 10],
+      "resolved_max_running_requests": 10,
+      "mamba_cache_slots": 52,
+      "status": "rejected; reservation pressure reduced capacity further"
+    },
+    {
+      "configuration": "extra_buffer_lazy, mamba_full_memory_ratio=1.5, max_running_requests=16",
+      "captured_tiers": [1, 2, 4, 8, 12, 16],
+      "resolved_max_running_requests": 16,
+      "mamba_cache_slots": 69,
+      "mamba_slots_per_request": 4,
+      "status": "accepted"
+    }
+  ],
+  "ordered_batch_serving": {
+    "batch_size": 12,
+    "input_tokens_per_request": 210,
+    "cached_tokens_total": 0,
+    "graph_decode_confirmed_in_server_log": true,
+    "prefill_graph": false,
+    "output_64": {
+      "output_tokens_per_request": 64,
+      "all_12_sequences_exact_graph_vs_eager": true,
+      "graph_host_batch_e2e_ms": 14188.449058,
+      "eager_host_batch_e2e_ms": 13819.552237,
+      "graph_aggregate_output_tokens_per_s_e2e": 54.12853771829076,
+      "eager_aggregate_output_tokens_per_s_e2e": 55.573435870359305,
+      "eager_over_graph_speedup": 0.9740002011853437,
+      "status": "negative/noisy; graph 2.67 percent slower in this pair"
+    },
+    "output_128": {
+      "output_tokens_per_request": 128,
+      "all_12_sequences_exact_graph_vs_eager": true,
+      "graph_host_batch_e2e_ms": 25836.506005,
+      "eager_host_batch_e2e_ms": 26918.629716000003,
+      "graph_aggregate_output_tokens_per_s_e2e": 59.45076318379684,
+      "eager_aggregate_output_tokens_per_s_e2e": 57.0608539961091,
+      "graph_speedup": 1.0418835159363493,
+      "status": "accepted decode-dominant serving result"
+    }
+  },
+  "synchronized_streaming_concurrency_12": {
+    "input_tokens_per_request": 210,
+    "output_tokens_per_request": 64,
+    "cached_tokens_total": 0,
+    "prefill_schedule": "one request then eleven requests; both graph and eager",
+    "decode_reached_batch_12": true,
+    "graph_decode_cuda_graph": true,
+    "eager_decode_cuda_graph": false,
+    "graph_batch_wall_ms": 14578.677112,
+    "eager_batch_wall_ms": 15407.077684,
+    "graph_aggregate_decode_tokens_per_s": 56.14567763803343,
+    "eager_aggregate_decode_tokens_per_s": 55.10124672784189,
+    "graph_aggregate_decode_speedup": 1.0189547600501716,
+    "graph_median_ttft_ms": 2482.9561489999996,
+    "eager_median_ttft_ms": 3268.807085,
+    "cross_mode_exact_sequences": "7/12",
+    "correctness_interpretation": "not a graph failure: independently arriving requests occupied different prefill batch positions; ordered 12-prompt batches were 12/12 exact",
+    "status": "performance evidence retained; cross-mode token comparison rejected as an uncontrolled correctness oracle"
+  },
+  "rocprofv3_graph_replay": {
+    "profiler": "/root/venv1151/bin/rocprofv3",
+    "profiler_reported_version": "1.3.0",
+    "trace_request": "ordered batch 12, exact 210 input +8 forced output each, uncached",
+    "signal_handlers_disabled": true,
+    "counter_collection": "disabled to avoid known Python/AQL-profile signal-6 abort",
+    "request_status": 0,
+    "profiler_status_after_explicit_server_stop": 137,
+    "trace_finalized": true,
+    "graph_launches": 8,
+    "kernels_per_replay": 3063,
+    "correlated_graph_kernel_launches": 24504,
+    "mean_hip_graph_launch_cpu_us_under_profiler": 1897.356,
+    "mean_graph_gpu_span_us": 194532.239875,
+    "median_graph_gpu_span_us": 194746.144,
+    "mean_summed_kernel_gpu_us_per_replay": 185945.245375,
+    "mean_positive_inter_kernel_gap_us": 2.804374428478119,
+    "median_positive_inter_kernel_gap_us": 2.084,
+    "ranked_graph_kernel_families": [
+      {
+        "kernel": "mxfp4_prefill_gate_wmma_gfx1151",
+        "invocations": 640,
+        "mean_gpu_us": 1155.792,
+        "pct_of_graph_kernel_time": 49.726
+      },
+      {
+        "kernel": "mxfp4_prefill_down_wmma_gfx1151",
+        "invocations": 320,
+        "mean_gpu_us": 579.899,
+        "pct_of_graph_kernel_time": 12.475
+      },
+      {
+        "kernel": "dominant dense hipBLAS GEMM",
+        "invocations": 88,
+        "mean_gpu_us": 1867.305,
+        "pct_of_graph_kernel_time": 11.046
+      },
+      {
+        "kernel": "mxfp4_sgl_linear_prefill_wmma_gfx1151",
+        "invocations": 720,
+        "mean_gpu_us": 121.8,
+        "pct_of_graph_kernel_time": 5.895
+      },
+      {
+        "kernel": "fused_recurrent_gated_delta_rule_packed_decode_kernel",
+        "invocations": 240,
+        "mean_gpu_us": 278.367,
+        "pct_of_graph_kernel_time": 4.491
+      }
+    ],
+    "attention_rows": {
+      "decode_attention_stage1_pct": 0.531908,
+      "decode_attention_stage2_pct": 0.015133,
+      "raw_qk_norm_mrope_kv_fusion_invocations": 80,
+      "raw_qk_norm_mrope_kv_fusion_mean_gpu_us": 9.45515,
+      "raw_qk_norm_mrope_kv_fusion_pct": 0.05084910873053831,
+      "raw_qk_norm_mrope_kv_fusion_registers": {
+        "vgpr": 40,
+        "sgpr": 128,
+        "lds_bytes": 512,
+        "scratch_bytes": 0
+      }
+    }
+  },
+  "conclusion": {
+    "m12_full_graph_correct": true,
+    "m12_full_graph_serving_value": "measured 1.04188x on the decode-dominant ordered 210+128 batch pair; shorter pair was negative",
+    "next_ranked_target": "MXFP4 M2-M16 expert gate/up/down compute, followed by dense projection and GDN",
+    "attention_priority": "low for this measured M12 graph path; attention plus QK/MRoPE/KV fusion was about 0.598 percent of graph kernel time",
+    "speculative_verify_claim": false,
+    "speculative_verify_reason": "no compatible dFlash draft checkpoint was available; this is a native batch-12 decode graph, not dFlash verification"
+  }
+}
