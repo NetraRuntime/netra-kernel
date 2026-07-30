@@ -18,6 +18,12 @@
 #ifndef NETRA_EXTEND_ATTENTION_BLOCK_X
 #define NETRA_EXTEND_ATTENTION_BLOCK_X 512
 #endif
+#ifndef NETRA_PREFILL_GATE_GRID_X
+#define NETRA_PREFILL_GATE_GRID_X 8
+#endif
+#ifndef NETRA_PREFILL_GATE_BLOCK_X
+#define NETRA_PREFILL_GATE_BLOCK_X 128
+#endif
 
 namespace {
 
@@ -324,12 +330,14 @@ extern "C" int netra_mxfp4_sgl_prefill_gate_up(
   FivePointers gate_args{
       gate_weight, gate_scale, activation_groups, gate_output, expert_ids};
   hipError_t status =
-      launch(prefill_gate.function, 32, group_count, 32, stream, gate_args);
+      launch(prefill_gate.function, NETRA_PREFILL_GATE_GRID_X, group_count,
+             NETRA_PREFILL_GATE_BLOCK_X, stream, gate_args);
   if (status != hipSuccess) return 81000 + static_cast<int>(status);
 
   FivePointers up_args{
       up_weight, up_scale, activation_groups, up_output, expert_ids};
-  status = launch(prefill_gate.function, 32, group_count, 32, stream, up_args);
+  status = launch(prefill_gate.function, NETRA_PREFILL_GATE_GRID_X, group_count,
+                  NETRA_PREFILL_GATE_BLOCK_X, stream, up_args);
   if (status != hipSuccess) return 82000 + static_cast<int>(status);
 
   ThreePointers silu_args{gate_output, up_output, intermediate_output};

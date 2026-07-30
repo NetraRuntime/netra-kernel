@@ -1,0 +1,116 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "estimated_values": [],
+  "checkpoint_quantization": "MXFP4 unchanged",
+  "kernel": "mxfp4_prefill_gate_wmma_gfx1151",
+  "decision": "accepted_production_raw_amdgcn",
+  "shape": {
+    "groups": 1276,
+    "m": 64,
+    "n": 512,
+    "k": 2048
+  },
+  "correctness": {
+    "bit_equal": true,
+    "mismatches": 0,
+    "max_abs": 0,
+    "graph_replay_equal_to_eager": true
+  },
+  "hip_events_ms": {
+    "production_dword_median": 8.508117,
+    "group4_a_median": 7.174542,
+    "speedup": 1.1858759765,
+    "graph_replay_median": 7.188648,
+    "samples": 11
+  },
+  "resources": {
+    "production": {
+      "workgroup": 32,
+      "lds_bytes": 0,
+      "vgpr": 112,
+      "sgpr": 128,
+      "scratch_bytes": 0,
+      "waves": 40832
+    },
+    "group4_a": {
+      "workgroup": 128,
+      "lds_bytes": 4096,
+      "vgpr": 112,
+      "sgpr": 128,
+      "scratch_bytes": 0,
+      "waves": 40832
+    }
+  },
+  "rocprofv3": {
+    "process_repeats_per_counter": 3,
+    "production": {
+      "fetch_size_kib": 394035.5364583333,
+      "l2_hit_pct": 92.47763716666667,
+      "lds_bank_conflict": 0.0,
+      "mean_occupancy_per_active_cu": 47.25546616666667,
+      "mem_unit_busy": 99.24859550000001,
+      "sq_busy_cycles": 495162419.9166667,
+      "valu_insts": 6625.0,
+      "salu_insts": 527.0
+    },
+    "group4_a": {
+      "fetch_size_kib": 287345.07083333336,
+      "l2_hit_pct": 82.28768913333333,
+      "lds_bank_conflict": 33.195021,
+      "mean_occupancy_per_active_cu": 47.65878266666667,
+      "mem_unit_busy": 87.92370946666666,
+      "sq_busy_cycles": 409885880.6,
+      "valu_insts": 7144.0,
+      "salu_insts": 529.0
+    }
+  },
+  "matched_full_trace": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "gate_calls": 320,
+    "production_gate_gpu_ms": 2856.720197,
+    "group4_a_gate_gpu_ms": 2410.062544,
+    "gate_speedup": 1.1853303161,
+    "production_total_kernel_gpu_ms": 23056.318702,
+    "group4_a_total_kernel_gpu_ms": 22503.266195,
+    "total_kernel_speedup": 1.0245765438,
+    "production_host_e2e_ms": 22843.163772,
+    "group4_a_host_e2e_ms": 22436.712989,
+    "host_e2e_speedup": 1.0181154335,
+    "matching_output": true
+  },
+  "fresh_serving_pairs": {
+    "input_tokens": 32768,
+    "output_tokens": 1,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "production_host_e2e_ms": [
+      22071.103039,
+      22086.060525
+    ],
+    "group4_a_host_e2e_ms": [
+      21611.67347,
+      21535.448393
+    ],
+    "production_mean_ms": 22078.581782,
+    "group4_a_mean_ms": 21573.5609315,
+    "mean_speedup": 1.0234092486,
+    "group4_a_peak_vram_bytes": [
+      100911620096,
+      102014083072
+    ],
+    "matching_outputs": true
+  },
+  "source_evidence": {
+    "hip_event_log": "results/prefill-gate-group4-a-vs-production-g1276.txt",
+    "counter_dir": "results/profiles/gfx1151/prefill-gate-group4-a-3x-20260730",
+    "full_trace_dir": "results/profiles/gfx1151/prefill-gate-group4-a-full-32k-20260730",
+    "fresh_serving_dir": "results/serving/gfx1151/prefill-gate-group4-a-paired/candidate",
+    "disassembly_dir": "docs/notes/gfx1151-prefill-gate-group4-a-disassembly-2026-07-30"
+  }
+}
