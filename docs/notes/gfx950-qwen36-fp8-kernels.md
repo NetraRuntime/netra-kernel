@@ -411,6 +411,59 @@ validation**. Counter evidence, complete layer/state tolerances, longer
 required cases, and native M=210 piecewise capture remain open before
 production promotion.
 
+## Rejected dense M=1 output-projection variants
+
+The retained auto/AITER trace selected the exact
+`M=1,N=2048,K=4096` FP8-E4M3/block-128 family: 5,120 calls and 64.886 ms in
+one exact 210-input/128-output request. The real-checkpoint capture/export,
+raw AMDGCN, reusable bridge, and fast loop live here:
+
+```text
+kernels/gfx950/fp8/dense/decode/experiments/
+  qwen36_dense_m1_n2048_k4096_fp8_mfma_gfx950.s
+  qwen36_dense_m1_n2048_k4096_fp8_mfma_4wave_lds_gfx950.s
+harness/gfx950/fp8/dense/decode/
+runtime/gfx950/fp8/dense/
+tools/benchmark/iterate_gfx950_qwen36_dense_m1.sh
+tools/benchmark/profile_gfx950_qwen36_dense_m1_counters.sh
+```
+
+The one-wave variant matched all 2,048 deployed BF16 values over 200 launches
+and 20 native graph replays. Its five-run HIP-event median of medians was
+10.00 microseconds versus 17.92 microseconds for the identical-operand AITER
+harness. It was nevertheless rejected: matched full-graph 210+128 serving
+regressed median wall/generation time by 4.51%/4.73%.
+
+The four-wave variant stages each 128-byte activation block once in LDS for
+four-wave reuse. It is also BF16-exact, deterministic, and graph-exact.
+Five 200-launch runs measured 15.52–15.56 microsecond medians, with a complete
+warm edit/build/validation loop of about 0.44 seconds. Its code object is
+gfx950/wave64, declares 32 VGPRs, 32 SGPRs, 128 bytes LDS, no scratch/spills,
+and has SHA-256
+`99dc0247b7ebbcf2210a0b10ab028b848bfac1796d64e11e9d7b8797652e81d9`.
+
+Intrusive rocprofv3 medians show the intended reuse but also its cost:
+
+| Counter | One wave | Four-wave LDS |
+|---|---:|---:|
+| `SQ_WAVES` | 128 | 128 |
+| `SQ_INSTS_MFMA` | 4,096 | 4,096 |
+| `SQ_INSTS_VMEM` | 16,512 | 12,416 |
+| `SQ_INSTS_LDS` | 0 | 12,288 |
+| `TCC_READ_SECTORS_sum` | 283,072 | 267,968 |
+| `TCC_MISS_sum` | 66,152 | 65,960 |
+| `LDSBankConflict` | 0 | 0 |
+
+The LDS design removes 24.8% of VMEM instructions but only 5.3% of TCC read
+sectors because the 8 MiB weight dominates. In matched full-graph serving it
+regressed wall/generation by 10.02%/10.63% and decode throughput by 9.61%.
+The candidate and flag-off control both produced the same stable token hash in
+40/40 uncached requests.
+
+Both dense variants are retained as **rejected experiments**. The SGLang flag
+defaults off. No isolated repeated-weight result can promote a later variant
+without cold-weight full-graph evidence.
+
 ## Two-wave down/reduce promotion and deterministic prefill oracle
 
 The one-wave down/reduce kernel launches only 128 waves on the 256-CU MI350X.
