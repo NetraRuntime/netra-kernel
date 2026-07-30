@@ -49,6 +49,32 @@ def samples(call, warmup: int, repetitions: int) -> list[float]:
     return values
 
 
+def paired_samples(call_a, call_b, warmup: int, repetitions: int):
+    for i in range(warmup):
+        if i % 2:
+            call_b()
+            call_a()
+        else:
+            call_a()
+            call_b()
+    torch.cuda.synchronize()
+    values_a = []
+    values_b = []
+    for i in range(repetitions):
+        ordered = ((call_a, values_a), (call_b, values_b))
+        if i % 2:
+            ordered = tuple(reversed(ordered))
+        for call, values in ordered:
+            start = torch.cuda.Event(enable_timing=True)
+            end = torch.cuda.Event(enable_timing=True)
+            start.record()
+            call()
+            end.record()
+            end.synchronize()
+            values.append(start.elapsed_time(end))
+    return values_a, values_b
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--baseline-library", type=Path, required=True)
@@ -60,6 +86,7 @@ def main() -> None:
     parser.add_argument("--prefix", type=int, nargs="+", default=[0, 8192, 16384, 24576])
     parser.add_argument("--warmup", type=int, default=3)
     parser.add_argument("--repetitions", type=int, default=11)
+    parser.add_argument("--interleaved", action="store_true")
     parser.add_argument("--seed", type=int, default=20260729)
     parser.add_argument("--scale", type=float, default=0.02)
     parser.add_argument("--output", type=Path)
@@ -100,8 +127,15 @@ def main() -> None:
         call(candidate, candidate_output)
         torch.cuda.synchronize()
         delta = (baseline_output.float() - candidate_output.float()).abs()
-        baseline_ms = samples(lambda: call(baseline, baseline_output), args.warmup, args.repetitions)
-        candidate_ms = samples(lambda: call(candidate, candidate_output), args.warmup, args.repetitions)
+        baseline_call = lambda: call(baseline, baseline_output)
+        candidate_call = lambda: call(candidate, candidate_output)
+        if args.interleaved:
+            baseline_ms, candidate_ms = paired_samples(
+                baseline_call, candidate_call, args.warmup, args.repetitions
+            )
+        else:
+            baseline_ms = samples(baseline_call, args.warmup, args.repetitions)
+            candidate_ms = samples(candidate_call, args.warmup, args.repetitions)
         baseline_median = statistics.median(baseline_ms)
         candidate_median = statistics.median(candidate_ms)
         row = {
@@ -124,6 +158,7 @@ def main() -> None:
         "estimated_values": False,
         "tokens": args.tokens,
         "candidate_label": args.candidate_label,
+        "sample_order": "alternating_ab_ba" if args.interleaved else "sequential_a_then_b",
         "rows": rows,
     }
     if args.output:
