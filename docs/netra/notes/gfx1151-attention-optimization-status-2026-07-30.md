@@ -26,7 +26,7 @@ a prioritization, not an estimated speedup.
 
 ## Recommended order
 
-1. Optimize the measured M12 MXFP4 expert gate/up/down path, then validate piecewise prefill; native full graph tiers M1-M16 are complete, while true speculative verify remains input-blocked.
+1. Continue the accepted M12 raw-ASM expert path with shared gate/up activation loads and reduced padded SiLU work, then validate piecewise prefill; native full graph tiers M1-M16 are complete, while true speculative verify remains input-blocked.
 2. Revisit contiguous pages (#16) only with cooperative K/V transaction reduction, not index-load reduction alone.
 3. Revisit LDS residency (#5) only with a materially smaller accumulator/register footprint or smaller workgroup; 224 VGPR plus 32 KiB was measured insufficient.
 4. A materially different stable-max/deferred-rescale formulation (#12); retain accepted kvbatch16 (#9).

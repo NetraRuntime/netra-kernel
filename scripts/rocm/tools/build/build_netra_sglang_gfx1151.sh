@@ -41,6 +41,22 @@ for source_rel in "${sources[@]}"; do
     "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.dis"
 done
 
+m12_sources=(
+  mxfp4_m12_group_gate_wmma_gfx1151.s
+  mxfp4_m12_group_down_wmma_gfx1151.s
+)
+for source_name in "${m12_sources[@]}"; do
+  stem=${source_name%.s}
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    -x assembler -c \
+    "${repo_dir}/scripts/rocm/kernels/gfx1151/mxfp4/${source_name}" \
+    -o "${out_dir}/${stem}.o"
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    "${out_dir}/${stem}.o" -o "${out_dir}/${stem}.hsaco"
+  "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+    "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.dis"
+done
+
 split_stem=qkvzba_split_copy_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c \
@@ -125,5 +141,9 @@ reduce_stem=expert_weighted_reduce_top8_fp64_gfx1151
 "${hipcc_bin}" --offload-arch=gfx1151 -O3 -shared -fPIC \
   "${repo_dir}/harness/gfx1151/attention/extend_attention_wmma_launcher.hip" \
   -o "${out_dir}/libextend_attention_wmma.so"
+
+"${hipcc_bin}" --offload-arch=gfx1151 -O3 \
+  "${repo_dir}/scripts/rocm/harness/gfx1151/mxfp4/benchmark_m12_group_wmma_pair.hip" \
+  -o "${out_dir}/benchmark_m12_group_wmma_pair"
 
 echo "Built Netra SGLang raw-ASM backend for gfx1151 in ${out_dir}"

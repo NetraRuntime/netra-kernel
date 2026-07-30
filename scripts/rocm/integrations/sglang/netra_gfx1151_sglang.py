@@ -21,6 +21,10 @@ _USE_EXPERT_REDUCE_FP64 = os.getenv(
     "SGLANG_NETRA_DISABLE_EXPERT_REDUCE_FP64", "0"
 ).lower() not in {"1", "true", "yes", "on"}
 
+_USE_M12_GROUP_WMMA = os.getenv(
+    "SGLANG_NETRA_DISABLE_M12_GROUP_WMMA", "0"
+).lower() not in {"1", "true", "yes", "on"}
+
 
 def _ptr(tensor: torch.Tensor) -> ctypes.c_void_p:
     return ctypes.c_void_p(tensor.data_ptr())
@@ -45,6 +49,16 @@ class _Runtime:
             + [ctypes.c_uint, ctypes.c_void_p]
         )
         self.lib.netra_mxfp4_sgl_prefill_down.restype = ctypes.c_int
+        self.lib.netra_mxfp4_sgl_m12_gate_up.argtypes = (
+            [ctypes.c_void_p] * 9
+            + [ctypes.c_uint, ctypes.c_void_p]
+        )
+        self.lib.netra_mxfp4_sgl_m12_gate_up.restype = ctypes.c_int
+        self.lib.netra_mxfp4_sgl_m12_down.argtypes = (
+            [ctypes.c_void_p] * 5
+            + [ctypes.c_uint, ctypes.c_void_p]
+        )
+        self.lib.netra_mxfp4_sgl_m12_down.restype = ctypes.c_int
         self.lib.netra_mxfp4_sgl_linear.argtypes = (
             [ctypes.c_void_p] * 4
             + [ctypes.c_uint] * 3
@@ -874,6 +888,7 @@ def _prefill(
 ) -> torch.Tensor:
     runtime = _get_runtime()
     token_count = hidden_states.shape[0]
+    use_m12_group_wmma = token_count == 12 and _USE_M12_GROUP_WMMA
     flat_ids = topk_ids.reshape(-1)
     flat_weights = topk_weights.reshape(-1).to(torch.float32)
     sorted_ids, order = torch.sort(flat_ids)
@@ -923,10 +938,18 @@ def _prefill(
         (group_count, 64, 2048), dtype=torch.float32, device=hidden_states.device
     )
 
-    status = runtime.lib.netra_mxfp4_sgl_prefill_gate_up(
-        _ptr(layer.netra_gate_prefill_weight),
+    if use_m12_group_wmma:
+        gate_up = runtime.lib.netra_mxfp4_sgl_m12_gate_up
+        gate_weight = layer.netra_gate_weight
+        up_weight = layer.netra_up_weight
+    else:
+        gate_up = runtime.lib.netra_mxfp4_sgl_prefill_gate_up
+        gate_weight = layer.netra_gate_prefill_weight
+        up_weight = layer.netra_up_prefill_weight
+    status = gate_up(
+        _ptr(gate_weight),
         _ptr(layer.netra_gate_scale),
-        _ptr(layer.netra_up_prefill_weight),
+        _ptr(up_weight),
         _ptr(layer.netra_up_scale),
         _ptr(activation_groups),
         _ptr(group_expert_ids),
@@ -937,7 +960,12 @@ def _prefill(
         runtime.stream(),
     )
     runtime.check(status, "Netra raw-ASM grouped gate/up")
-    status = runtime.lib.netra_mxfp4_sgl_prefill_down(
+    down = (
+        runtime.lib.netra_mxfp4_sgl_m12_down
+        if use_m12_group_wmma
+        else runtime.lib.netra_mxfp4_sgl_prefill_down
+    )
+    status = down(
         _ptr(layer.netra_down_weight),
         _ptr(layer.netra_down_scale),
         _ptr(intermediate),

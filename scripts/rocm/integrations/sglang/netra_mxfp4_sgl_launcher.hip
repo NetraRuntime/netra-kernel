@@ -40,6 +40,8 @@ Kernel reduce;
 Kernel prefill_gate;
 Kernel prefill_repack;
 Kernel prefill_down;
+Kernel m12_group_gate;
+Kernel m12_group_down;
 Kernel linear_decode;
 Kernel linear_prefill;
 Kernel linear_prefill_repack;
@@ -87,6 +89,10 @@ void initialize() {
        "mxfp4_prefill_down_wmma_gfx1151");
   load(linear_decode, "mxfp4_sgl_linear_decode_gfx1151.hsaco",
        "mxfp4_sgl_linear_decode_gfx1151");
+  load(m12_group_gate, "mxfp4_m12_group_gate_wmma_gfx1151.hsaco",
+       "mxfp4_m12_group_gate_wmma_gfx1151");
+  load(m12_group_down, "mxfp4_m12_group_down_wmma_gfx1151.hsaco",
+       "mxfp4_m12_group_down_wmma_gfx1151");
   load(linear_prefill_repack,
        "mxfp4_sgl_linear_prefill_repack_dword_gfx1151.hsaco",
        "mxfp4_sgl_linear_prefill_repack_dword_gfx1151");
@@ -363,6 +369,47 @@ extern "C" int netra_mxfp4_sgl_prefill_gate_up(
   ThreePointers silu_args{gate_output, up_output, intermediate_output};
   status = launch(silu.function, group_count * 128, 1, 256, stream, silu_args);
   return status == hipSuccess ? 0 : 83000 + static_cast<int>(status);
+}
+
+extern "C" int netra_mxfp4_sgl_m12_gate_up(
+    void* gate_weight, void* gate_scale, void* up_weight, void* up_scale,
+    void* activation_groups, void* expert_ids, void* gate_output,
+    void* up_output, void* intermediate_output, unsigned group_count,
+    void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  if (group_count == 0) return 83501;
+  auto stream = reinterpret_cast<hipStream_t>(stream_ptr);
+
+  FivePointers gate_args{
+      gate_weight, gate_scale, activation_groups, gate_output, expert_ids};
+  hipError_t status =
+      launch(m12_group_gate.function, 32, group_count, 32, stream, gate_args);
+  if (status != hipSuccess) return 83510 + static_cast<int>(status);
+
+  FivePointers up_args{
+      up_weight, up_scale, activation_groups, up_output, expert_ids};
+  status = launch(m12_group_gate.function, 32, group_count, 32, stream, up_args);
+  if (status != hipSuccess) return 83520 + static_cast<int>(status);
+
+  ThreePointers silu_args{gate_output, up_output, intermediate_output};
+  status = launch(silu.function, group_count * 128, 1, 256, stream, silu_args);
+  return status == hipSuccess ? 0 : 83530 + static_cast<int>(status);
+}
+
+extern "C" int netra_mxfp4_sgl_m12_down(
+    void* down_weight, void* down_scale, void* activation_groups,
+    void* expert_output, void* expert_ids, unsigned group_count,
+    void* stream_ptr) {
+  std::call_once(init_once, initialize);
+  if (init_status != hipSuccess) return static_cast<int>(init_status);
+  if (group_count == 0) return 83701;
+  auto stream = reinterpret_cast<hipStream_t>(stream_ptr);
+  FivePointers down_args{
+      down_weight, down_scale, activation_groups, expert_output, expert_ids};
+  hipError_t status =
+      launch(m12_group_down.function, 128, group_count, 32, stream, down_args);
+  return status == hipSuccess ? 0 : 83710 + static_cast<int>(status);
 }
 
 extern "C" int netra_mxfp4_sgl_prefill_down(
