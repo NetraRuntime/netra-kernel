@@ -40,8 +40,7 @@ Kernel reduce;
 Kernel prefill_gate;
 Kernel prefill_repack;
 Kernel prefill_down;
-Kernel m12_group_gate_up;
-Kernel m12_group_silu;
+Kernel m12_group_gate_up_silu;
 Kernel m12_group_down;
 Kernel linear_decode;
 Kernel linear_prefill;
@@ -90,10 +89,9 @@ void initialize() {
        "mxfp4_prefill_down_wmma_gfx1151");
   load(linear_decode, "mxfp4_sgl_linear_decode_gfx1151.hsaco",
        "mxfp4_sgl_linear_decode_gfx1151");
-  load(m12_group_gate_up, "mxfp4_m12_group_gate_up_wmma_gfx1151.hsaco",
-       "mxfp4_m12_group_gate_up_wmma_gfx1151");
-  load(m12_group_silu, "silu_mul_m12_group_bf16_gfx1151.hsaco",
-       "silu_mul_m12_group_bf16_gfx1151");
+  load(m12_group_gate_up_silu,
+       "mxfp4_m12_group_gate_up_silu_wmma_gfx1151.hsaco",
+       "mxfp4_m12_group_gate_up_silu_wmma_gfx1151");
   load(m12_group_down, "mxfp4_m12_group_down_wmma_gfx1151.hsaco",
        "mxfp4_m12_group_down_wmma_gfx1151");
   load(linear_prefill_repack,
@@ -166,6 +164,16 @@ struct alignas(8) EightPointers {
   void* g;
   void* h;
 };
+struct alignas(8) SevenPointers {
+  void* a;
+  void* b;
+  void* c;
+  void* d;
+  void* e;
+  void* f;
+  void* g;
+};
+
 
 struct alignas(8) FivePointers {
   void* a;
@@ -395,17 +403,12 @@ extern "C" int netra_mxfp4_sgl_m12_gate_up(
   if (group_count == 0) return 83501;
   auto stream = reinterpret_cast<hipStream_t>(stream_ptr);
 
-  EightPointers gate_up_args{
+  SevenPointers gate_up_silu_args{
       gate_weight, gate_scale, up_weight, up_scale, activation_groups,
-      expert_ids, gate_output, up_output};
-  hipError_t status = launch(
-      m12_group_gate_up.function, 32, group_count, 32, stream, gate_up_args);
-  if (status != hipSuccess) return 83510 + static_cast<int>(status);
-
-  ThreePointers silu_args{gate_output, up_output, intermediate_output};
-  status = launch(m12_group_silu.function, 24, group_count, 256, stream,
-                  silu_args);
-  return status == hipSuccess ? 0 : 83520 + static_cast<int>(status);
+      expert_ids, intermediate_output};
+  hipError_t status = launch(m12_group_gate_up_silu.function, 32, group_count,
+                             32, stream, gate_up_silu_args);
+  return status == hipSuccess ? 0 : 83510 + static_cast<int>(status);
 }
 
 extern "C" int netra_mxfp4_sgl_m12_down(

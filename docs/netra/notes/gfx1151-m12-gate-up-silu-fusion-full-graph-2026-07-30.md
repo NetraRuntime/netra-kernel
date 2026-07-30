@@ -1,5 +1,7 @@
 # gfx1151 M12 gate+up and SiLU fusion full-graph result (2026-07-30)
 
+Superseded by `gfx1151-m12-gate-up-epilogue-fusion-2026-07-30.md`, which keeps gate/up in registers and removes the separate M12 SiLU node.
+
 All performance values are measured on gfx1151 unless explicitly marked otherwise. This remains native ordered batch-12 decode, not speculative verification or dFlash.
 
 ## Trace-ranked target

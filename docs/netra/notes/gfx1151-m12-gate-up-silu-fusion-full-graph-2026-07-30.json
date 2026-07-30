@@ -53,6 +53,6 @@
     "m12_group_silu": {"invocations": 320, "mean_gpu_us": 10.089709375, "pct_graph_kernel_time": 0.36496522149079397, "prior_padded_mean_gpu_us": 120.7146625, "speedup": 11.964136727179023},
     "down": {"invocations": 320, "mean_gpu_us": 231.473696875, "pct_graph_kernel_time": 8.37287239002137}
   },
-  "decision": "accepted",
+  "decision": "accepted_intermediate_then_superseded_by_register_resident_epilogue_fusion",
   "next_ranked_target": "fused_gate_up_internal_k_block_prefetch_and_precise_wait_scheduling"
 }

@@ -26,7 +26,7 @@ a prioritization, not an estimated speedup.
 
 ## Recommended order
 
-1. Shared gate/up activation loads and reduced padded M12 SiLU work are now accepted; continue with fused gate/up internal K-block prefetch and precise wait scheduling, then validate piecewise prefill. Native full graph tiers M1-M16 are complete, while true speculative verify remains input-blocked.
+1. Shared activation loads and register-resident gate + SiLU x up are now accepted; precise waits and zero-extra-VGPR K-block prefetch were rejected, so continue only with a materially different weight-transaction or accumulator schedule, then validate piecewise prefill. Native full graph tiers M1-M16 are complete, while true speculative verify remains input-blocked.
 2. Revisit contiguous pages (#16) only with cooperative K/V transaction reduction, not index-load reduction alone.
 3. Revisit LDS residency (#5) only with a materially smaller accumulator/register footprint or smaller workgroup; 224 VGPR plus 32 KiB was measured insufficient.
 4. A materially different stable-max/deferred-rescale formulation (#12); retain accepted kvbatch16 (#9).
