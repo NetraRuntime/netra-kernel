@@ -52,9 +52,10 @@ struct DeviceBuffer {
 
 int main(int argc, char** argv) {
   try {
-    if (argc < 3 || argc > 6) {
+    if (argc < 3 || argc > 7) {
       std::cerr << "usage: " << argv[0]
-                << " KERNEL.hsaco CAPTURE_DIR [iterations] [symbol] [grid_x]\n";
+                << " KERNEL.hsaco CAPTURE_DIR [iterations] [symbol] [grid_x]"
+                   " [block_x]\n";
       return 2;
     }
     const std::string hsaco = argv[1];
@@ -63,7 +64,11 @@ int main(int argc, char** argv) {
     const std::string symbol =
         argc >= 5 ? argv[4] : "qwen36_moe_down_reduce_fp8_gfx950";
     const unsigned grid_x = argc >= 6 ? std::stoul(argv[5]) : 32;
+    const unsigned block_x = argc >= 7 ? std::stoul(argv[6]) : 64;
     if (iterations <= 0) throw std::runtime_error("iterations must be positive");
+    if (block_x != 64 && block_x != 128) {
+      throw std::runtime_error("block_x must be 64 or 128");
+    }
 
     int device = 0;
     HIP_CHECK(hipGetDevice(&device));
@@ -132,8 +137,8 @@ int main(int argc, char** argv) {
         &output_pointer,
     };
     auto launch = [&]() {
-      HIP_CHECK(hipModuleLaunchKernel(function, grid_x, 1, 1, 64, 1, 1, 0, nullptr,
-                                      kernel_args, nullptr));
+      HIP_CHECK(hipModuleLaunchKernel(function, grid_x, 1, 1, block_x, 1, 1, 0,
+                                      nullptr, kernel_args, nullptr));
     };
     for (int i = 0; i < 10; ++i) launch();
     HIP_CHECK(hipDeviceSynchronize());

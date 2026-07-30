@@ -23,9 +23,10 @@ if ! grep -q 'Name:[[:space:]]*gfx950' <<<"${rocminfo_output}"; then
   exit 2
 fi
 
-kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_mfma_gfx950.s
+stem=${STEM:-qwen36_moe_down_reduce_fp8_mfma_gfx950}
+kernel=${KERNEL_SOURCE:-${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/${stem}.s}
 harness=${repo_dir}/harness/gfx950/fp8/moe/decode/qwen36_moe_down_reduce_fp8_gfx950.hip
-stem=qwen36_moe_down_reduce_fp8_mfma_gfx950
+test -f "${kernel}"
 mkdir -p "${out_dir}"
 
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \

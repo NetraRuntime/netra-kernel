@@ -25,12 +25,14 @@ fi
 
 kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_silu_mul_quant_fp8_gfx950.s
 down_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_mfma_gfx950.s
+down_2wave_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.s
 gate_up_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_gate_up_fp8_mfma_gfx950.s
 harness=${repo_dir}/harness/gfx950/fp8/moe/decode/qwen36_moe_silu_mul_quant_fp8_gfx950.hip
 bridge=${repo_dir}/runtime/gfx950/fp8/moe/qwen36_moe_silu_mul_quant_bridge.hip
 bridge_header=${repo_dir}/runtime/gfx950/fp8/moe/qwen36_moe_silu_mul_quant_bridge.h
 stem=qwen36_moe_silu_mul_quant_fp8_gfx950
 down_stem=qwen36_moe_down_reduce_fp8_mfma_gfx950
+down_2wave_stem=qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950
 gate_up_stem=qwen36_moe_gate_up_fp8_mfma_gfx950
 mkdir -p "${out_dir}"
 
@@ -55,6 +57,21 @@ grep -q 'wavefront_size:[[:space:]]*64' "${out_dir}/${stem}.metadata.txt"
   > "${out_dir}/${down_stem}.metadata.txt"
 grep -q 'amdgcn-amd-amdhsa--gfx950' "${out_dir}/${down_stem}.metadata.txt"
 grep -q 'wavefront_size:[[:space:]]*64' "${out_dir}/${down_stem}.metadata.txt"
+
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
+  -x assembler -c "${down_2wave_kernel}" \
+  -o "${out_dir}/${down_2wave_stem}.o"
+"${linker_bin}" -shared "${out_dir}/${down_2wave_stem}.o" \
+  -o "${out_dir}/${down_2wave_stem}.hsaco"
+"${objdump_bin}" --disassemble --mcpu=gfx950 \
+  "${out_dir}/${down_2wave_stem}.hsaco" \
+  > "${out_dir}/${down_2wave_stem}.disassembly.txt"
+"${readobj_bin}" --notes "${out_dir}/${down_2wave_stem}.hsaco" \
+  > "${out_dir}/${down_2wave_stem}.metadata.txt"
+grep -q 'amdgcn-amd-amdhsa--gfx950' \
+  "${out_dir}/${down_2wave_stem}.metadata.txt"
+grep -q 'wavefront_size:[[:space:]]*64' \
+  "${out_dir}/${down_2wave_stem}.metadata.txt"
 
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
   -x assembler -c "${gate_up_kernel}" -o "${out_dir}/${gate_up_stem}.o"
@@ -88,6 +105,9 @@ fi
     "${down_stem}.hsaco" \
     "${down_stem}.disassembly.txt" \
     "${down_stem}.metadata.txt" \
+    "${down_2wave_stem}.hsaco" \
+    "${down_2wave_stem}.disassembly.txt" \
+    "${down_2wave_stem}.metadata.txt" \
     "${gate_up_stem}.hsaco" \
     "${gate_up_stem}.disassembly.txt" \
     "${gate_up_stem}.metadata.txt" \

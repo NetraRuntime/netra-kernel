@@ -15,8 +15,12 @@ constexpr int kThreads = 64;
 constexpr const char* kKernelName =
     "qwen36_moe_silu_mul_quant_fp8_gfx950";
 constexpr unsigned int kDownGrid = 128;
-constexpr const char* kDownKernelName =
+constexpr unsigned int kDownThreadsOneWave = 64;
+constexpr unsigned int kDownThreadsTwoWave = 128;
+constexpr const char* kDownKernelNameOneWave =
     "qwen36_moe_down_reduce_fp8_mfma_gfx950";
+constexpr const char* kDownKernelNameTwoWave =
+    "qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950";
 constexpr unsigned int kGateUpGrid = 576;
 constexpr const char* kGateUpKernelName =
     "qwen36_moe_gate_up_fp8_mfma_gfx950";
@@ -29,6 +33,7 @@ thread_local std::string last_error;
 std::mutex down_module_mutex;
 hipModule_t down_module = nullptr;
 hipFunction_t down_function = nullptr;
+unsigned int down_threads = kDownThreadsOneWave;
 std::string down_loaded_path;
 std::mutex gate_up_module_mutex;
 hipModule_t gate_up_module = nullptr;
@@ -198,8 +203,14 @@ extern "C" int netra_qwen36_moe_down_reduce_load(
     down_module = nullptr;
     return fail("hipModuleLoad(down-reduce)", error);
   }
+  const bool two_wave =
+      std::string(hsaco_path).find("_2wave_") != std::string::npos;
+  const char* down_kernel_name =
+      two_wave ? kDownKernelNameTwoWave : kDownKernelNameOneWave;
+  down_threads =
+      two_wave ? kDownThreadsTwoWave : kDownThreadsOneWave;
   error = hipModuleGetFunction(
-      &down_function, down_module, kDownKernelName);
+      &down_function, down_module, down_kernel_name);
   if (error != hipSuccess) {
     (void)hipModuleUnload(down_module);
     down_module = nullptr;
@@ -244,7 +255,7 @@ extern "C" int netra_qwen36_moe_down_reduce_launch(
       kDownGrid,
       1,
       1,
-      kThreads,
+      down_threads,
       1,
       1,
       0,
@@ -270,6 +281,7 @@ extern "C" int netra_qwen36_moe_down_reduce_unload(void) {
   }
   down_module = nullptr;
   down_function = nullptr;
+  down_threads = kDownThreadsOneWave;
   down_loaded_path.clear();
   last_error.clear();
   return 0;

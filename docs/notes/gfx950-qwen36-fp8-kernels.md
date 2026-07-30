@@ -380,3 +380,79 @@ Retained artifacts:
 Status: **accepted for continued full-graph validation**. Counter evidence,
 complete layer/state tolerances, longer required cases, and the piecewise
 transition defect remain open before production promotion.
+
+## Two-wave down/reduce promotion and deterministic prefill oracle
+
+The one-wave down/reduce kernel launches only 128 waves on the 256-CU MI350X.
+The promoted variant keeps 128 output tiles but uses two wave64s per
+workgroup:
+
+```text
+kernels/gfx950/fp8/moe/decode/experiments/
+  qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.s
+```
+
+Wave 0 computes routed slots 0–4. Wave 1 computes slots 5–8 into a 1,024-byte
+LDS staging area; after one barrier, wave 0 consumes those contributions in
+the original slot/K-block order. The two-wave output is therefore bit-exact
+to the one-wave implementation while exposing 256 waves to the 256 CUs.
+
+Two independent 200-iteration real-capture runs had zero nondeterministic
+iterations and the same error as the one-wave kernel: cosine `0.999999`,
+maximum FP32 error `2.45431e-5`, mean FP32 error `2.62836e-6`, and 30/2,048
+BF16 differences from the independent accumulation-order oracle. HIP-event
+medians were 10.28 and 10.32 µs versus 13.041 µs for one wave, a 1.266×
+isolated speedup. The promoted code-object SHA-256 is
+`c08f206d0d4395f111bf44d665a05ab90a58332ccb59314b8e3f1c21aac03f76`.
+
+gfx950 counters confirmed 256 waves per dispatch, 128-thread workgroups,
+1,024 bytes of LDS, no scratch, and zero LDS bank conflicts. Aggregate
+`SQ_WAVES` and FP8 MFMA counts were exactly equal across all eight XCDs. The
+countered object used 16 VGPRs, 48 SGPRs, and no AGPRs. Counter collection is
+intrusive and is not used for wall-time claims.
+
+The earlier long-request token gate was contaminated by nondeterministic
+untuned AITER CK dense prefill GEMMs. A guarded correctness-only policy now
+routes every untuned block-FP8 dense M=210 call to deterministic CKTile. It
+does not change the checkpoint format: weights remain FP8 E4M3 with 128x128
+scales. This policy is an oracle, not an accepted Netra compute kernel.
+
+The reusable exact-operand harness lives in `netra-kernel`:
+
+```text
+harness/gfx950/fp8/dense/prefill/
+  qwen36_qkvz_m210_aiter_variants.py
+```
+
+For both captured projections, activation bytes and scales had one hash in
+20 iterations. AITER CK produced 20 distinct output hashes, whereas CKTile
+and preshuffled Triton each produced one:
+
+| Real checkpoint shape | Broken CK median | CKTile median | CKTile max error vs FP32-dequantized oracle |
+|---|---:|---:|---:|
+| GDN QKVZ, M210×N12288×K2048 | 64–76 µs | 85 µs | 0.0625 |
+| attention QKV, M210×N9216×K2048 | 64.24 µs | 82.16 µs | 0.03125 |
+
+With that oracle held identical for both variants:
+
+| Full-graph exact 210+128 | One wave | Two waves | Two-wave result |
+|---|---:|---:|---:|
+| repetitions | 40 | 40 | all hashes identical |
+| median wall latency | 0.853208 s | 0.810078 s | 1.05324× |
+| median generation latency | 0.800514 s | 0.756619 s | 1.05801× |
+| output hash | `6285266a...25c3` | `6285266a...25c3` | exact match |
+
+The fast pre-promotion probe also passed 200/200 exact prompt-seeded
+210-input/8-output requests in 20.5 seconds with one output hash. The
+two-wave variant is now the default SGLang launch selection; the one-wave
+object remains available as a retained control.
+
+Artifacts:
+
+```text
+/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/
+  kernel_experiments/qwen36_moe_down_reduce_2wave_gfx950_20260730T030300Z/
+  profiles/rocprof/isolated_raw_down_2wave_20260730T030500Z/
+  correctness/full_raw_1wave_fp8cktile_all_m210_20260730T041608Z/
+  correctness/full_raw_2wave_fp8cktile_all_m210_20260730T041846Z/
+```

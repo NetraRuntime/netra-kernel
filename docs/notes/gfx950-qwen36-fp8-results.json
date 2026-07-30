@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "full_graph_e2e_pass_piecewise_rejected_pending_counters",
+  "status": "two_wave_promoted_full_graph_e2e_pass_piecewise_rejected",
   "hardware": {
     "gpu": "AMD Instinct MI350X",
     "architecture": "gfx950",
@@ -258,7 +258,7 @@
     "artifact_directory": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_moe_down_reduce_fp8_gfx950_20260730T010200Z"
   },
   "native_mfma_decode_experiments": {
-    "status": "full_graph_e2e_pass_piecewise_rejected_pending_counters",
+    "status": "two_wave_promoted_full_graph_e2e_pass_piecewise_rejected",
     "instruction": "v_mfma_f32_16x16x128_f8f6f4",
     "target": "amdgcn-amd-amdhsa--gfx950",
     "wavefront_size": 64,
@@ -305,6 +305,58 @@
       "scalar_to_mfma_speedup": 14.35474006116208,
       "development_iteration_seconds": 0.416044
     },
+    "down_reduce_stage2_two_wave": {
+      "status": "promoted",
+      "source": "kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.s",
+      "shape": {
+        "routed_slots": 9,
+        "n": 2048,
+        "k": 512,
+        "workgroups": 128,
+        "workgroup_threads": 128,
+        "waves": 256
+      },
+      "correctness": {
+        "bit_exact_to_one_wave": true,
+        "cosine": 0.999999,
+        "maximum_absolute_error": 0.0000245431,
+        "mean_absolute_error": 0.00000262836,
+        "bf16_oracle_mismatches": 30,
+        "bf16_elements": 2048,
+        "nondeterministic_iterations": 0,
+        "iterations_per_run": 200,
+        "runs": 2
+      },
+      "hip_event_microseconds": {
+        "one_wave_median": 13.041,
+        "two_wave_medians": [
+          10.28,
+          10.32
+        ],
+        "two_wave_median_of_runs": 10.3,
+        "speedup": 1.266116504854369
+      },
+      "code_object": {
+        "sha256": "c08f206d0d4395f111bf44d665a05ab90a58332ccb59314b8e3f1c21aac03f76",
+        "target": "amdgcn-amd-amdhsa--gfx950",
+        "wavefront_size": 64,
+        "workgroup_threads": 128,
+        "vgpr_count": 16,
+        "sgpr_count": 48,
+        "agpr_count": 0,
+        "lds_bytes": 1024,
+        "scratch_bytes": 0
+      },
+      "rocprofv3": {
+        "measurement_status": "profiler-instrumented",
+        "sq_waves_per_dispatch": 256,
+        "lds_bank_conflicts": 0,
+        "sq_waves_equal_across_xcds": true,
+        "fp8_mfma_equal_across_xcds": true,
+        "artifact_directory": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/profiles/rocprof/isolated_raw_down_2wave_20260730T030500Z"
+      },
+      "artifact_directory": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_moe_down_reduce_2wave_gfx950_20260730T030300Z"
+    },
     "code_object_resources": {
       "vgpr_count": 30,
       "sgpr_count_range": [
@@ -328,7 +380,8 @@
     "code_object_sha256": {
       "gate_up": "8b5640f7d4244effd0ea263d8c7b579aaf4650ebfcd28be94351d85e62390ba0",
       "silu_quant": "6d87114b3bcc5028d9bad3e219c584be7e34bd79baa9010b76a1466c38fecd91",
-      "down_reduce": "4aea649a7ec6f03c400aa321dc5f9289c943bfd57a235909163d3aba73f86580",
+      "down_reduce": "c08f206d0d4395f111bf44d665a05ab90a58332ccb59314b8e3f1c21aac03f76",
+      "down_reduce_one_wave_control": "4aea649a7ec6f03c400aa321dc5f9289c943bfd57a235909163d3aba73f86580",
       "hip_bridge": "229da8b2e686f70c5b98aa9ca4f520febc302093469d2d31215f61a3a5e45230"
     },
     "eager": {
@@ -371,6 +424,45 @@
         "raw_output_sha256": "6285266a2fb67a34940db360925b075d4f0c60efc8955bbf4a884558223025c3"
       },
       "status": "accepted_for_continued_validation"
+    },
+    "deterministic_m210_dense_oracle": {
+      "status": "correctness_only_not_accepted_compute",
+      "policy": "route every untuned AITER block-FP8 dense M=210 call to CKTile",
+      "checkpoint_quantization": "FP8 E4M3 128x128",
+      "probe": {
+        "input_tokens": 210,
+        "output_tokens": 8,
+        "repetitions": 200,
+        "unique_output_hashes": 1,
+        "elapsed_seconds": 20.5
+      }
+    },
+    "two_wave_promotion": {
+      "status": "pass",
+      "graph_mode": "full",
+      "gpu_count": 1,
+      "tensor_parallel_degree": 1,
+      "case": {
+        "input_tokens": 210,
+        "output_tokens": 128,
+        "cached_tokens": 0
+      },
+      "repetitions_per_variant": 40,
+      "output_sha256": "6285266a2fb67a34940db360925b075d4f0c60efc8955bbf4a884558223025c3",
+      "one_wave": {
+        "median_wall_seconds": 0.8532080715,
+        "median_generation_seconds": 0.8005135705,
+        "unique_output_hashes": 1
+      },
+      "two_wave": {
+        "median_wall_seconds": 0.810078009,
+        "median_generation_seconds": 0.7566185285,
+        "unique_output_hashes": 1
+      },
+      "wall_latency_speedup": 1.0532418631549347,
+      "generation_latency_speedup": 1.0580147595473535,
+      "decode_throughput_speedup": 1.0580147731211695,
+      "artifact": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/correctness/full_raw_2wave_fp8cktile_all_m210_20260730T041846Z/two-wave-vs-one-wave-input210-output128.json"
     },
     "piecewise_graph": {
       "input210_output128_repetitions": 5,
