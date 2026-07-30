@@ -1,0 +1,68 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "date": "2026-07-31",
+  "eager_steady_decode_tokens_per_second": {
+    "prior": 24.55,
+    "n12800_block64": 25.73,
+    "n12800_block64_and_bf16_shared_down": 26.27
+  },
+  "estimated_30_tps_requirement": {
+    "current_ms_per_token": 38.0662352493,
+    "target_ms_per_token": 33.3333333333,
+    "additional_reduction_percent": 12.4333333333
+  },
+  "estimated_50_tps_requirement": {
+    "current_ms_per_token": 38.0662352493,
+    "target_ms_per_token": 20.0,
+    "additional_reduction_percent": 47.46
+  },
+  "n12800_hip_event_us_rotated": {
+    "layers": 30,
+    "baseline_median": 145.9740027785,
+    "candidate_median": 52.1579999477,
+    "speedup": 2.7986886561,
+    "bit_exact": true
+  },
+  "bf16_shared_down_hip_event_us_rotated": {
+    "layers": 40,
+    "rocblas_median": 22.7220002562,
+    "raw_asm_median": 12.1029997244,
+    "speedup": 1.8773858360,
+    "max_abs": 0.001953125,
+    "max_bf16_mismatches_per_layer": 4,
+    "bit_exact": false
+  },
+  "exact_210_input_128_output": {
+    "baseline_server_e2e_ms": 5423.5001269844,
+    "candidate_server_e2e_ms": 5316.6129399906,
+    "reduction_percent": 1.9708156078,
+    "baseline_steady_tps": 25.75,
+    "candidate_steady_tps": 26.27,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled"
+  },
+  "full_graph": {
+    "capture_seconds": 2.86,
+    "capture_memory_gb": 0.17,
+    "server_e2e_ms": 5321.9284879742,
+    "steady_tps": 25.91,
+    "eager_graph_output_hash_match": true,
+    "performance_decision": "rejected_batch1_within_noise_or_slower"
+  },
+  "rocprofv3": {
+    "path": "results/profiles/gfx1151/decode-m1-32-n12800-shared-down-20260731",
+    "kernel_launches": 46943,
+    "trace_wall_us": 1053748.717,
+    "total_kernel_gpu_us": 941512.976,
+    "positive_launch_gaps_us": 113173.914,
+    "signal_handlers": "disabled",
+    "counter_collection": false
+  },
+  "hsaco_sha256": {
+    "n12800_compute": "f16c9cdb6d0fd7bdd6c115225d6a3df76912c170144183c3358df032ba1d411b",
+    "n12800_reduce": "da22999525a1e03ce074b912804e0d3db38530d03f89f4a5fc9ee19d71617c04",
+    "bf16_shared_down": "d62461d65232d67c40b8d9ef114f78ab46f4c8712468b266917c630e5e4af0fe"
+  }
+}

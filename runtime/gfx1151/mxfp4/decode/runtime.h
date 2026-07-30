@@ -137,4 +137,24 @@ NETRA_GFX1151_ALWAYS_INLINE int linear_n2048_k4096_block128(
   return status == hipSuccess ? 0 : 93000 + static_cast<int>(status);
 }
 
+
+NETRA_GFX1151_ALWAYS_INLINE int linear_n12800_k2048_block64(
+    void* packed, void* scale, void* activation, void* workspace,
+    void* output, void* stream_ptr) {
+  ensure_initialized();
+  ModuleRegistry& registry = runtime();
+  if (registry.status != hipSuccess) return static_cast<int>(registry.status);
+  auto stream = reinterpret_cast<hipStream_t>(stream_ptr);
+
+  LinearArgs block_args{packed, scale, activation, workspace, 12800, 2048};
+  hipError_t status = launch(
+      registry.linear_decode_n12800_k2048_block64.function,
+      25, 64, 128, stream, block_args);
+  if (status != hipSuccess) return 94000 + static_cast<int>(status);
+
+  LinearArgs reduce_args{workspace, scale, output, nullptr, 12800, 64};
+  status = launch(registry.linear_decode_n12800_block64_reduce.function,
+                  50, 1, 256, stream, reduce_args);
+  return status == hipSuccess ? 0 : 95000 + static_cast<int>(status);
+}
 }  // namespace netra::gfx1151::decode

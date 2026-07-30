@@ -29,6 +29,10 @@ _USE_N2048_K4096_BLOCK128 = os.getenv(
     "SGLANG_NETRA_DISABLE_N2048_K4096_BLOCK128", "0"
 ).lower() not in {"1", "true", "yes", "on"}
 
+_USE_N12800_K2048_BLOCK64 = os.getenv(
+    "SGLANG_NETRA_DISABLE_N12800_K2048_BLOCK64", "0"
+).lower() not in {"1", "true", "yes", "on"}
+
 _USE_GATE_BLOCK64 = os.getenv(
     "SGLANG_NETRA_DISABLE_GATE_BLOCK64", "0"
 ).lower() not in {"1", "true", "yes", "on"}
@@ -79,10 +83,16 @@ class _Runtime:
             [ctypes.c_void_p] * 6
         )
         self.lib.netra_mxfp4_linear_n2048_k4096_block128.restype = ctypes.c_int
+        self.lib.netra_mxfp4_linear_n12800_k2048_block64.argtypes = (
+            [ctypes.c_void_p] * 6
+        )
+        self.lib.netra_mxfp4_linear_n12800_k2048_block64.restype = ctypes.c_int
         self.lib.netra_bf16_qkv_decode.argtypes = [ctypes.c_void_p] * 4
         self.lib.netra_bf16_qkv_decode.restype = ctypes.c_int
         self.lib.netra_bf16_shared_gate_up_silu_decode.argtypes = [ctypes.c_void_p] * 4
         self.lib.netra_bf16_shared_gate_up_silu_decode.restype = ctypes.c_int
+        self.lib.netra_bf16_shared_down_decode.argtypes = [ctypes.c_void_p] * 4
+        self.lib.netra_bf16_shared_down_decode.restype = ctypes.c_int
         self.lib.netra_bf16_lm_head_decode.argtypes = [ctypes.c_void_p] * 4
         self.lib.netra_bf16_lm_head_decode.restype = ctypes.c_int
         self.lib.netra_mxfp4_sgl_linear_prefill.argtypes = (
@@ -358,6 +368,20 @@ def netra_bf16_shared_gate_up_silu_with_output(
 
 
 @register_custom_op(mutates_args=["output"])
+def netra_bf16_shared_down_with_output(
+    weight: torch.Tensor,
+    activation: torch.Tensor,
+    output: torch.Tensor,
+) -> None:
+    """Graph-safe M=1 BF16 shared-expert down raw gfx1151 launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_bf16_shared_down_decode(
+        _ptr(weight), _ptr(activation), _ptr(output), runtime.stream()
+    )
+    runtime.check(status, "Netra raw-ASM BF16 shared-expert down")
+
+
+@register_custom_op(mutates_args=["output"])
 def netra_mxfp4_linear_with_output(
     packed: torch.Tensor,
     scale: torch.Tensor,
@@ -401,6 +425,27 @@ def netra_mxfp4_linear_n2048_k4096_block128_with_output(
         runtime.stream(),
     )
     runtime.check(status, "Netra raw-ASM MXFP4 N2048 K4096 block128")
+
+
+@register_custom_op(mutates_args=["workspace", "output"])
+def netra_mxfp4_linear_n12800_k2048_block64_with_output(
+    packed: torch.Tensor,
+    scale: torch.Tensor,
+    activation: torch.Tensor,
+    workspace: torch.Tensor,
+    output: torch.Tensor,
+) -> None:
+    """Graph-safe fixed N=12800, K=2048 raw gfx1151 decode launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_mxfp4_linear_n12800_k2048_block64(
+        _ptr(packed),
+        _ptr(scale),
+        _ptr(activation),
+        _ptr(workspace),
+        _ptr(output),
+        runtime.stream(),
+    )
+    runtime.check(status, "Netra raw-ASM MXFP4 N12800 K2048 block64")
 
 
 @register_custom_op(mutates_args=["output"])
@@ -971,6 +1016,11 @@ def _prepare_qkvz_ba_decode_fusion(
         requires_grad=False,
     )
     qkvz_layer.netra_qkvz_ba_padded_n = padded_n
+    if _USE_N12800_K2048_BLOCK64:
+        qkvz_layer.netra_qkvz_ba_workspace = torch.empty(
+            (64, padded_n), dtype=torch.float32,
+            device=qkvz_layer.netra_qkvz_ba_weight.device,
+        )
     qkvz_layer.netra_qkvz_ba_output = torch.empty(
         (1, padded_n), dtype=torch.bfloat16,
         device=qkvz_layer.netra_qkvz_ba_weight.device,
@@ -985,15 +1035,26 @@ def apply_qkvz_ba_decode_fused(
         raise ValueError(f"QKVZ+BA fusion requires BF16 [1,2048], got {x.shape}")
     padded_n = qkvz_layer.netra_qkvz_ba_padded_n
     output = qkvz_layer.netra_qkvz_ba_output
-    netra_mxfp4_linear_with_output(
-        qkvz_layer.netra_qkvz_ba_weight,
-        qkvz_layer.netra_qkvz_ba_scale,
-        x.contiguous(),
-        output,
-        1,
-        padded_n,
-        2048,
-    )
+    if _USE_N12800_K2048_BLOCK64:
+        netra_mxfp4_linear_n12800_k2048_block64_with_output(
+            qkvz_layer.netra_qkvz_ba_weight,
+            qkvz_layer.netra_qkvz_ba_scale,
+            x.contiguous(),
+            qkvz_layer.netra_qkvz_ba_workspace,
+            output,
+        )
+    else:
+        netra_mxfp4_linear_with_output(
+            qkvz_layer.netra_qkvz_ba_weight,
+            qkvz_layer.netra_qkvz_ba_scale,
+            x.contiguous(),
+            output,
+            1,
+            padded_n,
+            2048,
+        )
+
+
     return output[:, :12288], output[:, 12288:12352]
 
 

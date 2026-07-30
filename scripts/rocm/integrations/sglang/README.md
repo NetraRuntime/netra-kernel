@@ -33,7 +33,9 @@ This directory is the complete serving overlay for SGLang commit
 - `sglang-gfx1151-bf16-shared-gate-up-silu.patch` fuses the exact M=1
   N512+512 K2048 shared-expert BF16 projections with register-resident SiLU
   and multiplication. `SGLANG_NETRA_ENABLE_BF16_SHARED_GATE_UP_SILU=0`
-  restores rocBLAS plus the separate activation kernel.
+  restores rocBLAS plus the separate activation kernel. The same patch routes
+  exact M=1 N2048 K512 shared-expert down projections to raw gfx1151 assembly;
+  `SGLANG_NETRA_ENABLE_BF16_SHARED_DOWN=0` restores rocBLAS for that path.
 - `experiments/` retains integration patches for rejected design oracles.
 - The raw GDN bridge is graph-safe and retains Triton for all other shapes.
 - `netra_gfx1151_sglang.py` is copied into SGLang's quantization package.

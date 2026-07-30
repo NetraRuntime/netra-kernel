@@ -23,6 +23,8 @@ sources=(
   serving/mxfp4_sgl_linear_decode_gfx1151.s
   decode/mxfp4_linear_decode_n2048_k4096_block128_gfx1151.s
   decode/mxfp4_linear_decode_n2048_block128_reduce_gfx1151.s
+  decode/mxfp4_linear_decode_n12800_k2048_block64_gfx1151.s
+  decode/mxfp4_linear_decode_n12800_block64_reduce_gfx1151.s
   decode/mxfp4_decode_gate_block64_gfx1151.s
   decode/mxfp4_decode_gate_block64_reduce_gfx1151.s
   serving/mxfp4_sgl_linear_prefill_wmma_gfx1151.s
@@ -99,6 +101,18 @@ shared_gate_up_stem=bf16_shared_gate_up_silu_decode_wave2_gfx1151
 "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
   "${out_dir}/${shared_gate_up_stem}.hsaco" > \
   "${out_dir}/${shared_gate_up_stem}.dis"
+
+shared_down_stem=bf16_shared_down_decode_wave4_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c \
+  "${repo_dir}/kernels/gfx1151/dense/shared_expert/${shared_down_stem}.s" \
+  -o "${out_dir}/${shared_down_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${shared_down_stem}.o" \
+  -o "${out_dir}/${shared_down_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${shared_down_stem}.hsaco" > \
+  "${out_dir}/${shared_down_stem}.dis"
 
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c \

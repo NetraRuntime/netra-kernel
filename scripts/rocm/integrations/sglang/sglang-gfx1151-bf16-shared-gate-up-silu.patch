@@ -1,3 +1,5 @@
+diff --git a/python/sglang/srt/models/qwen2_moe.py b/python/sglang/srt/models/qwen2_moe.py
+index fb879a6..aa2fbd3 100644
 --- a/python/sglang/srt/models/qwen2_moe.py
 +++ b/python/sglang/srt/models/qwen2_moe.py
 @@ -19,6 +19,7 @@
@@ -8,7 +10,7 @@
  from contextlib import nullcontext
  from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
  
-@@ -124,6 +125,16 @@
+@@ -124,6 +125,22 @@ _is_cpu = is_cpu()
  _is_cpu_amx_available = cpu_has_amx_support()
  _is_hip = is_hip()
  _use_aiter = get_bool_env_var("SGLANG_USE_AITER") and _is_hip
@@ -18,14 +20,20 @@
 +    and os.getenv("SGLANG_NETRA_ENABLE_BF16_SHARED_GATE_UP_SILU", "1").lower()
 +    in {"1", "true", "yes", "on"}
 +)
++_use_netra_bf16_shared_down = (
++    _use_netra_bf16_shared_gate_up_silu
++    and os.getenv("SGLANG_NETRA_ENABLE_BF16_SHARED_DOWN", "1").lower()
++    in {"1", "true", "yes", "on"}
++)
 +if _use_netra_bf16_shared_gate_up_silu:
 +    from sglang.srt.layers.quantization.netra_gfx1151 import (
 +        netra_bf16_shared_gate_up_silu_with_output,
++        netra_bf16_shared_down_with_output,
 +    )
  
  
  def get_num_shared_experts(config: PretrainedConfig) -> int:
-@@ -206,13 +217,42 @@
+@@ -206,14 +223,73 @@ class Qwen2MoeMLP(nn.Module):
                  f"Unsupported activation: {hidden_act}. Only silu is supported for now."
              )
          self.act_fn = SiluAndMul()
@@ -42,6 +50,20 @@
 +            )
 +            else None
 +        )
++
++        self._netra_shared_down_output = (
++            torch.empty(
++                (1, 2048),
++                dtype=torch.bfloat16,
++                device=self.down_proj.weight.device,
++            )
++            if (
++                _use_netra_bf16_shared_down
++                and hidden_size == 2048
++                and intermediate_size == 512
++            )
++            else None
++        )
  
      def forward(
          self,
@@ -49,6 +71,7 @@
      ):
 -        gate_up, _ = self.gate_up_proj(x)
 -        x = self.act_fn(gate_up)
+-        x, _ = self.down_proj(x)
 +        weight = getattr(self.gate_up_proj, "weight", None)
 +        if (
 +            self._netra_shared_gate_up_silu_output is not None
@@ -67,6 +90,23 @@
 +        else:
 +            gate_up, _ = self.gate_up_proj(x)
 +            x = self.act_fn(gate_up)
-         x, _ = self.down_proj(x)
++        down_weight = getattr(self.down_proj, "weight", None)
++        if (
++            self._netra_shared_down_output is not None
++            and tuple(x.shape) == (1, 512)
++            and x.dtype == torch.bfloat16
++            and x.is_contiguous()
++            and down_weight is not None
++            and tuple(down_weight.shape) == (2048, 512)
++            and down_weight.dtype == torch.bfloat16
++            and down_weight.is_contiguous()
++        ):
++            netra_bf16_shared_down_with_output(
++                down_weight, x, self._netra_shared_down_output
++            )
++            x = self._netra_shared_down_output
++        else:
++            x, _ = self.down_proj(x)
          return x
+ 
  

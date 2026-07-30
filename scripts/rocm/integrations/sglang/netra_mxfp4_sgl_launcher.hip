@@ -102,6 +102,13 @@ extern "C" int netra_mxfp4_linear_n2048_k4096_block128(
       packed, scale, activation, workspace, output, stream_ptr);
 }
 
+extern "C" int netra_mxfp4_linear_n12800_k2048_block64(
+    void* packed, void* scale, void* activation, void* workspace,
+    void* output, void* stream_ptr) {
+  return netra::gfx1151::decode::linear_n12800_k2048_block64(
+      packed, scale, activation, workspace, output, stream_ptr);
+}
+
 extern "C" int netra_bf16_qkv_decode(
     void* weight, void* activation, void* output, void* stream_ptr) {
   return netra::gfx1151::attention::bf16_qkv_decode(
@@ -111,6 +118,12 @@ extern "C" int netra_bf16_qkv_decode(
 extern "C" int netra_bf16_shared_gate_up_silu_decode(
     void* weight, void* activation, void* output, void* stream_ptr) {
   return netra::gfx1151::moe::bf16_shared_gate_up_silu_decode(
+      weight, activation, output, stream_ptr);
+}
+
+extern "C" int netra_bf16_shared_down_decode(
+    void* weight, void* activation, void* output, void* stream_ptr) {
+  return netra::gfx1151::moe::bf16_shared_down_decode(
       weight, activation, output, stream_ptr);
 }
 
