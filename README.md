@@ -1,12 +1,16 @@
-# Netra MXFP4 kernels for gfx1151
+# Netra target-specific AMDGCN kernels
 
-Hand-written AMDGCN kernels for Qwen3.6-35B-A3B on the AMD Ryzen AI Max+
-PRO 395 (`gfx1151`). The repository is MXFP4-only. HIP and Python code is
-limited to launching, correctness checking, checkpoint conversion, profiling,
-and serving integration.
+Hand-written AMDGCN kernels organized by GPU architecture and checkpoint
+format. The retained `gfx1151/mxfp4` implementation targets Ryzen AI Max+
+wave32/RDNA. The new `gfx950/fp8` implementation targets AMD Instinct MI350X
+CDNA4 wave64 and the native Qwen3.6 FP8 E4M3 128×128-block checkpoint.
 
-All build, validation, profiling, and benchmark commands must run inside the
-`Netra` LXC.
+HIP and Python code is limited to module loading, dispatch, graph/workspace
+management, correctness checking, profiling, and serving integration. Targeted
+compute replacements are raw `.s` files.
+
+The gfx1151 work runs inside its `Netra` LXC. All gfx950 builds, validation,
+profiles, and benchmarks run on the MI350X server.
 
 ## Repository layout
 
@@ -16,45 +20,52 @@ scripts/rocm/
   harness/        HIP launch, graph, correctness, and timing bridges
   tools/          Reproducible build, benchmark, and profiling entry points
 docs/netra/notes/ Current findings, disassemblies, and machine-readable evidence
-kernels/gfx1151/mxfp4/
-  decode/        M=1 decode kernels and retained experiments
-  verify/        M=12 speculative-verification kernels
-  prefill/       WMMA prefill kernels, shared include, and experiments
-  lm_head/       MXFP4 LM-head kernels
-  serving/       SGLang ABI kernels
-  epilogue/      Raw assembly epilogues
-kernels/gfx1151/attention/
-  ...            Standard-attention kernels and rejected experiments
-kernels/gfx1151/gdn/
-  ...            Gated-delta-network kernels and rejected experiments
-kernels/gfx1151/moe/
-  ...            MoE routing/packing kernels and rejected experiments
-harness/gfx1151/mxfp4/
+kernels/
+  gfx1151/mxfp4/
+    decode/      M=1 decode kernels and retained experiments
+    verify/      M=12 speculative-verification kernels
+    prefill/     WMMA prefill kernels, shared include, and experiments
+    lm_head/     MXFP4 LM-head kernels
+    serving/     SGLang ABI kernels
+    epilogue/    Raw assembly epilogues
+  gfx1151/{attention,gdn,moe}/
+    ...          Non-MXFP4 kernels and retained experiments
+  gfx950/
+    fp8/         MI350X Qwen FP8 projection and MoE kernels
+    linear_attention/
+    norm/
+    routing/
+    sampling/    Model-native BF16/FP32 Qwen kernels
+harness/
+  gfx1151/{mxfp4,attention,gdn,moe}/
+  gfx950/
   ...            HIP launch, timing, and correctness harnesses
-harness/gfx1151/{attention,gdn,moe}/
-  ...            Non-MXFP4 launch, timing, and correctness harnesses
+runtime/
+  gfx1151/        gfx1151 runtime support
+  gfx950/         HIP module/dispatch bridges with allocation-free launches
 scripts/rocm/integrations/sglang/
   ...            SGLang bridge, launch script, and consolidated patch
 tools/
-  build/         Reproducible gfx1151 builds
+  build/         Reproducible architecture-specific builds
   benchmark/     Kernel and serving benchmarks
   checkpoint/    One-time real-checkpoint extraction and repacking
   profiling/     rocprofv3 request and trace analysis tools
   triton/        MXFP4 reference-baseline preparation
-tests/gfx1151/   Real-checkpoint integration correctness gates
+tests/gfx1151/   Retained gfx1151 real-checkpoint correctness gates
 docs/notes/      Measurements, negative results, and machine-readable data
 results/         Selected compact kernel, profiler, and serving evidence
 ```
 
-New mission work is canonical under `scripts/rocm/` and `docs/netra/notes/`.
-The older top-level kernel/tool and `docs/notes/` paths remain in place for
-reproducibility while they are migrated incrementally; new sources must not be
-duplicated into those legacy trees.
+Reorganized gfx1151 mission work is canonical under `scripts/rocm/` and
+`docs/netra/notes/`. The top-level architecture trees remain the canonical
+home of the current gfx950 work and of retained gfx1151 artifacts while the
+older layout is migrated incrementally. Sources must not be duplicated across
+the two layouts.
 
 Files under an `experiments/` directory are retained measured negative results;
 they are built for reproducibility but are not selected as shipping kernels.
 
-## Build
+## Retained gfx1151 build
 
 Run inside Netra:
 
@@ -134,3 +145,33 @@ references using real checkpoint weights.
 
 Every reported performance number in those records is labeled measured or
 estimated and is specific to gfx1151.
+
+## MI350X / gfx950 Qwen FP8 work
+
+Builds, profiles, and benchmarks run only on the MI350X server:
+
+```bash
+bash tools/build/build_gfx950_qwen36_fp8_raw.sh
+(
+  cd build/gfx950-qwen36-fp8
+  ./qwen36_moe_silu_mul_quant_fp8_gfx950_harness \
+    5000 ./qwen36_moe_silu_mul_quant_fp8_gfx950.hsaco
+)
+```
+
+The first implementation is intentionally retained as an experiment until
+real-checkpoint layer/state, graph replay, and end-to-end gates pass. See
+[gfx950 Qwen FP8 kernel development](docs/notes/gfx950-qwen36-fp8-kernels.md)
+and its
+[machine-readable isolated results](docs/notes/gfx950-qwen36-fp8-results.json).
+
+After one controlled live-request tensor capture exists, use the fast
+assembly/correctness loop without reloading Qwen:
+
+```bash
+tools/benchmark/iterate_gfx950_qwen36_moe_silu_mul_quant.sh
+```
+
+It incrementally rebuilds only stale components and reuses a lightweight,
+persistent gfx950 validator container. Full SGLang launches are reserved for
+layer, graph, and end-to-end integration gates.
