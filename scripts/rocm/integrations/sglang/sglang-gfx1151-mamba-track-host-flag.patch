@@ -1,0 +1,280 @@
+diff --git a/python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py b/python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py
+index 61a45f4..2a4f766 100644
+--- a/python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py
++++ b/python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py
+@@ -193,10 +193,7 @@ class MambaAttnBackendBase(AttentionBackend):
+                     forward_batch.extend_start_loc[-1]
+                     + forward_batch.extend_seq_lens[-1]
+                 )
+-                if (
+-                    forward_batch.mamba_track_mask is not None
+-                    and forward_batch.mamba_track_mask.any()
+-                ):
++                if forward_batch.has_mamba_track_mask:
+                     track_conv_indices = self._init_track_conv_indices(
+                         query_start_loc, forward_batch
+                     )
+@@ -210,10 +207,7 @@ class MambaAttnBackendBase(AttentionBackend):
+         else:
+             raise ValueError(f"Invalid forward mode: {forward_batch.forward_mode=}")
+ 
+-        has_mamba_track_mask = bool(
+-            forward_batch.mamba_track_mask is not None
+-            and forward_batch.mamba_track_mask.any()
+-        )
++        has_mamba_track_mask = forward_batch.has_mamba_track_mask
+ 
+         return ForwardMetadata(
+             query_start_loc=query_start_loc,
+@@ -292,7 +286,8 @@ class MambaAttnBackendBase(AttentionBackend):
+         mamba_cache_chunk_size = get_server_args().mamba_cache_chunk_size
+         aligned_len = (lens_to_track // mamba_cache_chunk_size) * mamba_cache_chunk_size
+         start_indices = query_start_loc[:-1] + aligned_len - conv_state_len
+-        start_indices = start_indices[forward_batch.mamba_track_mask]
++        if forward_batch.batch_size != 1:
++            start_indices = start_indices[forward_batch.mamba_track_mask]
+ 
+         indices = start_indices.unsqueeze(-1) + torch.arange(
+             conv_state_len,
+@@ -300,7 +295,9 @@ class MambaAttnBackendBase(AttentionBackend):
+             dtype=start_indices.dtype,
+         )
+ 
+-        return indices.clamp(0, query_start_loc[-1] - 1)
++        # extend_num_tokens is the host-known value of query_start_loc[-1].
++        # Passing the device scalar as clamp's bound forces a blocking copy.
++        return indices.clamp(0, forward_batch.extend_num_tokens - 1)
+ 
+     def _init_track_ssm_indices(
+         self, mamba_cache_indices: torch.Tensor, forward_batch: ForwardBatch
+@@ -309,7 +306,30 @@ class MambaAttnBackendBase(AttentionBackend):
+         cache last_recurrent_state, unaligned cache intermediate `h` at the last
+         chunk boundary."""
+         mamba_cache_chunk_size = get_server_args().mamba_cache_chunk_size
+-        # CPU to avoid kernel launches for the masking ops
++        if forward_batch.batch_size == 1:
++            # Exact batch-1 path: output cardinalities and alignment are known on
++            # the host, so no boolean indexing or GPU-to-CPU metadata copy is
++            # needed. Slices keep all pointers on the forward stream.
++            if forward_batch.mamba_track_single_is_aligned:
++                return (
++                    forward_batch.mamba_track_indices[:0],
++                    forward_batch.mamba_track_indices[:0],
++                    mamba_cache_indices[:1],
++                    forward_batch.mamba_track_indices[:1],
++                )
++            lens_to_track = (
++                forward_batch.mamba_track_seqlens[:1]
++                - forward_batch.extend_prefix_lens[:1]
++            )
++            return (
++                lens_to_track // mamba_cache_chunk_size,
++                forward_batch.mamba_track_indices[:1],
++                mamba_cache_indices[:0],
++                forward_batch.mamba_track_indices[:0],
++            )
++
++        # CPU fallback for mixed batches; the batch-1 critical path above avoids
++        # this synchronization entirely.
+         mamba_track_mask = forward_batch.mamba_track_mask.cpu()
+         extend_seq_lens = forward_batch.extend_seq_lens.cpu()
+         mamba_track_indices = forward_batch.mamba_track_indices.cpu()
+@@ -829,8 +849,7 @@ class Mamba2AttnBackend(MambaAttnBackendBase):
+         if forward_batch.mamba_track_mask is not None:
+             if (
+                 intermediate_states is not None
+-                and forward_batch.mamba_track_mask is not None
+-                and forward_batch.mamba_track_mask.any()
++                and forward_batch.has_mamba_track_mask
+             ):
+                 self._track_mamba_state_extend(
+                     forward_batch,
+diff --git a/python/sglang/srt/layers/attention/linear/gdn_backend.py b/python/sglang/srt/layers/attention/linear/gdn_backend.py
+index 61943b8..98e8783 100644
+--- a/python/sglang/srt/layers/attention/linear/gdn_backend.py
++++ b/python/sglang/srt/layers/attention/linear/gdn_backend.py
+@@ -354,14 +354,22 @@ class GDNAttnBackend(MambaAttnBackendBase):
+     def init_forward_metadata(self, forward_batch: ForwardBatch):
+         super().init_forward_metadata(forward_batch)
+         if self.forward_metadata.has_mamba_track_mask:
+-            self.forward_metadata.mamba_track_mask_indices = (
+-                forward_batch.mamba_track_mask.nonzero(as_tuple=True)[0]
+-            )
+-            self.forward_metadata.conv_states_mask_indices = (
+-                forward_batch.mamba_track_indices[
+-                    self.forward_metadata.mamba_track_mask_indices
+-                ]
+-            )
++            if forward_batch.batch_size == 1:
++                # The sole row is tracked when the host predicate is true. Avoid
++                # nonzero(), whose dynamic output size synchronizes the stream.
++                self.forward_metadata.mamba_track_mask_indices = None
++                self.forward_metadata.conv_states_mask_indices = (
++                    forward_batch.mamba_track_indices[:1]
++                )
++            else:
++                self.forward_metadata.mamba_track_mask_indices = (
++                    forward_batch.mamba_track_mask.nonzero(as_tuple=True)[0]
++                )
++                self.forward_metadata.conv_states_mask_indices = (
++                    forward_batch.mamba_track_indices[
++                        self.forward_metadata.mamba_track_mask_indices
++                    ]
++                )
+ 
+     def forward_decode(
+         self,
+diff --git a/python/sglang/srt/layers/attention/mamba/mamba.py b/python/sglang/srt/layers/attention/mamba/mamba.py
+index 6327665..27d24e5 100644
+--- a/python/sglang/srt/layers/attention/mamba/mamba.py
++++ b/python/sglang/srt/layers/attention/mamba/mamba.py
+@@ -565,8 +565,7 @@ class MambaMixer2(torch.nn.Module):
+                 0, 1
+             )  # this is the form that causal-conv see
+             if (
+-                forward_batch.mamba_track_mask is not None
+-                and forward_batch.mamba_track_mask.any()
++                forward_batch.has_mamba_track_mask
+                 and metadata.track_conv_indices is not None
+             ):
+                 x_to_track = x[:, metadata.track_conv_indices].transpose(0, 1)
+diff --git a/python/sglang/srt/managers/schedule_batch.py b/python/sglang/srt/managers/schedule_batch.py
+index f3e240c..34dcaa8 100755
+--- a/python/sglang/srt/managers/schedule_batch.py
++++ b/python/sglang/srt/managers/schedule_batch.py
+@@ -1681,7 +1681,7 @@ class Req(ReqDllmMixin):
+ 
+ class _MambaRadixCacheV2TrackEntry(NamedTuple):
+     track_mask: bool
+-    track_index: int
++    track_index: torch.Tensor
+     track_seqlen: int
+ 
+ 
+@@ -1914,6 +1914,11 @@ class ScheduleBatch(ScheduleBatchDisaggregationDecodeMixin):
+     # For hybrid GDN prefix cache
+     mamba_track_indices: torch.Tensor = None  # shape: [b], int64
+     mamba_track_mask: torch.Tensor = None  # shape: [b], bool
++    # Authoritative host-side reduction of mamba_track_mask. This avoids
++    # synchronizing the GPU merely to branch on Tensor.any() in model forward.
++    has_mamba_track_mask: bool = False
++    # Batch-1 eager specialization: authoritative host-side alignment predicate.
++    mamba_track_single_is_aligned: Optional[bool] = None
+     mamba_track_seqlens: torch.Tensor = None  # shape: [b], int64
+     # Lazy + spec: this iteration's per-req scatter positions
+     # (see mamba_lazy_spec_prepare).
+@@ -2418,11 +2423,19 @@ class ScheduleBatch(ScheduleBatchDisaggregationDecodeMixin):
+         self.extend_logprob_start_lens = extend_logprob_start_lens
+         self.extend_input_logprob_token_ids = extend_input_logprob_token_ids
+ 
++        self.has_mamba_track_mask = False
++        self.mamba_track_single_is_aligned = None
+         if server_args.enable_mamba_extra_buffer():
+-            self.mamba_track_indices = torch.tensor(
+-                mamba_track_indices_cpu,
+-                dtype=torch.int64,
+-                device=self.device,
++            self.has_mamba_track_mask = any(mamba_track_mask_cpu)
++            if len(reqs) == 1 and self.has_mamba_track_mask:
++                lens_to_track = mamba_track_seqlens_cpu[0] - prefix_lens[0]
++                self.mamba_track_single_is_aligned = (
++                    lens_to_track % server_args.mamba_cache_chunk_size == 0
++                )
++            # Track slots already live on the device. Stacking them avoids the
++            # per-chunk .item() GPU-to-host scalar read and host reconstruction.
++            self.mamba_track_indices = torch.stack(mamba_track_indices_cpu).to(
++                dtype=torch.int64
+             )
+             self.mamba_track_mask = torch.tensor(
+                 mamba_track_mask_cpu,
+@@ -2467,7 +2480,7 @@ class ScheduleBatch(ScheduleBatchDisaggregationDecodeMixin):
+             return i + 1
+ 
+         mask = req.extend_range.length >= mamba_cache_chunk_size
+-        track_index = req.mamba_ping_pong_track_buffer[req.mamba_next_track_idx].item()
++        track_index = req.mamba_ping_pong_track_buffer[req.mamba_next_track_idx]
+         mamba_track_seqlen = -1
+         if mask:
+             # mamba_track_seqlen is used to calculate the indices to track in
+@@ -2908,11 +2921,13 @@ class ScheduleBatch(ScheduleBatchDisaggregationDecodeMixin):
+                     self.mamba_lazy_prealloc_at_boundary(mamba_track_interval)
+                 set_mamba_track_indices_from_reqs(self)
+ 
+-            # async H2D
+-            self.mamba_track_mask = (
+-                (self.seq_lens_cpu % mamba_track_interval == 0)
+-                .pin_memory()
+-                .to(device=self.device, non_blocking=True)
++            # Compute the branch predicate on the existing CPU mirror before
++            # the async H2D. Eager model code must never reduce this GPU mask.
++            mamba_track_mask_cpu = self.seq_lens_cpu % mamba_track_interval == 0
++            self.has_mamba_track_mask = bool(mamba_track_mask_cpu.any())
++            self.mamba_track_single_is_aligned = None
++            self.mamba_track_mask = mamba_track_mask_cpu.pin_memory().to(
++                device=self.device, non_blocking=True
+             )
+ 
+     def filter_batch(
+@@ -2971,6 +2986,8 @@ class ScheduleBatch(ScheduleBatchDisaggregationDecodeMixin):
+ 
+         self.mamba_track_indices = None
+         self.mamba_track_mask = None
++        self.has_mamba_track_mask = False
++        self.mamba_track_single_is_aligned = None
+         self.mamba_track_seqlens = None
+         self.mamba_lazy_spec_track_positions_cpu = None
+         self.mamba_cow_src_indices = None
+@@ -3029,6 +3046,8 @@ class ScheduleBatch(ScheduleBatchDisaggregationDecodeMixin):
+             self.seq_lens_cpu = torch.cat([self.seq_lens_cpu, other.seq_lens_cpu])
+         self.mamba_track_indices = None
+         self.mamba_track_mask = None
++        self.has_mamba_track_mask = False
++        self.mamba_track_single_is_aligned = None
+         self.mamba_track_seqlens = None
+         self.mamba_lazy_spec_track_positions_cpu = None
+         if self.return_logprob and other.return_logprob:
+@@ -3084,6 +3103,8 @@ class ScheduleBatch(ScheduleBatchDisaggregationDecodeMixin):
+             enable_overlap=self.enable_overlap,
+             mamba_track_indices=self.mamba_track_indices,
+             mamba_track_mask=self.mamba_track_mask,
++            has_mamba_track_mask=self.has_mamba_track_mask,
++            mamba_track_single_is_aligned=self.mamba_track_single_is_aligned,
+             mamba_track_seqlens=self.mamba_track_seqlens,
+             mamba_lazy_spec_track_positions_cpu=self.mamba_lazy_spec_track_positions_cpu,
+             dp_cooperation_info=self.dp_cooperation_info,
+diff --git a/python/sglang/srt/model_executor/forward_batch_info.py b/python/sglang/srt/model_executor/forward_batch_info.py
+index 277d950..20df42d 100644
+--- a/python/sglang/srt/model_executor/forward_batch_info.py
++++ b/python/sglang/srt/model_executor/forward_batch_info.py
+@@ -423,6 +423,9 @@ class ForwardBatch(ForwardBatchDeepSeekMHAMixin):
+     mamba_track_indices: Optional[torch.Tensor] = None  # shape: [b], int64
+     # The mask to track mamba state if needed
+     mamba_track_mask: Optional[torch.Tensor] = None  # shape: [b], bool
++    # Host-side reduction computed before the mask is copied to the GPU.
++    has_mamba_track_mask: bool = False
++    mamba_track_single_is_aligned: Optional[bool] = None
+     # The seqlens to track mamba state if masked, prefill only.
+     mamba_track_seqlens: Optional[torch.Tensor] = None  # shape: [b], int64
+     # Deferred mamba init ops: COW pairs and clear indices (performed on forward stream)
+@@ -747,6 +750,8 @@ class ForwardBatch(ForwardBatchDeepSeekMHAMixin):
+             out_cache_loc_dsv4=batch.out_cache_loc_dsv4,
+             mamba_track_indices=batch.mamba_track_indices,
+             mamba_track_mask=batch.mamba_track_mask,
++            has_mamba_track_mask=batch.has_mamba_track_mask,
++            mamba_track_single_is_aligned=batch.mamba_track_single_is_aligned,
+             mamba_track_seqlens=batch.mamba_track_seqlens,
+             mamba_cow_src_indices=batch.mamba_cow_src_indices,
+             mamba_cow_dst_indices=batch.mamba_cow_dst_indices,
+diff --git a/python/sglang/srt/speculative/spec_utils.py b/python/sglang/srt/speculative/spec_utils.py
+index 7eb35b9..4e73f3e 100644
+--- a/python/sglang/srt/speculative/spec_utils.py
++++ b/python/sglang/srt/speculative/spec_utils.py
+@@ -775,6 +775,8 @@ def prepare_mamba_track_for_verify(batch: ScheduleBatch) -> None:
+         )
+     set_mamba_track_indices_from_reqs(batch, track_positions)
+     batch.mamba_track_mask = None
++    batch.has_mamba_track_mask = False
++    batch.mamba_track_single_is_aligned = None
+     batch.mamba_track_seqlens = None
+ 
+ 

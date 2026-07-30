@@ -11,11 +11,19 @@ This directory is the complete serving overlay for SGLang commit
 - `sglang-gfx1151-extend-attention.patch` adds the accepted exact-shape raw
   gfx1151 standard-attention dispatch.
 - `sglang-gfx1151-gdn-chunk-o.patch` adds the exact-shape raw gfx1151 GDN
+  chunk-output dispatch after the base integration patches.
 - `sglang-gfx1151-gdn-recompute-w-u.patch` adds the accepted operation-ordered
   raw gfx1151 W/U recompute dispatch for the exact 8K GDN shape.
 - `sglang-gfx1151-causal-conv1d.patch` adds the accepted bit-exact ordered-BF16
   raw gfx1151 causal-convolution and state-write dispatch for the exact 8K shape.
-  chunk-output dispatch after the base integration patches.
+- `sglang-gfx1151-qk-mrope-kv-fusion.patch` adds the accepted raw gfx1151 Q/K
+  normalization, multi-axis RoPE, gating, and KV-cache-store fusion.
+- `sglang-gfx1151-mamba-track-host-flag.patch` carries authoritative CPU-side
+  Mamba tracking and batch-1 alignment metadata into `ForwardBatch`, removing
+  eager GPU truth conversions and batch-1 dynamic indexing.
+- `sglang-gfx1151-gdn-syncfree-chunk-metadata.patch` reuses host sequence
+  lengths, constructs FLA indices/offsets directly on gfx1151, and reuses the
+  same chunk-index tensor in the GDN output phase.
 - `experiments/` retains integration patches for rejected design oracles.
 - The raw GDN bridge is graph-safe and retains Triton for all other shapes.
 - `netra_gfx1151_sglang.py` is copied into SGLang's quantization package.

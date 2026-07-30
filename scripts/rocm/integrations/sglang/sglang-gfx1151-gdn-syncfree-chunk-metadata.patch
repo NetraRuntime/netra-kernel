@@ -1,0 +1,211 @@
+diff --git a/python/sglang/kernels/ops/attention/fla/chunk.py b/python/sglang/kernels/ops/attention/fla/chunk.py
+index 8acb9d1..29d4522 100644
+--- a/python/sglang/kernels/ops/attention/fla/chunk.py
++++ b/python/sglang/kernels/ops/attention/fla/chunk.py
+@@ -44,6 +44,7 @@ def chunk_gated_delta_rule_fwd(
+     initial_state_indices: torch.Tensor,
+     cu_seqlens: Optional[torch.LongTensor] = None,
+     chunk_indices: torch.LongTensor | None = None,
++    seq_lens_cpu=None,
+ ):
+     g = chunk_local_cumsum(
+         g, chunk_size=CHUNK_SIZE, cu_seqlens=cu_seqlens, chunk_indices=chunk_indices
+@@ -68,6 +69,7 @@ def chunk_gated_delta_rule_fwd(
+         initial_state_indices=initial_state_indices,
+         cu_seqlens=cu_seqlens,
+         chunk_indices=chunk_indices,
++        seq_lens_cpu=seq_lens_cpu,
+     )
+     o = chunk_fwd_o(
+         q=q,
+@@ -77,6 +79,7 @@ def chunk_gated_delta_rule_fwd(
+         g=g,
+         scale=scale,
+         cu_seqlens=cu_seqlens,
++        chunk_indices=chunk_indices,
+     )
+     if SUPPRESS_LEVEL < 3:
+         return g, o, A, None, h, None
+@@ -101,6 +104,7 @@ class ChunkGatedDeltaRuleFunction(torch.autograd.Function):
+         initial_state_indices: torch.Tensor,
+         cu_seqlens: Optional[torch.LongTensor] = None,
+         use_qk_l2norm_in_kernel: bool = False,
++        seq_lens_cpu=None,
+     ):
+         q_orig = q
+         k_orig = k
+@@ -110,7 +114,7 @@ class ChunkGatedDeltaRuleFunction(torch.autograd.Function):
+             k = l2norm_fwd(k)
+ 
+         chunk_indices = (
+-            prepare_chunk_indices(cu_seqlens, CHUNK_SIZE)
++            prepare_chunk_indices(cu_seqlens, CHUNK_SIZE, seq_lens_cpu)
+             if cu_seqlens is not None
+             else None
+         )
+@@ -125,6 +129,7 @@ class ChunkGatedDeltaRuleFunction(torch.autograd.Function):
+             initial_state_indices=initial_state_indices,
+             cu_seqlens=cu_seqlens,
+             chunk_indices=chunk_indices,
++            seq_lens_cpu=seq_lens_cpu,
+         )
+         return o.to(q.dtype), h
+ 
+@@ -142,6 +147,7 @@ def chunk_gated_delta_rule(
+     cu_seqlens: Optional[torch.LongTensor] = None,
+     head_first: bool = False,
+     use_qk_l2norm_in_kernel: bool = False,
++    seq_lens_cpu=None,
+ ):
+     r"""
+     Args:
+@@ -256,6 +262,7 @@ def chunk_gated_delta_rule(
+         initial_state_indices,
+         cu_seqlens,
+         use_qk_l2norm_in_kernel,
++        seq_lens_cpu,
+     )
+     if head_first:
+         o = rearrange(o, "b t h ... -> b h t ...")
+diff --git a/python/sglang/kernels/ops/attention/fla/chunk_delta_h.py b/python/sglang/kernels/ops/attention/fla/chunk_delta_h.py
+index 41c451a..7045499 100644
+--- a/python/sglang/kernels/ops/attention/fla/chunk_delta_h.py
++++ b/python/sglang/kernels/ops/attention/fla/chunk_delta_h.py
+@@ -317,6 +317,7 @@ def chunk_gated_delta_rule_fwd_h(
+     cu_seqlens: Optional[torch.LongTensor] = None,
+     chunk_indices: Optional[torch.LongTensor] = None,
+     use_exp2: bool = False,
++    seq_lens_cpu=None,
+ ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+     assert not (
+         use_exp2 and g is not None
+@@ -334,7 +335,7 @@ def chunk_gated_delta_rule_fwd_h(
+         N, NT, chunk_offsets = (
+             len(cu_seqlens) - 1,
+             len(chunk_indices),
+-            prepare_chunk_offsets(cu_seqlens, BT),
++            prepare_chunk_offsets(cu_seqlens, BT, seq_lens_cpu),
+         )
+     assert K <= 256, "current kernel does not support head dimension larger than 256."
+ 
+diff --git a/python/sglang/kernels/ops/attention/fla/chunk_o.py b/python/sglang/kernels/ops/attention/fla/chunk_o.py
+index 8f30896..1830bb3 100644
+--- a/python/sglang/kernels/ops/attention/fla/chunk_o.py
++++ b/python/sglang/kernels/ops/attention/fla/chunk_o.py
+@@ -143,13 +143,15 @@ def chunk_fwd_o(
+     scale: Optional[float] = None,
+     cu_seqlens: Optional[torch.LongTensor] = None,
+     chunk_size: int = 64,
++    chunk_indices: Optional[torch.LongTensor] = None,
+ ) -> torch.Tensor:
+     B, T, Hg, K, V = *q.shape, v.shape[-1]
+     H = v.shape[-2]
+     BT = min(chunk_size, max(16, triton.next_power_of_2(T)))
+-    chunk_indices = (
+-        prepare_chunk_indices(cu_seqlens, BT) if cu_seqlens is not None else None
+-    )
++    if chunk_indices is None:
++        chunk_indices = (
++            prepare_chunk_indices(cu_seqlens, BT) if cu_seqlens is not None else None
++        )
+     NT = triton.cdiv(T, BT) if cu_seqlens is None else len(chunk_indices)
+     if scale is None:
+         scale = k.shape[-1] ** -0.5
+diff --git a/python/sglang/kernels/ops/attention/fla/index.py b/python/sglang/kernels/ops/attention/fla/index.py
+index 1ece691..10cf662 100644
+--- a/python/sglang/kernels/ops/attention/fla/index.py
++++ b/python/sglang/kernels/ops/attention/fla/index.py
+@@ -15,21 +15,54 @@ def prepare_lens(cu_seqlens: torch.LongTensor) -> torch.LongTensor:
+ 
+ @tensor_cache
+ def prepare_chunk_indices(
+-    cu_seqlens: torch.LongTensor, chunk_size: int
++    cu_seqlens: torch.LongTensor, chunk_size: int, seq_lens_cpu=None
+ ) -> torch.LongTensor:
+-    indices = torch.cat(
+-        [
+-            torch.arange(n)
+-            for n in triton.cdiv(prepare_lens(cu_seqlens), chunk_size).tolist()
+-        ]
++    # SGLang already maintains authoritative host sequence lengths while
++    # scheduling. Reuse them when available: materializing prepare_lens() on the
++    # host here otherwise creates a 4-byte D2H synchronization for batch 1 and
++    # drains the entire preceding prefill chunk before the first GDN layer.
++    chunk_counts = (
++        [triton.cdiv(int(n), chunk_size) for n in seq_lens_cpu]
++        if seq_lens_cpu is not None
++        else triton.cdiv(prepare_lens(cu_seqlens), chunk_size).tolist()
+     )
++    if seq_lens_cpu is not None:
++        # Build on the destination device as well. A CPU arange followed by
++        # .to(cu_seqlens) is an H2D stream barrier and merely replaces the D2H
++        # barrier above with an equally expensive synchronization.
++        per_sequence = []
++        for sequence_index, chunk_count in enumerate(chunk_counts):
++            chunk_ids = torch.arange(
++                chunk_count, device=cu_seqlens.device, dtype=cu_seqlens.dtype
++            )
++            sequence_ids = torch.full_like(chunk_ids, sequence_index)
++            per_sequence.append(torch.stack([sequence_ids, chunk_ids], 1))
++        return torch.cat(per_sequence)
++
++    indices = torch.cat([torch.arange(n) for n in chunk_counts])
+     return torch.stack([indices.eq(0).cumsum(0) - 1, indices], 1).to(cu_seqlens)
+ 
+ 
+ @tensor_cache
+ def prepare_chunk_offsets(
+-    cu_seqlens: torch.LongTensor, chunk_size: int
++    cu_seqlens: torch.LongTensor, chunk_size: int, seq_lens_cpu=None
+ ) -> torch.LongTensor:
++    if seq_lens_cpu is not None:
++        # Avoid cu_seqlens.new_tensor([0]): even this four-byte H2D transfer
++        # synchronizes the active HIP stream. Scalar-valued device fills enqueue
++        # normally and preserve the existing cumulative-offset semantics.
++        counts = [cu_seqlens.new_zeros((1,))]
++        counts.extend(
++            torch.full(
++                (1,),
++                triton.cdiv(int(n), chunk_size),
++                device=cu_seqlens.device,
++                dtype=cu_seqlens.dtype,
++            )
++            for n in seq_lens_cpu
++        )
++        return torch.cat(counts).cumsum(-1)
++
+     return torch.cat(
+         [cu_seqlens.new_tensor([0]), triton.cdiv(prepare_lens(cu_seqlens), chunk_size)]
+     ).cumsum(-1)
+diff --git a/python/sglang/srt/layers/attention/linear/gdn_backend.py b/python/sglang/srt/layers/attention/linear/gdn_backend.py
+index 98e8783..3c93237 100644
+--- a/python/sglang/srt/layers/attention/linear/gdn_backend.py
++++ b/python/sglang/srt/layers/attention/linear/gdn_backend.py
+@@ -657,6 +657,7 @@ class GDNAttnBackend(MambaAttnBackendBase):
+                 ssm_states=ssm_states_contig,
+                 cache_indices=state_cache_indices,
+                 query_start_loc=query_start_loc,
++                seq_lens_cpu=forward_batch.extend_seq_lens_cpu,
+             )
+ 
+             if is_npu() and last_recurrent_state is not None:
+diff --git a/python/sglang/srt/layers/attention/linear/kernels/gdn_triton.py b/python/sglang/srt/layers/attention/linear/kernels/gdn_triton.py
+index c694222..c8f0a11 100644
+--- a/python/sglang/srt/layers/attention/linear/kernels/gdn_triton.py
++++ b/python/sglang/srt/layers/attention/linear/kernels/gdn_triton.py
+@@ -177,6 +177,7 @@ class TritonGDNKernel(LinearAttnKernelBase):
+         ssm_states: torch.Tensor,
+         cache_indices: torch.Tensor,
+         query_start_loc: torch.Tensor,
++        seq_lens_cpu=None,
+         **kwargs,
+     ) -> tuple:
+         recurrent_state = ssm_states
+@@ -195,6 +196,7 @@ class TritonGDNKernel(LinearAttnKernelBase):
+             cu_seqlens=query_start_loc,
+             head_first=False,
+             use_qk_l2norm_in_kernel=True,
++            seq_lens_cpu=seq_lens_cpu,
+             **recurrent_state_indices_args,
+         )
+ 
