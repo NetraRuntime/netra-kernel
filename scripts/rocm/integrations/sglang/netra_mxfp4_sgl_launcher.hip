@@ -38,6 +38,7 @@ Kernel down;
 Kernel silu;
 Kernel reduce;
 Kernel prefill_gate;
+Kernel prefill_up_silu;
 Kernel prefill_repack;
 Kernel prefill_down;
 Kernel m12_group_gate_up_silu;
@@ -83,6 +84,8 @@ void initialize() {
        "mxfp4_sgl_reduce_gfx1151");
   load(prefill_gate, "mxfp4_prefill_gate_wmma_gfx1151.hsaco",
        "mxfp4_prefill_gate_wmma_gfx1151");
+  load(prefill_up_silu, "mxfp4_prefill_up_silu_wmma_gfx1151.hsaco",
+       "mxfp4_prefill_up_silu_wmma_gfx1151");
   load(prefill_repack, "mxfp4_prefill_repack_dword_gfx1151.hsaco",
        "mxfp4_prefill_repack_dword_gfx1151");
   load(prefill_down, "mxfp4_prefill_down_wmma_gfx1151.hsaco",
@@ -382,15 +385,13 @@ extern "C" int netra_mxfp4_sgl_prefill_gate_up(
              NETRA_PREFILL_GATE_BLOCK_X, stream, gate_args);
   if (status != hipSuccess) return 81000 + static_cast<int>(status);
 
-  FivePointers up_args{
-      up_weight, up_scale, activation_groups, up_output, expert_ids};
-  status = launch(prefill_gate.function, NETRA_PREFILL_GATE_GRID_X, group_count,
-                  NETRA_PREFILL_GATE_BLOCK_X, stream, up_args);
-  if (status != hipSuccess) return 82000 + static_cast<int>(status);
-
-  ThreePointers silu_args{gate_output, up_output, intermediate_output};
-  status = launch(silu.function, group_count * 128, 1, 256, stream, silu_args);
-  return status == hipSuccess ? 0 : 83000 + static_cast<int>(status);
+  (void)up_output;
+  SixPointers up_silu_args{up_weight, up_scale, activation_groups, gate_output,
+                           intermediate_output, expert_ids};
+  status = launch(prefill_up_silu.function, NETRA_PREFILL_GATE_GRID_X,
+                  group_count, NETRA_PREFILL_GATE_BLOCK_X, stream,
+                  up_silu_args);
+  return status == hipSuccess ? 0 : 82000 + static_cast<int>(status);
 }
 
 extern "C" int netra_mxfp4_sgl_m12_gate_up(

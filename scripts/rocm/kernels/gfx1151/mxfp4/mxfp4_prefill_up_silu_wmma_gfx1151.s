@@ -1,0 +1,337 @@
+// SPDX-License-Identifier: MIT
+//
+// Raw gfx1151 group4-A up projection with fused gate SiLU-times-up BF16 epilogue.
+// Qwen3.6 expert up: N=512, K=2048, 64 padded rows per group.
+//
+// grid=(8, group_count, 1), block=(128,1,1). expert_ids[group] chooses
+// the checkpoint expert. A, gate FP32, and output BF16 are group-major.
+// Each wave decodes B once and reuses it across four 16-row WMMA tiles.
+
+	.amdgcn_target "amdgcn-amd-amdhsa--gfx1151"
+	.amdhsa_code_object_version 6
+	.text
+
+	.macro DECODE_TO W O0 O1 O2 O3 U0 U1 U2 U3
+	v_and_b32_e32 v88, 0x07070707, \W
+	v_lshrrev_b32_e32 v89, 4, \W
+	v_and_b32_e32 v89, 0x07070707, v89
+	v_lshlrev_b32_e32 v90, 4, \W
+	v_and_b32_e32 v91, 0x80808080, \W
+	v_perm_b32 v92, v5, v4, v88
+	v_perm_b32 v93, v5, v4, v89
+	v_perm_b32 v94, v7, v6, v88
+	v_perm_b32 v95, v7, v6, v89
+	v_and_b32_e32 v90, 0x80808080, v90
+	v_or_b32_e32 v94, v90, v94
+	v_or_b32_e32 v95, v91, v95
+	v_perm_b32 v96, v94, v92, 0x05010400
+	v_perm_b32 v97, v94, v92, 0x07030602
+	v_perm_b32 v98, v95, v93, 0x05010400
+	v_perm_b32 v99, v95, v93, 0x07030602
+	v_perm_b32 \O0, v98, v96, 0x05040100
+	v_perm_b32 \O1, v98, v96, 0x07060302
+	v_perm_b32 \O2, v99, v97, 0x05040100
+	v_perm_b32 \O3, v99, v97, 0x07060302
+	ds_swizzle_b32 \U0, \O0 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 \U1, \O1 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 \U2, \O2 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 \U3, \O3 offset:swizzle(SWAP,16)
+	.endm
+
+	.macro ACC_TILE AOFF C0 C1 C2 C3 C4 C5 C6 C7
+	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
+	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0
+	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0
+	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0
+	v_lshlrev_b32_e32 v12, 6, v1
+	v_lshl_add_u32 v12, v2, 4, v12
+	v_add_nc_u32_e32 v12, \AOFF, v12
+	ds_load_b128 v[72:75], v12
+	ds_load_b128 v[80:83], v12 offset:32
+	s_waitcnt lgkmcnt(0)
+	ds_swizzle_b32 v76, v72 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v77, v73 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v78, v74 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v79, v75 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v84, v80 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v85, v81 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v86, v82 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v87, v83 offset:swizzle(SWAP,16)
+	s_waitcnt lgkmcnt(0)
+	v_wmma_f32_16x16x16_bf16 v[64:71], v[72:79], v[16:23], v[64:71]
+	v_wmma_f32_16x16x16_bf16 v[64:71], v[80:87], v[24:31], v[64:71]
+	v_fmac_f32_e32 \C0, v64, v104
+	v_fmac_f32_e32 \C1, v65, v104
+	v_fmac_f32_e32 \C2, v66, v104
+	v_fmac_f32_e32 \C3, v67, v104
+	v_fmac_f32_e32 \C4, v68, v104
+	v_fmac_f32_e32 \C5, v69, v104
+	v_fmac_f32_e32 \C6, v70, v104
+	v_fmac_f32_e32 \C7, v71, v104
+	.endm
+
+    .macro SILU_BF16_STORE U G
+    v_mul_f32_e32 v88, \G, v4
+    v_exp_f32_e32 v88, v88
+    v_add_f32_e32 v88, v5, v88
+    v_rcp_f32_e32 v88, v88
+    v_mul_f32_e32 \G, \G, \U
+    v_mul_f32_e32 \U, \G, v88
+    v_lshrrev_b32_e32 v88, 16, \U
+    v_and_b32_e32 v88, 1, v88
+    v_add_nc_u32_e32 v88, 0x7fff, v88
+    v_add_nc_u32_e32 \U, v88, \U
+    v_lshrrev_b32_e32 \U, 16, \U
+    global_store_short v100, \U, s[12:13]
+    v_add_nc_u32_e32 v100, 1024, v100
+    .endm
+
+    .macro STORE_TILE C0 C1 C2 C3 C4 C5 C6 C7
+    ds_swizzle_b32 v72, \C4 offset:swizzle(ROTATE,1,16)
+    ds_swizzle_b32 v76, \C0 offset:swizzle(ROTATE,1,16)
+    ds_swizzle_b32 v73, \C5 offset:swizzle(ROTATE,1,16)
+    ds_swizzle_b32 v77, \C1 offset:swizzle(ROTATE,1,16)
+    ds_swizzle_b32 v74, \C6 offset:swizzle(ROTATE,1,16)
+    ds_swizzle_b32 v78, \C2 offset:swizzle(ROTATE,1,16)
+    ds_swizzle_b32 v75, \C7 offset:swizzle(ROTATE,1,16)
+    ds_swizzle_b32 v79, \C3 offset:swizzle(ROTATE,1,16)
+    s_waitcnt lgkmcnt(0)
+    v_mov_b32_dpp v72, \C0 quad_perm:[0,1,2,3] row_mask:0x5 bank_mask:0xf
+    v_mov_b32_dpp \C4, v76 quad_perm:[0,1,2,3] row_mask:0x5 bank_mask:0xf
+    v_mov_b32_dpp v73, \C1 quad_perm:[0,1,2,3] row_mask:0x5 bank_mask:0xf
+    v_mov_b32_dpp \C5, v77 quad_perm:[0,1,2,3] row_mask:0x5 bank_mask:0xf
+    v_mov_b32_dpp v74, \C2 quad_perm:[0,1,2,3] row_mask:0x5 bank_mask:0xf
+    v_mov_b32_dpp \C6, v78 quad_perm:[0,1,2,3] row_mask:0x5 bank_mask:0xf
+    v_mov_b32_dpp v75, \C3 quad_perm:[0,1,2,3] row_mask:0x5 bank_mask:0xf
+    v_mov_b32_dpp \C7, v79 quad_perm:[0,1,2,3] row_mask:0x5 bank_mask:0xf
+    v_lshrrev_b32_e32 v100, 1, v11
+    v_mov_b32_e32 v101, v11
+    global_load_b32 v80, v101, s[10:11]
+    v_add_nc_u32_e32 v101, 2048, v101
+    global_load_b32 v81, v101, s[10:11]
+    v_add_nc_u32_e32 v101, 2048, v101
+    global_load_b32 v82, v101, s[10:11]
+    v_add_nc_u32_e32 v101, 2048, v101
+    global_load_b32 v83, v101, s[10:11]
+    v_add_nc_u32_e32 v101, 2048, v101
+    global_load_b32 v84, v101, s[10:11]
+    v_add_nc_u32_e32 v101, 2048, v101
+    global_load_b32 v85, v101, s[10:11]
+    v_add_nc_u32_e32 v101, 2048, v101
+    global_load_b32 v86, v101, s[10:11]
+    v_add_nc_u32_e32 v101, 2048, v101
+    global_load_b32 v87, v101, s[10:11]
+    v_add_nc_u32_e32 v11, 16384, v11
+    s_waitcnt vmcnt(0)
+    SILU_BF16_STORE v72 v80
+    SILU_BF16_STORE \C4 v81
+    SILU_BF16_STORE v73 v82
+    SILU_BF16_STORE \C5 v83
+    SILU_BF16_STORE v74 v84
+    SILU_BF16_STORE \C6 v85
+    SILU_BF16_STORE v75 v86
+    SILU_BF16_STORE \C7 v87
+    .endm
+
+	.protected mxfp4_prefill_up_silu_wmma_gfx1151
+	.globl mxfp4_prefill_up_silu_wmma_gfx1151
+	.p2align 8
+	.type mxfp4_prefill_up_silu_wmma_gfx1151,@function
+mxfp4_prefill_up_silu_wmma_gfx1151:
+    s_clause 0x2
+    s_load_b128 s[4:7], s[0:1], 0
+    s_load_b128 s[8:11], s[0:1], 16
+    s_load_b128 s[12:15], s[0:1], 32
+    s_waitcnt lgkmcnt(0)
+
+    // Load the expert selected for this packed 64-row group.
+    s_lshl_b32 s16, s3, 2
+    s_waitcnt_depctr 0
+    s_load_b32 s16, s[14:15], s16
+    s_waitcnt lgkmcnt(0)
+
+    // Expert weight offsets plus activation, gate-FP32, and output-BF16 groups.
+    s_lshl_b32 s17, s16, 19
+    s_lshl_b32 s18, s16, 15
+    s_lshl_b32 s19, s3, 18
+    s_lshl_b32 s20, s3, 17
+    s_lshl_b32 s21, s3, 16
+    s_waitcnt_depctr 0
+    s_add_u32 s4, s4, s17
+    s_addc_u32 s5, s5, 0
+    s_add_u32 s6, s6, s18
+    s_addc_u32 s7, s7, 0
+    s_add_u32 s8, s8, s19
+    s_addc_u32 s9, s9, 0
+    s_add_u32 s10, s10, s20
+    s_addc_u32 s11, s11, 0
+    s_add_u32 s12, s12, s21
+    s_addc_u32 s13, s13, 0
+
+	// Four waves cover four adjacent N16 tiles in one workgroup.
+	v_and_b32_e32 v31, 31, v0
+	v_lshrrev_b32_e32 v30, 5, v0
+	v_readfirstlane_b32 s20, v30
+	s_lshl_b32 s15, s2, 2
+	s_add_u32 s15, s15, s20
+	s_lshl_b32 s15, s15, 4
+	v_and_b32_e32 v1, 15, v31
+	v_lshrrev_b32_e32 v2, 4, v31
+	s_waitcnt_depctr 0
+	v_add_nc_u32_e32 v3, s15, v1
+
+	// Cooperative A loader: thread tid owns one 32-byte half-row.
+	v_lshrrev_b32_e32 v14, 1, v0
+	v_and_b32_e32 v15, 1, v0
+	v_lshlrev_b32_e32 v8, 12, v14
+	v_lshl_add_u32 v8, v15, 5, v8
+	v_lshlrev_b32_e32 v13, 6, v14
+	v_lshl_add_u32 v13, v15, 5, v13
+	v_lshlrev_b32_e32 v9, 2, v3
+	v_lshl_add_u32 v9, v2, 11, v9
+	v_mov_b32_e32 v10, v3
+
+	v_mov_b32_e32 v4, 0xc0800000
+	v_mov_b32_e32 v5, 0xc0804000
+	v_mov_b32_e32 v6, 0x3f3f3f00
+	v_mov_b32_e32 v7, 0x40404040
+
+	v_dual_mov_b32 v32, 0 :: v_dual_mov_b32 v33, 0
+	v_dual_mov_b32 v34, 0 :: v_dual_mov_b32 v35, 0
+	v_dual_mov_b32 v36, 0 :: v_dual_mov_b32 v37, 0
+	v_dual_mov_b32 v38, 0 :: v_dual_mov_b32 v39, 0
+	v_dual_mov_b32 v40, 0 :: v_dual_mov_b32 v41, 0
+	v_dual_mov_b32 v42, 0 :: v_dual_mov_b32 v43, 0
+	v_dual_mov_b32 v44, 0 :: v_dual_mov_b32 v45, 0
+	v_dual_mov_b32 v46, 0 :: v_dual_mov_b32 v47, 0
+	v_dual_mov_b32 v48, 0 :: v_dual_mov_b32 v49, 0
+	v_dual_mov_b32 v50, 0 :: v_dual_mov_b32 v51, 0
+	v_dual_mov_b32 v52, 0 :: v_dual_mov_b32 v53, 0
+	v_dual_mov_b32 v54, 0 :: v_dual_mov_b32 v55, 0
+	v_dual_mov_b32 v56, 0 :: v_dual_mov_b32 v57, 0
+	v_dual_mov_b32 v58, 0 :: v_dual_mov_b32 v59, 0
+	v_dual_mov_b32 v60, 0 :: v_dual_mov_b32 v61, 0
+	v_dual_mov_b32 v62, 0 :: v_dual_mov_b32 v63, 0
+	s_mov_b32 s19, 64
+
+.Lmxblock:
+	// Both K=16 B fragments and their shared scale issue together.
+	// Do not overwrite the shared A tile until every wave consumed the prior one.
+	s_barrier
+	global_load_ubyte v104, v10, s[6:7]
+	global_load_dword v80, v9, s[4:5]
+	v_add_nc_u32_e32 v12, 4096, v9
+	global_load_dword v84, v12, s[4:5]
+	global_load_b128 v[72:75], v8, s[8:9]
+	global_load_b128 v[76:79], v8, s[8:9] offset:16
+	s_waitcnt vmcnt(0)
+	ds_write_b128 v13, v[72:75]
+	ds_write_b128 v13, v[76:79] offset:16
+
+	DECODE_TO v80 v16 v17 v18 v19 v20 v21 v22 v23
+	DECODE_TO v84 v24 v25 v26 v27 v28 v29 v30 v31
+	s_waitcnt lgkmcnt(0)
+	v_lshlrev_b32_e32 v104, 23, v104
+	s_barrier
+
+	ACC_TILE 0    v32 v33 v34 v35 v36 v37 v38 v39
+	ACC_TILE 1024 v40 v41 v42 v43 v44 v45 v46 v47
+	ACC_TILE 2048 v48 v49 v50 v51 v52 v53 v54 v55
+	ACC_TILE 3072 v56 v57 v58 v59 v60 v61 v62 v63
+
+	s_add_u32 s4, s4, 8192
+	s_addc_u32 s5, s5, 0
+	s_add_u32 s6, s6, 512
+	s_addc_u32 s7, s7, 0
+	s_add_u32 s8, s8, 64
+	s_addc_u32 s9, s9, 0
+	s_sub_u32 s19, s19, 1
+	s_waitcnt_depctr 0
+	s_cmp_lg_u32 s19, 0
+	s_cbranch_scc1 .Lmxblock
+
+    // Exact existing SiLU uses exp2(-x*log2(e)); stores use RNE BF16.
+    v_mov_b32_e32 v4, 0xbfb8aa3b
+    v_mov_b32_e32 v5, 0x3f800000
+	// Subgroup 0 starts at row 0 and subgroup 1 at row 8.
+	v_lshlrev_b32_e32 v11, 2, v3
+	v_lshl_add_u32 v11, v2, 14, v11
+	STORE_TILE v32 v33 v34 v35 v36 v37 v38 v39
+	v_add_nc_u32_e32 v11, 16384, v11
+	STORE_TILE v40 v41 v42 v43 v44 v45 v46 v47
+	v_add_nc_u32_e32 v11, 16384, v11
+	STORE_TILE v48 v49 v50 v51 v52 v53 v54 v55
+	v_add_nc_u32_e32 v11, 16384, v11
+	STORE_TILE v56 v57 v58 v59 v60 v61 v62 v63
+	s_endpgm
+
+	.section .rodata,"a",@progbits
+	.p2align 6, 0
+	.amdhsa_kernel mxfp4_prefill_up_silu_wmma_gfx1151
+		.amdhsa_group_segment_fixed_size 4096
+		.amdhsa_private_segment_fixed_size 0
+		.amdhsa_kernarg_size 48
+		.amdhsa_user_sgpr_count 2
+		.amdhsa_user_sgpr_kernarg_segment_ptr 1
+		.amdhsa_wavefront_size32 1
+		.amdhsa_enable_private_segment 0
+		.amdhsa_system_sgpr_workgroup_id_x 1
+		.amdhsa_system_sgpr_workgroup_id_y 1
+		.amdhsa_system_sgpr_workgroup_id_z 0
+		.amdhsa_system_vgpr_workitem_id 0
+		.amdhsa_next_free_vgpr 105
+		.amdhsa_next_free_sgpr 22
+		.amdhsa_reserve_vcc 1
+		.amdhsa_float_denorm_mode_32 3
+		.amdhsa_float_denorm_mode_16_64 3
+		.amdhsa_dx10_clamp 1
+		.amdhsa_ieee_mode 1
+		.amdhsa_workgroup_processor_mode 1
+		.amdhsa_memory_ordered 1
+		.amdhsa_forward_progress 1
+	.end_amdhsa_kernel
+	.text
+.Lfunc_end0:
+	.size mxfp4_prefill_up_silu_wmma_gfx1151, .Lfunc_end0-mxfp4_prefill_up_silu_wmma_gfx1151
+
+	.amdgpu_metadata
+---
+amdhsa.kernels:
+  - .args:
+      - { .name: packed, .offset: 0, .size: 8, .value_kind: global_buffer,
+          .address_space: global, .actual_access: read_only }
+      - { .name: scales, .offset: 8, .size: 8, .value_kind: global_buffer,
+          .address_space: global, .actual_access: read_only }
+      - { .name: activation_groups_m64, .offset: 16, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: gate_groups_f32, .offset: 24, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: output_groups_bf16, .offset: 32, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: write_only }
+      - { .name: expert_ids, .offset: 40, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+    .group_segment_fixed_size: 4096
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 48
+    .language: OpenCL C
+    .language_version: [2, 0]
+    .max_flat_workgroup_size: 128
+    .name: mxfp4_prefill_up_silu_wmma_gfx1151
+    .private_segment_fixed_size: 0
+    .sgpr_count: 24
+    .sgpr_spill_count: 0
+    .symbol: mxfp4_prefill_up_silu_wmma_gfx1151.kd
+    .uniform_work_group_size: 1
+    .uses_dynamic_stack: false
+    .vgpr_count: 105
+    .vgpr_spill_count: 0
+    .wavefront_size: 32
+    .workgroup_processor_mode: 1
+amdhsa.target: amdgcn-amd-amdhsa--gfx1151
+amdhsa.version: [1, 2]
+...
+	.end_amdgpu_metadata

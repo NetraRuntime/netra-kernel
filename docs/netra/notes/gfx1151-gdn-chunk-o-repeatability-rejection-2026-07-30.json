@@ -1,0 +1,550 @@
+{
+  "corrected_stack_serving_repeats": [
+    {
+      "cached_tokens": 0,
+      "dflash_mode": "disabled",
+      "graph_mode": "disabled",
+      "host_e2e_ms": 21828.363439,
+      "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+      "input_tokens_requested": 32768,
+      "output_ids": [
+        82
+      ],
+      "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "output_tokens_requested": 1,
+      "peak_vram_bytes_sysfs_measured": 78598344704
+    },
+    {
+      "cached_tokens": 0,
+      "dflash_mode": "disabled",
+      "graph_mode": "disabled",
+      "host_e2e_ms": 35117.218668,
+      "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+      "input_tokens_requested": 32768,
+      "output_ids": [
+        82
+      ],
+      "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "output_tokens_requested": 1,
+      "peak_vram_bytes_sysfs_measured": 79869964288
+    }
+  ],
+  "date": "2026-07-30",
+  "decision": "rejected_and_quarantined",
+  "failure_signature": {
+    "interpretation": "all recorded worst errors occur at query row 32 of a 64-row chunk, the logical BV32/wave-2 path",
+    "worst_token_indices_mod_64": [
+      32
+    ]
+  },
+  "invalidated_claim": {
+    "host_e2e_ms": 21544.885299,
+    "reason": "a single successful real-checkpoint output did not prove repeatability; the raw GDN kernel later failed the stress gate"
+  },
+  "kernel": "gdn_chunk_o_bv32_gfx1151",
+  "measurement_status": "measured",
+  "negative_variants": {
+    "cu_mode": {
+      "correctness_failures": 7,
+      "eager_repeats": 20,
+      "finite_all": false,
+      "graph_repeats": 20,
+      "graph_replay_median_hip_event_ms": 13.545736312866211,
+      "max_abs_error": "Infinity",
+      "max_mean_abs_error": "Infinity",
+      "measurement_status": "measured",
+      "raw_median_hip_event_ms": 12.985292434692383,
+      "raw_speedup_vs_tuned_triton": 3.7930518256888592,
+      "samples": 11,
+      "shape": "B1_T8192_H32_Hg16_K128_V128_BT64",
+      "target": "gfx1151",
+      "tolerance": 3.814697265625e-06,
+      "triton_median_hip_event_ms": 49.25388717651367
+    },
+    "dependency_waits": {
+      "correctness_failures": 53,
+      "eager_repeats": 50,
+      "finite_all": false,
+      "graph_repeats": 50,
+      "graph_replay_median_hip_event_ms": 12.323591232299805,
+      "max_abs_error": "Infinity",
+      "max_mean_abs_error": "Infinity",
+      "measurement_status": "measured",
+      "raw_median_hip_event_ms": 11.958810806274414,
+      "raw_speedup_vs_tuned_triton": 1.661496482936384,
+      "samples": 11,
+      "shape": "B1_T8192_H32_Hg16_K128_V128_BT64",
+      "target": "gfx1151",
+      "tolerance": 3.814697265625e-06,
+      "triton_median_hip_event_ms": 19.869522094726562
+    },
+    "lower_vgpr_112": "reduced observed failure frequency in one run but still failed repeated execution",
+    "plain_v64_initialization": "failed",
+    "stage_and_iteration_depctr_waits": "failed; combined waits made 58 of 60 launches fail in one diagnostic run",
+    "two_wave_redesign": "rejected because the first rewrite did not reproduce model-native math",
+    "wgp_mode": "reduced some short-run failures but failed the stronger repeated gate"
+  },
+  "production_repeat_gate": {
+    "correctness_failures": 36,
+    "eager_correctness_failures": 21,
+    "eager_failure_details": [
+      {
+        "finite": true,
+        "max_abs_error": 2.4825669354869645e+34,
+        "mean_abs_error": 1.0218761888847005e+28,
+        "repeat": 4,
+        "worst_index": [
+          0,
+          6432,
+          25,
+          84
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 4.73797088341303e+34,
+        "mean_abs_error": 1.8082883375021204e+28,
+        "repeat": 5,
+        "worst_index": [
+          0,
+          6176,
+          12,
+          0
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 1.643984372170985e+30,
+        "mean_abs_error": 3.478018302947475e+23,
+        "repeat": 6,
+        "worst_index": [
+          0,
+          6112,
+          21,
+          41
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 7,
+        "worst_index": [
+          0,
+          4384,
+          15,
+          64
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 8,
+        "worst_index": [
+          0,
+          8160,
+          31,
+          32
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 9,
+        "worst_index": [
+          0,
+          5088,
+          11,
+          0
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 10,
+        "worst_index": [
+          0,
+          6752,
+          23,
+          0
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 11,
+        "worst_index": [
+          0,
+          3616,
+          18,
+          0
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 6.79460721722331e+32,
+        "mean_abs_error": 3.0892362005894987e+26,
+        "repeat": 12,
+        "worst_index": [
+          0,
+          7456,
+          27,
+          21
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 1.5008983106702236e+33,
+        "mean_abs_error": 9.954791342335463e+26,
+        "repeat": 13,
+        "worst_index": [
+          0,
+          4832,
+          28,
+          45
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 2.5986837304678703e+32,
+        "mean_abs_error": 7.232274753724344e+25,
+        "repeat": 14,
+        "worst_index": [
+          0,
+          160,
+          22,
+          39
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 2.709729923047863e+34,
+        "mean_abs_error": 1.0681605750199542e+28,
+        "repeat": 16,
+        "worst_index": [
+          0,
+          6624,
+          12,
+          52
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 5.354556135364041e+34,
+        "mean_abs_error": 2.302538533267306e+28,
+        "repeat": 17,
+        "worst_index": [
+          0,
+          3936,
+          31,
+          115
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 2.742181778413706e+34,
+        "mean_abs_error": 2.157247844872097e+28,
+        "repeat": 18,
+        "worst_index": [
+          0,
+          4384,
+          18,
+          21
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 1.4765594191458416e+34,
+        "mean_abs_error": 3.7205252879660054e+27,
+        "repeat": 20,
+        "worst_index": [
+          0,
+          4512,
+          21,
+          55
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 1.901475900342344e+31,
+        "mean_abs_error": 5.403051339189528e+24,
+        "repeat": 21,
+        "worst_index": [
+          0,
+          7840,
+          14,
+          34
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 2.2147521015340006e+27,
+        "mean_abs_error": 6.86254852044019e+20,
+        "repeat": 22,
+        "worst_index": [
+          0,
+          352,
+          21,
+          83
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 23,
+        "worst_index": [
+          0,
+          480,
+          0,
+          0
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 7.342232276521905e+33,
+        "mean_abs_error": 2.804594564710351e+27,
+        "repeat": 27,
+        "worst_index": [
+          0,
+          6304,
+          13,
+          0
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 28,
+        "worst_index": [
+          0,
+          4704,
+          3,
+          64
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 1.1574739367318306e+29,
+        "mean_abs_error": 6.507296137583903e+22,
+        "repeat": 29,
+        "worst_index": [
+          0,
+          1760,
+          1,
+          96
+        ]
+      }
+    ],
+    "eager_repeats": 30,
+    "finite_all": false,
+    "graph_correctness_failures": 15,
+    "graph_failure_details": [
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 0,
+        "worst_index": [
+          0,
+          608,
+          1,
+          32
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 0.008363410830497742,
+        "mean_abs_error": 2.7890829645826898e-09,
+        "repeat": 1,
+        "worst_index": [
+          0,
+          6752,
+          13,
+          92
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 2,
+        "worst_index": [
+          0,
+          4832,
+          0,
+          64
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 1.735096759062389e+31,
+        "mean_abs_error": 4.6202268609335154e+24,
+        "repeat": 3,
+        "worst_index": [
+          0,
+          2784,
+          28,
+          50
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 2.408536140433636e+31,
+        "mean_abs_error": 6.537844306057937e+24,
+        "repeat": 5,
+        "worst_index": [
+          0,
+          7584,
+          2,
+          106
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 9,
+        "worst_index": [
+          0,
+          1824,
+          0,
+          96
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 1.2465963768561533e+19,
+        "mean_abs_error": 3563606507520.0,
+        "repeat": 18,
+        "worst_index": [
+          0,
+          1440,
+          0,
+          21
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 1.5090112745116843e+34,
+        "mean_abs_error": 4.640194944884472e+27,
+        "repeat": 22,
+        "worst_index": [
+          0,
+          2656,
+          0,
+          125
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 2.563696573901571e+34,
+        "mean_abs_error": 8.391069111348449e+27,
+        "repeat": 23,
+        "worst_index": [
+          0,
+          5216,
+          31,
+          120
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 24,
+        "worst_index": [
+          0,
+          5792,
+          31,
+          32
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 25,
+        "worst_index": [
+          0,
+          3232,
+          11,
+          32
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 1.0790241909142689e+34,
+        "mean_abs_error": 3.459397901225056e+27,
+        "repeat": 26,
+        "worst_index": [
+          0,
+          4320,
+          27,
+          35
+        ]
+      },
+      {
+        "finite": true,
+        "max_abs_error": 4.056481920730334e+34,
+        "mean_abs_error": 2.0845559853646362e+28,
+        "repeat": 27,
+        "worst_index": [
+          0,
+          6048,
+          23,
+          103
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 28,
+        "worst_index": [
+          0,
+          2912,
+          28,
+          32
+        ]
+      },
+      {
+        "finite": false,
+        "max_abs_error": "Infinity",
+        "mean_abs_error": "Infinity",
+        "repeat": 29,
+        "worst_index": [
+          0,
+          7072,
+          0,
+          32
+        ]
+      }
+    ],
+    "graph_repeats": 30,
+    "graph_replay_median_hip_event_ms": 14.28858470916748,
+    "max_abs_error": "Infinity",
+    "max_mean_abs_error": "Infinity",
+    "measurement_status": "measured",
+    "raw_median_hip_event_ms": 13.534675598144531,
+    "raw_speedup_vs_tuned_triton": 1.336157291615582,
+    "samples": 11,
+    "shape": "B1_T8192_H32_Hg16_K128_V128_BT64",
+    "target": "gfx1151",
+    "tolerance": 3.814697265625e-06,
+    "triton_median_hip_event_ms": 18.084455490112305
+  },
+  "safety_policy": {
+    "default_path": "tuned Triton BK64_BV32_num_warps8 correctness oracle",
+    "explicit_disable": "SGLANG_NETRA_DISABLE_GDN_CHUNK_O_RAW=1",
+    "final_requirement": "replace the oracle with a newly derived raw gfx1151 AMDGCN kernel only after the repeated eager and graph gate passes",
+    "raw_required_opt_in": "SGLANG_NETRA_ENABLE_UNSAFE_GDN_CHUNK_O_RAW=1"
+  },
+  "shape": "B1_T8192_H32_Hg16_K128_V128_BT64",
+  "target": "gfx1151"
+}

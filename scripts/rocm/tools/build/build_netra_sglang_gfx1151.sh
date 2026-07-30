@@ -41,14 +41,15 @@ for source_rel in "${sources[@]}"; do
     "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.dis"
 done
 
-m12_sources=(
+script_mxfp4_sources=(
+  mxfp4_prefill_up_silu_wmma_gfx1151.s
   mxfp4_m12_group_gate_wmma_gfx1151.s
   mxfp4_m12_group_gate_up_wmma_gfx1151.s
   mxfp4_m12_group_gate_up_silu_wmma_gfx1151.s
   silu_mul_m12_group_bf16_gfx1151.s
   mxfp4_m12_group_down_wmma_gfx1151.s
 )
-for source_name in "${m12_sources[@]}"; do
+for source_name in "${script_mxfp4_sources[@]}"; do
   stem=${source_name%.s}
   "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
     -x assembler -c \
@@ -163,6 +164,10 @@ reduce_stem=expert_weighted_reduce_top8_fp64_gfx1151
 "${hipcc_bin}" --offload-arch=gfx1151 -O3 \
   "${repo_dir}/scripts/rocm/harness/gfx1151/mxfp4/benchmark_m12_gate_up_silu_fusion.hip" \
   -o "${out_dir}/benchmark_m12_gate_up_silu_fusion"
+
+"${hipcc_bin}" --offload-arch=gfx1151 -O3 \
+  "${repo_dir}/scripts/rocm/harness/gfx1151/mxfp4/benchmark_prefill_up_silu_fusion.hip" \
+  -o "${out_dir}/benchmark_prefill_up_silu_fusion"
 
 
 echo "Built Netra SGLang raw-ASM backend for gfx1151 in ${out_dir}"

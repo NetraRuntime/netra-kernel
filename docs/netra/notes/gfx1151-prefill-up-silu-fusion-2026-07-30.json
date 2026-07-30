@@ -1,0 +1,123 @@
+{
+  "corrected_full_trace_32768_plus1": {
+    "cached_tokens": 0,
+    "dflash_mode": "disabled",
+    "full_request_speedup_claim_available": false,
+    "fused_kernel_invocations": 160,
+    "fused_kernel_mean_gpu_ms": 7.35707386875,
+    "fused_kernel_pct_of_kernel_time": 5.125583511824766,
+    "fused_kernel_total_gpu_ms": 1177.131819,
+    "graph_mode": "disabled",
+    "host_e2e_ms": 22778.395546,
+    "kernel_launches": 37503,
+    "no_speedup_reason": "the prior full-request baseline used the subsequently rejected nondeterministic raw GDN kernel",
+    "output_ids": [
+      29
+    ],
+    "positive_launch_gaps_ms": 14982.090844,
+    "total_kernel_gpu_ms": 22965.810942,
+    "trace_wall_ms": 37936.585869999995
+  },
+  "corrected_stack_profiler_free_serving": [
+    {
+      "cached_tokens": 0,
+      "dflash_mode": "disabled",
+      "graph_mode": "disabled",
+      "host_e2e_ms": 21828.363439,
+      "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+      "input_tokens_requested": 32768,
+      "output_ids": [
+        82
+      ],
+      "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "output_tokens_requested": 1,
+      "peak_vram_bytes_sysfs_measured": 78598344704
+    },
+    {
+      "cached_tokens": 0,
+      "dflash_mode": "disabled",
+      "graph_mode": "disabled",
+      "host_e2e_ms": 35117.218668,
+      "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+      "input_tokens_requested": 32768,
+      "output_ids": [
+        82
+      ],
+      "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "output_tokens_requested": 1,
+      "peak_vram_bytes_sysfs_measured": 79869964288
+    }
+  ],
+  "correctness": {
+    "bit_equal_to_existing_raw_projection_plus_raw_silu": true,
+    "eager_failures": 0,
+    "eager_poisoned_repeats": 20,
+    "graph_failures": 0,
+    "graph_poisoned_replays": 20,
+    "input_ids_sha256": "b30cfb67a52695d834bc4a3a392ff56b05c1f776ef10837b95b217391ae20a0e",
+    "output_text_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+    "real_checkpoint_corrected_stack_repeats_match": true,
+    "real_checkpoint_output_ids": [
+      82
+    ]
+  },
+  "date": "2026-07-30",
+  "decision": "accepted",
+  "disassembly": {
+    "baseline_silu_lines": 31,
+    "baseline_up_projection_lines": 393,
+    "baseline_up_wmma": 8,
+    "candidate_fused_lines": 826,
+    "candidate_v_exp": 32,
+    "candidate_wmma": 8,
+    "directory": "docs/netra/notes/gfx1151-prefill-up-silu-fusion-disassembly-2026-07-30"
+  },
+  "hip_event_production_build": {
+    "baseline_median_ms": 16.123194,
+    "baseline_samples_ms": [
+      16.056068,
+      16.054785,
+      16.123194,
+      16.132273,
+      16.177055,
+      16.045727,
+      16.159924,
+      16.077147,
+      16.118946,
+      16.192886,
+      16.223083
+    ],
+    "candidate_median_ms": 14.354801,
+    "candidate_samples_ms": [
+      14.29054,
+      14.334722,
+      14.427258,
+      14.316609,
+      14.354801,
+      14.387702,
+      14.40724,
+      14.34915,
+      14.476712,
+      14.306189,
+      14.43842
+    ],
+    "samples": 11,
+    "speedup": 1.123192
+  },
+  "kernel": "mxfp4_prefill_up_silu_wmma_gfx1151",
+  "measurement_status": "measured",
+  "optimization": "fuse model-native SiLU(gate) times up into the raw up-projection epilogue and eliminate the FP32 up-output write/read plus one launch",
+  "rocprofv3_process_trace": {
+    "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+    "raw_up_silu_calls": 49,
+    "raw_up_silu_lds_bytes": 4096,
+    "raw_up_silu_mean_ns": 7251644.408163,
+    "raw_up_silu_scratch_bytes": 0,
+    "raw_up_silu_sgpr": 128,
+    "raw_up_silu_total_ns": 355330576,
+    "raw_up_silu_vgpr": 112,
+    "signal_handlers_disabled": true
+  },
+  "shape": "E256 groups1276 M64 N512 K2048 MXFP4 weights, BF16 activation/output, FP32 gate input",
+  "target": "gfx1151"
+}
