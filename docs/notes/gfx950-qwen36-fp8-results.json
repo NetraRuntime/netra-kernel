@@ -1,0 +1,393 @@
+{
+  "schema_version": 1,
+  "status": "full_graph_e2e_pass_piecewise_rejected_pending_counters",
+  "hardware": {
+    "gpu": "AMD Instinct MI350X",
+    "architecture": "gfx950",
+    "wavefront_size": 64,
+    "gpu_count_used": 1
+  },
+  "checkpoint_contract": {
+    "model": "Qwen3.6-35B-A3B-FP8",
+    "weight_format": "FP8 E4M3",
+    "weight_block_shape": [128, 128],
+    "converted_quantization": false
+  },
+  "experiment": {
+    "kernel": "qwen36_moe_silu_mul_quant_fp8_gfx950",
+    "source": "kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_silu_mul_quant_fp8_gfx950.s",
+    "shape": {
+      "rows": 9,
+      "gate_up_width": 512,
+      "quant_group_size": 128,
+      "workgroup_threads": 64,
+      "workgroups": 9,
+      "waves": 9
+    },
+    "fusion": [
+      "FP32 SiLU(gate) times up",
+      "BF16 intermediate rounding",
+      "per-128 FP8 E4M3 quantization"
+    ]
+  },
+  "correctness": {
+    "fp8_bytes": {
+      "compared": 4608,
+      "mismatches": 0,
+      "maximum_byte_delta": 0
+    },
+    "fp32_scales": {
+      "compared": 36,
+      "mismatches": 0,
+      "maximum_absolute_error": 0.0,
+      "maximum_relative_error": 0.0
+    },
+    "real_checkpoint_request_stage_gate": {
+      "passed": true,
+      "serving_case": {
+        "input_tokens": 16,
+        "output_tokens": 2,
+        "cached_tokens": 0,
+        "graph_mode": "eager",
+        "moe_backend": "auto_aiter"
+      },
+      "fp8_bytes_compared": 4608,
+      "fp8_byte_mismatches": 0,
+      "scales_compared": 36,
+      "scale_mismatches": 0,
+      "captured_fp8_sha256": "41dcc16cbf14afdd14098c4b0447c4ffed0436ac7fb139dd17ecc5af5bb2128f",
+      "raw_fp8_sha256": "41dcc16cbf14afdd14098c4b0447c4ffed0436ac7fb139dd17ecc5af5bb2128f",
+      "captured_scale_sha256": "e1cd428337b6dc1ecb6b111601986ad2c46b75fbae81ea04868ed0fea75a7021",
+      "raw_scale_sha256": "e1cd428337b6dc1ecb6b111601986ad2c46b75fbae81ea04868ed0fea75a7021"
+    },
+    "real_checkpoint_layer_gate_passed": false,
+    "graph_replay_gate_passed": false,
+    "end_to_end_gate_passed": false
+  },
+  "hip_event_microseconds": {
+    "iterations_per_run": 5000,
+    "two_kernel_runs": [5.591, 5.506, 5.258, 5.582, 5.523],
+    "raw_fused_runs": [2.809, 2.778, 2.575, 2.787, 2.782],
+    "speedup_runs": [1.990, 1.982, 2.042, 2.002, 1.985],
+    "two_kernel_median": 5.523,
+    "raw_fused_median": 2.782,
+    "speedup_median": 1.990,
+    "scope": "isolated_harness_not_serving"
+  },
+  "rocprofv3": {
+    "trace_is_intrusive": true,
+    "raw_dispatches": 251,
+    "raw_mean_microseconds": 2.741705179,
+    "raw_min_microseconds": 1.36,
+    "raw_max_microseconds": 5.2,
+    "counter_dispatches": 71,
+    "counter_mean_microseconds": 2.019746479,
+    "waves_by_xcd_per_dispatch": [2, 1, 1, 1, 1, 1, 1, 1]
+  },
+  "code_object": {
+    "sha256": "6d87114b3bcc5028d9bad3e219c584be7e34bd79baa9010b76a1466c38fecd91",
+    "target": "amdgcn-amd-amdhsa--gfx950",
+    "wavefront_size": 64,
+    "max_flat_workgroup_size": 64,
+    "vgpr_count": 35,
+    "sgpr_count": 27,
+    "agpr_count": 0,
+    "lds_bytes": 0,
+    "private_segment_bytes": 0,
+    "vgpr_spills": 0,
+    "sgpr_spills": 0,
+    "static_instruction_count": 133,
+    "global_load_instructions": 4,
+    "global_store_instructions": 2,
+    "waitcnt_instructions": 3
+  },
+  "runtime_bridge": {
+    "source": "runtime/gfx950/fp8/moe/qwen36_moe_silu_mul_quant_bridge.hip",
+    "sha256": "6afa10d518cc76bd0594715a3ea7a4cf89440cea0a003a3a31b59dcdaa587baf",
+    "allocates_on_launch": false,
+    "synchronizes_on_launch": false,
+    "caller_stream": true,
+    "graph_replay_validated": true,
+    "graph_replay_scope": "isolated_native_hip_graph_not_full_model"
+  },
+  "development_iteration_loop": {
+    "script": "tools/benchmark/iterate_gfx950_qwen36_moe_silu_mul_quant.sh",
+    "reuses_real_request_capture": true,
+    "restarts_sglang": false,
+    "validator_idle_gpu_allocation": false,
+    "runs_seconds": [
+      {
+        "kind": "cold_validator_container",
+        "build": 0.197,
+        "validation": 1.417,
+        "total": 1.847
+      },
+      {
+        "kind": "steady_state",
+        "build": 0.184,
+        "validation": 1.345,
+        "total": 1.560
+      }
+    ],
+    "scope": "development_loop_not_kernel_or_serving_performance"
+  },
+  "sglang_runtime_integration": {
+    "status": "experimental_not_accepted",
+    "adapter_source": "python/sglang/srt/layers/moe/netra_gfx950_qwen36.py",
+    "exact_shape_fallback_preserved": true,
+    "same_forward_shadow_gate": {
+      "artifact_directory": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/correctness/eager_aiter_raw_shadow_20260729T234552Z",
+      "decoder_layer_records": 40,
+      "distinct_stage1_fp32_hashes": 40,
+      "fp8_bytes_compared": 184320,
+      "fp8_byte_mismatches": 0,
+      "scales_compared": 1440,
+      "scale_mismatches": 0
+    },
+    "independent_token_gate": {
+      "passed": false,
+      "baseline_output_ids": [
+        271,
+        220
+      ],
+      "candidate_output_ids": [
+        271,
+        96065
+      ],
+      "attribution": "runs diverged during prefill where the raw M=1 shape gate cannot execute; auto/AITER is not a repeatable correctness baseline"
+    },
+    "diagnostic_fixed_length_ab": {
+      "status": "diagnostic_only_correctness_failed",
+      "case": {
+        "input_tokens": 210,
+        "output_tokens": 128,
+        "cached_tokens": 0
+      },
+      "runs_per_path": 5,
+      "baseline_unique_output_hashes": 5,
+      "candidate_unique_output_hashes": 5,
+      "baseline_median_wall_latency_seconds": 5.293159212,
+      "candidate_median_wall_latency_seconds": 5.234288748,
+      "wall_latency_speedup_ratio": 1.0112470799442415,
+      "baseline_median_decode_throughput_tok_s": 24.43903947440206,
+      "candidate_median_decode_throughput_tok_s": 24.71995937574041,
+      "decode_throughput_speedup_ratio": 1.0114947194071433,
+      "timing_usable_for_acceptance": false,
+      "artifact": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/performance/eager_aiter_raw_ab_candidate_20260730T000244Z/baseline-vs-raw-input210-output128.json"
+    },
+    "rocprofv3_request_structure": {
+      "status": "profile_structural_pass_correctness_not_accepted",
+      "case": {
+        "input_tokens": 210,
+        "output_tokens": 128,
+        "cached_tokens": 0
+      },
+      "removed_activation_dispatches": 5120,
+      "removed_quant_dispatches": 5120,
+      "added_raw_dispatches": 5120,
+      "net_kernel_count_reduction": 5120,
+      "net_hip_launch_count_reduction": 5120,
+      "raw_mean_microseconds": 2.607233984375,
+      "raw_total_milliseconds": 13.349038,
+      "merged_gpu_busy_reduction_milliseconds": 10.67787,
+      "summed_kernel_duration_reduction_milliseconds": 10.705552,
+      "hip_launch_api_duration_reduction_milliseconds": 31.970864,
+      "rocprof_is_intrusive": true,
+      "timing_usable_for_acceptance": false,
+      "artifact": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/profiles/rocprof/eager_auto_raw_gfx950_attach_20260730T000958Z/baseline-vs-raw-profile.json"
+    }
+  },
+  "stage2_down_reduce_experiment": {
+    "status": "correctness_seed_not_accepted",
+    "source": "kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_gfx950.s",
+    "harness": "harness/gfx950/fp8/moe/decode/qwen36_moe_down_reduce_fp8_gfx950.hip",
+    "shape": {
+      "tokens": 1,
+      "routed_slots": 9,
+      "n": 2048,
+      "k": 512,
+      "activation_scale_block": 128,
+      "weight_scale_block": [
+        128,
+        128
+      ],
+      "workgroups": 32,
+      "workgroup_threads": 64,
+      "waves": 32
+    },
+    "correctness": {
+      "oracle": "independent_fp32_fp8_e4m3_blockscale_matmul_and_fixed_order_reduction",
+      "cosine": 0.999999,
+      "maximum_absolute_error": 0.0000245431,
+      "mean_absolute_error": 0.0000026276,
+      "bf16_oracle_mismatches": 1,
+      "bf16_elements": 2048,
+      "deployed_aiter_ck_bf16_mismatches": 2044,
+      "deployed_aiter_ck_bf16_elements": 2048
+    },
+    "hip_event_microseconds": {
+      "iterations": 20,
+      "median": 187.76,
+      "scope": "scalar_correctness_seed_not_performance_candidate"
+    },
+    "rocprofv3": {
+      "dispatches": 30,
+      "mean_microseconds": 185.64653333333334,
+      "median_microseconds": 185.12,
+      "minimum_microseconds": 184.0,
+      "maximum_microseconds": 203.16,
+      "trace_is_intrusive": true
+    },
+    "code_object": {
+      "sha256": "cd7c5f1a56f230edcd7e3fb407e5107b0993c50abb526df719288ef06b3a6a09",
+      "target": "amdgcn-amd-amdhsa--gfx950",
+      "wavefront_size": 64,
+      "max_flat_workgroup_size": 64,
+      "vgpr_count": 10,
+      "sgpr_count": 41,
+      "lds_bytes": 0,
+      "private_segment_bytes": 0
+    },
+    "development_iteration_loop": {
+      "script": "tools/benchmark/iterate_gfx950_qwen36_moe_down_reduce.sh",
+      "restarts_sglang": false,
+      "build_seconds": 0.18915,
+      "validation_seconds": 0.226298,
+      "total_seconds": 0.415447
+    },
+    "artifact_directory": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_moe_down_reduce_fp8_gfx950_20260730T010200Z"
+  },
+  "native_mfma_decode_experiments": {
+    "status": "full_graph_e2e_pass_piecewise_rejected_pending_counters",
+    "instruction": "v_mfma_f32_16x16x128_f8f6f4",
+    "target": "amdgcn-amd-amdhsa--gfx950",
+    "wavefront_size": 64,
+    "gate_up_stage1": {
+      "source": "kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_gate_up_fp8_mfma_gfx950.s",
+      "shape": {
+        "routed_slots": 9,
+        "n": 1024,
+        "k": 2048,
+        "workgroups": 576
+      },
+      "correctness": {
+        "oracle": "independent_fp32_fp8_e4m3_128x128_blockscale_matmul",
+        "cosine": 1.0,
+        "maximum_absolute_error": 0.000112891,
+        "mean_absolute_error": 0.00000497614,
+        "nondeterministic_iterations": 0,
+        "iterations": 100,
+        "deployed_aiter_cosine": -0.0100152
+      },
+      "hip_event_median_microseconds": 8.96,
+      "development_iteration_seconds": 0.429242,
+      "artifact_directory": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_moe_stage1_fp8_gfx950_20260730T020100Z"
+    },
+    "down_reduce_stage2": {
+      "source": "kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_mfma_gfx950.s",
+      "shape": {
+        "routed_slots": 9,
+        "n": 2048,
+        "k": 512,
+        "workgroups": 128
+      },
+      "correctness": {
+        "cosine": 0.999999,
+        "maximum_absolute_error": 0.0000245431,
+        "mean_absolute_error": 0.00000262836,
+        "bf16_oracle_mismatches": 30,
+        "bf16_elements": 2048,
+        "nondeterministic_iterations": 0,
+        "iterations": 100
+      },
+      "hip_event_median_microseconds": 13.08,
+      "scalar_seed_median_microseconds": 187.76,
+      "scalar_to_mfma_speedup": 14.35474006116208,
+      "development_iteration_seconds": 0.416044
+    },
+    "code_object_resources": {
+      "vgpr_count": 30,
+      "sgpr_count_range": [
+        40,
+        42
+      ],
+      "lds_bytes": 0,
+      "private_segment_bytes": 0
+    }
+  },
+  "full_m1_pipeline_integration": {
+    "configuration": {
+      "gpu_count": 1,
+      "tensor_parallel_degree": 1,
+      "moe_prefill": "triton",
+      "moe_decode_m1": "raw_gfx950_gate_up_silu_quant_down_reduce",
+      "deterministic_inference": true,
+      "disable_overlap_schedule": true,
+      "gdn_packed_decode": false
+    },
+    "code_object_sha256": {
+      "gate_up": "8b5640f7d4244effd0ea263d8c7b579aaf4650ebfcd28be94351d85e62390ba0",
+      "silu_quant": "6d87114b3bcc5028d9bad3e219c584be7e34bd79baa9010b76a1466c38fecd91",
+      "down_reduce": "4aea649a7ec6f03c400aa321dc5f9289c943bfd57a235909163d3aba73f86580",
+      "hip_bridge": "229da8b2e686f70c5b98aa9ca4f520febc302093469d2d31215f61a3a5e45230"
+    },
+    "eager": {
+      "correctness": {
+        "input16_output2_repetitions": 20,
+        "input16_output2_sha256": "3eb632023967244c9991beff8a881c21ad15b4d0e48284e5f6ed14f4dfba2750",
+        "input210_output128_repetitions": 5,
+        "input210_output128_sha256": "6285266a2fb67a34940db360925b075d4f0c60efc8955bbf4a884558223025c3"
+      },
+      "input210_output128": {
+        "raw_median_wall_seconds": 5.146972833,
+        "triton_median_wall_seconds": 4.855366992,
+        "raw_speedup": 0.9433442043582669,
+        "status": "rejected_performance_regression"
+      },
+      "real_weight_kernel_mean_microseconds": {
+        "gate_up": 13.4861,
+        "silu_quant": 2.846,
+        "down_reduce": 24.773075
+      }
+    },
+    "full_graph": {
+      "input16_output2": {
+        "repetitions": 20,
+        "raw_median_wall_seconds": 0.0582141135,
+        "triton_median_wall_seconds": 0.059061984,
+        "raw_wall_speedup": 1.0145646897122294,
+        "raw_output_sha256": "3eb632023967244c9991beff8a881c21ad15b4d0e48284e5f6ed14f4dfba2750"
+      },
+      "input210_output128": {
+        "repetitions": 5,
+        "raw_median_wall_seconds": 0.854717987,
+        "triton_median_wall_seconds": 0.909655427,
+        "raw_wall_speedup": 1.0642755164107713,
+        "raw_median_decode_tokens_per_second": 158.2876133895188,
+        "triton_median_decode_tokens_per_second": 148.01386085706437,
+        "raw_decode_speedup": 1.0694107462163676,
+        "raw_unique_output_hashes": 1,
+        "triton_unique_output_hashes": 2,
+        "raw_output_sha256": "6285266a2fb67a34940db360925b075d4f0c60efc8955bbf4a884558223025c3"
+      },
+      "status": "accepted_for_continued_validation"
+    },
+    "piecewise_graph": {
+      "input210_output128_repetitions": 5,
+      "median_wall_seconds": 0.823583,
+      "unique_output_hashes": 2,
+      "first_divergent_output_index": 1,
+      "expected_token": 220,
+      "divergent_token": 95744,
+      "status": "rejected_correctness"
+    },
+    "rocprofv3_full_graph": {
+      "dynamic_attach": "scheduler_signal_11_after_5_output_tokens",
+      "process_start_wrapper": "scheduler_signal_11_in_cudagraph_replay_after_5_output_tokens",
+      "partial_traces_accepted": false,
+      "status": "rejected_profiler_compatibility"
+    }
+  },
+  "request_stage_artifact_directory": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/correctness/eager_auto_aiter_moe_request_stage_dump_20260729T231345Z",
+  "artifact_directory": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_moe_silu_mul_quant_fp8_gfx950_20260729T225736Z"
+}

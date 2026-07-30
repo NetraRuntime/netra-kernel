@@ -1,0 +1,379 @@
+# gfx950 Qwen3.6 FP8 kernel development
+
+Target: AMD Instinct MI350X, CDNA4, `gfx950`, wave64
+Checkpoint: Qwen3.6-35B-A3B FP8 E4M3, 128×128 weight blocks
+
+This hierarchy is independent of the retained gfx1151 wave32/MXFP4 work. No
+gfx1151 instruction selection, wave organization, layout, or measurement is
+carried over as MI350X evidence.
+
+## First measured experiment
+
+The first scheduler-attached decode trace ranked the AITER/CK two-stage MoE
+pipeline as a critical region. Its per-layer sequence is:
+
+1. 256-expert/top-9 sorting;
+2. BF16→FP8 E4M3 per-128 activation quantization;
+3. split-K FP8 stage-1 GEMM;
+4. FP32→BF16 SiLU×up;
+5. BF16→FP8 E4M3 per-128 quantization;
+6. FP8 stage-2 GEMM.
+
+The exact stage-1 launch has 72 workgroups/288 waves across 256 CUs and stage 2
+has 144 workgroups/576 waves. Per-XCD wave counts are exactly balanced. The
+first raw-assembly experiment therefore fuses steps 4 and 5 for the measured
+fixed decode shape: nine rows, width 512, four 128-value groups per row.
+
+Source:
+
+```text
+kernels/gfx950/fp8/moe/decode/experiments/
+  qwen36_moe_silu_mul_quant_fp8_gfx950.s
+```
+
+It deliberately remains under `experiments/`. Promotion requires:
+
+- real-checkpoint layer-output, routing, logit, and greedy-token gates;
+- eager/full-graph/piecewise-graph replay parity;
+- positive uncached end-to-end serving impact.
+
+### Isolated result
+
+The raw production-shaped code object now passes the isolated deployed-contract
+gate:
+
+- 0/4,608 FP8 E4M3 byte mismatches;
+- 0/36 FP32 scale mismatches;
+- a temporary diagnostic build also produced 0/4,608 BF16-rounded
+  intermediate mismatches before the diagnostic ABI was removed.
+
+It also passes the exact live AITER request boundary. An eager/auto SGLang
+server kept capture disabled throughout warmup, then captured one M=1 decode
+boundary inside an uncached exact 16-input/2-output request. The raw HIP bridge
+replayed the captured FP32 `[9,1024]` stage-1 tensor and matched all 4,608
+captured FP8 bytes and all 36 scales exactly. Captured and raw hashes were:
+
+```text
+FP8   41dcc16cbf14afdd14098c4b0447c4ffed0436ac7fb139dd17ecc5af5bb2128f
+scale e1cd428337b6dc1ecb6b111601986ad2c46b75fbae81ea04868ed0fea75a7021
+```
+
+The reference deliberately matches the deployed gfx950 instruction stream:
+the subgroup maximum is broadcast to all lanes and the scale uses
+`v_mul_f32` with rounded `1/448` (`0x3b124925`). Early harness variants that
+used lane-private partial maxima or generic IEEE division were invalid
+oracles and are retained in the development record, not counted as kernel
+failures.
+
+Five 5,000-iteration HIP-event runs on GPU 0 measured:
+
+| Run | Two HIP kernels (µs) | Raw fused (µs) | Speedup |
+|---:|---:|---:|---:|
+| 1 | 5.591 | 2.809 | 1.990× |
+| 2 | 5.506 | 2.778 | 1.982× |
+| 3 | 5.258 | 2.575 | 2.042× |
+| 4 | 5.582 | 2.787 | 2.002× |
+| 5 | 5.523 | 2.782 | 1.985× |
+
+Median raw duration is 2.782 µs; median per-run speedup is 1.990×. These are
+isolated harness measurements, not serving throughput.
+
+An intrusive rocprofv3 trace recorded 251 raw dispatches at 2.742 µs mean.
+Code-object metadata declares `gfx950`, wave64, 64-thread maximum workgroups,
+35 VGPRs, 27 SGPRs, no AGPRs, no LDS, no private segment, and no declared
+spills. The static object contains 133 instructions, four 128-bit global
+loads, two global stores, and three wait-count instructions.
+
+The reusable C ABI bridge is:
+
+```text
+runtime/gfx950/fp8/moe/
+  qwen36_moe_silu_mul_quant_bridge.h
+  qwen36_moe_silu_mul_quant_bridge.hip
+```
+
+It hard-gates gfx950 at module load, preloads the raw hsaco before capture, and
+launches on the caller's HIP stream without allocation or synchronization.
+Its current SHA-256 is
+`6afa10d518cc76bd0594715a3ea7a4cf89440cea0a003a3a31b59dcdaa587baf`.
+
+The XCD counter pass collected 71 raw dispatches. Every nine-wave dispatch
+placed two waves on XCD0 and one wave on each other XCD: all eight XCDs are
+used and the one-wave difference is the unavoidable 9÷8 remainder, not a
+scheduler imbalance. Counter-instrumented durations are not wall-time
+measurements.
+
+Artifacts:
+
+```text
+/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/
+  kernel_experiments/
+    qwen36_moe_silu_mul_quant_fp8_gfx950_20260729T225736Z/
+```
+
+## Fast edit-to-correctness loop
+
+The exact uncached request-stage tensors are reused for assembly development:
+
+```bash
+tools/benchmark/iterate_gfx950_qwen36_moe_silu_mul_quant.sh
+```
+
+The build always reassembles, relinks, regenerates disassembly and metadata,
+but rebuilds the HIP harness and bridge only when their sources are stale. A
+named lightweight container stays alive as `sleep` between iterations, so it
+does not retain a GPU allocation. Two consecutive measured invocations were:
+
+| Invocation | Build (s) | Validation (s) | Total (s) |
+|---:|---:|---:|---:|
+| cold validator container | 0.197 | 1.417 | 1.847 |
+| steady state | 0.184 | 1.345 | 1.560 |
+
+Both passed with zero FP8-byte and scale mismatches. These timings describe
+the development loop, not kernel or serving performance.
+
+## SGLang runtime integration
+
+The opt-in SGLang adapter preloads this repository's HIP bridge and raw hsaco
+before graph capture, then replaces only the exact AITER M=1 inter-stage
+activation/quant boundary. A real captured tensor passed through the SGLang
+custom op, bridge, and raw object with zero mismatches. An isolated native HIP
+graph capture/replay passed the same exact gate.
+
+An intrusive same-forward real-checkpoint run compared deployed AITER and raw
+outputs for every decoder layer before returning raw outputs to stage 2:
+
+- 40/40 distinct decoder-layer records passed;
+- 0/184,320 FP8-byte mismatches;
+- 0/1,440 FP32-scale mismatches.
+
+The cross-process greedy-token gate remains rejected. Baseline and raw runs
+already diverged during 16-token prefill, where this M=1 kernel cannot execute,
+confirming the previously measured auto/AITER nondeterminism. Five 210+128
+diagnostic runs per path showed a 1.01149× median decode-throughput ratio, but
+each path produced five unique token hashes. That timing is not eligible for
+acceptance.
+
+The exact 210+128 rocprofv3 request window confirmed 5,120 replaced boundaries:
+5,120 AITER activation dispatches and 5,120 inter-stage quant dispatches were
+replaced by 5,120 raw dispatches. This is a net reduction of 5,120 kernels and
+HIP launches. The raw mean was 2.607 µs; merged request-window GPU-busy time
+was 10.678 ms lower than the retained baseline. The profiler is intrusive and
+the token gate failed, so these are structural/GPU-cost results only.
+
+Artifacts:
+
+```text
+/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/
+  correctness/eager_aiter_raw_shadow_20260729T234552Z/
+  performance/eager_aiter_raw_ab_candidate_20260730T000244Z/
+  profiles/rocprof/eager_auto_raw_gfx950_attach_20260730T000958Z/
+```
+
+The experiment is still not accepted. It must next pass across complete real
+Qwen layer outputs, then graph replay, logit/token, and uncached end-to-end
+gates. The exact request-stage pass closes the isolated live-boundary gate but
+does not by itself prove stage-2 or layer-output parity. A faster
+microbenchmark alone does not promote it.
+
+## Deterministic M=1 down projection and expert reduction
+
+Same-process all-layer capture localized the first AITER mismatch to
+`model.layers.0.mlp.experts`. Exact CK stage-2 capture then showed its FP8
+activation/scales were correct, but the BF16 result was effectively
+uncorrelated with the independent block-scale dequantize/matmul/reduce oracle.
+Explicit destination zeroing and K-split removal restored repeatability, not
+agreement with the retained Triton or high-precision oracle.
+
+The correctness-first replacement is:
+
+```text
+kernels/gfx950/fp8/moe/decode/experiments/
+  qwen36_moe_down_reduce_fp8_gfx950.s
+harness/gfx950/fp8/moe/decode/
+  qwen36_moe_down_reduce_fp8_gfx950.hip
+```
+
+It consumes the exact M=1 shape: nine FP8 E4M3 `[512]` routed activations,
+128-wide activation scales, FP8 `[2048,512]` expert weights with 128x128
+scales, routed IDs/weights, and emits one deterministic BF16 `[2048]` row.
+One wave64 owns 64 output columns and the 32-wave grid covers the output.
+
+gfx950 rejected the RDNA-style packed FP8 `dot4` instruction. The retained
+seed therefore uses native OCP-FP8 conversion plus fixed-order FP32 FMAs; the
+next variant must re-tile the same contract around CDNA4 MFMA.
+
+Real-capture correctness:
+
+| Check | Result |
+|---|---:|
+| cosine versus FP32 oracle | 0.999999 |
+| maximum absolute error | 2.45431e-5 |
+| mean absolute error | 2.62760e-6 |
+| BF16 mismatches versus oracle | 1 / 2,048 |
+| BF16 mismatches versus deployed CK | 2,044 / 2,048 |
+
+The scalar seed measures 187.76 µs by HIP events. rocprofv3 recorded 30
+dispatches at 185.647 µs mean and 185.12 µs median. It is correctness evidence,
+not a performance candidate. The code object SHA-256 is
+`cd7c5f1a56f230edcd7e3fb407e5107b0993c50abb526df719288ef06b3a6a09`;
+metadata declares gfx950/wave64, 10 VGPRs, 41 SGPRs, no LDS/private segment,
+and a 64-thread maximum workgroup.
+
+The edit-to-result loop is:
+
+```bash
+tools/benchmark/iterate_gfx950_qwen36_moe_down_reduce.sh
+```
+
+It reassembles, links, regenerates disassembly/metadata, and runs 20
+real-capture validations in 0.415 seconds total (0.189 seconds build, 0.226
+seconds validation) without restarting SGLang.
+
+Artifacts:
+
+```text
+/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/
+  correctness/eager_aiter_prezero_noksplit_stage2_capture_20260730T010056Z/
+  kernel_experiments/qwen36_moe_down_reduce_fp8_gfx950_20260730T010200Z/
+```
+
+Status is **correctness seed, not accepted**. MFMA performance, full layer
+integration, Triton-oracle parity, graph replay, and uncached request impact
+remain open gates.
+
+## Native CDNA4 MFMA decode projections
+
+The scalar seed has now been re-tiled around the gfx950-native
+`v_mfma_f32_16x16x128_f8f6f4` instruction:
+
+```text
+kernels/gfx950/fp8/moe/decode/experiments/
+  qwen36_moe_down_reduce_fp8_mfma_gfx950.s
+  qwen36_moe_gate_up_fp8_mfma_gfx950.s
+```
+
+Both kernels use wave64, map one wave to 16 output columns, consume the
+checkpoint's FP8 E4M3 values without format conversion, and apply the original
+FP32 128x128 scales after each K=128 MFMA. They use 30 VGPRs, 40–42 SGPRs, no
+LDS, no scratch, and no private segment.
+
+Real-capture results:
+
+| Kernel | Shape | Oracle cosine | Max abs | Determinism | HIP median |
+|---|---|---:|---:|---:|---:|
+| gate/up stage 1 | 9×(1×2048 · 2048×1024) | 1.000000 | 1.12891e-4 | 100/100 exact | 8.96 µs |
+| down + routed reduction | 9×(1×512 · 512×2048) | 0.999999 | 2.45431e-5 | 100/100 exact | 13.08 µs |
+
+The MFMA down/reduce kernel is about 14.4× faster than the 187.76 µs scalar
+seed. Its 30/2,048 BF16 differences from the independent oracle are confined
+to FP32 accumulation order; the maximum and mean FP32 errors remain
+2.45431e-5 and 2.62836e-6. The isolated harness now copies and compares every
+output after each launch, so determinism is measured rather than inferred.
+
+The new gate/up loop is:
+
+```bash
+tools/benchmark/iterate_gfx950_qwen36_moe_gate_up_mfma.sh
+```
+
+A warm edit-to-result iteration takes 0.429 seconds: 0.187 seconds to
+assemble/link/inspect and 0.243 seconds for 100 deterministic real-capture
+validations. The down/reduce loop takes 0.416 seconds for the corresponding
+100-launch gate.
+
+The stage-1 capture and exported oracle are retained at:
+
+```text
+/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/
+  correctness/eager_aiter_stage1_exact_capture_20260730T015902Z/
+  kernel_experiments/qwen36_moe_stage1_fp8_gfx950_20260730T020100Z/
+```
+
+The deployed AITER stage-1 tensor has cosine `-0.010015` to the independent
+block-scale oracle and is not a correctness reference. These MFMA kernels are
+still experimental until the complete raw M=1 pipeline passes full-layer and
+deterministic Triton token gates.
+
+## Complete raw M=1 pipeline integration
+
+The gate/up MFMA, exact SiLU/FP8 quantizer, and down/reduce MFMA kernels are
+now integrated as one opt-in M=1 path. Raw compute and the HIP module bridge
+remain in `netra-kernel`; the SGLang adapter only recognizes the exact Qwen
+decode shapes, passes the original FP32 checkpoint scales, and dispatches on
+the caller stream.
+
+Real-checkpoint eager execution passed the deterministic Triton token oracle:
+
+- 20/20 identical 16-input/2-output requests produced `[220,220]` and SHA-256
+  `3eb632023967244c9991beff8a881c21ad15b4d0e48284e5f6ed14f4dfba2750`;
+- 5/5 exact 210-input/128-output requests produced one stable SHA-256,
+  `6285266a2fb67a34940db360925b075d4f0c60efc8955bbf4a884558223025c3`;
+- the same hashes passed native full-graph capture/replay.
+
+Eager integration is rejected for performance: median 210+128 wall time was
+5.14697 seconds versus 4.85537 seconds for pure Triton, a 6.01% regression.
+A one-decode Torch trace showed why. The three raw kernels totaled only about
+1.64 ms over 40 layers, while the enclosing Python/AITER MoE dispatch consumed
+11.71 ms of inclusive CPU operator time and the trace contained 2,792
+`aten::empty` calls.
+
+The raw kernels' real-weight durations in that trace were:
+
+| Kernel | Calls | Mean |
+|---|---:|---:|
+| gate/up MFMA | 40 | 13.486 µs |
+| SiLU + FP8 quant | 40 | 2.846 µs |
+| down + routed reduction MFMA | 40 | 24.773 µs |
+
+Preloading the code objects before capture and allowing already-installed
+wrappers during capture removed that eager orchestration from replay. Matched
+full-graph serving results were:
+
+| Exact case | Full Triton median | Full raw median | Raw speedup |
+|---|---:|---:|---:|
+| 16 input + 2 output, wall | 59.062 ms | 58.214 ms | 1.0146× |
+| 210 input + 128 output, wall | 909.655 ms | 854.718 ms | 1.0643× |
+| 210 input + 128 output, decode throughput | 148.014 tok/s | 158.288 tok/s | 1.0694× |
+
+The raw full-graph path produced one hash across all five long runs. The
+matched full-Triton control produced two hashes, so its timing is retained as
+the performance control but it did not pass its own repeatability gate.
+
+Piecewise mode is not accepted. Although it reached about 0.8236 seconds for
+210+128 and about 22 ms for exact 210+1, one of five long requests changed
+only output token index 1 (`220` to `95744`). This is recorded as a graph/state
+transition defect, not waived for the faster timing.
+
+ROCm 7.2 rocprofv3 dynamic-attach and process-start tracing both crashed the
+scheduler in `at::cuda::CUDAGraph::replay()` after five output tokens. Their
+partial outputs are negative profiler-compatibility artifacts, not timing
+evidence. Full-graph wall measurements are unprofiled; raw-kernel timings above
+come from the separate eager Torch trace and isolated HIP-event runs.
+
+Code-object hashes used by the passing full-graph run:
+
+```text
+gate/up:       8b5640f7d4244effd0ea263d8c7b579aaf4650ebfcd28be94351d85e62390ba0
+SiLU/quant:    6d87114b3bcc5028d9bad3e219c584be7e34bd79baa9010b76a1466c38fecd91
+down/reduce:   4aea649a7ec6f03c400aa321dc5f9289c943bfd57a235909163d3aba73f86580
+HIP bridge:    229da8b2e686f70c5b98aa9ca4f520febc302093469d2d31215f61a3a5e45230
+```
+
+Retained artifacts:
+
+```text
+/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/
+  correctness/eager_triton_prefill_raw_full_m1_20260730T021651Z/
+  performance/eager_triton_raw_full_m1_ab_baseline_20260730T022125Z/
+  performance/eager_triton_raw_full_m1_ab_candidate_20260730T022322Z/
+  performance/full_triton_raw_full_m1_candidate_20260730T022931Z/
+  performance/full_triton_raw_full_m1_baseline_20260730T023109Z/
+  correctness/piecewise_triton_raw_full_m1_20260730T023309Z/
+  profiles/rocprof/full_raw_m1_attach_20260730T023811Z/
+  profiles/rocprof/full_raw_m1_wrapped_20260730T024030Z/
+```
+
+Status: **accepted for continued full-graph validation**. Counter evidence,
+complete layer/state tolerances, longer required cases, and the piecewise
+transition defect remain open before production promotion.
