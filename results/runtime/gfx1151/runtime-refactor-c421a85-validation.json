@@ -1,0 +1,223 @@
+{
+  "acceptance": {
+    "eager_dispatch_under_1_percent": true,
+    "end_to_end_under_1_percent": true,
+    "graph_replay_under_1_percent": true,
+    "identical_deterministic_tokens": true,
+    "identical_hsacos": true,
+    "no_additional_gpu_launches": true,
+    "no_additional_graph_breaks": true,
+    "no_replay_sync_or_allocation": true
+  },
+  "baseline_commit": "c421a85614c4f168683c53660d8e30b98eb2ae9f",
+  "binary_equivalence": {
+    "code_object_metadata_exact": 26,
+    "hsaco_sha256_exact": 26,
+    "preload_order_exact": true,
+    "preloaded_modules_new": 23,
+    "preloaded_modules_old": 23,
+    "public_export_set_exact": true,
+    "public_netra_exports_new": 19,
+    "public_netra_exports_old": 19,
+    "raw_assembly_files_changed": 0,
+    "selected_hsacos": 26
+  },
+  "correctness": {
+    "gdn_chunk_max_abs_error": 1.9073486328125e-06,
+    "gdn_chunk_tolerance": 3.814697265625e-06,
+    "old_new_bit_exact": true,
+    "paths": [
+      "M1 raw linear non-default-stream eager and graph",
+      "M1 real-checkpoint full graph",
+      "M12 real-checkpoint grouped verify",
+      "dense prefill M64 M128 M256 M1024 M2048 M4096 M8192",
+      "extend attention prefix 0 128 512",
+      "QK norm mRoPE KV store M1 M12 M64 M1024 eager and graph",
+      "GDN chunk T8192 eager and graph",
+      "GDN recompute W and U eager and graph",
+      "causal convolution and recurrent state",
+      "expert activation pack",
+      "expert weighted reduction T128 T8192",
+      "real-checkpoint eager 32768 plus 1",
+      "native tc_piecewise M64"
+    ],
+    "tolerance_relaxed": false
+  },
+  "decision": "accepted_performance_neutral_refactor",
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "focused_dispatch_three_runs_50000_samples_each": {
+    "eager_gpu_p50_delta_percent": 0.12975,
+    "eager_gpu_p50_us_new": 93.374997,
+    "eager_gpu_p50_us_old": 93.254,
+    "eager_gpu_p90_delta_percent": 0.6296,
+    "eager_gpu_p90_us_new": 96.06,
+    "eager_gpu_p90_us_old": 95.458999,
+    "eager_host_p50_delta_percent": -3.563,
+    "eager_host_p50_us_new": 0.812,
+    "eager_host_p50_us_old": 0.842,
+    "eager_host_p90_delta_percent": -15.504,
+    "eager_host_p90_us_new": 0.872,
+    "eager_host_p90_us_old": 1.032,
+    "graph_gpu_p50_delta_percent": 0.1645,
+    "graph_gpu_p50_us_new": 97.421996,
+    "graph_gpu_p50_us_old": 97.262003,
+    "graph_gpu_p90_delta_percent": 0.0402,
+    "graph_gpu_p90_us_new": 99.627003,
+    "graph_gpu_p90_us_old": 99.587001,
+    "graph_host_p50_delta_percent": -0.924,
+    "graph_host_p50_us_new": 2.144,
+    "graph_host_p50_us_old": 2.164,
+    "graph_host_p90_delta_percent": -3.707,
+    "graph_host_p90_us_new": 2.364,
+    "graph_host_p90_us_old": 2.455,
+    "graph_node_count_new": 1,
+    "graph_node_count_old": 1,
+    "non_default_stream_preserved": true
+  },
+  "initialization_101_interleaved_pairs": {
+    "dlopen_p50_us_new": 11508.93,
+    "dlopen_p50_us_old": 11498.079,
+    "runtime_init_mean_delta_percent": 0.36,
+    "runtime_init_p50_delta_percent": 0.648,
+    "runtime_init_p50_us_new": 48893.676,
+    "runtime_init_p50_us_old": 48578.984
+  },
+  "measurement_status": "measured",
+  "piecewise_graph_anchor": {
+    "capture_seconds_new": 12.27,
+    "capture_seconds_old": 12.14,
+    "delta_percent": 0.274,
+    "graph_memory_gib_new": 0.22,
+    "graph_memory_gib_old": 0.22,
+    "request_e2e_ms_new": 374.397398,
+    "request_e2e_ms_old": 373.374322,
+    "shape": "M64",
+    "tokens_and_hashes_exact": true
+  },
+  "profiler": {
+    "counter_collection_note": "process-start counter collection disabled due known AQL-profile signal-6 failure",
+    "counter_collection_used": false,
+    "disable_signal_handlers": true,
+    "status_137_note": "intentional server teardown after completed request, not profiler crash",
+    "tool": "/root/venv1151/bin/rocprofv3"
+  },
+  "schema_version": 1,
+  "serving": [
+    {
+      "cached_tokens": 0,
+      "e2e_p50_delta_percent": 0.044916,
+      "e2e_p50_ms_new": 7423.0398605,
+      "e2e_p50_ms_old": 7419.7072225,
+      "e2e_p90_delta_percent": 0.1099,
+      "graph_mode": "disabled",
+      "input_tokens": 210,
+      "input_tokens_per_second_derived_new": 28.29,
+      "input_tokens_per_second_derived_old": 28.303,
+      "output_tokens": 128,
+      "output_tokens_per_second_derived_new": 17.244,
+      "output_tokens_per_second_derived_old": 17.251,
+      "peak_vram_gib_new": 72.601,
+      "peak_vram_gib_old": 72.464,
+      "samples_per_library": 8,
+      "tokens_and_hashes_exact": true,
+      "ttft": null,
+      "ttft_status": "not_measured_nonstreaming_endpoint"
+    },
+    {
+      "cached_tokens": 0,
+      "e2e_p50_delta_percent": 0.030056,
+      "e2e_p50_ms_new": 7475.695855,
+      "e2e_p50_ms_old": 7473.449617,
+      "e2e_p90_delta_percent": 0.040685,
+      "graph_mode": "full_decode_tiers_1_2_4_8_12_16",
+      "input_tokens": 210,
+      "input_tokens_per_second_derived_new": 28.091,
+      "input_tokens_per_second_derived_old": 28.099,
+      "output_tokens": 128,
+      "output_tokens_per_second_derived_new": 17.122,
+      "output_tokens_per_second_derived_old": 17.127,
+      "peak_vram_gib_new": 72.726,
+      "peak_vram_gib_old": 73.459,
+      "samples_per_library": 8,
+      "tokens_and_hashes_exact": true,
+      "ttft": null,
+      "ttft_status": "not_measured_nonstreaming_endpoint"
+    },
+    {
+      "cached_tokens": 0,
+      "e2e_p50_delta_percent": 0.209504,
+      "e2e_p50_ms_new": 21570.17714,
+      "e2e_p50_ms_old": 21525.0812825,
+      "e2e_p90_delta_percent": 0.186447,
+      "graph_mode": "disabled",
+      "input_tokens": 32768,
+      "input_tokens_per_second_derived_new": 1519.134,
+      "input_tokens_per_second_derived_old": 1522.317,
+      "output_tokens": 1,
+      "output_tokens_per_second_derived_new": 0.04636,
+      "output_tokens_per_second_derived_old": 0.04646,
+      "peak_vram_gib_new": 74.302,
+      "peak_vram_gib_old": 74.262,
+      "samples_per_library": 4,
+      "tokens_and_hashes_exact": true,
+      "ttft": null,
+      "ttft_status": "not_measured_nonstreaming_endpoint"
+    }
+  ],
+  "target": "gfx1151",
+  "trace_equivalence": {
+    "eager_32768_plus_1": {
+      "aggregate_module_launch_cpu_ms_new": 38.206275,
+      "aggregate_module_launch_cpu_ms_old": 39.697581,
+      "device_or_stream_sync_new": 0,
+      "device_or_stream_sync_old": 0,
+      "gpu_launches_new": 16888,
+      "gpu_launches_old": 16888,
+      "hip_module_launch_calls_new": 3705,
+      "hip_module_launch_calls_old": 3705,
+      "signature_multiset_exact": true
+    },
+    "full_graph_batch_1": {
+      "gpu_launches_new": 13784,
+      "gpu_launches_old": 13784,
+      "graph_gpu_span_median_ms_new": 56.538994,
+      "graph_gpu_span_median_ms_old": 56.6729655,
+      "graph_launch_cpu_mean_us_new": 935.765625,
+      "graph_launch_cpu_mean_us_old": 1006.204375,
+      "kernels_per_replay": 1723,
+      "replay_alloc_free_sync_new": [
+        0,
+        0,
+        0
+      ],
+      "replay_alloc_free_sync_old": [
+        0,
+        0,
+        0
+      ],
+      "signature_multiset_exact": true,
+      "signature_order_exact": true
+    },
+    "full_graph_m12": {
+      "gpu_launches_new": 23864,
+      "gpu_launches_old": 23864,
+      "graph_gpu_span_median_ms_new": 114.4947375,
+      "graph_gpu_span_median_ms_old": 114.689756,
+      "graph_launch_cpu_mean_us_new": 1671.344125,
+      "graph_launch_cpu_mean_us_old": 1670.774625,
+      "kernels_per_replay": 2983,
+      "replay_alloc_free_sync_new": [
+        0,
+        0,
+        0
+      ],
+      "replay_alloc_free_sync_old": [
+        0,
+        0,
+        0
+      ],
+      "signature_multiset_exact": true,
+      "signature_order_exact": true
+    }
+  }
+}

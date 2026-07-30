@@ -139,6 +139,7 @@ reduce_stem=expert_weighted_reduce_top8_fp64_gfx1151
   "${out_dir}/${reduce_stem}.hsaco" > "${out_dir}/${reduce_stem}.dis"
 
 "${hipcc_bin}" --offload-arch=gfx1151 -O3 -shared -fPIC \
+  -fvisibility=hidden -fvisibility-inlines-hidden -I "${repo_dir}" \
   -DNETRA_HSACO_DIR="\"${out_dir}\"" \
   "${integration_dir}/netra_mxfp4_sgl_launcher.hip" \
   -o "${out_dir}/libnetra_mxfp4_sgl.so"
