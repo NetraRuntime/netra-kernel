@@ -1,0 +1,83 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "input_scope": "exact Qwen3.6 M1 N248320 K2048 BF16 raw ASM on gfx1151",
+  "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+  "method": "one counter per fresh process; one warmup and one measured dispatch",
+  "units": {
+    "FETCH_SIZE": "KiB fetched from video memory per dispatch",
+    "WRITE_SIZE": "KiB written to video memory per dispatch",
+    "OccupancyPercent": "percent of device maximum",
+    "L2CacheHit": "percent",
+    "MemUnitBusy": "percent of GPUTime",
+    "WriteUnitStalled": "percent of GPUTime"
+  },
+  "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+  "kernels": [
+    {
+      "kernel": "bf16_lm_head_decode_wave4_gfx1151",
+      "grid_size": 1986560,
+      "workgroup_size": 256,
+      "lds_bytes": 0,
+      "scratch_bytes": 0,
+      "vgpr": 24,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": {
+          "samples": 2,
+          "mean": 496883.28125,
+          "min": 496883.1875,
+          "max": 496883.375
+        },
+        "L2CacheHit": {
+          "samples": 2,
+          "mean": 1.107021,
+          "min": 1.083314,
+          "max": 1.130728
+        },
+        "MeanOccupancyPerActiveCU": {
+          "samples": 2,
+          "mean": 60.2866955,
+          "min": 59.011322,
+          "max": 61.562069
+        },
+        "MemUnitBusy": {
+          "samples": 2,
+          "mean": 99.911596,
+          "min": 99.904223,
+          "max": 99.918969
+        },
+        "OccupancyPercent": {
+          "samples": 2,
+          "mean": 92.8171165,
+          "min": 91.611339,
+          "max": 94.022894
+        },
+        "SQ_WAVES": {
+          "samples": 2,
+          "mean": 62080.0,
+          "min": 62080.0,
+          "max": 62080.0
+        },
+        "SQ_WAVE_CYCLES": {
+          "samples": 2,
+          "mean": 22797242111.5,
+          "min": 21200761758.0,
+          "max": 24393722465.0
+        },
+        "VALUInsts": {
+          "samples": 2,
+          "mean": 384.0,
+          "min": 384.0,
+          "max": 384.0
+        },
+        "WRITE_SIZE": {
+          "samples": 2,
+          "mean": 295.171875,
+          "min": 291.71875,
+          "max": 298.625
+        }
+      }
+    }
+  ]
+}

@@ -65,6 +65,8 @@ class _Runtime:
             + [ctypes.c_void_p]
         )
         self.lib.netra_mxfp4_sgl_linear.restype = ctypes.c_int
+        self.lib.netra_bf16_lm_head_decode.argtypes = [ctypes.c_void_p] * 4
+        self.lib.netra_bf16_lm_head_decode.restype = ctypes.c_int
         self.lib.netra_mxfp4_sgl_linear_prefill.argtypes = (
             [ctypes.c_void_p] * 4
             + [ctypes.c_uint] * 3
@@ -249,6 +251,42 @@ def netra_expert_weighted_reduce_fp64_with_output(
         runtime.stream(),
     )
     runtime.check(status, "Netra raw-ASM FP64 expert weighted reduction")
+
+
+@register_custom_op(mutates_args=["output"])
+def netra_bf16_lm_head_with_output(
+    weight: torch.Tensor,
+    activation: torch.Tensor,
+    output: torch.Tensor,
+) -> None:
+    """Graph-safe fixed M=1, N=248320, K=2048 BF16 LM-head launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_bf16_lm_head_decode(
+        _ptr(weight), _ptr(activation), _ptr(output), runtime.stream()
+    )
+    runtime.check(status, "Netra raw-ASM BF16 LM head")
+
+
+def apply_bf16_lm_head(
+    weight: torch.Tensor, activation: torch.Tensor
+) -> torch.Tensor:
+    if (
+        weight.dtype != torch.bfloat16
+        or tuple(weight.shape) != (248320, 2048)
+        or not weight.is_contiguous()
+        or activation.dtype != torch.bfloat16
+        or tuple(activation.shape) != (1, 2048)
+        or not activation.is_contiguous()
+    ):
+        raise ValueError(
+            "Netra BF16 LM head requires contiguous [248320,2048] weight "
+            "and [1,2048] activation"
+        )
+    output = torch.empty(
+        (1, 248320), dtype=torch.bfloat16, device=activation.device
+    )
+    netra_bf16_lm_head_with_output(weight, activation, output)
+    return output
 
 
 @register_custom_op(mutates_args=["output"])

@@ -24,10 +24,16 @@ This directory is the complete serving overlay for SGLang commit
 - `sglang-gfx1151-gdn-syncfree-chunk-metadata.patch` reuses host sequence
   lengths, constructs FLA indices/offsets directly on gfx1151, and reuses the
   same chunk-index tensor in the GDN output phase.
+- `sglang-gfx1151-bf16-lm-head.patch` routes the exact batch-1 BF16
+  `[1,2048] x [248320,2048]^T` LM head to the accepted graph-safe raw gfx1151
+  assembly kernel. `SGLANG_NETRA_ENABLE_BF16_LM_HEAD=0` restores rocBLAS.
 - `experiments/` retains integration patches for rejected design oracles.
 - The raw GDN bridge is graph-safe and retains Triton for all other shapes.
 - `netra_gfx1151_sglang.py` is copied into SGLang's quantization package.
 - `netra_mxfp4_sgl_launcher.hip` is launch-only host code for the raw HSACOs.
+- `launch.sh` enables the accepted BF16 LM-head kernel by default after all
+  modules have been built and the SGLang overlay applied; the exact C ABI and
+  caller stream are preserved.
 - Prefill gate/up weights retain MXFP4 and add a load-time raw-ASM dword-layout
   view for coalesced gfx1151 access; decode retains the serialized layout.
 - `launch.sh` starts the validated gfx1151 deployment.

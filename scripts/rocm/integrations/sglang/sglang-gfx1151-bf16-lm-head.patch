@@ -1,0 +1,55 @@
+diff --git a/python/sglang/srt/layers/logits_processor.py b/python/sglang/srt/layers/logits_processor.py
+index 641644c..f5fae80 100644
+--- a/python/sglang/srt/layers/logits_processor.py
++++ b/python/sglang/srt/layers/logits_processor.py
+@@ -15,6 +15,7 @@
+ 
+ import dataclasses
+ import logging
++import os
+ from contextlib import contextmanager
+ from typing import Any, Dict, List, Optional, Tuple, Union
+ 
+@@ -63,6 +64,15 @@ logger = logging.getLogger(__name__)
+ 
+ _is_npu = is_npu()
+ _is_cpu = is_cpu()
++_use_netra_bf16_lm_head = (
++    os.getenv("SGLANG_USE_NETRA_MXFP4_GFX1151", "0").lower()
++    in {"1", "true", "yes", "on"}
++    and os.getenv("SGLANG_NETRA_ENABLE_BF16_LM_HEAD", "0").lower()
++    in {"1", "true", "yes", "on"}
++)
++if _use_netra_bf16_lm_head:
++    from sglang.srt.layers.quantization.netra_gfx1151 import apply_bf16_lm_head
++
+ 
+ _UNQUANTIZED_LM_HEAD_METHODS = {
+     "UnquantizedEmbeddingMethod",
+@@ -758,7 +768,25 @@ class LogitsProcessor(nn.Module):
+         embedding_bias: Optional[torch.Tensor] = None,
+     ) -> torch.Tensor:
+         quant_method = getattr(lm_head, "quant_method", None)
+-        if hasattr(lm_head, "set_lora") and hasattr(lm_head, "apply_lora"):
++        if (
++            _use_netra_bf16_lm_head
++            and embedding_bias is None
++            and not self.use_fp32_lm_head
++            and self.rl_on_policy_target is None
++            and hasattr(lm_head, "weight")
++            and not should_apply_lm_head_quant_method(lm_head, quant_method)
++            and not (
++                hasattr(lm_head, "set_lora") and hasattr(lm_head, "apply_lora")
++            )
++            and hidden_states.dtype == torch.bfloat16
++            and tuple(hidden_states.shape) == (1, 2048)
++            and hidden_states.is_contiguous()
++            and lm_head.weight.dtype == torch.bfloat16
++            and tuple(lm_head.weight.shape) == (248320, 2048)
++            and lm_head.weight.is_contiguous()
++        ):
++            logits = apply_bf16_lm_head(lm_head.weight, hidden_states)
++        elif hasattr(lm_head, "set_lora") and hasattr(lm_head, "apply_lora"):
+             # This is a LoRA-wrapped module, use its forward method
+             logits = lm_head(hidden_states)
+         elif should_apply_lm_head_quant_method(lm_head, quant_method):

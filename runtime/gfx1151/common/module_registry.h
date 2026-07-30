@@ -59,6 +59,9 @@ static constexpr KernelDescriptor kPrefillDown{
 static constexpr KernelDescriptor kLinearDecode{
     "mxfp4_sgl_linear_decode_gfx1151.hsaco",
     "mxfp4_sgl_linear_decode_gfx1151", {0, 1, 1, 0}};
+static constexpr KernelDescriptor kBf16LmHead{
+    "bf16_lm_head_decode_wave4_gfx1151.hsaco",
+    "bf16_lm_head_decode_wave4_gfx1151", {7760, 1, 1, 256}};
 static constexpr KernelDescriptor kM12GateUpSilu{
     "mxfp4_m12_group_gate_up_silu_wmma_gfx1151.hsaco",
     "mxfp4_m12_group_gate_up_silu_wmma_gfx1151", {32, 0, 1, 32}};
@@ -113,6 +116,7 @@ struct ModuleRegistry {
   LoadedKernel prefill_repack{{}, {}, &kPrefillRepack};
   LoadedKernel prefill_down{{}, {}, &kPrefillDown};
   LoadedKernel linear_decode{{}, {}, &kLinearDecode};
+  LoadedKernel bf16_lm_head{{}, {}, &kBf16LmHead};
   LoadedKernel m12_group_gate_up_silu{{}, {}, &kM12GateUpSilu};
   LoadedKernel m12_group_down{{}, {}, &kM12Down};
   LoadedKernel linear_prefill_repack{{}, {}, &kLinearPrefillRepack};
@@ -198,6 +202,7 @@ struct ModuleRegistry {
     load(prefill_repack);
     load(prefill_down);
     load(linear_decode);
+    load(bf16_lm_head);
     load(m12_group_gate_up_silu);
     load(m12_group_down);
     load(linear_prefill_repack);

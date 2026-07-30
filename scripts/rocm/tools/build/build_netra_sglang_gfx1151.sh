@@ -62,6 +62,16 @@ for source_name in "${script_mxfp4_sources[@]}"; do
     "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.dis"
 done
 
+lm_head_stem=bf16_lm_head_decode_wave4_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c \
+  "${repo_dir}/kernels/gfx1151/dense/lm_head/${lm_head_stem}.s" \
+  -o "${out_dir}/${lm_head_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${lm_head_stem}.o" -o "${out_dir}/${lm_head_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${lm_head_stem}.hsaco" > "${out_dir}/${lm_head_stem}.dis"
+
 split_stem=qkvzba_split_copy_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c \

@@ -1,0 +1,46 @@
+{
+  "cached_tokens": 0,
+  "completion_tokens_observed": 1,
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "dflash_mode": "disabled",
+  "graph_mode": "disabled",
+  "host_decode_ms_measured": null,
+  "host_e2e_ms": 1078.19438,
+  "host_ttft_ms_measured": null,
+  "input_ids_sha256": "9e7c3ad0d19cb650b724e4c980d5b4b6b13923ba0a7a9439284cfe20e3d30bf3",
+  "input_throughput_tokens_per_s": null,
+  "input_tokens_requested": 210,
+  "label": "bf16-lm-default-enabled-smoke",
+  "measurement_status": "measured",
+  "output_ids": [
+    46
+  ],
+  "output_text_prefix": "O",
+  "output_text_sha256": "c4694f2e93d5c4e7d51f9c5deb75e6cc8be5e1114178c6a45b6fc2c566a0aa8c",
+  "output_throughput_tokens_per_s": null,
+  "output_tokens_requested": 1,
+  "peak_vram_bytes_sysfs_measured": 77610725376,
+  "prompt_tokens_observed": 210,
+  "server_meta_info": {
+    "cached_tokens": 0,
+    "cached_tokens_details": null,
+    "completion_tokens": 1,
+    "dp_rank": null,
+    "e2e_latency": 1.0635206529987045,
+    "finish_reason": {
+      "length": 1,
+      "type": "length"
+    },
+    "id": "4b94fb7b9fe54d36a6726e1cd755f9c9",
+    "num_retractions": 0,
+    "prompt_tokens": 210,
+    "reasoning_tokens": 0,
+    "response_sent_to_client_ts": 1785444748.5440907,
+    "weight_version": "default"
+  },
+  "stream_events": 0,
+  "target": "gfx1151",
+  "timing_scope": "host_e2e_http_monotonic",
+  "ttft_s_from_server_or_stream": null,
+  "vram_samples": 213
+}

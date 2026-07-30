@@ -1,0 +1,202 @@
+{
+  "checkpoint_shard": "/root/models/qwen36-sgl-mxfp4/model-00026-of-00026.safetensors",
+  "correctness": {
+    "all_argmax_equal": true,
+    "max_abs": 0.015625,
+    "max_bf16_bit_mismatches": 291,
+    "trials": [
+      {
+        "argmax_equal": true,
+        "bf16_bit_mismatches": 211,
+        "candidate_sha256": "17b5b1c501a4e3f734f1f939e2892b2f52ca00ba1dbd2ec6af8a11cd13cbc89b",
+        "max_abs": 0.015625,
+        "mean_abs": 1.3589326499641174e-06,
+        "trial": 0
+      },
+      {
+        "argmax_equal": true,
+        "bf16_bit_mismatches": 291,
+        "candidate_sha256": "5e2cbb7f288c7d464d021aac81e6e3c1612bc216c656cc5a89d6f76a9e2b495f",
+        "max_abs": 0.015625,
+        "mean_abs": 1.3275896435516188e-06,
+        "trial": 1
+      },
+      {
+        "argmax_equal": true,
+        "bf16_bit_mismatches": 224,
+        "candidate_sha256": "dd09851d8f754c67f4fd8c735c2eae108b274bfb4db851d33f8e66165d814ead",
+        "max_abs": 0.015625,
+        "mean_abs": 1.4222500794858206e-06,
+        "trial": 2
+      },
+      {
+        "argmax_equal": true,
+        "bf16_bit_mismatches": 255,
+        "candidate_sha256": "e6e364666f7b4c397e449f7d06c1ff0592f6a7287d30ab16b6bb9955a2b6d34f",
+        "max_abs": 0.015625,
+        "mean_abs": 1.3206901030571316e-06,
+        "trial": 3
+      },
+      {
+        "argmax_equal": true,
+        "bf16_bit_mismatches": 237,
+        "candidate_sha256": "adc87c068fc36ff9ff906ad6b1bff78c65881fcbea34659af7efdd9205d20f07",
+        "max_abs": 0.015625,
+        "mean_abs": 1.0973806183756096e-06,
+        "trial": 4
+      },
+      {
+        "argmax_equal": true,
+        "bf16_bit_mismatches": 288,
+        "candidate_sha256": "3be89d518ef8c10d2006ee9191cf134e8d70dd76c7a2db37d741e6793ead8c9a",
+        "max_abs": 0.015625,
+        "mean_abs": 1.6950316421571188e-06,
+        "trial": 5
+      },
+      {
+        "argmax_equal": true,
+        "bf16_bit_mismatches": 245,
+        "candidate_sha256": "88b1f5c5d24e73c8c12e6dfc7d69ee8029f19934630fcfa7f38731fba680d490",
+        "max_abs": 0.015625,
+        "mean_abs": 1.1127729067084147e-06,
+        "trial": 6
+      },
+      {
+        "argmax_equal": true,
+        "bf16_bit_mismatches": 246,
+        "candidate_sha256": "740c639122b9f275f22e3eb8ab7cf6840f82ac85a83a454b09af58c218de6e8c",
+        "max_abs": 0.0078125,
+        "mean_abs": 1.274858504984877e-06,
+        "trial": 7
+      },
+      {
+        "argmax_equal": true,
+        "bf16_bit_mismatches": 262,
+        "candidate_sha256": "881cbef48dfca99cece2786ea98c999b0b399e498c854d4a6b6985c805408dce",
+        "max_abs": 0.015625,
+        "mean_abs": 1.5152535297602299e-06,
+        "trial": 8
+      },
+      {
+        "argmax_equal": true,
+        "bf16_bit_mismatches": 271,
+        "candidate_sha256": "fa15ddb154fc506878f0eae656fef6fbcaf73cb21d5daf9bdc9916b864a09975",
+        "max_abs": 0.015625,
+        "mean_abs": 1.521337935628253e-06,
+        "trial": 9
+      }
+    ]
+  },
+  "dtype": "BF16",
+  "estimated_values": false,
+  "graph_replay": [
+    {
+      "argmax_equal": true,
+      "max_abs": 0.0078125,
+      "replay": 0
+    },
+    {
+      "argmax_equal": true,
+      "max_abs": 0.015625,
+      "replay": 1
+    },
+    {
+      "argmax_equal": true,
+      "max_abs": 0.0078125,
+      "replay": 2
+    },
+    {
+      "argmax_equal": true,
+      "max_abs": 0.015625,
+      "replay": 3
+    },
+    {
+      "argmax_equal": true,
+      "max_abs": 0.015625,
+      "replay": 4
+    }
+  ],
+  "hip_event_ms": {
+    "baseline": {
+      "median": 8.521597862243652,
+      "p90": 8.762401676177978,
+      "samples": [
+        8.585426330566406,
+        8.539711952209473,
+        8.76148796081543,
+        8.399248123168945,
+        8.636452674865723,
+        8.423613548278809,
+        8.615053176879883,
+        8.26591682434082,
+        8.486611366271973,
+        8.555541038513184,
+        8.604231834411621,
+        8.514744758605957,
+        8.770625114440918,
+        8.447378158569336,
+        13.558464050292969,
+        8.218969345092773,
+        8.506128311157227,
+        8.794949531555176,
+        8.239307403564453,
+        8.70862865447998,
+        8.461846351623535,
+        8.481762886047363,
+        8.266678810119629,
+        8.560710906982422,
+        8.3683500289917,
+        8.317534446716309,
+        8.528450965881348,
+        8.410909652709961,
+        8.7188081741333,
+        8.600025177001953
+      ]
+    },
+    "candidate": {
+      "median": 6.47573709487915,
+      "p90": 6.922696161270141,
+      "samples": [
+        6.612154006958008,
+        6.550376892089844,
+        6.228453159332275,
+        6.30098819732666,
+        6.273097038269043,
+        6.401076793670654,
+        6.920712947845459,
+        6.227811813354492,
+        6.922515869140625,
+        6.587165832519531,
+        6.3763298988342285,
+        7.005830764770508,
+        6.509700775146484,
+        6.916824817657471,
+        6.667195796966553,
+        6.452754020690918,
+        6.226930141448975,
+        6.577427864074707,
+        6.924318790435791,
+        6.3246331214904785,
+        6.520080089569092,
+        6.438086032867432,
+        6.203646183013916,
+        6.3236308097839355,
+        6.4065470695495605,
+        6.449948787689209,
+        6.824932098388672,
+        6.498720169067383,
+        6.959545135498047,
+        6.282393932342529
+      ]
+    },
+    "median_speedup": 1.315927088667994
+  },
+  "measurement_status": "measured",
+  "reference": "PyTorch rocBLAS BF16 GEMM with FP32 accumulation",
+  "shape": {
+    "k": 2048,
+    "m": 1,
+    "n": 248320
+  },
+  "target": "gfx1151"
+}

@@ -1,0 +1,324 @@
+{
+  "checkpoint": "/root/models/qwen36-sgl-mxfp4",
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "dflash_mode": "disabled",
+  "estimated_values": false,
+  "initialization": {
+    "eager": {
+      "baseline_weight_load_ms_measured": 9500.0,
+      "candidate_weight_load_ms_measured": 9570.0
+    },
+    "full_graph": {
+      "baseline_capture_ms_measured": 3040.0,
+      "baseline_capture_vram_gb_reported": 0.16,
+      "baseline_weight_load_ms_measured": 9670.0,
+      "candidate_capture_ms_measured": 2940.0,
+      "candidate_capture_vram_gb_reported": 0.16,
+      "candidate_weight_load_ms_measured": 9490.0
+    }
+  },
+  "loader_accepted": {
+    "bounded": true,
+    "current_load_ms_range_measured": [
+      9130,
+      10170
+    ],
+    "disable_mmap": true,
+    "historical_load_ms_range_measured": [
+      731000,
+      740000
+    ],
+    "threads": 2
+  },
+  "loader_negative": {
+    "cause": "16 GiB host-memory limit exceeded by bounded pending shard buffers",
+    "measurement_status": "measured negative",
+    "result": "process killed during shard 0/26",
+    "threads": 8
+  },
+  "measurement_status": "measured",
+  "rows": [
+    {
+      "all_paired_output_ids_equal": true,
+      "cached_tokens_exact": 0,
+      "graph_mode": "disabled",
+      "graph_path": "eager",
+      "input_tokens_exact": 1,
+      "median_latency_reduction_percent_measured": 3.2733144711074935,
+      "median_speedup_measured": 1.0338408625624802,
+      "output_tokens_exact": 32,
+      "ttft_ms_measured": null,
+      "ttft_status": "not measured by non-streaming acceptance request",
+      "variants": {
+        "baseline": {
+          "cached_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "effective_output_tokens_per_s_e2e_median_measured": 17.944353466416604,
+          "host_e2e_ms_median_measured": 1783.290775,
+          "host_e2e_ms_p90_measured": 2157.0051426,
+          "host_e2e_ms_samples_measured": [
+            2403.952837,
+            1786.583601,
+            1783.290775,
+            1781.210614,
+            1782.695689
+          ],
+          "output_ids_sha256": [
+            "6a5fed1bbd6dc4cbfc7f89b8e640ff48f16c5a2247b0dbbcbc5e936b17618ca4",
+            "2e73fec8c8d30286f6d226d778252913fb2d0015be9d199c669a1f79ec4f3589",
+            "bd328c9fc7b69f204d27feec104422d5f418d52583d92f2b72ab7a29d8cc6962",
+            "36bd1b2bed55a82ea7bbda216daecb1dbc790d9c3f5ca7481a4cd865b243c5e1",
+            "4ad27781f14996278d4524d5be703841a8d2cff7be8456d2b39c65a05f0a655e"
+          ],
+          "peak_vram_bytes_sysfs_max_measured": 77671469056,
+          "samples": 5
+        },
+        "candidate": {
+          "cached_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "effective_output_tokens_per_s_e2e_median_measured": 18.551605865846174,
+          "host_e2e_ms_median_measured": 1724.91806,
+          "host_e2e_ms_p90_measured": 2266.5086146,
+          "host_e2e_ms_samples_measured": [
+            2626.937361,
+            1724.349233,
+            1722.752038,
+            1724.91806,
+            1725.865495
+          ],
+          "output_ids_sha256": [
+            "6a5fed1bbd6dc4cbfc7f89b8e640ff48f16c5a2247b0dbbcbc5e936b17618ca4",
+            "2e73fec8c8d30286f6d226d778252913fb2d0015be9d199c669a1f79ec4f3589",
+            "bd328c9fc7b69f204d27feec104422d5f418d52583d92f2b72ab7a29d8cc6962",
+            "36bd1b2bed55a82ea7bbda216daecb1dbc790d9c3f5ca7481a4cd865b243c5e1",
+            "4ad27781f14996278d4524d5be703841a8d2cff7be8456d2b39c65a05f0a655e"
+          ],
+          "peak_vram_bytes_sysfs_max_measured": 81148788736,
+          "samples": 5
+        }
+      }
+    },
+    {
+      "all_paired_output_ids_equal": true,
+      "cached_tokens_exact": 0,
+      "graph_mode": "disabled",
+      "graph_path": "eager",
+      "input_tokens_exact": 210,
+      "median_latency_reduction_percent_measured": 3.1843900619332364,
+      "median_speedup_measured": 1.032891287510044,
+      "output_tokens_exact": 128,
+      "ttft_ms_measured": null,
+      "ttft_status": "not measured by non-streaming acceptance request",
+      "variants": {
+        "baseline": {
+          "cached_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "effective_output_tokens_per_s_e2e_median_measured": 17.25464810452298,
+          "host_e2e_ms_median_measured": 7418.290957,
+          "host_e2e_ms_p90_measured": 7471.477976800001,
+          "host_e2e_ms_samples_measured": [
+            7503.252802,
+            7417.277903,
+            7423.815739,
+            7417.111682,
+            7418.290957
+          ],
+          "output_ids_sha256": [
+            "f9acd3d95a93119dcfa3283dec3c127480a89ffffc16afec5b0a418c713f97d4",
+            "07e4ad1b7b1f317604b9058d0b5057748cad665e2236a0ec64f8ae63e808d733",
+            "af7f7c1c3494c7bb1eb71543a0e568db9ef01ce9386140a5298c65fd770cfba1",
+            "d64e9ce0adc6a25e48f56e8d79be0b8475c59c016c7f0cd12b938f8732a4675a",
+            "07e4ad1b7b1f317604b9058d0b5057748cad665e2236a0ec64f8ae63e808d733"
+          ],
+          "peak_vram_bytes_sysfs_max_measured": 78103564288,
+          "samples": 5
+        },
+        "candidate": {
+          "cached_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "effective_output_tokens_per_s_e2e_median_measured": 17.82217569621348,
+          "host_e2e_ms_median_measured": 7182.063637,
+          "host_e2e_ms_p90_measured": 7332.3988573999995,
+          "host_e2e_ms_samples_measured": [
+            7429.530495,
+            7179.443454,
+            7186.701401,
+            7182.063637,
+            7173.688947
+          ],
+          "output_ids_sha256": [
+            "f9acd3d95a93119dcfa3283dec3c127480a89ffffc16afec5b0a418c713f97d4",
+            "07e4ad1b7b1f317604b9058d0b5057748cad665e2236a0ec64f8ae63e808d733",
+            "af7f7c1c3494c7bb1eb71543a0e568db9ef01ce9386140a5298c65fd770cfba1",
+            "d64e9ce0adc6a25e48f56e8d79be0b8475c59c016c7f0cd12b938f8732a4675a",
+            "07e4ad1b7b1f317604b9058d0b5057748cad665e2236a0ec64f8ae63e808d733"
+          ],
+          "peak_vram_bytes_sysfs_max_measured": 81580990464,
+          "samples": 5
+        }
+      }
+    },
+    {
+      "all_paired_output_ids_equal": true,
+      "cached_tokens_exact": 0,
+      "graph_mode": "full_decode_tiers_1_2_4_8_12_16",
+      "graph_path": "full_graph",
+      "input_tokens_exact": 1,
+      "median_latency_reduction_percent_measured": 3.5152606637192205,
+      "median_speedup_measured": 1.0364333332701183,
+      "output_tokens_exact": 32,
+      "ttft_ms_measured": null,
+      "ttft_status": "not measured by non-streaming acceptance request",
+      "variants": {
+        "baseline": {
+          "cached_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "effective_output_tokens_per_s_e2e_median_measured": 17.813509401466476,
+          "host_e2e_ms_median_measured": 1796.38943,
+          "host_e2e_ms_p90_measured": 1861.9564017999999,
+          "host_e2e_ms_samples_measured": [
+            1905.626063,
+            1796.45191,
+            1796.38943,
+            1796.352008,
+            1794.907254
+          ],
+          "output_ids_sha256": [
+            "742a4ded7a1e493c395cb08f5d180547586911b811526d4afc0e8e8ecf8e4166",
+            "565e9edd9b4e9dda64f846b1a086563d93c9c6985499a77ebcd58ea83731ce5a",
+            "4aeab73d390e931b8e01860a60d2c596db102fc846ce8d8cb4fa701715f8e0a8",
+            "667e8f2426e6c2f2f043e65c872a5565386f5b5977ac35ac8f646641ec16d8fd",
+            "070ae247cf379e5991d75c8f171c52ed2e5efa48592e150110db9e6615d687e6"
+          ],
+          "peak_vram_bytes_sysfs_max_measured": 79162155008,
+          "samples": 5
+        },
+        "candidate": {
+          "cached_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "effective_output_tokens_per_s_e2e_median_measured": 18.46251492620049,
+          "host_e2e_ms_median_measured": 1733.241659,
+          "host_e2e_ms_p90_measured": 1805.3070742,
+          "host_e2e_ms_samples_measured": [
+            1851.245101,
+            1732.531874,
+            1736.400034,
+            1729.114501,
+            1733.241659
+          ],
+          "output_ids_sha256": [
+            "742a4ded7a1e493c395cb08f5d180547586911b811526d4afc0e8e8ecf8e4166",
+            "565e9edd9b4e9dda64f846b1a086563d93c9c6985499a77ebcd58ea83731ce5a",
+            "4aeab73d390e931b8e01860a60d2c596db102fc846ce8d8cb4fa701715f8e0a8",
+            "667e8f2426e6c2f2f043e65c872a5565386f5b5977ac35ac8f646641ec16d8fd",
+            "070ae247cf379e5991d75c8f171c52ed2e5efa48592e150110db9e6615d687e6"
+          ],
+          "peak_vram_bytes_sysfs_max_measured": 77314551808,
+          "samples": 5
+        }
+      }
+    },
+    {
+      "all_paired_output_ids_equal": true,
+      "cached_tokens_exact": 0,
+      "graph_mode": "full_decode_tiers_1_2_4_8_12_16",
+      "graph_path": "full_graph",
+      "input_tokens_exact": 210,
+      "median_latency_reduction_percent_measured": 3.4899645704293576,
+      "median_speedup_measured": 1.0361616753625191,
+      "output_tokens_exact": 128,
+      "ttft_ms_measured": null,
+      "ttft_status": "not measured by non-streaming acceptance request",
+      "variants": {
+        "baseline": {
+          "cached_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "effective_output_tokens_per_s_e2e_median_measured": 17.13472404511665,
+          "host_e2e_ms_median_measured": 7470.210764,
+          "host_e2e_ms_p90_measured": 7481.4411782,
+          "host_e2e_ms_samples_measured": [
+            7486.709259,
+            7470.210764,
+            7470.207771,
+            7473.539057,
+            7468.752954
+          ],
+          "output_ids_sha256": [
+            "c1384dcce2cbfef0abb6a7eec415418433f8e4f066d2baffbe1e68130e35db93",
+            "07e4ad1b7b1f317604b9058d0b5057748cad665e2236a0ec64f8ae63e808d733",
+            "41a6bec65693407abd5e88627e3377f841b0d701e4317530442be7e5a561c935",
+            "07e4ad1b7b1f317604b9058d0b5057748cad665e2236a0ec64f8ae63e808d733",
+            "a5a0b74fbc7e7253cafad5315e70c52943626398679d57603dc543b8e149511d"
+          ],
+          "peak_vram_bytes_sysfs_max_measured": 79575138304,
+          "samples": 5
+        },
+        "candidate": {
+          "cached_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "effective_output_tokens_per_s_e2e_median_measured": 17.754344373462505,
+          "host_e2e_ms_median_measured": 7209.503055,
+          "host_e2e_ms_p90_measured": 7217.8257592,
+          "host_e2e_ms_samples_measured": [
+            7222.322048,
+            7208.218828,
+            7211.081326,
+            7209.503055,
+            7206.077788
+          ],
+          "output_ids_sha256": [
+            "c1384dcce2cbfef0abb6a7eec415418433f8e4f066d2baffbe1e68130e35db93",
+            "07e4ad1b7b1f317604b9058d0b5057748cad665e2236a0ec64f8ae63e808d733",
+            "41a6bec65693407abd5e88627e3377f841b0d701e4317530442be7e5a561c935",
+            "07e4ad1b7b1f317604b9058d0b5057748cad665e2236a0ec64f8ae63e808d733",
+            "a5a0b74fbc7e7253cafad5315e70c52943626398679d57603dc543b8e149511d"
+          ],
+          "peak_vram_bytes_sysfs_max_measured": 77727453184,
+          "samples": 5
+        }
+      }
+    }
+  ],
+  "target": "gfx1151",
+  "timing_scope": "host_e2e_http_monotonic"
+}

@@ -13,6 +13,7 @@ case "${weight_loader_threads}" in
 esac
 
 export SGLANG_USE_NETRA_MXFP4_GFX1151=1
+export SGLANG_NETRA_ENABLE_BF16_LM_HEAD=${SGLANG_NETRA_ENABLE_BF16_LM_HEAD:-1}
 export PATH="${sglang_venv}/bin:/opt/rocm-7.2.1/bin:${PATH}"
 export HIP_VISIBLE_DEVICES=${HIP_VISIBLE_DEVICES:-0}
 export PYTHONPATH="${sglang_dir}/python${PYTHONPATH:+:${PYTHONPATH}}"

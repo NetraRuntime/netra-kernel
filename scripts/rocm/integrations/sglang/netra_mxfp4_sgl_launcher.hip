@@ -6,6 +6,7 @@
 #include "runtime/gfx1151/mxfp4/attention/runtime.h"
 #include "runtime/gfx1151/mxfp4/decode/runtime.h"
 #include "runtime/gfx1151/mxfp4/gdn/runtime.h"
+#include "runtime/gfx1151/mxfp4/lm_head/runtime.h"
 #include "runtime/gfx1151/mxfp4/moe/runtime.h"
 #include "runtime/gfx1151/mxfp4/prefill/runtime.h"
 #include "runtime/gfx1151/mxfp4/verify/runtime.h"
@@ -80,6 +81,12 @@ extern "C" int netra_mxfp4_sgl_linear(
     unsigned n, unsigned k, void* stream_ptr) {
   return netra::gfx1151::decode::linear(
       packed, scale, activation, output, m, n, k, stream_ptr);
+}
+
+extern "C" int netra_bf16_lm_head_decode(
+    void* weight, void* activation, void* output, void* stream_ptr) {
+  return netra::gfx1151::lm_head::bf16_decode(
+      weight, activation, output, stream_ptr);
 }
 
 extern "C" int netra_mxfp4_sgl_linear_prefill(

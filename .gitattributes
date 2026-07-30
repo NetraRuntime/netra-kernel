@@ -1,2 +1,3 @@
 docs/notes/**/*.diff -whitespace
 docs/netra/notes/**/*.diff -whitespace
+scripts/rocm/integrations/sglang/*.patch -whitespace

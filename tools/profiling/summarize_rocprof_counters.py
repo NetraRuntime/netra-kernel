@@ -19,6 +19,10 @@ def main() -> None:
         "--input-scope",
         default="synthetic data with exact Qwen3.6 decode tensor shapes",
     )
+    parser.add_argument(
+        "--method",
+        default="one counter per process launch; identical kernel dispatch shapes",
+    )
     args = parser.parse_args()
     prefixes = tuple(args.kernel_prefix or ("mxfp4_", "silu_"))
     values: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
@@ -55,7 +59,7 @@ def main() -> None:
         "measurement_status": "measured",
         "input_scope": args.input_scope,
         "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
-        "method": "one counter per process launch; identical raw-ASM kernel dispatch shapes",
+        "method": args.method,
         "units": {
             "FETCH_SIZE": "KiB fetched from video memory per dispatch",
             "WRITE_SIZE": "KiB written to video memory per dispatch",
