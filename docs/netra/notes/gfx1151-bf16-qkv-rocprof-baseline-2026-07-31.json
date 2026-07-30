@@ -1,0 +1,83 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "input_scope": "exact Qwen3.6 M1 N9216 K2048 BF16 rocBLAS on gfx1151",
+  "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+  "method": "one counter per fresh process; one warmup and one measured dispatch",
+  "units": {
+    "FETCH_SIZE": "KiB fetched from video memory per dispatch",
+    "WRITE_SIZE": "KiB written to video memory per dispatch",
+    "OccupancyPercent": "percent of device maximum",
+    "L2CacheHit": "percent",
+    "MemUnitBusy": "percent of GPUTime",
+    "WriteUnitStalled": "percent of GPUTime"
+  },
+  "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+  "kernels": [
+    {
+      "kernel": "Cijk_Alik_Bljk_BBS_BH_MT128x128x32_MI16x16x16x1_SN_1LDSB0_APM1_ABV0_ACED0_AF0EM1_AF1EM1_AMAS3_ASE_ASGT_ASLT_ASM_ASAE01_ASCE01_ASEM1_AAC0_BL1_BS1_CLR0_DTLA0_DTLB0_DTVA0_DTVB0_DVO0_ETSP_EPS1_ELFLR0_EMLL0_FSSC10_FL0_GLVWA8_GLVWB8_GRCGA1_GRCGB1_GRPM1_GRVW8_GSU1_GSUASB_GLS0_ISA1151_IU1_K1_KLA_LBSPPA128_LBSPPB128_LPA8_LPB8_LDL1_LRVW16_LWPMn1_LDW0_FMA_MIAV1_MDA2_MO40_MMFGLC_MKFGSU256_NTA0_NTB0_NTC0_NTD0_NEPBS0_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR0_PKA0_SIA3_SLW1_SS1_SU0_SUM0_SUS0_SCIUI1_SPO0_SRVW0_SSO0_SVW2_SNLL0_TSGRA0_TSGRB0_TT4_64_TLDS1_UMLDSA1_UMLDSB1_U64SL1_USFGROn1_VAW1_VSn1_VW2_VWB2_VFLRP0_WSGRA1_WSGRB1_WS32_WG32_4_1_WGM4",
+      "grid_size": 9216,
+      "workgroup_size": 128,
+      "lds_bytes": 51200,
+      "scratch_bytes": 0,
+      "vgpr": 256,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": {
+          "samples": 2,
+          "mean": 18449.84375,
+          "min": 18444.25,
+          "max": 18455.4375
+        },
+        "L2CacheHit": {
+          "samples": 2,
+          "mean": 0.9400412710000001,
+          "min": 0.501577542,
+          "max": 1.378505
+        },
+        "MeanOccupancyPerActiveCU": {
+          "samples": 2,
+          "mean": 7.9924665,
+          "min": 7.987077,
+          "max": 7.997856
+        },
+        "MemUnitBusy": {
+          "samples": 2,
+          "mean": 91.02938449999999,
+          "min": 87.444405,
+          "max": 94.614364
+        },
+        "OccupancyPercent": {
+          "samples": 2,
+          "mean": 10.050519,
+          "min": 9.524681,
+          "max": 10.576357
+        },
+        "SQ_WAVES": {
+          "samples": 2,
+          "mean": 288.0,
+          "min": 288.0,
+          "max": 288.0
+        },
+        "SQ_WAVE_CYCLES": {
+          "samples": 2,
+          "mean": 92581414.5,
+          "min": 83419111.0,
+          "max": 101743718.0
+        },
+        "VALUInsts": {
+          "samples": 2,
+          "mean": 3730.0,
+          "min": 3730.0,
+          "max": 3730.0
+        },
+        "WRITE_SIZE": {
+          "samples": 2,
+          "mean": 5.5,
+          "min": 5.0,
+          "max": 6.0
+        }
+      }
+    }
+  ]
+}

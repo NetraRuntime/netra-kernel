@@ -73,6 +73,29 @@ lm_head_stem=bf16_lm_head_decode_wave4_gfx1151
   "${out_dir}/${lm_head_stem}.hsaco" > "${out_dir}/${lm_head_stem}.dis"
 
 split_stem=qkvzba_split_copy_gfx1151
+
+qkv_stem=bf16_qkv_decode_wave4_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c \
+  "${repo_dir}/kernels/gfx1151/dense/qkv/${qkv_stem}.s" \
+  -o "${out_dir}/${qkv_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${qkv_stem}.o" -o "${out_dir}/${qkv_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${qkv_stem}.hsaco" > "${out_dir}/${qkv_stem}.dis"
+
+shared_gate_up_stem=bf16_shared_gate_up_silu_decode_wave2_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c \
+  "${repo_dir}/kernels/gfx1151/dense/shared_expert/${shared_gate_up_stem}.s" \
+  -o "${out_dir}/${shared_gate_up_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${shared_gate_up_stem}.o" \
+  -o "${out_dir}/${shared_gate_up_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${shared_gate_up_stem}.hsaco" > \
+  "${out_dir}/${shared_gate_up_stem}.dis"
+
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c \
   "${repo_dir}/kernels/gfx1151/gdn/${split_stem}.s" \

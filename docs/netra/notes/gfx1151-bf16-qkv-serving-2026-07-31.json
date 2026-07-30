@@ -1,0 +1,169 @@
+{
+  "candidate": "raw AMDGCN bf16_qkv_decode_wave4_gfx1151 with per-layer stable output",
+  "candidate_eager_vs_full_graph_identical_sequences": {
+    "1_input_32_output": 5,
+    "210_input_128_output": 5,
+    "samples_each": 5
+  },
+  "correctness_note": "Raw and rocBLAS are not BF16 bit-exact. The raw result has equal maximum error and slightly lower mean error against FP64 in all three spot-checked real layers; greedy sequences can differ from rocBLAS but are deterministic across eager and graph replay.",
+  "estimated_values": false,
+  "full_graph_capture": {
+    "baseline_reported_graph_memory_gib": 0.16,
+    "baseline_seconds": 2.98,
+    "candidate_available_memory_drop_during_capture_gib": 0.08,
+    "candidate_reported_graph_memory_gib": 0.16,
+    "candidate_seconds": 2.86
+  },
+  "measurement_status": "measured",
+  "serving": [
+    {
+      "baseline_host_e2e_ms": {
+        "median": 1721.365063,
+        "samples": [
+          1718.851525,
+          1721.448774,
+          1721.365063,
+          1722.681615,
+          1716.787852
+        ]
+      },
+      "cached_tokens": 0,
+      "candidate_effective_output_tokens_per_second_derived_from_host_e2e": 18.780746440520783,
+      "candidate_host_e2e_ms": {
+        "median": 1703.872639,
+        "samples": [
+          1705.419786,
+          1703.872639,
+          1703.513803,
+          1705.264674,
+          1701.358822
+        ]
+      },
+      "candidate_peak_vram_bytes_sysfs_measured": 77405450240,
+      "dflash_mode": "disabled",
+      "graph_mode": "disabled",
+      "host_e2e_improvement_percent": 1.0266274367940031,
+      "identical_greedy_output_sequences": 2,
+      "identical_input_hashes": true,
+      "input_throughput_tokens_per_second": "not measured by non-streaming request harness",
+      "input_tokens": 1,
+      "measurement_status": "measured",
+      "output_tokens": 32,
+      "samples": 5,
+      "target": "gfx1151",
+      "ttft_ms": "not measured by non-streaming request harness"
+    },
+    {
+      "baseline_host_e2e_ms": {
+        "median": 7170.623648,
+        "samples": [
+          7182.813761,
+          7164.674497,
+          7172.97755,
+          7170.16516,
+          7170.623648
+        ]
+      },
+      "cached_tokens": 0,
+      "candidate_effective_output_tokens_per_second_derived_from_host_e2e": 18.018847092972116,
+      "candidate_host_e2e_ms": {
+        "median": 7103.673134,
+        "samples": [
+          7113.196377,
+          7097.61906,
+          7103.673134,
+          7105.14786,
+          7101.15229
+        ]
+      },
+      "candidate_peak_vram_bytes_sysfs_measured": 77552291840,
+      "dflash_mode": "disabled",
+      "graph_mode": "disabled",
+      "host_e2e_improvement_percent": 0.9424774020014848,
+      "identical_greedy_output_sequences": 4,
+      "identical_input_hashes": true,
+      "input_throughput_tokens_per_second": "not measured by non-streaming request harness",
+      "input_tokens": 210,
+      "measurement_status": "measured",
+      "output_tokens": 128,
+      "samples": 5,
+      "target": "gfx1151",
+      "ttft_ms": "not measured by non-streaming request harness"
+    },
+    {
+      "baseline_host_e2e_ms": {
+        "median": 1732.37965,
+        "samples": [
+          1734.945628,
+          1732.087825,
+          1732.690877,
+          1732.37965,
+          1730.429974
+        ]
+      },
+      "cached_tokens": 0,
+      "candidate_effective_output_tokens_per_second_derived_from_host_e2e": 18.658530239830107,
+      "candidate_host_e2e_ms": {
+        "median": 1715.033263,
+        "samples": [
+          1715.033263,
+          1714.301457,
+          1716.39793,
+          1713.54362,
+          1716.798133
+        ]
+      },
+      "candidate_peak_vram_bytes_sysfs_measured": 77645717504,
+      "dflash_mode": "disabled",
+      "graph_mode": "full",
+      "host_e2e_improvement_percent": 1.0114315199728052,
+      "identical_greedy_output_sequences": 4,
+      "identical_input_hashes": true,
+      "input_throughput_tokens_per_second": "not measured by non-streaming request harness",
+      "input_tokens": 1,
+      "measurement_status": "measured",
+      "output_tokens": 32,
+      "samples": 5,
+      "target": "gfx1151",
+      "ttft_ms": "not measured by non-streaming request harness"
+    },
+    {
+      "baseline_host_e2e_ms": {
+        "median": 7227.318546,
+        "samples": [
+          7240.255808,
+          7224.681887,
+          7227.318546,
+          7227.785706,
+          7219.905327
+        ]
+      },
+      "cached_tokens": 0,
+      "candidate_effective_output_tokens_per_second_derived_from_host_e2e": 17.889460094426997,
+      "candidate_host_e2e_ms": {
+        "median": 7155.051037,
+        "samples": [
+          7163.686684,
+          7155.051037,
+          7153.706108,
+          7151.53515,
+          7157.951525
+        ]
+      },
+      "candidate_peak_vram_bytes_sysfs_measured": 77792538624,
+      "dflash_mode": "disabled",
+      "graph_mode": "full",
+      "host_e2e_improvement_percent": 1.010020873733719,
+      "identical_greedy_output_sequences": 3,
+      "identical_input_hashes": true,
+      "input_throughput_tokens_per_second": "not measured by non-streaming request harness",
+      "input_tokens": 210,
+      "measurement_status": "measured",
+      "output_tokens": 128,
+      "samples": 5,
+      "target": "gfx1151",
+      "ttft_ms": "not measured by non-streaming request harness"
+    }
+  ],
+  "target": "gfx1151"
+}

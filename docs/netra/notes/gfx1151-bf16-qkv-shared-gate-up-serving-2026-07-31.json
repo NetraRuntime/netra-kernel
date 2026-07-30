@@ -1,0 +1,131 @@
+{
+  "checkpoint": "/root/models/qwen36-sgl-mxfp4",
+  "comparison": "pre-both-kernels baseline (BF16 QKV and BF16 shared gate+up+SiLU disabled) versus both raw ASM kernels enabled",
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "dflash_mode": "disabled",
+  "estimated_values": false,
+  "full_graph_capture": {
+    "baseline_elapsed_s_measured": 2.57,
+    "baseline_memory_gib_measured": 0.16,
+    "candidate_elapsed_s_measured": 2.44,
+    "candidate_memory_gib_measured": 0.16
+  },
+  "measurement_status": "measured",
+  "numerical_note": "Raw kernels and rocBLAS use different FP32 accumulation trees. Candidate eager and full-graph are deterministic 5/5; pre-both baseline versus candidate matches 3/5 at both shapes. Shared-gate/up FP64 spots favor the candidate mean error.",
+  "samples_per_cell": 5,
+  "serving": {
+    "eager": {
+      "1_plus_32": {
+        "baseline_candidate_identical_greedy_sequences": 3,
+        "baseline_host_e2e_ms_median_measured": 1722.716207,
+        "cached_tokens_each": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "candidate_eager_full_graph_identical_greedy_sequences": 5,
+        "candidate_effective_output_tokens_per_s_derived_from_measured_e2e": 19.282950424274443,
+        "candidate_host_e2e_ms_median_measured": 1659.497084,
+        "exact_input_tokens": 1,
+        "exact_output_tokens": 32,
+        "graph_mode": "disabled",
+        "host_ttft_ms": "not measured by non-streaming harness",
+        "input_throughput_tokens_per_s": "not measured separately by non-streaming harness",
+        "latency_reduction_percent_measured": 3.669735197423607,
+        "peak_vram_bytes_sysfs_max_measured": 77627281408,
+        "speedup_measured": 1.038095350458597
+      },
+      "210_plus_128": {
+        "baseline_candidate_identical_greedy_sequences": 3,
+        "baseline_host_e2e_ms_median_measured": 7172.358249,
+        "cached_tokens_each": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "candidate_eager_full_graph_identical_greedy_sequences": 5,
+        "candidate_effective_output_tokens_per_s_derived_from_measured_e2e": 18.482590098783295,
+        "candidate_host_e2e_ms_median_measured": 6925.436279,
+        "exact_input_tokens": 210,
+        "exact_output_tokens": 128,
+        "graph_mode": "disabled",
+        "host_ttft_ms": "not measured by non-streaming harness",
+        "input_throughput_tokens_per_s": "not measured separately by non-streaming harness",
+        "latency_reduction_percent_measured": 3.442688742359279,
+        "peak_vram_bytes_sysfs_max_measured": 78059507712,
+        "speedup_measured": 1.0356543559210474
+      }
+    },
+    "full_graph": {
+      "1_plus_32": {
+        "baseline_candidate_identical_greedy_sequences": 3,
+        "baseline_host_e2e_ms_median_measured": 1733.642584,
+        "cached_tokens_each": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "candidate_eager_full_graph_identical_greedy_sequences": 5,
+        "candidate_effective_output_tokens_per_s_derived_from_measured_e2e": 19.181626618073754,
+        "candidate_host_e2e_ms_median_measured": 1668.263106,
+        "exact_input_tokens": 1,
+        "exact_output_tokens": 32,
+        "graph_mode": "full",
+        "host_ttft_ms": "not measured by non-streaming harness",
+        "input_throughput_tokens_per_s": "not measured separately by non-streaming harness",
+        "latency_reduction_percent_measured": 3.7712201236514975,
+        "peak_vram_bytes_sysfs_max_measured": 77979922432,
+        "speedup_measured": 1.0391901479837677
+      },
+      "210_plus_128": {
+        "baseline_candidate_identical_greedy_sequences": 3,
+        "baseline_host_e2e_ms_median_measured": 7221.120187,
+        "cached_tokens_each": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "candidate_eager_full_graph_identical_greedy_sequences": 5,
+        "candidate_effective_output_tokens_per_s_derived_from_measured_e2e": 18.36382956476583,
+        "candidate_host_e2e_ms_median_measured": 6970.223697,
+        "exact_input_tokens": 210,
+        "exact_output_tokens": 128,
+        "graph_mode": "full",
+        "host_ttft_ms": "not measured by non-streaming harness",
+        "input_throughput_tokens_per_s": "not measured separately by non-streaming harness",
+        "latency_reduction_percent_measured": 3.474481569378707,
+        "peak_vram_bytes_sysfs_max_measured": 78128812032,
+        "speedup_measured": 1.0359954717246718
+      }
+    }
+  },
+  "target": "gfx1151"
+}

@@ -65,6 +65,10 @@ class _Runtime:
             + [ctypes.c_void_p]
         )
         self.lib.netra_mxfp4_sgl_linear.restype = ctypes.c_int
+        self.lib.netra_bf16_qkv_decode.argtypes = [ctypes.c_void_p] * 4
+        self.lib.netra_bf16_qkv_decode.restype = ctypes.c_int
+        self.lib.netra_bf16_shared_gate_up_silu_decode.argtypes = [ctypes.c_void_p] * 4
+        self.lib.netra_bf16_shared_gate_up_silu_decode.restype = ctypes.c_int
         self.lib.netra_bf16_lm_head_decode.argtypes = [ctypes.c_void_p] * 4
         self.lib.netra_bf16_lm_head_decode.restype = ctypes.c_int
         self.lib.netra_mxfp4_sgl_linear_prefill.argtypes = (
@@ -287,6 +291,56 @@ def apply_bf16_lm_head(
     )
     netra_bf16_lm_head_with_output(weight, activation, output)
     return output
+
+
+@register_custom_op(mutates_args=["output"])
+def netra_bf16_qkv_with_output(
+    weight: torch.Tensor,
+    activation: torch.Tensor,
+    output: torch.Tensor,
+) -> None:
+    """Graph-safe fixed M=1, N=9216, K=2048 BF16 QKV launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_bf16_qkv_decode(
+        _ptr(weight), _ptr(activation), _ptr(output), runtime.stream()
+    )
+    runtime.check(status, "Netra raw-ASM BF16 QKV")
+
+
+def apply_bf16_qkv(
+    weight: torch.Tensor, activation: torch.Tensor
+) -> torch.Tensor:
+    if (
+        weight.dtype != torch.bfloat16
+        or tuple(weight.shape) != (9216, 2048)
+        or not weight.is_contiguous()
+        or activation.dtype != torch.bfloat16
+        or tuple(activation.shape) != (1, 2048)
+        or not activation.is_contiguous()
+    ):
+        raise ValueError(
+            "Netra BF16 QKV requires contiguous [9216,2048] weight "
+            "and [1,2048] activation"
+        )
+    output = torch.empty(
+        (1, 9216), dtype=torch.bfloat16, device=activation.device
+    )
+    netra_bf16_qkv_with_output(weight, activation, output)
+    return output
+
+
+@register_custom_op(mutates_args=["output"])
+def netra_bf16_shared_gate_up_silu_with_output(
+    weight: torch.Tensor,
+    activation: torch.Tensor,
+    output: torch.Tensor,
+) -> None:
+    """Graph-safe M=1 BF16 shared gate+up+SiLU raw gfx1151 launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_bf16_shared_gate_up_silu_decode(
+        _ptr(weight), _ptr(activation), _ptr(output), runtime.stream()
+    )
+    runtime.check(status, "Netra raw-ASM BF16 shared gate+up+SiLU")
 
 
 @register_custom_op(mutates_args=["output"])

@@ -1,0 +1,98 @@
+--- a/python/sglang/srt/models/qwen3_5.py
++++ b/python/sglang/srt/models/qwen3_5.py
+@@ -146,6 +146,16 @@
+         apply_qk_norm_mrope_gate_kv_store,
+     )
+ _is_xpu = is_xpu()
++_use_netra_bf16_qkv = (
++    _is_hip
++    and get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
++    and os.getenv("SGLANG_NETRA_ENABLE_BF16_QKV", "1").lower()
++    in {"1", "true", "yes", "on"}
++)
++if _use_netra_bf16_qkv:
++    from sglang.srt.layers.quantization.netra_gfx1151 import (
++        netra_bf16_qkv_with_output,
++    )
+ _use_aiter = get_bool_env_var("SGLANG_USE_AITER") and _is_hip
+ _hip_use_alt_stream = get_bool_env_var("SGLANG_ALT_STREAM") and _is_hip
+ _gdn_use_alt_stream = _is_cuda or (
+@@ -954,6 +964,16 @@
+             prefix=add_prefix("qkv_proj", prefix),
+         )
+ 
++        self._netra_qkv_decode_output = (
++            torch.empty(
++                (1, 9216),
++                dtype=torch.bfloat16,
++                device=self.qkv_proj.weight.device,
++            )
++            if _use_netra_bf16_qkv
++            else None
++        )
++
+         self.o_proj = RowParallelLinear(
+             self.total_num_heads * self.head_dim,
+             config.hidden_size,
+@@ -1039,6 +1059,25 @@
+ 
+         self.alt_stream = alt_stream
+ 
++    def _project_qkv(self, hidden_states: torch.Tensor) -> torch.Tensor:
++        weight = self.qkv_proj.weight
++        if (
++            _use_netra_bf16_qkv
++            and isinstance(hidden_states, torch.Tensor)
++            and hidden_states.dtype == torch.bfloat16
++            and tuple(hidden_states.shape) == (1, 2048)
++            and hidden_states.is_contiguous()
++            and weight.dtype == torch.bfloat16
++            and tuple(weight.shape) == (9216, 2048)
++            and weight.is_contiguous()
++        ):
++            netra_bf16_qkv_with_output(
++                weight, hidden_states, self._netra_qkv_decode_output
++            )
++            return self._netra_qkv_decode_output
++        qkv, _ = self.qkv_proj(hidden_states)
++        return qkv
++
+     def _apply_qk_norm(
+         self, q: torch.Tensor, k: torch.Tensor
+     ) -> Tuple[torch.Tensor, torch.Tensor]:
+@@ -1076,7 +1115,7 @@
+ 
+     def forward_prepare_cuda_fused(self, positions, hidden_states):
+         """Fused QK GemmaRMSNorm + NeoX RoPE + gate deinterleave."""
+-        qkv, _ = self.qkv_proj(hidden_states)
++        qkv = self._project_qkv(hidden_states)
+         if self.attn_output_gate:
+             q_gate, k, v = qkv.split(
+                 [self.q_size * 2, self.kv_size, self.kv_size], dim=-1
+@@ -1108,7 +1147,7 @@
+             hidden_states = _select_fused_ar_input_for_linear(
+                 hidden_states, self.qkv_proj
+             )
+-        qkv, _ = self.qkv_proj(hidden_states)
++        qkv = self._project_qkv(hidden_states)
+         if self.attn_output_gate:
+             q_gate, k, v = qkv.split(
+                 [self.q_size * 2, self.kv_size, self.kv_size], dim=-1
+@@ -1131,7 +1170,7 @@
+             hidden_states = _select_fused_ar_input_for_linear(
+                 hidden_states, self.qkv_proj
+             )
+-        qkv, _ = self.qkv_proj(hidden_states)
++        qkv = self._project_qkv(hidden_states)
+         used_netra_qk_mrope_kv = False
+         if self.attn_output_gate:
+             q_gate, k_input, v = qkv.split(
+@@ -1221,7 +1260,7 @@
+         return q, k, v, gate, used_netra_qk_mrope_kv
+ 
+     def forward_prepare_npu(self, positions, hidden_states, forward_batch):
+-        qkv, _ = self.qkv_proj(hidden_states)
++        qkv = self._project_qkv(hidden_states)
+         # Calculate first full attention layer ID based on config
+         if self.attn.layer_id == (self.config.full_attention_interval - 1):
+             self.rotary_emb.get_cos_sin_with_position(positions)

@@ -8,6 +8,18 @@
 
 namespace netra::gfx1151::attention {
 
+NETRA_GFX1151_ALWAYS_INLINE int bf16_qkv_decode(
+    void* weight, void* activation, void* output, void* stream_ptr) {
+  ensure_initialized();
+  ModuleRegistry& registry = runtime();
+  if (registry.status != hipSuccess) return static_cast<int>(registry.status);
+  ThreePointers args{weight, activation, output};
+  hipError_t status = launch(
+      registry.bf16_qkv.function, 288, 1, 256,
+      reinterpret_cast<hipStream_t>(stream_ptr), args);
+  return status == hipSuccess ? 0 : 92100 + static_cast<int>(status);
+}
+
 NETRA_GFX1151_ALWAYS_INLINE int extend(void* q, void* k_extend, void* v_extend, void* output,
                   void* k_buffer, void* v_buffer, void* kv_indices,
                   void* kv_indptr, unsigned tokens, float sm_scale,

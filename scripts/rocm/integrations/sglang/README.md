@@ -27,12 +27,19 @@ This directory is the complete serving overlay for SGLang commit
 - `sglang-gfx1151-bf16-lm-head.patch` routes the exact batch-1 BF16
   `[1,2048] x [248320,2048]^T` LM head to the accepted graph-safe raw gfx1151
   assembly kernel. `SGLANG_NETRA_ENABLE_BF16_LM_HEAD=0` restores rocBLAS.
+- `sglang-gfx1151-bf16-qkv.patch` routes exact M=1 N9216 K2048 BF16 QKV
+  to the accepted raw gfx1151 assembly kernel; M>1 and prefill remain unchanged.
+  `SGLANG_NETRA_ENABLE_BF16_QKV=0` restores rocBLAS.
+- `sglang-gfx1151-bf16-shared-gate-up-silu.patch` fuses the exact M=1
+  N512+512 K2048 shared-expert BF16 projections with register-resident SiLU
+  and multiplication. `SGLANG_NETRA_ENABLE_BF16_SHARED_GATE_UP_SILU=0`
+  restores rocBLAS plus the separate activation kernel.
 - `experiments/` retains integration patches for rejected design oracles.
 - The raw GDN bridge is graph-safe and retains Triton for all other shapes.
 - `netra_gfx1151_sglang.py` is copied into SGLang's quantization package.
 - `netra_mxfp4_sgl_launcher.hip` is launch-only host code for the raw HSACOs.
-- `launch.sh` enables the accepted BF16 LM-head kernel by default after all
-  modules have been built and the SGLang overlay applied; the exact C ABI and
+- `launch.sh` enables the accepted BF16 LM-head, QKV, and shared-expert
+  gate/up+SiLU kernels by default after all modules have been built and the SGLang overlay applied; the exact C ABI and
   caller stream are preserved.
 - Prefill gate/up weights retain MXFP4 and add a load-time raw-ASM dword-layout
   view for coalesced gfx1151 access; decode retains the serialized layout.

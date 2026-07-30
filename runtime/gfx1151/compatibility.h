@@ -35,6 +35,10 @@ NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_m12_down(
 NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_linear(
     void* packed, void* scale, void* activation, void* output, unsigned m,
     unsigned n, unsigned k, void* stream_ptr);
+NETRA_GFX1151_EXPORT int netra_bf16_qkv_decode(
+    void* weight, void* activation, void* output, void* stream_ptr);
+NETRA_GFX1151_EXPORT int netra_bf16_shared_gate_up_silu_decode(
+    void* weight, void* activation, void* output, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_bf16_lm_head_decode(
     void* weight, void* activation, void* output, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_linear_prefill(

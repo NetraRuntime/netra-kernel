@@ -83,6 +83,18 @@ extern "C" int netra_mxfp4_sgl_linear(
       packed, scale, activation, output, m, n, k, stream_ptr);
 }
 
+extern "C" int netra_bf16_qkv_decode(
+    void* weight, void* activation, void* output, void* stream_ptr) {
+  return netra::gfx1151::attention::bf16_qkv_decode(
+      weight, activation, output, stream_ptr);
+}
+
+extern "C" int netra_bf16_shared_gate_up_silu_decode(
+    void* weight, void* activation, void* output, void* stream_ptr) {
+  return netra::gfx1151::moe::bf16_shared_gate_up_silu_decode(
+      weight, activation, output, stream_ptr);
+}
+
 extern "C" int netra_bf16_lm_head_decode(
     void* weight, void* activation, void* output, void* stream_ptr) {
   return netra::gfx1151::lm_head::bf16_decode(

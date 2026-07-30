@@ -1,0 +1,15 @@
+target=gfx1151
+measurement_status=measured
+baseline_commit=183b9c6055520cbe877b3d8d2db1fd7aafc57a27
+old_public_netra_symbol_count=20
+new_public_netra_symbol_count=22
+removed_public_netra_symbols=none
+added_public_netra_symbols:
+netra_bf16_qkv_decode
+netra_bf16_shared_gate_up_silu_decode
+common_hsaco_count=27
+common_hsaco_hash_mismatches=none
+accepted_new_hsacos:
+bf16_qkv_decode_wave4_gfx1151.hsaco f5671248ce64bac53aba95e4c47d976aae0c3446bc98b4149e5687b59ab3006f
+bf16_shared_gate_up_silu_decode_wave2_gfx1151.hsaco 13424b1036af90fe8cfe991f030c244363ee2ce33e19652054f47d00987fb859
+note=Current build directory contained stale experimental HSACOs. They are not referenced by the production build script or runtime registry and are excluded from this accepted-artifact comparison.

@@ -1,0 +1,72 @@
+--- a/python/sglang/srt/models/qwen2_moe.py
++++ b/python/sglang/srt/models/qwen2_moe.py
+@@ -19,6 +19,7 @@
+ """Inference-only Qwen2MoE model compatible with HuggingFace weights."""
+ 
+ import logging
++import os
+ from contextlib import nullcontext
+ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+ 
+@@ -124,6 +125,16 @@
+ _is_cpu_amx_available = cpu_has_amx_support()
+ _is_hip = is_hip()
+ _use_aiter = get_bool_env_var("SGLANG_USE_AITER") and _is_hip
++_use_netra_bf16_shared_gate_up_silu = (
++    _is_hip
++    and get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
++    and os.getenv("SGLANG_NETRA_ENABLE_BF16_SHARED_GATE_UP_SILU", "1").lower()
++    in {"1", "true", "yes", "on"}
++)
++if _use_netra_bf16_shared_gate_up_silu:
++    from sglang.srt.layers.quantization.netra_gfx1151 import (
++        netra_bf16_shared_gate_up_silu_with_output,
++    )
+ 
+ 
+ def get_num_shared_experts(config: PretrainedConfig) -> int:
+@@ -206,13 +217,42 @@
+                 f"Unsupported activation: {hidden_act}. Only silu is supported for now."
+             )
+         self.act_fn = SiluAndMul()
++        self._netra_shared_gate_up_silu_output = (
++            torch.empty(
++                (1, 512),
++                dtype=torch.bfloat16,
++                device=self.gate_up_proj.weight.device,
++            )
++            if (
++                _use_netra_bf16_shared_gate_up_silu
++                and hidden_size == 2048
++                and intermediate_size == 512
++            )
++            else None
++        )
+ 
+     def forward(
+         self,
+         x,
+     ):
+-        gate_up, _ = self.gate_up_proj(x)
+-        x = self.act_fn(gate_up)
++        weight = getattr(self.gate_up_proj, "weight", None)
++        if (
++            self._netra_shared_gate_up_silu_output is not None
++            and tuple(x.shape) == (1, 2048)
++            and x.dtype == torch.bfloat16
++            and x.is_contiguous()
++            and weight is not None
++            and tuple(weight.shape) == (1024, 2048)
++            and weight.dtype == torch.bfloat16
++            and weight.is_contiguous()
++        ):
++            netra_bf16_shared_gate_up_silu_with_output(
++                weight, x, self._netra_shared_gate_up_silu_output
++            )
++            x = self._netra_shared_gate_up_silu_output
++        else:
++            gate_up, _ = self.gate_up_proj(x)
++            x = self.act_fn(gate_up)
+         x, _ = self.down_proj(x)
+         return x
+ 
