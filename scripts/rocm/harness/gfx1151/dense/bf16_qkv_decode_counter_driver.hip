@@ -24,30 +24,33 @@ int fail(hipError_t status, const char* where) {
 }
 
 hipError_t launch(hipFunction_t function, const Args& args,
-                  hipStream_t stream) {
+                  unsigned grid, unsigned block, hipStream_t stream) {
   size_t size = sizeof(args);
   void* config[] = {
       HIP_LAUNCH_PARAM_BUFFER_POINTER, const_cast<Args*>(&args),
       HIP_LAUNCH_PARAM_BUFFER_SIZE, &size,
       HIP_LAUNCH_PARAM_END};
-  return hipModuleLaunchKernel(function, 288, 1, 1, 256, 1, 1, 0,
+  return hipModuleLaunchKernel(function, grid, 1, 1, block, 1, 1, 0,
                                stream, nullptr, config);
 }
 }  // namespace
 
 int main(int argc, char** argv) {
-  if (argc < 2 || argc > 3) {
-    std::cerr << "usage: " << argv[0] << " HSACO [ITERATIONS]\n";
+  if (argc < 5 || argc > 6) {
+    std::cerr << "usage: " << argv[0]
+              << " HSACO SYMBOL GRID BLOCK [ITERATIONS]\n";
     return 2;
   }
-  const int iterations = argc == 3 ? std::atoi(argv[2]) : 1;
-  if (iterations < 1) return 2;
+  const unsigned grid = std::strtoul(argv[3], nullptr, 10);
+  const unsigned block = std::strtoul(argv[4], nullptr, 10);
+  const int iterations = argc == 6 ? std::atoi(argv[5]) : 1;
+  if (grid < 1 || block < 1 || iterations < 1) return 2;
 
   hipModule_t module{};
   hipFunction_t function{};
   if (int rc = fail(hipModuleLoad(&module, argv[1]), "hipModuleLoad")) return rc;
   if (int rc = fail(hipModuleGetFunction(
-          &function, module, "bf16_qkv_decode_wave4_gfx1151"),
+          &function, module, argv[2]),
           "hipModuleGetFunction")) return rc;
 
   void* weights{};
@@ -67,7 +70,7 @@ int main(int argc, char** argv) {
   hipStream_t stream{};
   if (int rc = fail(hipStreamCreate(&stream), "hipStreamCreate")) return rc;
   const Args args{weights, activation, output};
-  if (int rc = fail(launch(function, args, stream), "warmup launch")) return rc;
+  if (int rc = fail(launch(function, args, grid, block, stream), "warmup launch")) return rc;
   if (int rc = fail(hipStreamSynchronize(stream), "warmup sync")) return rc;
 
   hipEvent_t begin{}, end{};
@@ -76,7 +79,7 @@ int main(int argc, char** argv) {
   if (int rc = fail(hipEventRecord(begin, stream), "hipEventRecord begin"))
     return rc;
   for (int i = 0; i < iterations; ++i) {
-    if (int rc = fail(launch(function, args, stream), "measured launch"))
+    if (int rc = fail(launch(function, args, grid, block, stream), "measured launch"))
       return rc;
   }
   if (int rc = fail(hipEventRecord(end, stream), "hipEventRecord end"))

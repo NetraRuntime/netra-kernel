@@ -1,0 +1,204 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "estimated_values": false,
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "model": "Qwen3.6-35B-A3B",
+  "shape": {
+    "m": 1,
+    "n": 9216,
+    "k": 2048,
+    "dtype": "BF16",
+    "operation": "full-attention QKV projection",
+    "layers": 10
+  },
+  "decision": "accepted",
+  "candidate": {
+    "source": "kernels/gfx1151/dense/qkv/bf16_qkv_decode_wave1_wide128_gfx1151.s",
+    "symbol": "bf16_qkv_decode_wave1_wide128_gfx1151",
+    "hsaco_sha256": "aae22ff0fc0649273ab69a65c36fff2ad7157fd1a89571ebc1da82b6481bcf69",
+    "grid": [
+      1152,
+      1,
+      1
+    ],
+    "workgroup": [
+      256,
+      1,
+      1
+    ],
+    "kernarg_bytes": 24,
+    "kernarg_alignment": 8,
+    "lds_bytes": 0,
+    "scratch_bytes": 0,
+    "metadata_vgpr": 22,
+    "rocprof_allocated_vgpr": 24,
+    "rocprof_allocated_sgpr": 128
+  },
+  "baseline": {
+    "symbol": "bf16_qkv_decode_wave1_gfx1151",
+    "hsaco_sha256": "0d700a1d29739041d9b0e475b7be33edf2c05a22a354a73358747b8f934cdd67",
+    "metadata_vgpr": 18
+  },
+  "correctness": {
+    "model_native_max_abs": 0.015625,
+    "max_bf16_bit_mismatches_per_layer": 17,
+    "fp64_candidate_closer_elements": [
+      17,
+      14,
+      8
+    ],
+    "fp64_baseline_closer_elements": [
+      0,
+      0,
+      0
+    ],
+    "candidate_eager_graph_hashes_equal": 5,
+    "candidate_eager_graph_hashes_total": 5,
+    "natural_prompt_first_128_hash": "be4a789bd20721c8573aded6af1de30c0a118b3ec4e73427f3be4a66300838e2",
+    "natural_prompt_old_equal": true,
+    "natural_prompt_candidate_repeats_equal": 3
+  },
+  "hip_event": {
+    "raw_wave1_median_ms": 0.293974,
+    "wide128_median_ms": 0.253694,
+    "speedup_vs_raw_wave1": 1.15878,
+    "production_ten_layer_candidate_median_ms": 2.635738,
+    "production_ten_layer_candidate_p90_ms": 2.697101,
+    "production_ten_layer_rocblas_median_ms": 5.874047,
+    "speedup_vs_rocblas": 2.228615,
+    "graph_replay_median_ms": 2.625960,
+    "graph_replay_p90_ms": 2.688862
+  },
+  "rocprofv3": {
+    "method": "one counter per fresh process; signal handlers disabled",
+    "baseline": {
+      "fetch_kib": 18440.34375,
+      "write_kib": 8.109375,
+      "l2_hit_percent": 3.3926595,
+      "mean_occupancy_per_active_cu": 61.8058475,
+      "occupancy_percent": 93.023733,
+      "mem_unit_busy_percent": 98.7987775,
+      "waves": 9216,
+      "wave_cycles": 1550299776,
+      "valu_instructions": 125
+    },
+    "candidate": {
+      "fetch_kib": 18438.78125,
+      "write_kib": 8.0625,
+      "l2_hit_percent": 3.3548655,
+      "mean_occupancy_per_active_cu": 59.577614,
+      "occupancy_percent": 91.076409,
+      "mem_unit_busy_percent": 98.2476285,
+      "waves": 9216,
+      "wave_cycles": 1349637550.5,
+      "valu_instructions": 77
+    },
+    "wave_cycle_reduction_percent": 12.943829,
+    "valu_instruction_reduction_percent": 38.4,
+    "dependency_stall_note": "not exposed by available gfx1151 metric set; not estimated"
+  },
+  "complete_trace": {
+    "scope": {
+      "input_tokens": 1,
+      "output_tokens": 32,
+      "cached_tokens": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    },
+    "baseline_qkv": {
+      "invocations": 321,
+      "total_gpu_ms": 109.571096,
+      "mean_gpu_us": 341.342978,
+      "median_gpu_us": 339.998
+    },
+    "candidate_qkv": {
+      "invocations": 321,
+      "total_gpu_ms": 96.880177,
+      "mean_gpu_us": 301.807405,
+      "median_gpu_us": 299.522
+    },
+    "qkv_total_reduction_percent": 11.58236,
+    "qkv_gpu_ms_saved": 12.690919,
+    "candidate_request": {
+      "host_wall_ms": 871.692425,
+      "total_kernel_gpu_ms": 779.046899,
+      "positive_launch_gap_ms": 97.099510,
+      "kernel_launches": 31411,
+      "unique_kernels": 72,
+      "kernel_wall_percent": 89.371764,
+      "gap_wall_percent": 11.139194,
+      "hip_event_synchronize_calls": 32,
+      "hip_event_synchronize_cpu_ms": 40.146945,
+      "profiler_status": 137,
+      "request_status": 0,
+      "signal_6": false
+    }
+  },
+  "serving": {
+    "scope": {
+      "input_tokens": 1,
+      "output_tokens": 128,
+      "cached_tokens": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "samples": 5
+    },
+    "baseline": {
+      "decode_ms_median": 3253.503578,
+      "output_tps_median": 39.03484258,
+      "e2e_ms_median": 3314.630753
+    },
+    "candidate": {
+      "decode_ms_median": 3208.769268,
+      "output_tps_median": 39.579037753,
+      "e2e_ms_median": 3266.016927
+    },
+    "decode_reduction_percent": 1.374958,
+    "tps_improvement_percent": 1.394127
+  },
+  "full_graph": {
+    "capture_seconds": 1.38,
+    "memory_gb_reported": 0.07,
+    "samples": 5,
+    "decode_ms_median": 3231.249101,
+    "output_tps_median": 39.303685983,
+    "e2e_ms_median": 3278.934613,
+    "tps_vs_eager_percent": -0.695701,
+    "eager_graph_hashes_equal": 5
+  },
+  "negative_lm_head_wide_load": {
+    "decision": "rejected",
+    "shape": {
+      "m": 1,
+      "n": 248320,
+      "k": 2048,
+      "dtype": "BF16"
+    },
+    "accepted_median_ms": 4.99115,
+    "wide64_median_ms": 5.07370,
+    "wide128_median_ms": 5.07763,
+    "wide64_regression_percent": 1.6539,
+    "wide128_regression_percent": 1.7327,
+    "experimental_sources_shipped": false
+  },
+  "sglang_llamacpp_interpretation": {
+    "same_checkpoint_ab_available": false,
+    "scheduler_dispatch_material": true,
+    "scheduler_dispatch_dominant": false,
+    "derived_zero_overhead_gpu_floor_ms_per_step": 24.345216,
+    "derived_zero_overhead_upper_bound_tps": 41.0758,
+    "conclusion": "SGLang needs both less fragmented orchestration and more kernel/fusion gains; no llama.cpp speed ratio claimed"
+  },
+  "artifacts": {
+    "baseline_counters": "results/profiles/gfx1151/bf16-qkv-wave1-counters-20260731",
+    "candidate_counters": "results/profiles/gfx1151/bf16-qkv-wide128-counters-20260731",
+    "baseline_trace": "results/profiles/gfx1151/current-shared-gate-wide128-complete-eager-b1-1-plus32-20260731",
+    "candidate_trace": "results/profiles/gfx1151/qkv-wide128-shared-wide128-complete-eager-b1-1-plus32-20260731",
+    "baseline_serving": "results/serving/gfx1151/shared-gate-wide128-eager-1-plus128-20260731",
+    "candidate_serving": "results/serving/gfx1151/qkv-wide128-shared-wide128-eager-1-plus128-20260731",
+    "graph_serving": "results/serving/gfx1151/qkv-wide128-shared-wide128-fullgraph-1-plus128-20260731",
+    "disassembly": "docs/netra/notes/gfx1151-bf16-qkv-wide128-disassembly-2026-07-31",
+    "production_validation": "docs/netra/notes/gfx1151-bf16-qkv-wide128-production-validation-2026-07-31.json"
+  }
+}

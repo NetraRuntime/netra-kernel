@@ -57,7 +57,7 @@ profile_variant() {
   done
 }
 
-profile_variant raw "$raw_binary" "$raw_hsaco" 1
+profile_variant raw "$raw_binary" "$raw_hsaco" bf16_lm_head_decode_wave4_gfx1151 7760 256 1
 profile_variant rocblas "$rocblas_binary" 1
 
 python=/root/sglvenv1151/bin/python

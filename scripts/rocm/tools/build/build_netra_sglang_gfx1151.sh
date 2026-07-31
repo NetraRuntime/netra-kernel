@@ -82,15 +82,20 @@ lm_head_stem=bf16_lm_head_decode_wave1_wg64_gfx1151
 
 split_stem=qkvzba_split_copy_gfx1151
 
-qkv_stem=bf16_qkv_decode_wave1_gfx1151
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  -x assembler -c \
-  "${repo_dir}/kernels/gfx1151/dense/qkv/${qkv_stem}.s" \
-  -o "${out_dir}/${qkv_stem}.o"
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  "${out_dir}/${qkv_stem}.o" -o "${out_dir}/${qkv_stem}.hsaco"
-"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
-  "${out_dir}/${qkv_stem}.hsaco" > "${out_dir}/${qkv_stem}.dis"
+qkv_stems=(
+  bf16_qkv_decode_wave1_gfx1151
+  bf16_qkv_decode_wave1_wide128_gfx1151
+)
+for qkv_stem in "${qkv_stems[@]}"; do
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    -x assembler -c \
+    "${repo_dir}/kernels/gfx1151/dense/qkv/${qkv_stem}.s" \
+    -o "${out_dir}/${qkv_stem}.o"
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    "${out_dir}/${qkv_stem}.o" -o "${out_dir}/${qkv_stem}.hsaco"
+  "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+    "${out_dir}/${qkv_stem}.hsaco" > "${out_dir}/${qkv_stem}.dis"
+done
 
 attention_output_stem=bf16_attn_oproj_decode_wave1_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \

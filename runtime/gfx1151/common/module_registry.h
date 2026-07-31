@@ -81,8 +81,8 @@ static constexpr KernelDescriptor kBf16LmHead{
     "bf16_lm_head_decode_wave1_wg64_gfx1151.hsaco",
     "bf16_lm_head_decode_wave1_wg64_gfx1151", {124160, 1, 1, 64}};
 static constexpr KernelDescriptor kBf16Qkv{
-    "bf16_qkv_decode_wave1_gfx1151.hsaco",
-    "bf16_qkv_decode_wave1_gfx1151", {1152, 1, 1, 256}};
+    "bf16_qkv_decode_wave1_wide128_gfx1151.hsaco",
+    "bf16_qkv_decode_wave1_wide128_gfx1151", {1152, 1, 1, 256}};
 static constexpr KernelDescriptor kBf16AttentionOutput{
     "bf16_attn_oproj_decode_wave1_gfx1151.hsaco",
     "bf16_attn_oproj_decode_wave1_gfx1151", {256, 1, 1, 256}};
