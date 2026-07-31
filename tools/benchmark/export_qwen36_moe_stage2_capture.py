@@ -11,6 +11,20 @@ from pathlib import Path
 import torch
 
 
+def unshuffle_aiter_fp8_weight(weight: torch.Tensor) -> torch.Tensor:
+    """Restore logical [E,N,K] from AITER's physical (16,16) layout."""
+
+    experts, n_dim, k_dim = weight.shape
+    if n_dim % 16 or k_dim % 32:
+        raise ValueError(f"cannot unshuffle weight shape {tuple(weight.shape)}")
+    return (
+        weight.view(experts, n_dim // 16, k_dim // 32, 2, 16, 16)
+        .permute(0, 1, 4, 2, 3, 5)
+        .contiguous()
+        .view(experts, n_dim, k_dim)
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--capture-dir", type=Path, required=True)
@@ -66,6 +80,7 @@ def main() -> None:
     activation_fp8 = activation["activation_fp8"].contiguous()
     activation_scale = activation["activation_scale"].contiguous()
     selected_w2 = call["selected_w2_fp8"].contiguous()
+    logical_w2 = unshuffle_aiter_fp8_weight(selected_w2)
     selected_w2_scale = call["selected_w2_scale"].contiguous()
     topk_weights = call["topk_weights_fp32"].contiguous()
     aiter_output = call["output_bf16"].contiguous()
@@ -101,7 +116,7 @@ def main() -> None:
                     activation_f32[slot, k_start:k_end]
                     * activation_scale[0, slot, k_block]
                 )
-                w = selected_w2[expert, :, k_start:k_end].float()
+                w = logical_w2[expert, :, k_start:k_end].float()
                 w = w * selected_w2_scale[
                     expert, :, k_block
                 ].repeat_interleave(128)[:, None]
@@ -170,6 +185,10 @@ def main() -> None:
     manifest = {
         "schema_version": 1,
         "quantization": "FP8 E4M3, 128x128 blocks",
+        "weight_layout": {
+            "resident": "AITER shuffle_weight layout=(16,16)",
+            "oracle": "logical [expert,n,k] after inverse shuffle",
+        },
         "shape": {
             "slots": slots,
             "experts": experts,

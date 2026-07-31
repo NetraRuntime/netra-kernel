@@ -43,10 +43,18 @@ qwen36_moe_gate_up_fp8_mfma_gfx950:
 	s_load_dword s21, s[12:13], s20
 	v_and_b32_e32 v1, 15, v0
 	v_and_b32_e32 v2, 48, v0
+	// AITER physically shuffles each logical [N,K] expert weight as
+	// [N/16,K/32,K-half,N-lane,K16].  Preserve logical N in v3 for the
+	// output while v4 addresses the shuffled N16 tile, lane, and the
+	// wave's 16-wide K fragment:
+	//   tile*32768 + (lane%16)*16 + (lane/16)*256.
 	s_lshl_b32 s22, s19, 4
 	v_add_u32_e32 v3, s22, v1
-	v_lshlrev_b32_e32 v4, 11, v3
-	v_add_u32_e32 v4, v2, v4
+	s_lshl_b32 s22, s19, 15
+	v_lshlrev_b32_e32 v4, 4, v1
+	v_lshlrev_b32_e32 v5, 4, v2
+	v_add_u32_e32 v4, v4, v5
+	v_add_u32_e32 v4, s22, v4
 	v_mov_b32_e32 v6, 0
 	s_waitcnt lgkmcnt(0)
 
@@ -64,15 +72,16 @@ qwen36_moe_gate_up_fp8_mfma_gfx950:
 	s_mov_b32 s29, 0
 .Lkblock:
 	s_lshl_b32 s30, s29, 7
+	s_lshl_b32 s34, s29, 11
 	s_lshl_b32 s31, s29, 2
 	s_load_dword s32, s[6:7], s31
 	s_load_dword s33, s[26:27], s31
 	v_add_u32_e32 v5, s30, v2
 	global_load_dwordx4 v[10:13], v5, s[4:5]
 	global_load_dwordx4 v[14:17], v5, s[4:5] offset:64
-	v_add_u32_e32 v7, s30, v4
+	v_add_u32_e32 v7, s34, v4
 	global_load_dwordx4 v[18:21], v7, s[24:25]
-	global_load_dwordx4 v[22:25], v7, s[24:25] offset:64
+	global_load_dwordx4 v[22:25], v7, s[24:25] offset:1024
 	v_mov_b32_e32 v26, 0
 	v_mov_b32_e32 v27, 0
 	v_mov_b32_e32 v28, 0
