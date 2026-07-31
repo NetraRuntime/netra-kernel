@@ -61,8 +61,7 @@ v_lshlrev_b32_e32 v10, 2, v10
 s_lshl_b32 s10, s2, 5
 v_add_nc_u32_e32 v10, s10, v10
 
-// Each K step covers two BF16 values per lane. Across the wave the
-// accesses form one aligned 128-byte transaction for each output row.
+// Four original coalesced b32 K tiles are issued before each wait.
 v_and_b32_e32 v11, 31, v0
 v_lshlrev_b32_e32 v1, 2, v11
 v_lshlrev_b32_e32 v2, 10, v10
@@ -73,24 +72,51 @@ v_add_nc_u32_e32 v16, 3072, v2
 
 v_dual_mov_b32 v12, 0 :: v_dual_mov_b32 v13, 0
 v_dual_mov_b32 v14, 0 :: v_dual_mov_b32 v15, 0
-s_mov_b32 s12, 8
+s_mov_b32 s12, 2
 
 .Ldot:
-global_load_b32 v3, v1, s[6:7]
-global_load_b32 v4, v2, s[4:5]
-global_load_b32 v5, v8, s[4:5]
-global_load_b32 v6, v9, s[4:5]
-global_load_b32 v7, v16, s[4:5]
-v_add_nc_u32_e32 v1, 128, v1
-v_add_nc_u32_e32 v2, 128, v2
-v_add_nc_u32_e32 v8, 128, v8
-v_add_nc_u32_e32 v9, 128, v9
-v_add_nc_u32_e32 v16, 128, v16
+global_load_b32 v3, v1, s[6:7] offset:0
+global_load_b32 v4, v1, s[6:7] offset:128
+global_load_b32 v5, v1, s[6:7] offset:256
+global_load_b32 v6, v1, s[6:7] offset:384
+global_load_b32 v18, v2, s[4:5] offset:0
+global_load_b32 v19, v2, s[4:5] offset:128
+global_load_b32 v20, v2, s[4:5] offset:256
+global_load_b32 v21, v2, s[4:5] offset:384
+global_load_b32 v22, v8, s[4:5] offset:0
+global_load_b32 v23, v8, s[4:5] offset:128
+global_load_b32 v24, v8, s[4:5] offset:256
+global_load_b32 v25, v8, s[4:5] offset:384
+global_load_b32 v26, v9, s[4:5] offset:0
+global_load_b32 v27, v9, s[4:5] offset:128
+global_load_b32 v28, v9, s[4:5] offset:256
+global_load_b32 v29, v9, s[4:5] offset:384
+global_load_b32 v30, v16, s[4:5] offset:0
+global_load_b32 v31, v16, s[4:5] offset:128
+global_load_b32 v32, v16, s[4:5] offset:256
+global_load_b32 v33, v16, s[4:5] offset:384
+v_add_nc_u32_e32 v1, 512, v1
+v_add_nc_u32_e32 v2, 512, v2
+v_add_nc_u32_e32 v8, 512, v8
+v_add_nc_u32_e32 v9, 512, v9
+v_add_nc_u32_e32 v16, 512, v16
 s_waitcnt vmcnt(0)
-v_dot2_f32_bf16 v12, v4, v3, v12
-v_dot2_f32_bf16 v13, v5, v3, v13
-v_dot2_f32_bf16 v14, v6, v3, v14
-v_dot2_f32_bf16 v15, v7, v3, v15
+v_dot2_f32_bf16 v12, v18, v3, v12
+v_dot2_f32_bf16 v13, v22, v3, v13
+v_dot2_f32_bf16 v14, v26, v3, v14
+v_dot2_f32_bf16 v15, v30, v3, v15
+v_dot2_f32_bf16 v12, v19, v4, v12
+v_dot2_f32_bf16 v13, v23, v4, v13
+v_dot2_f32_bf16 v14, v27, v4, v14
+v_dot2_f32_bf16 v15, v31, v4, v15
+v_dot2_f32_bf16 v12, v20, v5, v12
+v_dot2_f32_bf16 v13, v24, v5, v13
+v_dot2_f32_bf16 v14, v28, v5, v14
+v_dot2_f32_bf16 v15, v32, v5, v15
+v_dot2_f32_bf16 v12, v21, v6, v12
+v_dot2_f32_bf16 v13, v25, v6, v13
+v_dot2_f32_bf16 v14, v29, v6, v14
+v_dot2_f32_bf16 v15, v33, v6, v15
 s_sub_u32 s12, s12, 1
 s_cmp_lg_u32 s12, 0
 s_cbranch_scc1 .Ldot
@@ -128,7 +154,7 @@ s_endpgm
 .amdhsa_system_sgpr_workgroup_id_y 0
 .amdhsa_system_sgpr_workgroup_id_z 0
 .amdhsa_system_vgpr_workitem_id 0
-.amdhsa_next_free_vgpr 18
+.amdhsa_next_free_vgpr 34
 .amdhsa_next_free_sgpr 16
 .amdhsa_reserve_vcc 1
 .amdhsa_float_denorm_mode_32 3
@@ -168,7 +194,7 @@ amdhsa.kernels:
     .symbol: bf16_shared_down_decode_wave4_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count: 18
+    .vgpr_count: 34
     .vgpr_spill_count: 0
     .wavefront_size: 32
     .workgroup_processor_mode: 1
