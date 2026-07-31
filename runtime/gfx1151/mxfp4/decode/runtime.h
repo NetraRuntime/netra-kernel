@@ -38,7 +38,7 @@ NETRA_GFX1151_ALWAYS_INLINE int moe(void* gate_weight, void* gate_scale, void* u
 
   FivePointers down_args{
       down_weight, down_scale, intermediate_tmp, expert_output_tmp, expert_ids};
-  status = launch(registry.down.function, 2, 8, 256, stream, down_args);
+  status = launch(registry.down.function, 16, 8, 32, stream, down_args);
   if (status != hipSuccess) return 60000 + static_cast<int>(status);
 
   ThreePointers reduce_args{expert_output_tmp, topk_weights, output};
@@ -88,7 +88,7 @@ NETRA_GFX1151_ALWAYS_INLINE int moe_block64(
 
   FivePointers down_args{
       down_weight, down_scale, intermediate_tmp, expert_output_tmp, expert_ids};
-  status = launch(registry.down.function, 2, 8, 256, stream, down_args);
+  status = launch(registry.down.function, 16, 8, 32, stream, down_args);
   if (status != hipSuccess) return 60000 + static_cast<int>(status);
 
   ThreePointers reduce_args{expert_output_tmp, topk_weights, output};

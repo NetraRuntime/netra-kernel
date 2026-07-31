@@ -133,7 +133,7 @@ run_variant() {
     sample_id=$(printf '%03d' "$sample")
     "$python" "$request" \
       --url "http://127.0.0.1:${port}/generate" \
-      --input-len "$input_len" --output-len "$output_len" \
+      --input-len "$input_len" --output-len "$output_len" --stream \
       --seed "${label}-round-${round}-sample-${sample_id}" \
       --label "${label}-round-${round}-${variant}-sample-${sample_id}" \
       --graph-mode "$graph_mode" --dflash-mode disabled \

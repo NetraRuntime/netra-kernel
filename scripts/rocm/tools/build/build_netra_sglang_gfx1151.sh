@@ -19,6 +19,7 @@ mkdir -p "${out_dir}"
 sources=(
   serving/mxfp4_sgl_decode_gate_gfx1151.s
   serving/mxfp4_sgl_decode_down_gfx1151.s
+  decode/mxfp4_decode_down_batch4_wg32_gfx1151.s
   serving/mxfp4_sgl_reduce_gfx1151.s
   serving/mxfp4_sgl_linear_decode_gfx1151.s
   decode/mxfp4_linear_decode_n2048_k4096_block128_gfx1151.s

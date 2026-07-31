@@ -40,8 +40,8 @@ static constexpr KernelDescriptor kDecodeGateBlock64Reduce{
     "mxfp4_decode_gate_chunk4_reduce_gfx1151.hsaco",
     "mxfp4_decode_gate_chunk4_reduce_gfx1151", {2, 8, 1, 128}};
 static constexpr KernelDescriptor kDecodeDown{
-    "mxfp4_sgl_decode_down_gfx1151.hsaco", "mxfp4_decode_down_gfx1151",
-    {2, 8, 1, 256}};
+    "mxfp4_decode_down_batch4_wg32_gfx1151.hsaco",
+    "mxfp4_decode_down_pipeline_gfx1151", {16, 8, 1, 32}};
 static constexpr KernelDescriptor kSiluMul{
     "silu_mul_bf16_gfx1151.hsaco", "silu_mul_bf16_gfx1151",
     {16, 1, 1, 256}};
