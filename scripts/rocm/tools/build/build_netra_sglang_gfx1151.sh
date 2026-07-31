@@ -97,17 +97,22 @@ for qkv_stem in "${qkv_stems[@]}"; do
     "${out_dir}/${qkv_stem}.hsaco" > "${out_dir}/${qkv_stem}.dis"
 done
 
-attention_output_stem=bf16_attn_oproj_decode_wave1_gfx1151
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  -x assembler -c \
-  "${repo_dir}/kernels/gfx1151/dense/attention/${attention_output_stem}.s" \
-  -o "${out_dir}/${attention_output_stem}.o"
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  "${out_dir}/${attention_output_stem}.o" \
-  -o "${out_dir}/${attention_output_stem}.hsaco"
-"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
-  "${out_dir}/${attention_output_stem}.hsaco" > \
-  "${out_dir}/${attention_output_stem}.dis"
+attention_output_stems=(
+  bf16_attn_oproj_decode_wave1_gfx1151
+  bf16_attn_oproj_decode_wave1_wide128_gfx1151
+)
+for attention_output_stem in "${attention_output_stems[@]}"; do
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    -x assembler -c \
+    "${repo_dir}/kernels/gfx1151/dense/attention/${attention_output_stem}.s" \
+    -o "${out_dir}/${attention_output_stem}.o"
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    "${out_dir}/${attention_output_stem}.o" \
+    -o "${out_dir}/${attention_output_stem}.hsaco"
+  "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+    "${out_dir}/${attention_output_stem}.hsaco" > \
+    "${out_dir}/${attention_output_stem}.dis"
+done
 
 router_stem=bf16_router_decode_wave2_fp32_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
