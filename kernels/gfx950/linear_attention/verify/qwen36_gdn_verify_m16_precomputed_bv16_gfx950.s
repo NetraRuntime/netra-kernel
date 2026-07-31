@@ -5,9 +5,9 @@
 //   T=16, H=16, HV=32, K=128, V=128, BV=16.
 //
 // Q/K normalization and the scalar decay/beta gates are precomputed in FP32.
-// The paired precompute kernel supplies these inputs. Variant 13 is the
-// production selection because it reproduces the deployed packed reduction
-// order bit exactly across every real-checkpoint GDN layer.
+// The paired precompute kernel supplies these inputs. Variant 15 is the
+// production selection: variant 13 arithmetic plus the deployed packed
+// decoder's BF16 state commit between verification positions.
 //
 // Grid: 256 one-wave workgroups.  workgroup_x = hv * 8 + v_tile.
 // Each lane owns four V rows and eight consecutive K values (32 FP32 state
@@ -17,9 +17,9 @@
 	.amdhsa_code_object_version 6
 	.text
 
-	// Variant 13 is the bit-exact packed reduction order recovered from the deployed
-	// gfx950 Triton BV16 code object.  The other values exist only for isolated
-	// arithmetic attribution and are never selected by the production build:
+	// Variant 13 is the bit-exact packed reduction order recovered from the
+	// deployed gfx950 Triton BV16 code object. Variant 15 adds the M=1 packed
+	// state lifecycle. The other values are retained for arithmetic attribution:
 	//   0: original forward FMA chain + one-direction scan
 	//   1: Triton reverse add chain + XOR reduction
 	//   2: forward add chain + XOR reduction
@@ -35,8 +35,11 @@
 	//  12: forward K add chain + reverse Q FMA order 7..0
 	//  13: deployed packed-Q order: forward for V rows 0-3/8-11 and
 	//      1,0,2,3,4,5,6,7 for V rows 4-7/12-15
+	//  14: rejected pre-output BF16 state round; changes the current output
+	//  15: variant 13 output arithmetic, then a BF16 state commit before the
+	//      next verification position (the actual packed-decode lifecycle)
 	.ifndef NETRA_GDN_CORE_VARIANT
-	.set NETRA_GDN_CORE_VARIANT, 13
+	.set NETRA_GDN_CORE_VARIANT, 15
 	.endif
 
 	.macro DOT8_K_LOCAL s0, s1, s2, s3, s4, s5, s6, s7, a0
@@ -63,7 +66,7 @@
 	v_pk_mul_f32 v[76:77], v[\s0:\s1], v[8:9]
 	v_add_f32_e32 v\a0, v76, v\a0
 	v_add_f32_e32 v\a0, v77, v\a0
-	.elseif (NETRA_GDN_CORE_VARIANT == 2) || (NETRA_GDN_CORE_VARIANT >= 5 && NETRA_GDN_CORE_VARIANT <= 13)
+	.elseif (NETRA_GDN_CORE_VARIANT == 2) || (NETRA_GDN_CORE_VARIANT >= 5 && NETRA_GDN_CORE_VARIANT <= 15)
 	v_pk_mul_f32 v[76:77], v[\s0:\s1], v[8:9]
 	v_add_f32_e32 v\a0, v76, v77
 	v_pk_mul_f32 v[76:77], v[\s2:\s3], v[10:11]
@@ -183,7 +186,7 @@
 	v_fma_f32 v\a0, v\s2, v18, v\a0
 	v_fma_f32 v\a0, v\s1, v17, v\a0
 	v_fma_f32 v\a0, v\s0, v16, v\a0
-	.elseif NETRA_GDN_CORE_VARIANT == 13
+	.elseif (NETRA_GDN_CORE_VARIANT == 13) || (NETRA_GDN_CORE_VARIANT == 14) || (NETRA_GDN_CORE_VARIANT == 15)
 	// Triton's packed pair gives alternating V groups distinct first terms.
 	.if (\a0 == 64) || (\a0 == 68)
 	v_mul_f32_e32 v\a0, v\s0, v16
@@ -296,6 +299,12 @@
 	v_pk_fma_f32 v[\s2:\s3], v[10:11], v[64:65], v[\s2:\s3]
 	v_pk_fma_f32 v[\s4:\s5], v[12:13], v[64:65], v[\s4:\s5]
 	v_pk_fma_f32 v[\s6:\s7], v[14:15], v[64:65], v[\s6:\s7]
+	.endm
+
+	.macro ROUND_STATE_BF16_PAIR lo, hi, tmp
+	v_cvt_pk_bf16_f32 v\tmp, v\lo, v\hi
+	v_lshlrev_b32_e32 v\lo, 16, v\tmp
+	v_and_b32_e32 v\hi, 0xffff0000, v\tmp
 	.endm
 
 	.protected qwen36_gdn_verify_m16_precomputed_bv16_gfx950
@@ -614,6 +623,28 @@ qwen36_gdn_verify_m16_precomputed_bv16_gfx950:
 	UPDATE8 26,65,48,49,50,51,52,53,54,55
 	UPDATE8 27,65,56,57,58,59,60,61,62,63
 
+	// Sequential decode exposes BF16 recurrent state to the next token and
+	// computes its output from that stored precision.  Variant 14 preserves
+	// this boundary while retaining the M=16 fused launch.
+	.if NETRA_GDN_CORE_VARIANT == 14
+	ROUND_STATE_BF16_PAIR 32,33,76
+	ROUND_STATE_BF16_PAIR 34,35,76
+	ROUND_STATE_BF16_PAIR 36,37,76
+	ROUND_STATE_BF16_PAIR 38,39,76
+	ROUND_STATE_BF16_PAIR 40,41,76
+	ROUND_STATE_BF16_PAIR 42,43,76
+	ROUND_STATE_BF16_PAIR 44,45,76
+	ROUND_STATE_BF16_PAIR 46,47,76
+	ROUND_STATE_BF16_PAIR 48,49,76
+	ROUND_STATE_BF16_PAIR 50,51,76
+	ROUND_STATE_BF16_PAIR 52,53,76
+	ROUND_STATE_BF16_PAIR 54,55,76
+	ROUND_STATE_BF16_PAIR 56,57,76
+	ROUND_STATE_BF16_PAIR 58,59,76
+	ROUND_STATE_BF16_PAIR 60,61,76
+	ROUND_STATE_BF16_PAIR 62,63,76
+	.endif
+
 	// o = sum_k(h*q).
 	DOT8_Q_LOCAL 32,33,34,35,36,37,38,39,64
 	DOT8_Q_LOCAL 40,41,42,43,44,45,46,47,66
@@ -637,6 +668,27 @@ qwen36_gdn_verify_m16_precomputed_bv16_gfx950:
 	v_add_u32_e32 v5, 24, v4
 	global_store_short v5, v74, s[12:13]
 	s_or_b64 exec, exec, s[30:31]
+
+	// Packed decode writes BF16 state after producing the current output.  The
+	// next token therefore reloads BF16-rounded state, not the live FP32 value.
+	.if NETRA_GDN_CORE_VARIANT == 15
+	ROUND_STATE_BF16_PAIR 32,33,76
+	ROUND_STATE_BF16_PAIR 34,35,76
+	ROUND_STATE_BF16_PAIR 36,37,76
+	ROUND_STATE_BF16_PAIR 38,39,76
+	ROUND_STATE_BF16_PAIR 40,41,76
+	ROUND_STATE_BF16_PAIR 42,43,76
+	ROUND_STATE_BF16_PAIR 44,45,76
+	ROUND_STATE_BF16_PAIR 46,47,76
+	ROUND_STATE_BF16_PAIR 48,49,76
+	ROUND_STATE_BF16_PAIR 50,51,76
+	ROUND_STATE_BF16_PAIR 52,53,76
+	ROUND_STATE_BF16_PAIR 54,55,76
+	ROUND_STATE_BF16_PAIR 56,57,76
+	ROUND_STATE_BF16_PAIR 58,59,76
+	ROUND_STATE_BF16_PAIR 60,61,76
+	ROUND_STATE_BF16_PAIR 62,63,76
+	.endif
 
 	// Cache the complete BF16 intermediate state for this step.
 .Lstore_intermediate:

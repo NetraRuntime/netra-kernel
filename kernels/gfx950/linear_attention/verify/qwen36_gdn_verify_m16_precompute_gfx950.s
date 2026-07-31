@@ -7,9 +7,8 @@
 // Each lane loads two BF16 elements from Q and K, and the wave produces the
 // normalized FP32 vectors. Lane zero produces the two HV decay/beta pairs.
 //
-// Variant builds isolate norm-reduction and divide rounding.  The production
-// selection is made only after comparison with the deployed Triton BV16 code
-// object and full recurrent-state validation.
+// Variant builds isolate norm-reduction, divide rounding, and the packed
+// decoder's BF16 beta boundary. Variant 8 is the production selection.
 
 	.amdgcn_target "amdgcn-amd-amdhsa--gfx950"
 	.amdhsa_code_object_version 6
@@ -23,8 +22,9 @@
 	//   5: deployed Triton contiguous lane layout + exact reduction + divide
 	//   6: variant 5 plus deployed compensated log-to-natural conversion
 	//   7: variant 6 plus deployed subnormal-preserving final exponential
+	//   8: variant 7 plus packed-decode BF16 beta round/re-expand
 	.ifndef NETRA_GDN_PRECOMPUTE_VARIANT
-	.set NETRA_GDN_PRECOMPUTE_VARIANT, 7
+	.set NETRA_GDN_PRECOMPUTE_VARIANT, 8
 	.endif
 
 	.macro DIV_NORMAL_F32 out, numerator, denominator
@@ -366,6 +366,14 @@ qwen36_gdn_verify_m16_precompute_gfx950:
 	v_fma_f32 v41, -v37, v39, 1.0
 	v_fmac_f32_e32 v38, v40, v38
 	v_fmac_f32_e32 v39, v41, v39
+
+	.if NETRA_GDN_PRECOMPUTE_VARIANT == 8
+	// Packed M=1 decode explicitly casts sigmoid(beta) through the BF16
+	// input dtype before using it in FP32 recurrence arithmetic.
+	v_cvt_pk_bf16_f32 v40, v38, v39
+	v_lshlrev_b32_e32 v38, 16, v40
+	v_and_b32_e32 v39, 0xffff0000, v40
+	.endif
 
 	global_store_dword v25, v34, s[18:19]
 	global_store_dword v25, v35, s[18:19] offset:4

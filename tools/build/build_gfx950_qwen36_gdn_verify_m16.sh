@@ -14,8 +14,8 @@ harness=${repo_dir}/harness/gfx950/linear_attention/verify/qwen36_gdn_verify_m16
 core_harness=${repo_dir}/harness/gfx950/linear_attention/verify/qwen36_gdn_verify_m16_precomputed_gfx950.hip
 bridge=${repo_dir}/runtime/gfx950/linear_attention/verify/qwen36_gdn_verify_m16_bridge.hip
 bridge_header=${repo_dir}/runtime/gfx950/linear_attention/verify/qwen36_gdn_verify_m16_bridge.h
-core_variant=${NETRA_GDN_CORE_VARIANT:-fused-exact}
-precompute_variant=${NETRA_GDN_PRECOMPUTE_VARIANT:-triton-exact}
+core_variant=${NETRA_GDN_CORE_VARIANT:-fused-packed-decode-sequence}
+precompute_variant=${NETRA_GDN_PRECOMPUTE_VARIANT:-packed-decode-beta}
 
 case "$core_variant" in
   original) core_variant_id=0 ;;
@@ -33,6 +33,8 @@ case "$core_variant" in
   forward-k-q-fma-76452301) core_variant_id=11 ;;
   forward-k-q-fma-76543210) core_variant_id=12 ;;
   fused-packed-exact) core_variant_id=13 ;;
+  fused-packed-decode-state) core_variant_id=14 ;;
+  fused-packed-decode-sequence) core_variant_id=15 ;;
   *)
     echo "Unsupported NETRA_GDN_CORE_VARIANT: $core_variant" >&2
     exit 2
@@ -48,6 +50,7 @@ case "$precompute_variant" in
   triton-contiguous-exact) precompute_variant_id=5 ;;
   triton-contiguous-exact-gates) precompute_variant_id=6 ;;
   triton-exact) precompute_variant_id=7 ;;
+  packed-decode-beta) precompute_variant_id=8 ;;
   *)
     echo "Unsupported NETRA_GDN_PRECOMPUTE_VARIANT: $precompute_variant" >&2
     exit 2
