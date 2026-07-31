@@ -1,0 +1,58 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured_kernel_outputs_with_fp64_cpu_reference",
+  "estimated_values": false,
+  "tokens": 256,
+  "prefix_tokens": 128,
+  "Hq": 16,
+  "Hkv": 2,
+  "head_dim": 256,
+  "dtype": "BF16 inputs and outputs",
+  "reference_dtype": "FP64",
+  "scale": 0.0625,
+  "candidate_label": "group2",
+  "rows": [
+    {
+      "amplitude": 0.02,
+      "output_bit_equal": true,
+      "baseline": {
+        "max_abs": 0.0012796155971228074,
+        "mean_abs": 8.925825758157406e-05,
+        "rmse": 0.00013144749514166753
+      },
+      "group2": {
+        "max_abs": 0.0012796155971228074,
+        "mean_abs": 8.925825758157406e-05,
+        "rmse": 0.00013144749514166753
+      }
+    },
+    {
+      "amplitude": 1.0,
+      "output_bit_equal": true,
+      "baseline": {
+        "max_abs": 0.0022759430332872643,
+        "mean_abs": 0.00017199145276723026,
+        "rmse": 0.00022882547058165358
+      },
+      "group2": {
+        "max_abs": 0.0022759430332872643,
+        "mean_abs": 0.00017199145276723026,
+        "rmse": 0.00022882547058165358
+      }
+    },
+    {
+      "amplitude": 2.0,
+      "output_bit_equal": true,
+      "baseline": {
+        "max_abs": 0.010176803209271945,
+        "mean_abs": 0.0007012246554494349,
+        "rmse": 0.001041391939017035
+      },
+      "group2": {
+        "max_abs": 0.010176803209271945,
+        "mean_abs": 0.0007012246554494349,
+        "rmse": 0.001041391939017035
+      }
+    }
+  ]
+}

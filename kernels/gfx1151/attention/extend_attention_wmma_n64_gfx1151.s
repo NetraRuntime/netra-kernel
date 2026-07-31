@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Raw gfx1151 online-softmax extend attention for Qwen3.6 standard attention.
 // Fixed B=1, Hq=16, Hkv=2, Dq=Dv=256, BF16, causal, page size 1.
-// Accepted group4-qpipe-kvbatch16: next-Q overlap, four-head shared K/V, and one 16-page prefix load issue group. Grid=(M/64,4,1), block=512.
+// Accepted group2-qpipe-kvbatch16: next-Q overlap, two-head shared K/V, and one 16-page prefix load issue group. Grid=(M/64,8,1), block=256.
 
 .amdgcn_target "amdgcn-amd-amdhsa--gfx1151"
 .amdhsa_code_object_version 6
@@ -270,8 +270,8 @@ extend_attention_wmma_n64_gfx1151:
   s_lshl_b32 s21, s2, 6
   s_cmp_ge_u32 s21, s18
   s_cbranch_scc1 .Lend
-  // Workgroup Y selects a four-head group; four waves serve each query head.
-  s_lshr_b32 s23, s3, 1
+  // Workgroup Y selects a two-head group; four waves serve each query head.
+  s_lshr_b32 s23, s3, 2
   s_lshl_b32 s25, s23, 9
   s_add_u32 s26, s21, 64
   s_min_u32 s26, s26, s18
@@ -287,7 +287,7 @@ extend_attention_wmma_n64_gfx1151:
   s_lshr_b32 s43, s43, 2
   v_and_b32_e32 v2, 3, v2
   v_readfirstlane_b32 s29, v2
-  s_lshl_b32 s24, s3, 2
+  s_lshl_b32 s24, s3, 1
   s_add_u32 s24, s24, s43
   s_lshl_b32 s24, s24, 9
   v_lshlrev_b32_e32 v229, 4, v1
@@ -318,9 +318,9 @@ extend_attention_wmma_n64_gfx1151:
   .endr
 
 .Ltile_loop:
-  // All four heads must finish PV before the leader overwrites shared LDS.
+  // All two heads must finish PV before the leader overwrites shared LDS.
   s_barrier
-  // Only head-group lane 0 stages the K tile shared by all four heads.
+  // Only head-group lane 0 stages the K tile shared by both heads.
   // Every wave still participates in the following workgroup barrier.
   s_cmp_eq_u32 s43, 0
   s_cbranch_scc0 .Lk_loaded

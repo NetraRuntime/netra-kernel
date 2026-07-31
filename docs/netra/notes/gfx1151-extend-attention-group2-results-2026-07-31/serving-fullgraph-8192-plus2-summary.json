@@ -1,0 +1,92 @@
+{
+  "dflash_mode": "disabled",
+  "graph_mode": "full-decode-tiers-1-2-4-8-12-16",
+  "host_e2e_median_delta_percent": -0.16127075417595726,
+  "measurement_status": "measured",
+  "mismatches": [],
+  "paired_cases": 2,
+  "paired_host_e2e_delta_ms": {
+    "mean": -7.1130129999996825,
+    "median": -7.1130129999996825,
+    "p90": 8.738491000000522
+  },
+  "records": [
+    {
+      "host_e2e_ms": 4380.373729,
+      "input_sha256": "284b53bdd8f4421914a686521592eda4a31bf771649e08f803de54ec84091c20",
+      "output_ids_sha256": "6b8dd77a9756a07fead2b8ebe14dd0990bdac02a5f39f18cf60cee6424b0dc1b",
+      "path": "/root/netra-mxfp4-gfx1151/results/runtime/gfx1151/runtime-refactor-working-new/serving-ab/attention-group2-fullgraph-8192-plus2-20260731/round-0-new/request-000.json",
+      "peak_vram_bytes": 79987474432,
+      "round": 0,
+      "sample": "000",
+      "server_e2e_ms": 4365.189420001116,
+      "variant": "new"
+    },
+    {
+      "host_e2e_ms": 4407.301122,
+      "input_sha256": "284b53bdd8f4421914a686521592eda4a31bf771649e08f803de54ec84091c20",
+      "output_ids_sha256": "6b8dd77a9756a07fead2b8ebe14dd0990bdac02a5f39f18cf60cee6424b0dc1b",
+      "path": "/root/netra-mxfp4-gfx1151/results/runtime/gfx1151/runtime-refactor-working-new/serving-ab/attention-group2-fullgraph-8192-plus2-20260731/round-0-old/request-000.json",
+      "peak_vram_bytes": 80136376320,
+      "round": 0,
+      "sample": "000",
+      "server_e2e_ms": 4392.237310006749,
+      "variant": "old"
+    },
+    {
+      "host_e2e_ms": 4426.60659,
+      "input_sha256": "eb25350ebdb0bbfebcb2d1feaffce53abc0172c2ae0ec455034517bd0875fedc",
+      "output_ids_sha256": "dd8fb8e0afe7f2bf81b7addde8c7df60eac4e61b3cb4b8a0645208beef5a61ee",
+      "path": "/root/netra-mxfp4-gfx1151/results/runtime/gfx1151/runtime-refactor-working-new/serving-ab/attention-group2-fullgraph-8192-plus2-20260731/round-1-new/request-000.json",
+      "peak_vram_bytes": 80094330880,
+      "round": 1,
+      "sample": "000",
+      "server_e2e_ms": 4409.455001994502,
+      "variant": "new"
+    },
+    {
+      "host_e2e_ms": 4413.905223,
+      "input_sha256": "eb25350ebdb0bbfebcb2d1feaffce53abc0172c2ae0ec455034517bd0875fedc",
+      "output_ids_sha256": "dd8fb8e0afe7f2bf81b7addde8c7df60eac4e61b3cb4b8a0645208beef5a61ee",
+      "path": "/root/netra-mxfp4-gfx1151/results/runtime/gfx1151/runtime-refactor-working-new/serving-ab/attention-group2-fullgraph-8192-plus2-20260731/round-1-old/request-000.json",
+      "peak_vram_bytes": 79512023040,
+      "round": 1,
+      "sample": "000",
+      "server_e2e_ms": 4398.269556986634,
+      "variant": "old"
+    }
+  ],
+  "target": "gfx1151",
+  "tokens_bit_exact": true,
+  "uncached": true,
+  "variants": {
+    "new": {
+      "host_e2e_ms": {
+        "mean": 4403.4901595,
+        "median": 4403.4901595,
+        "p90": 4421.9833039000005
+      },
+      "peak_vram_bytes_max": 80094330880,
+      "samples": 2,
+      "server_e2e_ms": {
+        "mean": 4387.322210997809,
+        "median": 4387.322210997809,
+        "p90": 4405.028443795163
+      }
+    },
+    "old": {
+      "host_e2e_ms": {
+        "mean": 4410.603172499999,
+        "median": 4410.603172499999,
+        "p90": 4413.2448129
+      },
+      "peak_vram_bytes_max": 80136376320,
+      "samples": 2,
+      "server_e2e_ms": {
+        "mean": 4395.253433496691,
+        "median": 4395.253433496691,
+        "p90": 4397.666332288645
+      }
+    }
+  }
+}

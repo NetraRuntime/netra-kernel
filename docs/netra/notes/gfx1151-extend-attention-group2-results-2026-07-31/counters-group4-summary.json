@@ -1,0 +1,83 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "input_scope": "T8192 prefix24576 Hq16 Hkv2 D256 baseline gfx1151",
+  "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+  "method": "one counter per process launch; identical kernel dispatch shapes",
+  "units": {
+    "FETCH_SIZE": "KiB fetched from video memory per dispatch",
+    "WRITE_SIZE": "KiB written to video memory per dispatch",
+    "OccupancyPercent": "percent of device maximum",
+    "L2CacheHit": "percent",
+    "MemUnitBusy": "percent of GPUTime",
+    "WriteUnitStalled": "percent of GPUTime"
+  },
+  "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+  "kernels": [
+    {
+      "kernel": "extend_attention_wmma_n64_gfx1151",
+      "grid_size": 262144,
+      "workgroup_size": 512,
+      "lds_bytes": 65536,
+      "scratch_bytes": 0,
+      "vgpr": 248,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": {
+          "samples": 1,
+          "mean": 19080408.3125,
+          "min": 19080408.3125,
+          "max": 19080408.3125
+        },
+        "L2CacheHit": {
+          "samples": 1,
+          "mean": 7.474084,
+          "min": 7.474084,
+          "max": 7.474084
+        },
+        "MeanOccupancyPerActiveCU": {
+          "samples": 1,
+          "mean": 6.537814,
+          "min": 6.537814,
+          "max": 6.537814
+        },
+        "MemUnitBusy": {
+          "samples": 1,
+          "mean": 19.681458,
+          "min": 19.681458,
+          "max": 19.681458
+        },
+        "OccupancyPercent": {
+          "samples": 1,
+          "mean": 10.031716,
+          "min": 10.031716,
+          "max": 10.031716
+        },
+        "SALUInsts": {
+          "samples": 1,
+          "mean": 32220.25,
+          "min": 32220.25,
+          "max": 32220.25
+        },
+        "SQ_WAVES": {
+          "samples": 1,
+          "mean": 8192.0,
+          "min": 8192.0,
+          "max": 8192.0
+        },
+        "SQ_WAVE_CYCLES": {
+          "samples": 1,
+          "mean": 85899345900.0,
+          "min": 85899345900.0,
+          "max": 85899345900.0
+        },
+        "VALUInsts": {
+          "samples": 1,
+          "mean": 878687.5,
+          "min": 878687.5,
+          "max": 878687.5
+        }
+      }
+    }
+  ]
+}
