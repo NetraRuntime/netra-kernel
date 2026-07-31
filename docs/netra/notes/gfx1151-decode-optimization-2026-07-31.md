@@ -15,6 +15,7 @@ host end-to-end HTTP wall time. Any derived token rate is explicitly estimated.
 | GDN N=2048 compute+reduce, all 30 layers | 1.888719 ms | 1.354499 ms | 1.39440x, HIP-event measured, bit-exact |
 | GDN N=12800 layer-0 compute+reduce | 35.326 us | 30.497 us | 1.15834x, HIP-event measured, bit-exact |
 | Router projection | about 78.3 us rocBLAS median/layer | 23.765 us raw FP32 median/layer | 3.30x approximate ratio, rocprofv3 measured |
+| Qwen3.6 M1 RMSNorm chains | 988.247 ms request median | 921.822 ms request median | 7.21% measured E2E, all tokens identical |
 
 ### Accepted code-object metadata
 
@@ -83,6 +84,10 @@ WG64 A/B is another 33.867 ms or 0.778% faster. The latest total-based rate is
 does not expose TTFT or decode-only time. The 50 tok/s target is not yet achieved.
 
 ## Rejected experiments
+
+The Qwen3.6 RMSNorm implementation, complete request-window A/B, graph gate, and
+profiling correction are reported separately in
+`gfx1151-qwen36-rmsnorm-2026-07-31.md` and its JSON companion.
 
 - Routed gate/up block64 fusion was bit-exact in isolation and 1.0888x faster in a
   cache-hot HIP microbenchmark, but doubled the per-layer partial workspace. Real

@@ -99,6 +99,14 @@ class _Runtime:
         self.lib.netra_bf16_shared_down_decode.restype = ctypes.c_int
         self.lib.netra_bf16_lm_head_decode.argtypes = [ctypes.c_void_p] * 4
         self.lib.netra_bf16_lm_head_decode.restype = ctypes.c_int
+        self.lib.netra_qwen36_rmsnorm_decode.argtypes = (
+            [ctypes.c_void_p] * 3 + [ctypes.c_float, ctypes.c_void_p]
+        )
+        self.lib.netra_qwen36_rmsnorm_decode.restype = ctypes.c_int
+        self.lib.netra_qwen36_fused_add_rmsnorm_decode.argtypes = (
+            [ctypes.c_void_p] * 3 + [ctypes.c_float, ctypes.c_void_p]
+        )
+        self.lib.netra_qwen36_fused_add_rmsnorm_decode.restype = ctypes.c_int
         self.lib.netra_mxfp4_sgl_linear_prefill.argtypes = (
             [ctypes.c_void_p] * 4
             + [ctypes.c_uint] * 3
@@ -1301,3 +1309,85 @@ def apply(
     if hidden_states.shape[0] == 1:
         return _decode(layer, hidden_states, topk_weights, topk_ids)
     return _prefill(layer, hidden_states, topk_weights, topk_ids)
+
+@register_custom_op(mutates_args=["output"])
+def netra_qwen36_rmsnorm_with_output(
+    input: torch.Tensor,
+    weight: torch.Tensor,
+    output: torch.Tensor,
+    epsilon: float,
+) -> None:
+    """Graph-safe raw gfx1151 M=1,N=2048 Qwen3.6 RMSNorm launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_qwen36_rmsnorm_decode(
+        _ptr(input), _ptr(weight), _ptr(output), epsilon, runtime.stream()
+    )
+    runtime.check(status, "Netra raw-ASM Qwen3.6 RMSNorm")
+
+
+@register_custom_op(mutates_args=["input", "residual"])
+def netra_qwen36_fused_add_rmsnorm_inplace(
+    input: torch.Tensor,
+    residual: torch.Tensor,
+    weight: torch.Tensor,
+    epsilon: float,
+) -> None:
+    """Graph-safe raw gfx1151 in-place residual + Qwen3.6 RMSNorm launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_qwen36_fused_add_rmsnorm_decode(
+        _ptr(input), _ptr(residual), _ptr(weight), epsilon, runtime.stream()
+    )
+    runtime.check(status, "Netra raw-ASM fused residual + Qwen3.6 RMSNorm")
+
+
+def apply_qwen36_rmsnorm_decode(
+    input: torch.Tensor,
+    weight: torch.Tensor,
+    epsilon: float,
+    residual: torch.Tensor | None = None,
+    output: torch.Tensor | None = None,
+):
+    if (
+        input.dtype != torch.bfloat16
+        or input.numel() != 2048
+        or input.shape[-1] != 2048
+        or not input.is_contiguous()
+        or weight.dtype != torch.bfloat16
+        or tuple(weight.shape) != (2048,)
+        or not weight.is_contiguous()
+        or weight.device != input.device
+    ):
+        raise ValueError(
+            "Netra Qwen3.6 RMSNorm requires contiguous BF16 [1,2048] input "
+            "and contiguous BF16 [2048] weight"
+        )
+    if residual is None:
+        if (
+            output is None
+            or output.dtype != torch.bfloat16
+            or output.numel() != 2048
+            or output.shape[-1] != 2048
+            or not output.is_contiguous()
+            or output.device != input.device
+            or output.data_ptr() == input.data_ptr()
+        ):
+            raise ValueError(
+                "Netra Qwen3.6 RMSNorm requires a distinct preallocated "
+                "contiguous BF16 [1,2048] output"
+            )
+        netra_qwen36_rmsnorm_with_output(input, weight, output, epsilon)
+        return output
+    if (
+        residual.dtype != torch.bfloat16
+        or residual.numel() != 2048
+        or residual.shape[-1] != 2048
+        or not residual.is_contiguous()
+        or residual.device != input.device
+        or residual.data_ptr() == input.data_ptr()
+    ):
+        raise ValueError(
+            "Netra fused Qwen3.6 RMSNorm requires a distinct contiguous "
+            "BF16 [1,2048] residual"
+        )
+    netra_qwen36_fused_add_rmsnorm_inplace(input, residual, weight, epsilon)
+    return input, residual

@@ -15,11 +15,12 @@ profiler=/root/venv1151/bin/rocprofv3
 collection_delay_s=${NETRA_COLLECTION_DELAY_S:-60}
 collection_duration_s=${NETRA_COLLECTION_DURATION_S:-7200}
 request_offset_s=${NETRA_REQUEST_AFTER_COLLECTION_START_S:-10}
+post_request_wait_s=${NETRA_PROFILE_POST_REQUEST_WAIT_S:-0}
 
 [[ $(hostname) == Netra ]] || { echo "must run in Netra" >&2; exit 1; }
 [[ $label =~ ^[a-zA-Z0-9._-]+$ ]] || usage
 for value in "$input_len" "$output_len" "$context_len" "$collection_delay_s" \
-             "$collection_duration_s" "$request_offset_s"; do
+             "$collection_duration_s" "$request_offset_s" "$post_request_wait_s"; do
   [[ $value =~ ^[0-9]+$ ]] || usage
 done
 (( input_len > 0 && output_len > 0 && context_len > 0 )) || usage
@@ -107,7 +108,7 @@ printf 'profile_pid=%s\nprofile_start_ms=%s\nhealth_ms=%s\nrequest_target_ms=%s\
 
 request_seed=${NETRA_PROFILE_SEED:-${label}-seed}
 set +e
-/root/sglvenv1151/bin/python "${repo}/tools/profiling/request_scenario.py" \
+/root/sglvenv1151/bin/python "${repo}/scripts/rocm/tools/profiling/request_scenario.py" \
   --input-len "$input_len" --output-len "$output_len" \
   --seed "$request_seed" --label "$label" \
   --graph-mode "${NETRA_GRAPH_MODE:-disabled}" \
@@ -116,6 +117,7 @@ set +e
   --output "${out_dir}/request.json" \
   > "${out_dir}/request.stdout" 2> "${out_dir}/request.stderr"
 request_status=$?
+if (( post_request_wait_s > 0 )); then sleep "$post_request_wait_s"; fi
 set -e
 
 kill -TERM "$profile_pid" 2>/dev/null || true
@@ -136,6 +138,6 @@ kernel_csv=$(find "$out_dir" -type f -name '*kernel*trace*.csv' -print -quit)
   echo "profiler emitted no non-empty request-window kernel trace (status $profiler_status)" >&2
   exit 1
 }
-/root/sglvenv1151/bin/python "${repo}/tools/profiling/summarize_fullstack.py" \
+/root/sglvenv1151/bin/python "${repo}/scripts/rocm/tools/profiling/summarize_fullstack.py" \
   "$out_dir" --out "${out_dir}/summary.json" > "${out_dir}/summary.stdout"
 echo "$out_dir"

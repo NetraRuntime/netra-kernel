@@ -194,6 +194,8 @@ def main() -> int:
         "completion_tokens_observed": completion,
         "cached_tokens": cached,
         "host_e2e_ms": (end - start) / 1e6,
+        "host_request_start_monotonic_ns": start,
+        "host_request_end_monotonic_ns": end,
         "host_ttft_ms_measured": (host_ttft_s * 1000 if host_ttft_s is not None else None),
         "host_decode_ms_measured": (host_decode_s * 1000 if host_decode_s is not None else None),
         "stream_events": stream_events,

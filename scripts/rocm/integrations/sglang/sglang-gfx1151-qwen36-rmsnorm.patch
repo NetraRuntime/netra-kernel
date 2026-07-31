@@ -1,0 +1,71 @@
+diff --git a/python/sglang/srt/layers/layernorm.py b/python/sglang/srt/layers/layernorm.py
+index 2cd3b4e..88b4a0b 100644
+--- a/python/sglang/srt/layers/layernorm.py
++++ b/python/sglang/srt/layers/layernorm.py
+@@ -51,6 +51,13 @@ _is_hip = is_hip()
+ _is_musa = is_musa()
+ _is_npu = is_npu()
+ _use_aiter = get_bool_env_var("SGLANG_USE_AITER") and _is_hip
++_use_netra_qwen36_rmsnorm = _is_hip and not get_bool_env_var(
++    "SGLANG_NETRA_DISABLE_QWEN36_RMSNORM"
++)
++if _use_netra_qwen36_rmsnorm:
++    from sglang.srt.layers.quantization.netra_gfx1151 import (
++        apply_qwen36_rmsnorm_decode,
++    )
+ _is_cpu_amx_available = cpu_has_amx_support()
+ _is_cpu = is_cpu()
+ _is_xpu = is_xpu()
+@@ -863,6 +870,13 @@ class GemmaRMSNorm(MultiPlatformOp):
+         self.register_buffer(
+             "gemma_weight", torch.ones_like(self.weight), persistent=False
+         )
++        self.register_buffer(
++            "_netra_qwen36_decode_output",
++            torch.empty((1, hidden_size))
++            if _use_netra_qwen36_rmsnorm and hidden_size == 2048
++            else torch.empty(0),
++            persistent=False,
++        )
+         # (Chen-0210) Gemma weight = standard_weight + 1. Precompute once.
+         # If TRTLLM allreduce fusion ever provides gemma-style norm
+         # natively, this can be removed.
+@@ -930,6 +944,38 @@ class GemmaRMSNorm(MultiPlatformOp):
+         residual: Optional[torch.Tensor] = None,
+         post_residual_addition: Optional[torch.Tensor] = None,
+     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
++        if (
++            _use_netra_qwen36_rmsnorm
++            and x.numel() == 2048
++            and x.shape[-1] == 2048
++            and x.dtype == torch.bfloat16
++            and x.is_contiguous()
++            and self.weight.dtype == torch.bfloat16
++            and tuple(self.weight.shape) == (2048,)
++            and self.weight.is_contiguous()
++            and self._netra_qwen36_decode_output.dtype == x.dtype
++            and self._netra_qwen36_decode_output.device == x.device
++            and self._netra_qwen36_decode_output.is_contiguous()
++            and self._netra_qwen36_decode_output.numel() == 2048
++            and post_residual_addition is None
++            and (
++                residual is None
++                or (
++                    residual.dtype == torch.bfloat16
++                    and residual.numel() == 2048
++                    and residual.shape[-1] == 2048
++                    and residual.is_contiguous()
++                )
++            )
++        ):
++            return apply_qwen36_rmsnorm_decode(
++                x,
++                self.weight.data,
++                self.variance_epsilon,
++                residual,
++                output=self._netra_qwen36_decode_output,
++            )
++
+         if _use_aiter and _has_rocm_triton_gemma_rms_norm:
+             if residual is not None:
+                 if post_residual_addition is not None:

@@ -94,4 +94,10 @@ NETRA_GFX1151_EXPORT int netra_expert_activation_pack(
     void* hidden, void* pair_tokens, void* position, void* output,
     unsigned pair_count, unsigned total_rows, void* stream_ptr);
 
+NETRA_GFX1151_EXPORT int netra_qwen36_rmsnorm_decode(
+    void* input, void* weight, void* output, float epsilon, void* stream_ptr);
+NETRA_GFX1151_EXPORT int netra_qwen36_fused_add_rmsnorm_decode(
+    void* input, void* residual, void* weight, float epsilon,
+    void* stream_ptr);
+
 }  // extern "C"

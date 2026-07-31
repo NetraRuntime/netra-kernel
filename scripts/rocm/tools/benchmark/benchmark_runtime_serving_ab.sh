@@ -19,7 +19,7 @@ live_lib=${repo}/build/sglang/libnetra_mxfp4_sgl.so
 out_dir=${repo}/results/runtime/gfx1151/runtime-refactor-working-new/serving-ab/${label}
 port=${SGLANG_PORT:-30000}
 python=/root/sglvenv1151/bin/python
-request=${repo}/tools/profiling/request_scenario.py
+request=${repo}/scripts/rocm/tools/profiling/request_scenario.py
 graph_mode=${NETRA_RUNTIME_GRAPH_MODE:-disabled}
 launch_args=()
 case "$graph_mode" in

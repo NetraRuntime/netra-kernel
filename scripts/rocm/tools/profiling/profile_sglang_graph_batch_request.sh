@@ -127,6 +127,6 @@ kernel_csv=$(find "$out_dir" -type f -name '*kernel*trace*.csv' -print -quit)
   echo "profiler emitted no non-empty kernel trace (status $profiler_status)" >&2
   exit 1
 }
-/root/sglvenv1151/bin/python "${repo}/tools/profiling/summarize_fullstack.py" \
+/root/sglvenv1151/bin/python "${repo}/scripts/rocm/tools/profiling/summarize_fullstack.py" \
   "$out_dir" --out "${out_dir}/summary.json"
 echo "$out_dir"

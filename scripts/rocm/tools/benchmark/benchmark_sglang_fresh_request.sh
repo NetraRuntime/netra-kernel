@@ -65,7 +65,7 @@ if (( ! ready )); then
 fi
 ready_ns=$(date +%s%N)
 
-/root/sglvenv1151/bin/python "${repo}/tools/profiling/request_scenario.py" \
+/root/sglvenv1151/bin/python "${repo}/scripts/rocm/tools/profiling/request_scenario.py" \
   --url "http://127.0.0.1:${port}/generate" \
   --input-len "$input_len" --output-len "$output_len" \
   --seed "$seed" --label "$label" \

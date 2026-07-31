@@ -1,0 +1,87 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "scope": "native PyTorch Qwen3.6 RMSNorm baseline kernel chain from complete request-window rocprofv3 trace",
+  "source_summary": "results/profiles/gfx1151/current-qwen36-rmsnorm-disabled-complete-eager-b1-1-plus32-20260731/summary.json",
+  "kernels": [
+    {
+      "kernel": "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::MeanOps<float, float, float, float>, u...",
+      "invocations": 2673,
+      "total_gpu_us": 10085.143,
+      "mean_gpu_us": 3.772967826412271,
+      "median_gpu_us": 3.486,
+      "vgpr": "32",
+      "sgpr": "128",
+      "lds": "512",
+      "scratch": "0"
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::bfloat16tofloat32_copy_kernel_cuda(at::TensorIteratorBa...",
+      "invocations": 5378,
+      "total_gpu_us": 6356.985,
+      "mean_gpu_us": 1.1820351431759017,
+      "median_gpu_us": 1.082,
+      "vgpr": "16",
+      "sgpr": "128",
+      "lds": "0",
+      "scratch": "0"
+    },
+    {
+      "kernel": "void at::native::elementwise_kernel_manual_unroll<128, 4, at::native::gpu_kernel_impl_nocast<at::native::BinaryFuncto...",
+      "invocations": 2673,
+      "total_gpu_us": 4985.181,
+      "mean_gpu_us": 1.8650134680134678,
+      "median_gpu_us": 1.684,
+      "vgpr": "24",
+      "sgpr": "128",
+      "lds": "0",
+      "scratch": "0"
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::rsqrt_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2...",
+      "invocations": 2673,
+      "total_gpu_us": 3535.341,
+      "mean_gpu_us": 1.322611672278339,
+      "median_gpu_us": 1.242,
+      "vgpr": "32",
+      "sgpr": "128",
+      "lds": "0",
+      "scratch": "0"
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::BinaryFunctor<float, float, float, at::native::binary_i...",
+      "invocations": 2673,
+      "total_gpu_us": 2889.521,
+      "mean_gpu_us": 1.0810029928918818,
+      "median_gpu_us": 0.962,
+      "vgpr": "16",
+      "sgpr": "128",
+      "lds": "0",
+      "scratch": "0"
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::bfloat16_copy_kernel_cuda(at::TensorIteratorBase&)::{la...",
+      "invocations": 2673,
+      "total_gpu_us": 2880.979,
+      "mean_gpu_us": 1.0778073325851103,
+      "median_gpu_us": 1.042,
+      "vgpr": "24",
+      "sgpr": "128",
+      "lds": "0",
+      "scratch": "0"
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::pow_tensor_scalar_kernel_impl<fl...",
+      "invocations": 2673,
+      "total_gpu_us": 2654.203,
+      "mean_gpu_us": 0.9929678264122708,
+      "median_gpu_us": 0.922,
+      "vgpr": "16",
+      "sgpr": "128",
+      "lds": "0",
+      "scratch": "0"
+    }
+  ],
+  "native_fatbinary_disassembly_status": "not_extracted",
+  "reason": "roc-obj-ls lacks File::Which in Netra; clang-offload-bundler did not complete on the 174 MiB libtorch_hip.so scan and was interrupted without changing files"
+}

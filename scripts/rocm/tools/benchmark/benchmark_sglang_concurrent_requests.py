@@ -18,7 +18,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(REPO_ROOT))
 
-from tools.profiling.request_scenario import VramSampler, exact_ids
+from scripts.rocm.tools.profiling.request_scenario import VramSampler, exact_ids
 
 
 def _sha_ids(values: list[int]) -> str:

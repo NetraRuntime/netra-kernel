@@ -16,7 +16,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(REPO_ROOT))
 
-from tools.profiling.request_scenario import VramSampler, exact_ids
+from scripts.rocm.tools.profiling.request_scenario import VramSampler, exact_ids
 
 
 def _sha_ids(values: list[int]) -> str:
@@ -121,6 +121,8 @@ def main() -> int:
         "output_tokens_per_request": args.output_len,
         "cached_tokens_total": sum(item["cached_tokens"] for item in requests),
         "host_batch_e2e_ms_measured": wall_s * 1000,
+        "host_request_start_monotonic_ns": start_ns,
+        "host_request_end_monotonic_ns": end_ns,
         "aggregate_input_tokens_per_s_e2e_measured": (
             args.batch_size * args.input_len / wall_s
         ),

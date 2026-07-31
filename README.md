@@ -114,6 +114,8 @@ git apply \
   /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-bf16-attention-output.patch
 git apply \
   /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-bf16-router.patch
+git apply \
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-qwen36-rmsnorm.patch
 cp /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/netra_gfx1151_sglang.py \
   python/sglang/srt/layers/quantization/netra_gfx1151.py
 

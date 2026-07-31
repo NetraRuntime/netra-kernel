@@ -103,7 +103,12 @@ def load_hip_rows(path: Path) -> list[dict]:
     return rows
 
 
-def summarize(kernel_rows: list[dict], hip_rows: list[dict] | None = None) -> dict:
+def summarize(
+    kernel_rows: list[dict],
+    hip_rows: list[dict] | None = None,
+    window_begin_ns: int | None = None,
+    window_end_ns: int | None = None,
+) -> dict:
     if not kernel_rows:
         return {
             "target": "gfx1151",
@@ -111,20 +116,26 @@ def summarize(kernel_rows: list[dict], hip_rows: list[dict] | None = None) -> di
             "error": "no kernel rows",
         }
 
-    t0 = kernel_rows[0]["start"]
-    t1 = kernel_rows[-1]["end"]
-    wall_ns = max(t1 - t0, 1)
+    t0 = window_begin_ns if window_begin_ns is not None else kernel_rows[0]["start"]
+    t1 = window_end_ns if window_end_ns is not None else kernel_rows[-1]["end"]
+    if t1 <= t0:
+        raise ValueError(f"invalid trace window: {t0}..{t1}")
+    wall_ns = t1 - t0
     total_kernel_ns = sum(r["duration_ns"] for r in kernel_rows)
 
     # Launch gaps: idle time between consecutive kernel ends/starts on timeline
     # (conservative single-queue approximation using global sort).
     gaps = []
+    if kernel_rows[0]["start"] > t0:
+        gaps.append(kernel_rows[0]["start"] - t0)
     prev_end = kernel_rows[0]["end"]
     for r in kernel_rows[1:]:
         gap = r["start"] - prev_end
         if gap > 0:
             gaps.append(gap)
         prev_end = max(prev_end, r["end"])
+    if t1 > prev_end:
+        gaps.append(t1 - prev_end)
     total_gap_ns = sum(gaps)
 
     by_name: dict[str, list[int]] = defaultdict(list)
@@ -224,7 +235,13 @@ def summarize(kernel_rows: list[dict], hip_rows: list[dict] | None = None) -> di
     return {
         "target": "gfx1151",
         "measured": True,
-        "timing_scope": "rocprofv3_kernel_trace",
+        "timing_scope": (
+            "rocprofv3_client_monotonic_request_window"
+            if window_begin_ns is not None
+            else "rocprofv3_process_kernel_trace"
+        ),
+        "request_window_start_monotonic_ns": window_begin_ns,
+        "request_window_end_monotonic_ns": window_end_ns,
         "kernel_launches": len(kernel_rows),
         "unique_kernels": len(by_name),
         "trace_wall_us": wall_ns / 1000.0,
@@ -255,6 +272,12 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("root", type=Path, help="rocprof output directory for one scenario")
     ap.add_argument("--out", type=Path, default=None)
+    ap.add_argument(
+        "--window-json",
+        type=Path,
+        default=None,
+        help="request JSON containing host_request_*_monotonic_ns boundaries",
+    )
     args = ap.parse_args()
 
     kpath = find_trace(args.root, "_kernel_trace.csv")
@@ -272,7 +295,31 @@ def main() -> None:
 
     kernels = load_kernel_rows(kpath)
     hips = load_hip_rows(hpath) if hpath else []
-    report = summarize(kernels, hips)
+    window_path = args.window_json
+    if window_path is None and (args.root / "request.json").is_file():
+        window_path = args.root / "request.json"
+    window_begin_ns = window_end_ns = None
+    if window_path is not None:
+        request = json.loads(window_path.read_text())
+        window_begin_ns = request.get("host_request_start_monotonic_ns")
+        window_end_ns = request.get("host_request_end_monotonic_ns")
+        if (window_begin_ns is None) != (window_end_ns is None):
+            raise ValueError(f"incomplete monotonic request window in {window_path}")
+        if window_begin_ns is not None:
+            window_begin_ns = int(window_begin_ns)
+            window_end_ns = int(window_end_ns)
+            kernels = [
+                row
+                for row in kernels
+                if window_begin_ns <= row["start"] and row["end"] <= window_end_ns
+            ]
+            hips = [
+                row
+                for row in hips
+                if window_begin_ns <= row["start"] and row["end"] <= window_end_ns
+            ]
+    report = summarize(kernels, hips, window_begin_ns, window_end_ns)
+    report["request_window_source"] = str(window_path) if window_begin_ns is not None else None
     report["source_kernel_trace"] = str(kpath)
     report["source_hip_trace"] = str(hpath) if hpath else None
     report["scenario_dir"] = str(args.root)

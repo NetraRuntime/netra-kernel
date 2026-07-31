@@ -120,6 +120,12 @@ static constexpr KernelDescriptor kExtendAttention{
 static constexpr KernelDescriptor kQkNormMropeKv{
     "qk_norm_mrope_gate_kv_store_gfx1151.hsaco",
     "qk_norm_mrope_gate_kv_store_gfx1151", {0, 1, 1, 128}};
+static constexpr KernelDescriptor kQwen36Norm{
+    "qwen36_rmsnorm_decode_gfx1151.hsaco", "qwen36_rmsnorm_decode_gfx1151",
+    {1, 1, 1, 256}};
+static constexpr KernelDescriptor kQwen36FusedAddNorm{
+    "qwen36_rmsnorm_decode_gfx1151.hsaco",
+    "qwen36_fused_add_rmsnorm_decode_gfx1151", {1, 1, 1, 256}};
 static constexpr KernelDescriptor kGdnChunkO{
     "gdn_chunk_o_bv32_gfx1151.hsaco", "gdn_chunk_o_bv32_gfx1151",
     {4, 256, 32, 64}};
@@ -173,6 +179,8 @@ struct ModuleRegistry {
   LoadedKernel qkvzba_split{{}, {}, &kQkvzbaSplit};
   LoadedKernel extend_attention{{}, {}, &kExtendAttention};
   LoadedKernel qk_norm_mrope_kv{{}, {}, &kQkNormMropeKv};
+  LoadedKernel qwen36_norm{{}, {}, &kQwen36Norm};
+  LoadedKernel qwen36_fused_add_norm{{}, {}, &kQwen36FusedAddNorm};
   LoadedKernel gdn_chunk_o{{}, {}, &kGdnChunkO};
   LoadedKernel recompute_w_u{{}, {}, &kRecomputeWU};
   LoadedKernel causal_conv{{}, {}, &kCausalConv};
@@ -271,6 +279,8 @@ struct ModuleRegistry {
     load(extend_attention);
     load(qk_norm_mrope_kv);
     load(gdn_chunk_o);
+    load(qwen36_norm);
+    load(qwen36_fused_add_norm);
     load(recompute_w_u);
     load(causal_conv);
     load(causal_state);
