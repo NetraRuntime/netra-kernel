@@ -8,7 +8,9 @@ profiler=${rocm}/bin/rocprofv3
 build_dir=${repo_dir}/build/experiments/bf16-shared-gate-up
 raw_binary=${build_dir}/raw-counter-driver
 rocblas_binary=${build_dir}/rocblas-counter-driver
-raw_hsaco=${repo_dir}/build/sglang/bf16_shared_gate_up_silu_decode_wave2_gfx1151.hsaco
+raw_stem=${NETRA_SHARED_GATE_UP_STEM:-bf16_shared_gate_up_silu_decode_wave2_gfx1151}
+raw_hsaco=${repo_dir}/build/sglang/${raw_stem}.hsaco
+raw_symbol=${NETRA_SHARED_GATE_UP_SYMBOL:-${raw_stem}}
 
 [[ $(hostname) == Netra ]] || { echo "must run in Netra" >&2; exit 1; }
 [[ ! -e $out_dir ]] || { echo "refusing to overwrite $out_dir" >&2; exit 1; }
@@ -57,13 +59,13 @@ profile_variant() {
   done
 }
 
-profile_variant raw "$raw_binary" "$raw_hsaco" 1
+profile_variant raw "$raw_binary" "$raw_hsaco" "$raw_symbol" 1
 profile_variant rocblas "$rocblas_binary" 1
 
 python=/root/sglvenv1151/bin/python
 summarizer=${repo_dir}/tools/profiling/summarize_rocprof_counters.py
 "$python" "$summarizer" "$out_dir/raw" \
-  --kernel-prefix bf16_shared_gate_up_silu_decode_wave2_gfx1151 \
+  --kernel-prefix "$raw_symbol" \
   --input-scope "exact Qwen3.6 M1 N1024 K2048 BF16 raw ASM on gfx1151" \
   --method "one counter per fresh process; one warmup and one measured dispatch" \
   --out "$out_dir/raw-summary.json" > "$out_dir/raw-summary.stdout"

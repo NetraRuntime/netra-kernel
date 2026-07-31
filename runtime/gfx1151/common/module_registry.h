@@ -90,8 +90,8 @@ static constexpr KernelDescriptor kBf16Router{
     "bf16_router_decode_wave2_fp32_gfx1151.hsaco",
     "bf16_router_decode_wave2_fp32_gfx1151", {16, 1, 1, 256}};
 static constexpr KernelDescriptor kBf16SharedGateUpSilu{
-    "bf16_shared_gate_up_silu_decode_wave2_gfx1151.hsaco",
-    "bf16_shared_gate_up_silu_decode_wave2_gfx1151", {32, 1, 1, 256}};
+    "bf16_shared_gate_up_silu_decode_wide128_gfx1151.hsaco",
+    "bf16_shared_gate_up_silu_decode_wide128_gfx1151", {32, 1, 1, 256}};
 static constexpr KernelDescriptor kBf16SharedDown{
     "bf16_shared_down_decode_wave4_gfx1151.hsaco",
     "bf16_shared_down_decode_wave4_gfx1151", {64, 1, 1, 256}};

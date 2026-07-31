@@ -114,17 +114,22 @@ router_stem=bf16_router_decode_wave2_fp32_gfx1151
 "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
   "${out_dir}/${router_stem}.hsaco" > "${out_dir}/${router_stem}.dis"
 
-shared_gate_up_stem=bf16_shared_gate_up_silu_decode_wave2_gfx1151
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  -x assembler -c \
-  "${repo_dir}/kernels/gfx1151/dense/shared_expert/${shared_gate_up_stem}.s" \
-  -o "${out_dir}/${shared_gate_up_stem}.o"
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  "${out_dir}/${shared_gate_up_stem}.o" \
-  -o "${out_dir}/${shared_gate_up_stem}.hsaco"
-"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
-  "${out_dir}/${shared_gate_up_stem}.hsaco" > \
-  "${out_dir}/${shared_gate_up_stem}.dis"
+shared_gate_up_stems=(
+  bf16_shared_gate_up_silu_decode_wave2_gfx1151
+  bf16_shared_gate_up_silu_decode_wide128_gfx1151
+)
+for shared_gate_up_stem in "${shared_gate_up_stems[@]}"; do
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    -x assembler -c \
+    "${repo_dir}/kernels/gfx1151/dense/shared_expert/${shared_gate_up_stem}.s" \
+    -o "${out_dir}/${shared_gate_up_stem}.o"
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    "${out_dir}/${shared_gate_up_stem}.o" \
+    -o "${out_dir}/${shared_gate_up_stem}.hsaco"
+  "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+    "${out_dir}/${shared_gate_up_stem}.hsaco" > \
+    "${out_dir}/${shared_gate_up_stem}.dis"
+done
 
 shared_down_stem=bf16_shared_down_decode_wave4_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
