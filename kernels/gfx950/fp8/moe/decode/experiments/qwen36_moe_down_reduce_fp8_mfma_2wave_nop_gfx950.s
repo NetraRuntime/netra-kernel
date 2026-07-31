@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 //
-// Production native-CDNA4 MFMA Qwen3.6 rowwise MoE down projection.
+// Experimental native-CDNA4 MFMA Qwen3.6 rowwise MoE down projection.
+// Sweep the explicit post-MFMA dependency delay while preserving the accepted
+// two-wave geometry, resident AITER weight layout, and arithmetic order.
 //
 // Two wave64s share each 16-column output tile. Wave 0 evaluates routed slots
 // 0..4. Wave 1 evaluates slots 5..8 and writes each individually scaled K-block
@@ -10,12 +12,15 @@
 
 	.amdgcn_target "amdgcn-amd-amdhsa--gfx950"
 	.amdhsa_code_object_version 6
+	.ifndef NETRA_MFMA_NOP
+		.set NETRA_MFMA_NOP, 15
+	.endif
 	.text
-	.protected qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950
-	.globl qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950
+	.protected qwen36_moe_down_reduce_fp8_mfma_2wave_nop_gfx950
+	.globl qwen36_moe_down_reduce_fp8_mfma_2wave_nop_gfx950
 	.p2align 8
-	.type qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950,@function
-qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
+	.type qwen36_moe_down_reduce_fp8_mfma_2wave_nop_gfx950,@function
+qwen36_moe_down_reduce_fp8_mfma_2wave_nop_gfx950:
 	// Kernargs: activation, activation_scale, w2, w2_scale,
 	//           topk_weights, topk_ids, output.
 	s_load_dwordx2 s[4:5], s[0:1], 0
@@ -120,9 +125,7 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 	v_mov_b32_e32 v29, 0
 	s_waitcnt vmcnt(0) & lgkmcnt(0)
 	v_mfma_f32_16x16x128_f8f6f4 v[26:29], v[10:17], v[18:25], 0
-	// Eleven explicit delay cycles are the shortest deterministic gfx950
-	// dependency schedule validated for the MFMA result consumed below.
-	s_nop 11
+	s_nop NETRA_MFMA_NOP
 
 	v_mul_f32_e32 v7, s30, v26
 	v_mul_f32_e32 v7, s31, v7
@@ -200,8 +203,7 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 	v_mov_b32_e32 v29, 0
 	s_waitcnt vmcnt(0) & lgkmcnt(0)
 	v_mfma_f32_16x16x128_f8f6f4 v[26:29], v[10:17], v[18:25], 0
-	// Match the validated wave-1 MFMA dependency schedule.
-	s_nop 11
+	s_nop NETRA_MFMA_NOP
 
 	v_mul_f32_e32 v7, s30, v26
 	v_mul_f32_e32 v7, s31, v7
@@ -241,7 +243,7 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 
 	.section .rodata,"a",@progbits
 	.p2align 6, 0
-	.amdhsa_kernel qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950
+	.amdhsa_kernel qwen36_moe_down_reduce_fp8_mfma_2wave_nop_gfx950
 		.amdhsa_group_segment_fixed_size 1024
 		.amdhsa_private_segment_fixed_size 0
 		.amdhsa_kernarg_size 56
@@ -264,7 +266,7 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 	.end_amdhsa_kernel
 	.text
 .Lfunc_end0:
-	.size qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950, .Lfunc_end0-qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950
+	.size qwen36_moe_down_reduce_fp8_mfma_2wave_nop_gfx950, .Lfunc_end0-qwen36_moe_down_reduce_fp8_mfma_2wave_nop_gfx950
 
 	.amdgpu_metadata
 ---
@@ -297,11 +299,11 @@ amdhsa.kernels:
     .language: OpenCL C
     .language_version: [2, 0]
     .max_flat_workgroup_size: 128
-    .name: qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950
+    .name: qwen36_moe_down_reduce_fp8_mfma_2wave_nop_gfx950
     .private_segment_fixed_size: 0
     .sgpr_count: 42
     .sgpr_spill_count: 0
-    .symbol: qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.kd
+    .symbol: qwen36_moe_down_reduce_fp8_mfma_2wave_nop_gfx950.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 32
