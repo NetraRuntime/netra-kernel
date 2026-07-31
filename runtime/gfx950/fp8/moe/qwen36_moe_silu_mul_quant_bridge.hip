@@ -14,6 +14,8 @@ namespace {
 constexpr int kThreads = 64;
 constexpr const char* kKernelName =
     "qwen36_moe_silu_mul_quant_fp8_gfx950";
+constexpr const char* kCompactBf16QuantKernelName =
+    "qwen36_moe_quant_bf16_fp8_m1_gfx950";
 constexpr unsigned int kDownGrid = 128;
 constexpr unsigned int kDownThreadsOneWave = 64;
 constexpr unsigned int kDownThreadsTwoWave = 128;
@@ -24,6 +26,10 @@ constexpr const char* kDownKernelNameTwoWave =
 constexpr unsigned int kGateUpGrid = 576;
 constexpr const char* kGateUpKernelName =
     "qwen36_moe_gate_up_fp8_mfma_gfx950";
+constexpr unsigned int kGateUpSiluGrid = 288;
+constexpr unsigned int kGateUpSiluThreads = 128;
+constexpr const char* kGateUpSiluKernelName =
+    "qwen36_moe_gate_up_silu_bf16_m1_gfx950";
 
 std::mutex module_mutex;
 hipModule_t module = nullptr;
@@ -39,6 +45,8 @@ std::string down_loaded_path;
 std::mutex gate_up_module_mutex;
 hipModule_t gate_up_module = nullptr;
 hipFunction_t gate_up_function = nullptr;
+unsigned int gate_up_grid = kGateUpGrid;
+unsigned int gate_up_threads = kThreads;
 std::string gate_up_loaded_path;
 
 int fail(const char* operation, hipError_t error) {
@@ -91,7 +99,17 @@ extern "C" int netra_qwen36_moe_silu_mul_quant_load(
     module = nullptr;
     return fail("hipModuleLoad", error);
   }
+  // Both epilogues intentionally share one ABI. The original kernel consumes
+  // FP32 [rows,2,512], while the fused gate/up path leaves compact BF16
+  // [rows,512] at the same workspace pointer. Resolve by exported symbol so
+  // the dispatch does not depend on filenames or host-side dtype aliases.
   error = hipModuleGetFunction(&function, module, kKernelName);
+  if (error != hipSuccess) {
+    (void)hipGetLastError();
+    function = nullptr;
+    error = hipModuleGetFunction(
+        &function, module, kCompactBf16QuantKernelName);
+  }
   if (error != hipSuccess) {
     (void)hipModuleUnload(module);
     module = nullptr;
@@ -334,6 +352,19 @@ extern "C" int netra_qwen36_moe_gate_up_load(const char* hsaco_path) {
   }
   error = hipModuleGetFunction(
       &gate_up_function, gate_up_module, kGateUpKernelName);
+  if (error == hipSuccess) {
+    gate_up_grid = kGateUpGrid;
+    gate_up_threads = kThreads;
+  } else {
+    (void)hipGetLastError();
+    gate_up_function = nullptr;
+    error = hipModuleGetFunction(
+        &gate_up_function, gate_up_module, kGateUpSiluKernelName);
+    if (error == hipSuccess) {
+      gate_up_grid = kGateUpSiluGrid;
+      gate_up_threads = kGateUpSiluThreads;
+    }
+  }
   if (error != hipSuccess) {
     (void)hipModuleUnload(gate_up_module);
     gate_up_module = nullptr;
@@ -367,8 +398,8 @@ extern "C" int netra_qwen36_moe_gate_up_launch(
       &w13_scale_f32,    &topk_ids_i32,     &output_f32,
   };
   hipError_t error = hipModuleLaunchKernel(
-      gate_up_function, kGateUpGrid, static_cast<unsigned int>(rows), 1,
-      kThreads, 1, 1, 0, stream,
+      gate_up_function, gate_up_grid, static_cast<unsigned int>(rows), 1,
+      gate_up_threads, 1, 1, 0, stream,
       arguments, nullptr);
   if (error != hipSuccess)
     return fail("hipModuleLaunchKernel(gate/up)", error);
@@ -386,6 +417,8 @@ extern "C" int netra_qwen36_moe_gate_up_unload(void) {
   if (error != hipSuccess) return fail("hipModuleUnload(gate/up)", error);
   gate_up_module = nullptr;
   gate_up_function = nullptr;
+  gate_up_grid = kGateUpGrid;
+  gate_up_threads = kThreads;
   gate_up_loaded_path.clear();
   last_error.clear();
   return 0;
