@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "status": "accepted_for_real_layer_shadow",
+  "architecture": "gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "wavefront_size": 64,
+  "quantization": {
+    "activation": "FP8 E4M3 per-row 1x128",
+    "output": "BF16",
+    "weight": "FP8 E4M3 128x128"
+  },
+  "kernel": {
+    "source": "kernels/gfx950/fp8/dense/prefill/qwen36_dense_m210_k2048_fp8_mfma_m32n32_gfx950.s",
+    "symbol": "qwen36_dense_m210_k2048_fp8_mfma_m32n32_gfx950",
+    "tile": {
+      "m": 32,
+      "n": 32,
+      "k": 128
+    },
+    "k_blocks": 16,
+    "mfma": "v_mfma_f32_16x16x128_f8f6f4",
+    "split_k": false,
+    "atomics": false,
+    "lds_bytes": 0,
+    "scratch_bytes": 0,
+    "vgpr_count": 106,
+    "sgpr_count": 34
+  },
+  "request_inventory": [
+    {
+      "calls_per_exact_210_token_prefill": 30,
+      "k": 2048,
+      "m": 210,
+      "n": 12288
+    },
+    {
+      "calls_per_exact_210_token_prefill": 10,
+      "k": 2048,
+      "m": 210,
+      "n": 9216
+    }
+  ],
+  "validation": [
+    {
+      "bridge_median_us": 37.080999463796616,
+      "cktile_bf16_mismatches": 0,
+      "cktile_elements": 2580480,
+      "cktile_replay_median_us": 46.2069995701313,
+      "graph_exact": true,
+      "k": 2048,
+      "m": 210,
+      "maximum_abs_error_fp32_oracle": 0.0893173,
+      "n": 12288,
+      "repeat_iterations": 200,
+      "speedup_vs_cktile": 1.2461098740136358
+    },
+    {
+      "bridge_median_us": 28.76099944114685,
+      "cktile_bf16_mismatches": 0,
+      "cktile_elements": 1935360,
+      "cktile_replay_median_us": 45.7604993134737,
+      "graph_exact": true,
+      "k": 2048,
+      "m": 210,
+      "maximum_abs_error_fp32_oracle": 0.0310678,
+      "n": 9216,
+      "repeat_iterations": 200,
+      "speedup_vs_cktile": 1.5910608185613522
+    }
+  ],
+  "rocprofv3_counters_n12288": {
+    "SQ_BUSY_CU_CYCLES": 15763728,
+    "SQ_INSTS_MFMA": 172032,
+    "SQ_INSTS_SALU": 436608,
+    "SQ_INSTS_VALU": 2052864,
+    "SQ_INSTS_VMEM": 717312,
+    "SQ_WAVE_CYCLES": 37523578
+  },
+  "rejected_variants": [
+    {
+      "median_us": 66.2385,
+      "name": "m16n16_one_wave",
+      "reason": "redundant activation and weight traffic"
+    },
+    {
+      "median_us": 63.275,
+      "name": "m16n16_four_wave_lds",
+      "reason": "barrier and LDS overhead"
+    },
+    {
+      "median_us": 56.92,
+      "name": "m32n16",
+      "reason": "insufficient column reuse"
+    },
+    {
+      "median_us": 56.921,
+      "name": "m32n16_software_prefetch",
+      "reason": "no measurable improvement"
+    }
+  ],
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_m210_k2048_raw_capture_20260731T063611Z",
+  "remaining_m210_shape": {
+    "calls_per_exact_210_token_prefill": 40,
+    "k": 4096,
+    "m": 210,
+    "n": 2048,
+    "status": "unreplaced"
+  }
+}
