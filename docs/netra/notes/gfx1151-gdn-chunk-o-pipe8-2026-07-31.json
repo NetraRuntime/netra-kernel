@@ -1,0 +1,56 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "model": "Qwen3.6-35B-A3B",
+  "checkpoint_quantization": "MXFP4",
+  "decision": "accepted",
+  "shape": "B1_T8192_H32_Hg16_K128_V128_BT64_BV32",
+  "kernel": "gdn_chunk_o_bv32_gfx1151",
+  "hip_event_ab": {
+    "samples": 31,
+    "baseline_median_ms": 12.815418243408203,
+    "candidate_median_ms": 11.037720680236816,
+    "speedup": 1.161056581759165,
+    "duration_reduction_percent_derived": 13.871553229140776,
+    "raw_bit_equal": true,
+    "graph_bit_equal": true
+  },
+  "production_correctness": {
+    "eager_repeats": 30,
+    "graph_repeats": 30,
+    "failures": 0,
+    "max_abs_error_vs_triton": 9.5367431640625e-07,
+    "tolerance": 3.814697265625e-06,
+    "production_raw_median_ms": 11.817015647888184,
+    "production_graph_median_ms": 11.808279037475586,
+    "triton_median_ms": 15.041637420654297,
+    "production_speedup_vs_triton": 1.2728795381888476
+  },
+  "code_object": {
+    "baseline_sha256": "4704b4b29a7dae7c3c6064ee33cad6beb2b88d1c6c0752703173dea8bc6b795a",
+    "candidate_sha256": "a4694721a95620a26226e412106e920dc915b60e39449f21143d934e74aaafad",
+    "kernarg_bytes": 72,
+    "kernarg_alignment_bytes": 8,
+    "grid": [4, 256, 32],
+    "workgroup": [64, 1, 1],
+    "lds_bytes": 25088,
+    "scratch_bytes": 0,
+    "baseline_allocated_vgpr": 216,
+    "candidate_allocated_vgpr": 240,
+    "allocated_sgpr": 128,
+    "public_exports_equal": true,
+    "unchanged_other_hsacos": 44
+  },
+  "serving": [
+    {"input_tokens": 8192, "output_tokens": 1, "graph_mode": "disabled", "cached_tokens": 0, "baseline_host_e2e_ms": 4422.4747255, "candidate_host_e2e_ms": 4368.492638, "delta_percent": -1.2206307746370992, "tokens_bit_exact": true},
+    {"input_tokens": 32768, "output_tokens": 1, "graph_mode": "disabled", "cached_tokens": 0, "baseline_host_e2e_ms": 21080.304288, "candidate_host_e2e_ms": 20904.416492, "delta_percent": -0.8343702899019534, "candidate_input_tokens_per_second_derived": 1567.515649745121, "tokens_bit_exact": true},
+    {"input_tokens": 8192, "output_tokens": 2, "graph_mode": "full-decode-tiers-1-2-4-8-12-16", "cached_tokens": 0, "baseline_host_e2e_ms": 4394.8017039999995, "candidate_host_e2e_ms": 4357.6529295, "delta_percent": -0.8452889800736108, "tokens_bit_exact": true}
+  ],
+  "counter_highlights": {
+    "waves_baseline_candidate": [65536, 65536],
+    "occupancy_percent_baseline_candidate": [12.464943, 12.452109],
+    "sq_wave_cycles_baseline_candidate": [6241831808, 5229363880],
+    "sq_wave_cycles_delta_percent_derived": -16.220685836205085,
+    "fetch_kib_baseline_candidate": [180400.4375, 180728.8125]
+  }
+}

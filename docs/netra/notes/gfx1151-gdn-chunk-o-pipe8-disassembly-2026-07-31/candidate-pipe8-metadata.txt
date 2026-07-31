@@ -1,0 +1,87 @@
+Displaying notes found in: .note
+  Owner                Data size 	Description
+  AMDGPU               0x00000566	NT_AMDGPU_METADATA (AMDGPU Metadata)
+    AMDGPU Metadata:
+        ---
+amdhsa.kernels:
+  - .args:
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           q
+        .offset:         0
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           k
+        .offset:         8
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           v
+        .offset:         16
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           h
+        .offset:         24
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           g
+        .offset:         32
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  write_only
+        .address_space:  global
+        .name:           o
+        .offset:         40
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           cu_seqlens
+        .offset:         48
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           chunk_indices
+        .offset:         56
+        .size:           8
+        .value_kind:     global_buffer
+      - .name:           scale
+        .offset:         64
+        .size:           4
+        .value_kind:     by_value
+      - .name:           T
+        .offset:         68
+        .size:           4
+        .value_kind:     by_value
+    .group_segment_fixed_size: 25088
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 72
+    .language:       OpenCL C
+    .language_version:
+      - 2
+      - 0
+    .max_flat_workgroup_size: 64
+    .name:           gdn_chunk_o_bv32_gfx1151
+    .private_segment_fixed_size: 0
+    .sgpr_count:     46
+    .sgpr_spill_count: 0
+    .symbol:         gdn_chunk_o_bv32_gfx1151.kd
+    .uniform_work_group_size: 1
+    .uses_dynamic_stack: false
+    .vgpr_count:     240
+    .vgpr_spill_count: 0
+    .wavefront_size: 32
+    .workgroup_processor_mode: 0
+amdhsa.target:   amdgcn-amd-amdhsa--gfx1151
+amdhsa.version:
+  - 1
+  - 2
+...

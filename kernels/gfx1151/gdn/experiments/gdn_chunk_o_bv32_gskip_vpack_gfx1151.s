@@ -2,7 +2,7 @@
 // Raw gfx1151 Qwen3.6 GDN chunk-output: two-wave fused gated qh + causal qk + Av.
 // Fixed B=1,T=8192,H=32,Hg=16,K=V=128,BT=64,BV=32, BF16 q/h/o, FP32 g.
 // Grid=(4,256,32), block=64 wave32. Each workgroup owns one 32-row half chunk.
-// Persist g in LDS and issue Q/H/K/V global-to-LDS loads in batches of up to eight.
+// Experiment: persist the full-chunk gate vector at LDS 24576 across qh and qk.
 // Production two-wave fixes the rejected prototype's missing Q rows 4..7 in every eight-row group.
 // Raw full compute path; no compiler-generated compute or scratch.
 
@@ -43,11 +43,11 @@
 .Lgate_tile_done_\@:
 .endm
 
-.protected gdn_chunk_o_bv32_gfx1151
-.globl gdn_chunk_o_bv32_gfx1151
+.protected gdn_chunk_o_bv32_gskip_vpack_gfx1151
+.globl gdn_chunk_o_bv32_gskip_vpack_gfx1151
 .p2align 8
-.type gdn_chunk_o_bv32_gfx1151,@function
-gdn_chunk_o_bv32_gfx1151:
+.type gdn_chunk_o_bv32_gskip_vpack_gfx1151,@function
+gdn_chunk_o_bv32_gskip_vpack_gfx1151:
   // q,k,v,h,g,o,cu_seqlens,chunk_indices,scale,T
   // System SGPRs: s2=BV tile, s3=(chunk*2+row_half), s4=head.
   s_mov_b32 s26, s4
@@ -82,7 +82,6 @@ gdn_chunk_o_bv32_gfx1151:
   v_lshrrev_b32_e32 v201, 4, v0       // loader row 0..3
 
   // Stage this half's complete Q[32,128] row-major at LDS 0.
-  .set LR, 208
   .set QR, 0
   .rept 8
     v_add_nc_u32_e32 v202, (QR*4), v201
@@ -90,44 +89,27 @@ gdn_chunk_o_bv32_gfx1151:
     v_lshlrev_b32_e32 v204, 12, v203
     v_add_nc_u32_e32 v204, s29, v204
     v_lshl_add_u32 v204, v200, 4, v204
-    global_load_b128 v[LR:LR+3], v204, s[8:9]
-    .set LR, LR+4
-    .set QR, QR+1
-  .endr
-  s_waitcnt vmcnt(0)
-  .set LR, 208
-  .set QR, 0
-  .rept 8
-    v_add_nc_u32_e32 v202, (QR*4), v201
+    global_load_b128 v[208:211], v204, s[8:9]
+    s_waitcnt vmcnt(0)
     v_lshlrev_b32_e32 v205, 8, v202
     v_lshl_add_u32 v205, v200, 4, v205
-    ds_write_b128 v205, v[LR:LR+3]
-    .set LR, LR+4
+    ds_write_b128 v205, v[208:211]
     .set QR, QR+1
   .endr
 
   // Stage H[BV32,128] row-major at LDS 8192.
-  .set LR, 208
   .set HR, 0
   .rept 8
     v_add_nc_u32_e32 v202, (HR*4), v201
     v_lshlrev_b32_e32 v204, 8, v202
     v_add_nc_u32_e32 v204, s30, v204
     v_lshl_add_u32 v204, v200, 4, v204
-    global_load_b128 v[LR:LR+3], v204, s[14:15]
-    .set LR, LR+4
-    .set HR, HR+1
-  .endr
-  s_waitcnt vmcnt(0)
-  .set LR, 208
-  .set HR, 0
-  .rept 8
-    v_add_nc_u32_e32 v202, (HR*4), v201
+    global_load_b128 v[208:211], v204, s[14:15]
+    s_waitcnt vmcnt(0)
     v_lshlrev_b32_e32 v205, 8, v202
     v_lshl_add_u32 v205, v200, 4, v205
     v_add_nc_u32_e32 v205, 8192, v205
-    ds_write_b128 v205, v[LR:LR+3]
-    .set LR, LR+4
+    ds_write_b128 v205, v[208:211]
     .set HR, HR+1
   .endr
 
@@ -221,33 +203,20 @@ gdn_chunk_o_bv32_gfx1151:
 
   // All waves finished reading H. Replace it with K[64,128].
   s_barrier
-  .set KB, 0
-  .rept 2
-    .set LR, 208
-    .set KR, 0
-    .rept 8
-      v_add_nc_u32_e32 v202, (KB*32+KR*4), v201
-      v_add_nc_u32_e32 v203, s31, v202
-      v_lshlrev_b32_e32 v204, 12, v203
-      v_add_nc_u32_e32 v204, s29, v204
-      v_lshl_add_u32 v204, v200, 4, v204
-      global_load_b128 v[LR:LR+3], v204, s[10:11]
-      .set LR, LR+4
-      .set KR, KR+1
-    .endr
+  .set KR, 0
+  .rept 16
+    v_add_nc_u32_e32 v202, (KR*4), v201
+    v_add_nc_u32_e32 v203, s31, v202
+    v_lshlrev_b32_e32 v204, 12, v203
+    v_add_nc_u32_e32 v204, s29, v204
+    v_lshl_add_u32 v204, v200, 4, v204
+    global_load_b128 v[208:211], v204, s[10:11]
     s_waitcnt vmcnt(0)
-    .set LR, 208
-    .set KR, 0
-    .rept 8
-      v_add_nc_u32_e32 v202, (KB*32+KR*4), v201
-      v_lshlrev_b32_e32 v205, 8, v202
-      v_lshl_add_u32 v205, v200, 4, v205
-      v_add_nc_u32_e32 v205, 8192, v205
-      ds_write_b128 v205, v[LR:LR+3]
-      .set LR, LR+4
-      .set KR, KR+1
-    .endr
-    .set KB, KB+1
+    v_lshlrev_b32_e32 v205, 8, v202
+    v_lshl_add_u32 v205, v200, 4, v205
+    v_add_nc_u32_e32 v205, 8192, v205
+    ds_write_b128 v205, v[208:211]
+    .set KR, KR+1
   .endr
   s_waitcnt lgkmcnt(0)
   s_barrier
@@ -332,10 +301,9 @@ gdn_chunk_o_bv32_gfx1151:
   s_waitcnt lgkmcnt(0)
   s_barrier
 
-  // Stage V[64,32] row-major at LDS 8192.
+  // Stage V[64,32] in WMMA-B packed layout at LDS 8192.
   v_and_b32_e32 v200, 3, v0
   v_lshrrev_b32_e32 v201, 2, v0
-  .set LR, 208
   .set VR, 0
   .rept 4
     v_add_nc_u32_e32 v202, (VR*16), v201
@@ -344,20 +312,32 @@ gdn_chunk_o_bv32_gfx1151:
     v_lshl_add_u32 v204, s26, 8, v204
     v_lshl_add_u32 v204, s2, 6, v204
     v_lshl_add_u32 v204, v200, 4, v204
-    global_load_b128 v[LR:LR+3], v204, s[12:13]
-    .set LR, LR+4
-    .set VR, VR+1
-  .endr
-  s_waitcnt vmcnt(0)
-  .set LR, 208
-  .set VR, 0
-  .rept 4
-    v_add_nc_u32_e32 v202, (VR*16), v201
-    v_lshlrev_b32_e32 v205, 6, v202
-    v_lshl_add_u32 v205, v200, 4, v205
+    global_load_b128 v[208:211], v204, s[12:13]
+    s_waitcnt vmcnt(0)
+    v_lshrrev_b32_e32 v203, 4, v202
+    v_and_b32_e32 v204, 15, v202
+    v_lshrrev_b32_e32 v206, 3, v204
+    v_and_b32_e32 v204, 7, v204
+    v_lshlrev_b32_e32 v205, 10, v203
+    v_lshl_add_u32 v205, v206, 8, v205
+    v_lshl_add_u32 v205, v204, 1, v205
+    v_lshrrev_b32_e32 v206, 1, v200
+    v_lshl_add_u32 v205, v206, 9, v205
+    v_and_b32_e32 v206, 1, v200
+    v_lshl_add_u32 v205, v206, 7, v205
     v_add_nc_u32_e32 v205, 8192, v205
-    ds_write_b128 v205, v[LR:LR+3]
-    .set LR, LR+4
+    ds_write_b16 v205, v208 offset:0
+    v_lshrrev_b32_e32 v203, 16, v208
+    ds_write_b16 v205, v203 offset:16
+    ds_write_b16 v205, v209 offset:32
+    v_lshrrev_b32_e32 v203, 16, v209
+    ds_write_b16 v205, v203 offset:48
+    ds_write_b16 v205, v210 offset:64
+    v_lshrrev_b32_e32 v203, 16, v210
+    ds_write_b16 v205, v203 offset:80
+    ds_write_b16 v205, v211 offset:96
+    v_lshrrev_b32_e32 v203, 16, v211
+    ds_write_b16 v205, v203 offset:112
     .set VR, VR+1
   .endr
   s_waitcnt lgkmcnt(0)
@@ -378,17 +358,10 @@ gdn_chunk_o_bv32_gfx1151:
     s_waitcnt lgkmcnt(0)
     .set OB, 0
     .rept 2
-      v_lshlrev_b32_e32 v206, 9, v4
-      v_lshl_add_u32 v206, v3, 1, v206
-      v_add_nc_u32_e32 v206, (8192+VT*1024+OB*32), v206
-      ds_load_u16 v16, v206 offset:0
-      ds_load_u16_d16_hi v16, v206 offset:64
-      ds_load_u16 v17, v206 offset:128
-      ds_load_u16_d16_hi v17, v206 offset:192
-      ds_load_u16 v18, v206 offset:256
-      ds_load_u16_d16_hi v18, v206 offset:320
-      ds_load_u16 v19, v206 offset:384
-      ds_load_u16_d16_hi v19, v206 offset:448
+      v_lshlrev_b32_e32 v206, 8, v4
+      v_lshl_add_u32 v206, v3, 4, v206
+      v_add_nc_u32_e32 v206, (8192+VT*1024+OB*512), v206
+      ds_load_b128 v[16:19], v206
       s_waitcnt lgkmcnt(0)
       ds_swizzle_b32 v20, v16 offset:swizzle(SWAP,16)
       ds_swizzle_b32 v21, v17 offset:swizzle(SWAP,16)
@@ -445,7 +418,7 @@ gdn_chunk_o_bv32_gfx1151:
 
 .section .rodata,"a",@progbits
 .p2align 6, 0
-.amdhsa_kernel gdn_chunk_o_bv32_gfx1151
+.amdhsa_kernel gdn_chunk_o_bv32_gskip_vpack_gfx1151
 .amdhsa_group_segment_fixed_size 25088
 .amdhsa_private_segment_fixed_size 0
 .amdhsa_kernarg_size 72
@@ -457,7 +430,7 @@ gdn_chunk_o_bv32_gfx1151:
 .amdhsa_system_sgpr_workgroup_id_y 1
 .amdhsa_system_sgpr_workgroup_id_z 1
 .amdhsa_system_vgpr_workitem_id 0
-.amdhsa_next_free_vgpr 240
+.amdhsa_next_free_vgpr 212
 .amdhsa_next_free_sgpr 46
 .amdhsa_reserve_vcc 1
 .amdhsa_float_denorm_mode_32 3
@@ -470,7 +443,7 @@ gdn_chunk_o_bv32_gfx1151:
 .end_amdhsa_kernel
 .text
 .Lfunc_end0:
-.size gdn_chunk_o_bv32_gfx1151, .Lfunc_end0-gdn_chunk_o_bv32_gfx1151
+.size gdn_chunk_o_bv32_gskip_vpack_gfx1151, .Lfunc_end0-gdn_chunk_o_bv32_gskip_vpack_gfx1151
 
 .amdgpu_metadata
 ---
@@ -492,14 +465,14 @@ amdhsa.kernels:
     .language: OpenCL C
     .language_version: [2, 0]
     .max_flat_workgroup_size: 64
-    .name: gdn_chunk_o_bv32_gfx1151
+    .name: gdn_chunk_o_bv32_gskip_vpack_gfx1151
     .private_segment_fixed_size: 0
     .sgpr_count: 46
     .sgpr_spill_count: 0
-    .symbol: gdn_chunk_o_bv32_gfx1151.kd
+    .symbol: gdn_chunk_o_bv32_gskip_vpack_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count: 240
+    .vgpr_count: 212
     .vgpr_spill_count: 0
     .wavefront_size: 32
     .workgroup_processor_mode: 0
