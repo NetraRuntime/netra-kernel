@@ -84,7 +84,7 @@
 +attention_page16_stem=extend_attention_wmma_n64_page16_gfx1151
 +"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
 +  -x assembler -c \
-+  "${repo_dir}/scripts/rocm/kernels/gfx1151/attention/experiments/${attention_page16_stem}.s" \
++  "${repo_dir}/kernels/gfx1151/attention/experiments/${attention_page16_stem}.s" \
 +  -o "${out_dir}/${attention_page16_stem}.o"
 +"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
 +  "${out_dir}/${attention_page16_stem}.o" -o "${out_dir}/${attention_page16_stem}.hsaco"

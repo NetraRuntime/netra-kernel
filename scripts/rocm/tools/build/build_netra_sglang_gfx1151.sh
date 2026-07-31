@@ -50,20 +50,21 @@ for source_rel in "${sources[@]}"; do
     "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.dis"
 done
 
-script_mxfp4_sources=(
-  mxfp4_prefill_up_silu_wmma_gfx1151.s
-  mxfp4_sgl_linear_prefill_group4_a_gfx1151.s
-  mxfp4_m12_group_gate_wmma_gfx1151.s
-  mxfp4_m12_group_gate_up_wmma_gfx1151.s
-  mxfp4_m12_group_gate_up_silu_wmma_gfx1151.s
-  silu_mul_m12_group_bf16_gfx1151.s
-  mxfp4_m12_group_down_wmma_gfx1151.s
+mxfp4_additional_sources=(
+  prefill/mxfp4_prefill_up_silu_wmma_gfx1151.s
+  prefill/mxfp4_sgl_linear_prefill_group4_a_gfx1151.s
+  verify/mxfp4_m12_group_gate_wmma_gfx1151.s
+  verify/mxfp4_m12_group_gate_up_wmma_gfx1151.s
+  verify/mxfp4_m12_group_gate_up_silu_wmma_gfx1151.s
+  verify/silu_mul_m12_group_bf16_gfx1151.s
+  verify/mxfp4_m12_group_down_wmma_gfx1151.s
 )
-for source_name in "${script_mxfp4_sources[@]}"; do
+for source_rel in "${mxfp4_additional_sources[@]}"; do
+  source_name=${source_rel##*/}
   stem=${source_name%.s}
   "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
     -I "${kernel_dir}/prefill" -x assembler -c \
-    "${repo_dir}/scripts/rocm/kernels/gfx1151/mxfp4/${source_name}" \
+    "${kernel_dir}/${source_rel}" \
     -o "${out_dir}/${stem}.o"
   "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
     "${out_dir}/${stem}.o" -o "${out_dir}/${stem}.hsaco"
@@ -203,7 +204,7 @@ gdn_stem=gdn_chunk_o_bv32_gfx1151
 
 recompute_stem=recompute_w_u_ordered_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  -x assembler -c "${repo_dir}/scripts/rocm/kernels/gfx1151/gdn/${recompute_stem}.s" \
+  -x assembler -c "${repo_dir}/kernels/gfx1151/gdn/${recompute_stem}.s" \
   -o "${out_dir}/${recompute_stem}.o"
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   "${out_dir}/${recompute_stem}.o" -o "${out_dir}/${recompute_stem}.hsaco"

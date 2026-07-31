@@ -12,7 +12,7 @@ sources=(
 )
 for source_name in "${sources[@]}"; do
   stem=${source_name%.s}
-  source="${repo}/scripts/rocm/kernels/gfx1151/gdn/experiments/${source_name}"
+  source="${repo}/kernels/gfx1151/gdn/experiments/${source_name}"
   "${rocm}/llvm/bin/clang" -target amdgcn-amd-amdhsa -mcpu=gfx1151 -x assembler -c "${source}" -o "${out}/${stem}.o"
   "${rocm}/llvm/bin/clang" -target amdgcn-amd-amdhsa -mcpu=gfx1151 "${out}/${stem}.o" -o "${out}/${stem}.hsaco"
   "${rocm}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 "${out}/${stem}.hsaco" >"${out}/${stem}.dis"

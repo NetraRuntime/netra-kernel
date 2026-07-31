@@ -13,7 +13,7 @@ mkdir -p "${out}"
 "${rocm}/llvm/bin/clang" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   "${out}/${baseline}.o" -o "${out}/${baseline}.hsaco"
 "${rocm}/llvm/bin/clang" -target amdgcn-amd-amdhsa -mcpu=gfx1151 -x assembler -c \
-  "${repo}/scripts/rocm/kernels/gfx1151/attention/experiments/${candidate}.s" \
+  "${repo}/kernels/gfx1151/attention/experiments/${candidate}.s" \
   -o "${out}/${candidate}.o"
 "${rocm}/llvm/bin/clang" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   "${out}/${candidate}.o" -o "${out}/${candidate}.hsaco"

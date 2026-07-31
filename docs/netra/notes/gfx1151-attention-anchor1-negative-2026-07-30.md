@@ -20,7 +20,7 @@ unbounded fixed-anchor sum.
 
 The final compute candidate is raw AMDGCN assembly:
 
-- `scripts/rocm/kernels/gfx1151/attention/experiments/extend_attention_wmma_n64_group4_qpipe_kvbatch16_anchor1_gfx1151.s`
+- `kernels/gfx1151/attention/experiments/extend_attention_wmma_n64_group4_qpipe_kvbatch16_anchor1_gfx1151.s`
 
 The baseline is the accepted raw gfx1151 kernel:
 
