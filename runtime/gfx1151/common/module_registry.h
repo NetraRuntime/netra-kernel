@@ -34,11 +34,11 @@ static constexpr KernelDescriptor kDecodeGate{
     "mxfp4_sgl_decode_gate_gfx1151.hsaco", "mxfp4_decode_gate_gfx1151",
     {1, 16, 1, 128}};
 static constexpr KernelDescriptor kDecodeGateBlock64{
-    "mxfp4_decode_gate_block64_gfx1151.hsaco",
-    "mxfp4_decode_gate_block64_gfx1151", {1, 512, 1, 128}};
+    "mxfp4_decode_gate_chunk4_gfx1151.hsaco",
+    "mxfp4_decode_gate_chunk4_gfx1151", {1, 128, 1, 128}};
 static constexpr KernelDescriptor kDecodeGateBlock64Reduce{
-    "mxfp4_decode_gate_block64_reduce_gfx1151.hsaco",
-    "mxfp4_decode_gate_block64_reduce_gfx1151", {2, 8, 1, 128}};
+    "mxfp4_decode_gate_chunk4_reduce_gfx1151.hsaco",
+    "mxfp4_decode_gate_chunk4_reduce_gfx1151", {2, 8, 1, 128}};
 static constexpr KernelDescriptor kDecodeDown{
     "mxfp4_sgl_decode_down_gfx1151.hsaco", "mxfp4_decode_down_gfx1151",
     {2, 8, 1, 256}};

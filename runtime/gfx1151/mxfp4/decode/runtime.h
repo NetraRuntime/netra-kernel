@@ -61,7 +61,7 @@ NETRA_GFX1151_ALWAYS_INLINE int moe_block64(
   FivePointers block_args{
       gate_weight, gate_scale, activation, block_tmp, expert_ids};
   hipError_t status = launch(
-      registry.gate_block64.function, 1, 512, 128, stream, block_args);
+      registry.gate_block64.function, 1, 128, 128, stream, block_args);
   if (status != hipSuccess) return 30000 + static_cast<int>(status);
 
   FivePointers block_reduce_args{
@@ -73,7 +73,7 @@ NETRA_GFX1151_ALWAYS_INLINE int moe_block64(
   block_args = FivePointers{
       up_weight, up_scale, activation, block_tmp, expert_ids};
   status = launch(registry.gate_block64.function,
-                  1, 512, 128, stream, block_args);
+                  1, 128, 128, stream, block_args);
   if (status != hipSuccess) return 40000 + static_cast<int>(status);
 
   block_reduce_args = FivePointers{

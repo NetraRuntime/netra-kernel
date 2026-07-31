@@ -16,6 +16,7 @@ host end-to-end HTTP wall time. Any derived token rate is explicitly estimated.
 | GDN N=12800 layer-0 compute+reduce | 35.326 us | 30.497 us | 1.15834x, HIP-event measured, bit-exact |
 | Router projection | about 78.3 us rocBLAS median/layer | 23.765 us raw FP32 median/layer | 3.30x approximate ratio, rocprofv3 measured |
 | Qwen3.6 M1 RMSNorm chains | 988.247 ms request median | 921.822 ms request median | 7.21% measured E2E, all tokens identical |
+| Routed MXFP4 gate/up compute+reduce | 17.066 us block64 | 13.606 us chunk4 | 1.25435x HIP-event measured; FP64-validated reduction-order change |
 
 ### Accepted code-object metadata
 
@@ -32,6 +33,10 @@ wave32, 16 SGPRs, 18 VGPRs, zero fixed LDS/private segment, and no spills.
 A clean rebuild reproduced all four hashes exactly. The shared library exports the
 existing BF16 entry points plus the new `netra_bf16_attention_output_decode` and
 `netra_bf16_router_decode` C ABI symbols.
+
+The accepted routed gate/up chunk4 code objects use a separate 40-byte ABI and
+are reported with their exact metadata, hashes, FP64 checks, counters, disassembly,
+serving A/B and graph result in `gfx1151-gate-chunk4-2026-07-31.md`.
 
 The raw FP32 router was checked on all 40 real layers. In 534 actual calls where
 native BF16 and FP32 routing selected differently (1,113 positions), the FP32 raw
@@ -65,6 +70,17 @@ medians are used for ranking; the 13.461 s trace wall is not a request latency.
 The exact uncached request was 1 input + 32 output, graph disabled, dFlash disabled,
 and host E2E was 1234.309 ms measured.
 
+### Newest request-window inventory after chunk4
+
+Trace:
+`results/profiles/gfx1151/current-gate-chunk4-complete-eager-b1-1-plus32-20260731`
+
+This exact uncached 1 input + 32 output request, graph disabled and dFlash
+disabled, measures 922.962 ms host wall on gfx1151. Summed GPU kernels are
+826.261 ms (89.523%), positive launch gaps are 101.371 ms (10.983%), and the
+request contains 31,421 launches. The routed pair falls from 122.579 to 88.235
+ms total in comparable request windows, a measured 34.344 ms or 28.02% saving.
+
 ## Serving A/B
 
 All rows below are exact 210 input + 128 forced output, cached tokens 0, seed 731,
@@ -82,6 +98,22 @@ The accepted attention-output A/B is 41.598 ms or 0.946% faster. The accepted LM
 WG64 A/B is another 33.867 ms or 0.778% faster. The latest total-based rate is
 `127 / 4.321996 = 29.385 output tok/s`, estimated because the non-streaming request
 does not expose TTFT or decode-only time. The 50 tok/s target is not yet achieved.
+
+### Current sustained decode after chunk4
+
+Five matched-seed exact 1-input/+128-output uncached eager runs measure median
+decode throughput rising from 35.820 to 37.513 tok/s on gfx1151 (+4.729%). A
+separate three-run fixed-input determinism series measures 37.622 tok/s median,
+59.246 ms TTFT and 3434.924 ms E2E. All three candidate outputs are identical.
+A natural chat prompt completes coherently with `finish_reason=stop`.
+
+The same output is reproduced by full decode graph replay, but graph median is
+37.175 tok/s, 1.204% slower than eager. Full graph is therefore correctness-safe
+but performance-negative for batch 1. The measured 37.622 tok/s is the current
+non-speculative baseline. Reaching 50 tok/s requires an estimated additional
+6.580 ms/token or 24.76% latency reduction.
+
+Full evidence is in `gfx1151-gate-chunk4-2026-07-31.md` and its JSON companion.
 
 ## Rejected experiments
 

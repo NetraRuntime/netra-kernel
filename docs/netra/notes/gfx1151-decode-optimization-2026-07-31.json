@@ -37,7 +37,15 @@
       "speedup": 1.15834,
       "exact": true
     },
-    "router_fp32_median_us_per_layer": 23.765
+    "router_fp32_median_us_per_layer": 23.765,
+    "routed_gate_up_chunk4": {
+      "measurement_status": "measured on gfx1151",
+      "baseline_pair_median_us": 17.06644249,
+      "candidate_pair_median_us": 13.60576344,
+      "speedup": 1.254353905,
+      "bit_exact": false,
+      "correctness": "FP64 validated; lower mean absolute error on all four real-checkpoint fixtures"
+    }
   },
   "serving_210_input_128_output": {
     "cached_tokens": 0,
@@ -105,5 +113,52 @@
       "block": 64
     },
     "rebuild_hashes_identical": true
+  },
+  "current_non_speculative_decode": {
+    "measurement_status": "measured host streaming E2E on gfx1151",
+    "input_tokens": 1,
+    "output_tokens": 128,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "samples": 3,
+    "median_ttft_ms": 59.245655,
+    "median_decode_ms": 3375.677889,
+    "median_e2e_ms": 3434.923544,
+    "median_output_tokens_per_s": 37.6220730105,
+    "deterministic_output_hashes": true,
+    "coherent_natural_prompt": true
+  },
+  "chunk4_full_graph": {
+    "measurement_status": "measured host streaming E2E on gfx1151",
+    "graph_mode": "full decode tiers 1,2,4,8,12,16",
+    "dflash_mode": "disabled",
+    "samples": 3,
+    "capture_time_s": 3.05,
+    "capture_memory_gb": 0.17,
+    "median_output_tokens_per_s": 37.174554909,
+    "regression_vs_eager_percent": 1.2039,
+    "outputs_identical_to_eager": true,
+    "decision": "performance-negative for batch-1"
+  },
+  "latest_complete_request_trace": {
+    "measurement_status": "measured with rocprofv3 on gfx1151",
+    "path": "results/profiles/gfx1151/current-gate-chunk4-complete-eager-b1-1-plus32-20260731",
+    "input_tokens": 1,
+    "output_tokens": 32,
+    "cached_tokens": 0,
+    "host_wall_ms": 922.962042,
+    "kernel_gpu_ms": 826.260662,
+    "positive_launch_gap_ms": 101.370905,
+    "kernel_launches": 31421,
+    "gpu_wall_percent": 89.5227132212,
+    "gap_wall_percent": 10.9832149522
+  },
+  "remaining_to_50tps": {
+    "measurement_status": "estimated from measured gfx1151 median",
+    "current_ms_per_token": 26.58014,
+    "target_ms_per_token": 20.0,
+    "additional_reduction_ms_per_token": 6.58014,
+    "additional_reduction_percent": 24.756
   }
 }

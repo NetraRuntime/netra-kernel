@@ -827,7 +827,7 @@ def _ensure_decode_workspace(
             torch.empty((8, 512), dtype=torch.bfloat16, device=device),
             torch.empty((8, 2048), dtype=torch.float32, device=device),
             torch.empty((1, 2048), dtype=torch.bfloat16, device=device),
-            torch.empty((64, 8, 512), dtype=torch.float32, device=device),
+            torch.empty((16, 8, 512), dtype=torch.float32, device=device),
         )
         layer._netra_decode_workspace = workspace
     return workspace
