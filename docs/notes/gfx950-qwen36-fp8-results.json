@@ -15,7 +15,7 @@
   },
   "experiment": {
     "kernel": "qwen36_moe_silu_mul_quant_fp8_gfx950",
-    "source": "kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_silu_mul_quant_fp8_gfx950.s",
+    "source": "kernels/gfx950/fp8/moe/decode/qwen36_moe_silu_mul_quant_fp8_gfx950.s",
     "shape": {
       "rows": 9,
       "gate_up_width": 512,
@@ -263,7 +263,7 @@
     "target": "amdgcn-amd-amdhsa--gfx950",
     "wavefront_size": 64,
     "gate_up_stage1": {
-      "source": "kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_gate_up_fp8_mfma_gfx950.s",
+      "source": "kernels/gfx950/fp8/moe/decode/qwen36_moe_gate_up_fp8_mfma_gfx950.s",
       "shape": {
         "routed_slots": 9,
         "n": 1024,
@@ -307,7 +307,7 @@
     },
     "down_reduce_stage2_two_wave": {
       "status": "promoted",
-      "source": "kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.s",
+      "source": "kernels/gfx950/fp8/moe/decode/qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.s",
       "shape": {
         "routed_slots": 9,
         "n": 2048,

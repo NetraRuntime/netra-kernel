@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Experimental gfx950 Qwen3.6 decode-MoE epilogue:
+// Production gfx950 Qwen3.6 decode-MoE epilogue:
 //   FP32 [rows, 2, 512] gate/up
 //     -> BF16-rounded SiLU(gate) * up
 //     -> FP8 E4M3 [rows, 512] plus FP32 [rows, 4] scales.

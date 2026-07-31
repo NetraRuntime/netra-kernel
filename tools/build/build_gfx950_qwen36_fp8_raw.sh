@@ -23,10 +23,10 @@ if ! grep -q 'Name:[[:space:]]*gfx950' <<<"${rocminfo_output}"; then
   exit 2
 fi
 
-kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_silu_mul_quant_fp8_gfx950.s
+kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/qwen36_moe_silu_mul_quant_fp8_gfx950.s
 down_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_mfma_gfx950.s
-down_2wave_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.s
-gate_up_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_gate_up_fp8_mfma_gfx950.s
+down_2wave_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.s
+gate_up_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/qwen36_moe_gate_up_fp8_mfma_gfx950.s
 harness=${repo_dir}/harness/gfx950/fp8/moe/decode/qwen36_moe_silu_mul_quant_fp8_gfx950.hip
 bridge=${repo_dir}/runtime/gfx950/fp8/moe/qwen36_moe_silu_mul_quant_bridge.hip
 bridge_header=${repo_dir}/runtime/gfx950/fp8/moe/qwen36_moe_silu_mul_quant_bridge.h

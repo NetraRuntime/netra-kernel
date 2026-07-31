@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Native-CDNA4 Qwen3.6 rowwise routed gate/up projection.
+// Production native-CDNA4 Qwen3.6 rowwise routed gate/up projection.
 // Grid Y selects an independent token. Grid X retains the validated M=1
 // slot/tile organization, so an M=16 verification launch has exactly the
 // same reduction order within every row. One wave64 computes 16 columns for

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Native-CDNA4 MFMA Qwen3.6 rowwise MoE down projection.
+// Production native-CDNA4 MFMA Qwen3.6 rowwise MoE down projection.
 //
 // Two wave64s share each 16-column output tile. Wave 0 evaluates routed slots
 // 0..4. Wave 1 evaluates slots 5..8 and writes each individually scaled K-block
