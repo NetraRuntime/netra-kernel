@@ -1,0 +1,62 @@
+{
+  "architecture": "gfx950",
+  "code_object": {
+    "agpr_count": 0,
+    "hsaco_sha256": "905966bd6533e2ea850c8b86045dec6862e503174c4645c93265b85c75de48f6",
+    "lds_bytes": 0,
+    "sgpr_count": 34,
+    "scratch_bytes": 0,
+    "target": "amdgcn-amd-amdhsa--gfx950",
+    "vgpr_count": 106,
+    "wavefront_size": 64
+  },
+  "correctness": {
+    "bridge_graph_replays": 200,
+    "bridge_iterations": 200,
+    "cktile_bf16_mismatches": 0,
+    "elements": 430080,
+    "graph_matches_eager": true,
+    "output_sha256": "e5b68423d4fbcd75251bf9d28e17881a9d258a2e96c3c851a12bd010e3635ce5",
+    "real_layer_calls": 120,
+    "real_layer_mismatches": 0,
+    "request_output_ids_sha256": "991a26ff4edaa7d5244848d1b20fa4c667589de6f83f6e38b45c763f8bee10eb"
+  },
+  "counters_per_dispatch": {
+    "SQ_INSTS_MFMA": 57344,
+    "SQ_INSTS_SALU": 141376,
+    "SQ_INSTS_VALU": 656512,
+    "SQ_INSTS_VMEM": 232192,
+    "TCC_EA0_RDREQ_sum": 121552,
+    "TCC_EA0_WRREQ_sum": 13440,
+    "TCC_HIT_sum": 617592,
+    "TCC_MISS_sum": 134712,
+    "tcc_hit_fraction": 0.820935
+  },
+  "end_to_end_eager": {
+    "control_median_ttft_s": 0.098988289,
+    "raw_bracket_median_mean_s": 0.0976869335,
+    "reduction_percent": 1.3146560195620756,
+    "reduction_s": 0.0013013555,
+    "speedup": 1.013321694656328
+  },
+  "graph_mode": "isolated_eager_and_graph; serving_eager",
+  "isolated_hip_event_us": {
+    "cktile_median": 58.841001242399216,
+    "raw_bridge_median": 21.479999646544456,
+    "speedup": 2.739339
+  },
+  "launch": {
+    "block": [64, 1, 1],
+    "grid": [64, 7, 1],
+    "waves": 448
+  },
+  "quantization": "FP8 E4M3, 128x128 weights, per-row 1x128 activations",
+  "schema_version": 1,
+  "shape": {
+    "invocations_per_exact_210_token_prefill": 40,
+    "k": 4096,
+    "m": 210,
+    "n": 2048
+  },
+  "status": "accepted_eager_single_gpu"
+}
