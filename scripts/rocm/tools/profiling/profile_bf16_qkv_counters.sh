@@ -8,7 +8,7 @@ profiler=${rocm}/bin/rocprofv3
 build_dir=${repo_dir}/build/experiments/bf16-qkv
 raw_binary=${build_dir}/raw-counter-driver
 rocblas_binary=${build_dir}/rocblas-counter-driver
-raw_hsaco=${repo_dir}/build/sglang/bf16_qkv_decode_wave4_gfx1151.hsaco
+raw_hsaco=${repo_dir}/build/sglang/bf16_qkv_decode_wave1_gfx1151.hsaco
 
 [[ $(hostname) == Netra ]] || { echo "must run in Netra" >&2; exit 1; }
 [[ ! -e $out_dir ]] || { echo "refusing to overwrite $out_dir" >&2; exit 1; }
@@ -63,7 +63,7 @@ profile_variant rocblas "$rocblas_binary" 1
 python=/root/sglvenv1151/bin/python
 summarizer=${repo_dir}/tools/profiling/summarize_rocprof_counters.py
 "$python" "$summarizer" "$out_dir/raw" \
-  --kernel-prefix bf16_qkv_decode_wave4_gfx1151 \
+  --kernel-prefix bf16_qkv_decode_wave1_gfx1151 \
   --input-scope "exact Qwen3.6 M1 N9216 K2048 BF16 raw ASM on gfx1151" \
   --method "one counter per fresh process; one warmup and one measured dispatch" \
   --out "$out_dir/raw-summary.json" > "$out_dir/raw-summary.stdout"

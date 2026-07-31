@@ -37,6 +37,18 @@ NETRA_GFX1151_ALWAYS_INLINE int expert_activation_pack(void* hidden, void* pair_
   return status == hipSuccess ? 0 : 97000 + static_cast<int>(status);
 }
 
+NETRA_GFX1151_ALWAYS_INLINE int bf16_router_decode(
+    void* weight, void* activation, void* output, void* stream_ptr) {
+  ensure_initialized();
+  ModuleRegistry& registry = runtime();
+  if (registry.status != hipSuccess) return static_cast<int>(registry.status);
+  ThreePointers args{weight, activation, output};
+  hipError_t status =
+      launch(registry.bf16_router.function, 16, 1, 256,
+             reinterpret_cast<hipStream_t>(stream_ptr), args);
+  return status == hipSuccess ? 0 : 97100 + static_cast<int>(status);
+}
+
 NETRA_GFX1151_ALWAYS_INLINE int bf16_shared_gate_up_silu_decode(
     void* weight, void* activation, void* output, void* stream_ptr) {
   ensure_initialized();

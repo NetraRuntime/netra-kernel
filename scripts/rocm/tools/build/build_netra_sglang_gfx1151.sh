@@ -68,7 +68,7 @@ for source_name in "${script_mxfp4_sources[@]}"; do
     "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.dis"
 done
 
-lm_head_stem=bf16_lm_head_decode_wave4_gfx1151
+lm_head_stem=bf16_lm_head_decode_wave1_wg64_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c \
   "${repo_dir}/kernels/gfx1151/dense/lm_head/${lm_head_stem}.s" \
@@ -80,7 +80,7 @@ lm_head_stem=bf16_lm_head_decode_wave4_gfx1151
 
 split_stem=qkvzba_split_copy_gfx1151
 
-qkv_stem=bf16_qkv_decode_wave4_gfx1151
+qkv_stem=bf16_qkv_decode_wave1_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c \
   "${repo_dir}/kernels/gfx1151/dense/qkv/${qkv_stem}.s" \
@@ -89,6 +89,28 @@ qkv_stem=bf16_qkv_decode_wave4_gfx1151
   "${out_dir}/${qkv_stem}.o" -o "${out_dir}/${qkv_stem}.hsaco"
 "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
   "${out_dir}/${qkv_stem}.hsaco" > "${out_dir}/${qkv_stem}.dis"
+
+attention_output_stem=bf16_attn_oproj_decode_wave1_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c \
+  "${repo_dir}/kernels/gfx1151/dense/attention/${attention_output_stem}.s" \
+  -o "${out_dir}/${attention_output_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${attention_output_stem}.o" \
+  -o "${out_dir}/${attention_output_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${attention_output_stem}.hsaco" > \
+  "${out_dir}/${attention_output_stem}.dis"
+
+router_stem=bf16_router_decode_wave2_fp32_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c \
+  "${repo_dir}/kernels/gfx1151/moe/${router_stem}.s" \
+  -o "${out_dir}/${router_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${router_stem}.o" -o "${out_dir}/${router_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${router_stem}.hsaco" > "${out_dir}/${router_stem}.dis"
 
 shared_gate_up_stem=bf16_shared_gate_up_silu_decode_wave2_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \

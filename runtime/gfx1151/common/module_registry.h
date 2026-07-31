@@ -78,11 +78,17 @@ static constexpr KernelDescriptor kLinearDecodeN12800Block64Reduce{
     "mxfp4_linear_decode_n12800_block64_reduce_gfx1151.hsaco",
     "mxfp4_linear_decode_n12800_block64_reduce_gfx1151", {50, 1, 1, 256}};
 static constexpr KernelDescriptor kBf16LmHead{
-    "bf16_lm_head_decode_wave4_gfx1151.hsaco",
-    "bf16_lm_head_decode_wave4_gfx1151", {7760, 1, 1, 256}};
+    "bf16_lm_head_decode_wave1_wg64_gfx1151.hsaco",
+    "bf16_lm_head_decode_wave1_wg64_gfx1151", {124160, 1, 1, 64}};
 static constexpr KernelDescriptor kBf16Qkv{
-    "bf16_qkv_decode_wave4_gfx1151.hsaco",
-    "bf16_qkv_decode_wave4_gfx1151", {288, 1, 1, 256}};
+    "bf16_qkv_decode_wave1_gfx1151.hsaco",
+    "bf16_qkv_decode_wave1_gfx1151", {1152, 1, 1, 256}};
+static constexpr KernelDescriptor kBf16AttentionOutput{
+    "bf16_attn_oproj_decode_wave1_gfx1151.hsaco",
+    "bf16_attn_oproj_decode_wave1_gfx1151", {256, 1, 1, 256}};
+static constexpr KernelDescriptor kBf16Router{
+    "bf16_router_decode_wave2_fp32_gfx1151.hsaco",
+    "bf16_router_decode_wave2_fp32_gfx1151", {16, 1, 1, 256}};
 static constexpr KernelDescriptor kBf16SharedGateUpSilu{
     "bf16_shared_gate_up_silu_decode_wave2_gfx1151.hsaco",
     "bf16_shared_gate_up_silu_decode_wave2_gfx1151", {32, 1, 1, 256}};
@@ -155,6 +161,8 @@ struct ModuleRegistry {
   LoadedKernel linear_decode_n12800_block64_reduce{
       {}, {}, &kLinearDecodeN12800Block64Reduce};
   LoadedKernel bf16_qkv{{}, {}, &kBf16Qkv};
+  LoadedKernel bf16_attention_output{{}, {}, &kBf16AttentionOutput};
+  LoadedKernel bf16_router{{}, {}, &kBf16Router};
   LoadedKernel bf16_shared_gate_up_silu{{}, {}, &kBf16SharedGateUpSilu};
   LoadedKernel bf16_shared_down{{}, {}, &kBf16SharedDown};
   LoadedKernel m12_group_gate_up_silu{{}, {}, &kM12GateUpSilu};
@@ -250,6 +258,8 @@ struct ModuleRegistry {
     load(linear_decode_n12800_block64_reduce);
     load(bf16_lm_head);
     load(bf16_qkv);
+    load(bf16_attention_output);
+    load(bf16_router);
     load(bf16_shared_gate_up_silu);
     load(bf16_shared_down);
     load(m12_group_gate_up_silu);

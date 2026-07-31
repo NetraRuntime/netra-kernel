@@ -106,6 +106,14 @@ git apply \
   /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-gdn-syncfree-chunk-metadata.patch
 git apply \
   /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-bf16-lm-head.patch
+git apply \
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-bf16-qkv.patch
+git apply \
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-bf16-shared-gate-up-silu.patch
+git apply \
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-bf16-attention-output.patch
+git apply \
+  /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-bf16-router.patch
 cp /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/netra_gfx1151_sglang.py \
   python/sglang/srt/layers/quantization/netra_gfx1151.py
 
@@ -142,6 +150,7 @@ references using real checkpoint weights.
 - [Raw ASM versus Triton MXFP4 comparison](docs/notes/gfx1151-mxfp4-triton-comparison.md)
 - [Fast real-checkpoint shard loading](docs/notes/gfx1151-loading-report-2026-07-29.md)
 - [Accepted extend-attention K LDS swizzle](docs/notes/gfx1151-extend-attention-k-lds-swizzle-2026-07-29.md)
+- [gfx1151 decode optimization update](docs/netra/notes/gfx1151-decode-optimization-2026-07-31.md)
 
 Every reported performance number in those records is labeled measured or
 estimated and is specific to gfx1151.

@@ -49,6 +49,10 @@ NETRA_GFX1151_EXPORT int netra_mxfp4_linear_n12800_k2048_block64(
     void* output, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_bf16_qkv_decode(
     void* weight, void* activation, void* output, void* stream_ptr);
+NETRA_GFX1151_EXPORT int netra_bf16_attention_output_decode(
+    void* weight, void* activation, void* output, void* stream_ptr);
+NETRA_GFX1151_EXPORT int netra_bf16_router_decode(
+    void* weight, void* activation, void* output, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_bf16_shared_gate_up_silu_decode(
     void* weight, void* activation, void* output, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_bf16_shared_down_decode(

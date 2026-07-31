@@ -89,6 +89,10 @@ class _Runtime:
         self.lib.netra_mxfp4_linear_n12800_k2048_block64.restype = ctypes.c_int
         self.lib.netra_bf16_qkv_decode.argtypes = [ctypes.c_void_p] * 4
         self.lib.netra_bf16_qkv_decode.restype = ctypes.c_int
+        self.lib.netra_bf16_attention_output_decode.argtypes = [ctypes.c_void_p] * 4
+        self.lib.netra_bf16_attention_output_decode.restype = ctypes.c_int
+        self.lib.netra_bf16_router_decode.argtypes = [ctypes.c_void_p] * 4
+        self.lib.netra_bf16_router_decode.restype = ctypes.c_int
         self.lib.netra_bf16_shared_gate_up_silu_decode.argtypes = [ctypes.c_void_p] * 4
         self.lib.netra_bf16_shared_gate_up_silu_decode.restype = ctypes.c_int
         self.lib.netra_bf16_shared_down_decode.argtypes = [ctypes.c_void_p] * 4
@@ -351,6 +355,54 @@ def apply_bf16_qkv(
     )
     netra_bf16_qkv_with_output(weight, activation, output)
     return output
+
+
+@register_custom_op(mutates_args=["output"])
+def netra_bf16_attention_output_with_output(
+    weight: torch.Tensor,
+    activation: torch.Tensor,
+    output: torch.Tensor,
+) -> None:
+    """Graph-safe fixed M=1, N=2048, K=4096 BF16 attention output launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_bf16_attention_output_decode(
+        _ptr(weight), _ptr(activation), _ptr(output), runtime.stream()
+    )
+    runtime.check(status, "Netra raw-ASM BF16 attention output")
+
+
+def apply_bf16_attention_output(
+    weight: torch.Tensor, activation: torch.Tensor
+) -> torch.Tensor:
+    if (
+        weight.dtype != torch.bfloat16
+        or tuple(weight.shape) != (2048, 4096)
+        or not weight.is_contiguous()
+        or activation.dtype != torch.bfloat16
+        or tuple(activation.shape) != (1, 4096)
+        or not activation.is_contiguous()
+    ):
+        raise ValueError(
+            "Netra BF16 attention output requires contiguous [2048,4096] weight "
+            "and [1,4096] activation"
+        )
+    output = torch.empty((1, 2048), dtype=torch.bfloat16, device=activation.device)
+    netra_bf16_attention_output_with_output(weight, activation, output)
+    return output
+
+
+@register_custom_op(mutates_args=["output"])
+def netra_bf16_router_with_output(
+    weight: torch.Tensor,
+    activation: torch.Tensor,
+    output: torch.Tensor,
+) -> None:
+    """Graph-safe fixed M=1, N=256, K=2048 BF16-to-FP32 router launch."""
+    runtime = _get_runtime()
+    status = runtime.lib.netra_bf16_router_decode(
+        _ptr(weight), _ptr(activation), _ptr(output), runtime.stream()
+    )
+    runtime.check(status, "Netra raw-ASM BF16 router")
 
 
 @register_custom_op(mutates_args=["output"])

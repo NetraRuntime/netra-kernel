@@ -115,6 +115,18 @@ extern "C" int netra_bf16_qkv_decode(
       weight, activation, output, stream_ptr);
 }
 
+extern "C" int netra_bf16_attention_output_decode(
+    void* weight, void* activation, void* output, void* stream_ptr) {
+  return netra::gfx1151::attention::bf16_output_decode(
+      weight, activation, output, stream_ptr);
+}
+
+extern "C" int netra_bf16_router_decode(
+    void* weight, void* activation, void* output, void* stream_ptr) {
+  return netra::gfx1151::moe::bf16_router_decode(
+      weight, activation, output, stream_ptr);
+}
+
 extern "C" int netra_bf16_shared_gate_up_silu_decode(
     void* weight, void* activation, void* output, void* stream_ptr) {
   return netra::gfx1151::moe::bf16_shared_gate_up_silu_decode(

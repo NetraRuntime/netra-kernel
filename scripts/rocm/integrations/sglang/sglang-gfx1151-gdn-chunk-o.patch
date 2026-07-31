@@ -2,7 +2,7 @@ diff --git a/python/sglang/kernels/ops/attention/fla/chunk_o.py b/python/sglang/
 index c2c0431..2592c99 100644
 --- a/python/sglang/kernels/ops/attention/fla/chunk_o.py
 +++ b/python/sglang/kernels/ops/attention/fla/chunk_o.py
-@@ -11,7 +11,18 @@ import triton.language as tl
+@@ -11,7 +11,17 @@ import triton.language as tl
  from sglang.kernels.ops.attention.fla.index import prepare_chunk_indices
  from sglang.kernels.ops.attention.fla.op import exp, safe_exp
  from sglang.kernels.ops.attention.fla.utils import check_shared_mem, is_nvidia_hopper
@@ -20,11 +20,11 @@ index c2c0431..2592c99 100644
 +    )
  BKV_LIST = [64, 128] if check_shared_mem() else [32, 64]
  NUM_WARPS = [2, 4] if is_nvidia_hopper else [2, 4, 8]
-
-@@ -143,8 +154,64 @@ def chunk_fwd_o(
+ 
+@@ -143,8 +153,64 @@ def chunk_fwd_o(
      if scale is None:
          scale = k.shape[-1] ** -0.5
-
+ 
 +    use_netra_raw = (
 +        _use_netra_gdn_chunk_o
 +        and B == 1
@@ -65,7 +65,7 @@ index c2c0431..2592c99 100644
 +        return o
 +
      o = torch.zeros_like(v)
-
+ 
 +    # Temporary compiler oracle for the measured gfx1151 Qwen3.6 8K GDN
 +    # shape. The final targeted implementation remains raw AMDGCN assembly.
 +    use_netra_gfx1151_oracle = (
@@ -85,7 +85,7 @@ index c2c0431..2592c99 100644
 +
      def grid(meta):
          return (triton.cdiv(V, meta["BV"]), NT, B * H)
-
+ 
 @@ -164,11 +230,11 @@ def chunk_fwd_o(
          K=K,
          V=V,
