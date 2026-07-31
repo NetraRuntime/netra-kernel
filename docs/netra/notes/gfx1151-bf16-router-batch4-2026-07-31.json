@@ -1,0 +1,65 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "date": "2026-07-31",
+  "model": "Qwen3.6-35B-A3B",
+  "checkpoint_quantization": "MXFP4",
+  "candidate": {
+    "kernel": "bf16_router_decode_wave2_fp32_gfx1151",
+    "shape": {"m": 1, "n": 256, "k": 2048, "layers": 40},
+    "change": "batch four original coalesced activation and two-row weight K tiles before each full wait",
+    "abi": {
+      "symbol_unchanged": true,
+      "kernarg_bytes": 24,
+      "alignment": 8,
+      "grid": [16, 1, 1],
+      "workgroup": [256, 1, 1],
+      "wavefront_size": 32,
+      "lds_bytes": 0,
+      "scratch_bytes": 0,
+      "stream_unchanged": true
+    },
+    "hsaco_sha256_before": "f1371c14dd50265ce7d2827a2a4c9e63e86f3b4d965b442b7dbd0051fcb8ccd8",
+    "hsaco_sha256_after": "29d4777f7493ca461df8b68b7303722cb2d0bbb0c0587155d0d2697d71c16332"
+  },
+  "correctness": {
+    "old_new_real_layers": 40,
+    "old_new_fp32_values": 10240,
+    "old_new_bit_mismatches": 0,
+    "old_new_max_abs": 0.0,
+    "fp64_top8_layer_matches": 40,
+    "fp64_max_abs": 5.386536940932274e-7,
+    "eager_tokens_bit_exact": true,
+    "full_graph_tokens_bit_exact": true
+  },
+  "hip_events": {
+    "old_raw_ms_per_40_layers": 1.0426369905,
+    "new_raw_ms_per_40_layers": 0.5708220005,
+    "old_new_speedup": 1.82654
+  },
+  "rocprofv3": {
+    "method": "one counter per fresh process; signal handlers disabled",
+    "old": {"allocated_vgpr": 24, "allocated_sgpr": 128, "FETCH_SIZE_KiB": 514.5625, "L2CacheHit_pct": 7.3226035, "MeanOccupancyPerActiveCU": 7.7958695, "OccupancyPercent": 6.084729, "MemUnitBusy_pct": 58.283085, "SQ_WAVES": 128, "SQ_WAVE_CYCLES": 2666036.5, "VALUInsts": 202, "WRITE_SIZE_KiB": 0},
+    "new": {"allocated_vgpr": 24, "allocated_sgpr": 128, "FETCH_SIZE_KiB": 514.71875, "L2CacheHit_pct": 7.504965, "MeanOccupancyPerActiveCU": 7.632523, "OccupancyPercent": 4.220934, "MemUnitBusy_pct": 36.7282845, "SQ_WAVES": 128, "SQ_WAVE_CYCLES": 1163684, "VALUInsts": 130, "WRITE_SIZE_KiB": 0},
+    "sq_wave_cycles_delta_pct": -56.351,
+    "valu_insts_delta_pct": -35.6435643564
+  },
+  "serving": {
+    "eager_1_input_128_output": {"paired_cases": 4, "cached_tokens": 0, "old_host_e2e_median_ms": 3048.1083425, "new_host_e2e_median_ms": 2994.2859855, "delta_pct": -1.7657625961, "old_ttft_median_ms": 66.5451025, "new_ttft_median_ms": 60.3504895, "old_decode_median_ms": 2979.6778165, "new_decode_median_ms": 2934.004195, "old_output_tps_median": 42.6222757988, "new_output_tps_median": 43.2855740522, "graph_mode": "disabled", "dflash_mode": "disabled"},
+    "full_graph_1_input_128_output": {"paired_cases": 4, "cached_tokens": 0, "old_host_e2e_median_ms": 3054.592342, "new_host_e2e_median_ms": 2990.373189, "delta_pct": -2.1023804754, "old_ttft_median_ms": 50.8734005, "new_ttft_median_ms": 49.3512645, "old_decode_median_ms": 3003.7189415, "new_decode_median_ms": 2940.7267645, "old_output_tps_median": 42.2813839652, "new_output_tps_median": 43.1866860474, "graph_mode": "full-decode-tiers-1-2-4-8-12-16", "dflash_mode": "disabled", "capture_seconds_old": [3.05, 2.81], "capture_seconds_new": [2.85, 2.77], "graph_memory_GB_old": [0.18, 0.17], "graph_memory_GB_new": [0.17, 0.17]},
+    "eager_210_input_128_output": {"paired_cases": 4, "cached_tokens": 0, "old_host_e2e_median_ms": 3451.6119405, "new_host_e2e_median_ms": 3387.4153, "delta_pct": -1.8599031875, "old_ttft_median_ms": 429.391634, "new_ttft_median_ms": 424.7989025, "old_decode_median_ms": 3022.8803475, "new_decode_median_ms": 2962.0569295, "old_input_tps_median": 489.3949506472, "new_input_tps_median": 494.5372403561, "old_output_tps_median": 42.0129839529, "new_output_tps_median": 42.8756117770, "graph_mode": "disabled", "dflash_mode": "disabled"}
+  },
+  "complete_trace_1_input_32_output_eager": {
+    "wall_ms": 845.35336,
+    "kernel_gpu_ms": 733.171266,
+    "positive_launch_gaps_ms": 128.503847,
+    "kernel_launches": 32203,
+    "router_invocations": 1320,
+    "router_total_ms": 17.655356,
+    "router_mean_us": 13.375269697,
+    "router_median_us": 13.144,
+    "previous_router_total_ms": 30.483,
+    "derived_router_total_delta_pct": -42.08
+  },
+  "goal": {"non_speculative_decode_tps": 50, "current_best_measured_eager_tps": 43.2855740522, "complete": false}
+}

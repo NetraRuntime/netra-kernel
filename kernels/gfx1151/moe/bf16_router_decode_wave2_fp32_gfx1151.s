@@ -61,25 +61,40 @@ v_lshlrev_b32_e32 v10, 1, v10
 s_lshl_b32 s10, s2, 4
 v_add_nc_u32_e32 v10, s10, v10
 
-// Two adjacent rows per wave; each load remains one coalesced 128-byte line.
+// Two adjacent rows per wave; four original coalesced K tiles issue before each wait.
 v_and_b32_e32 v11, 31, v0
 v_lshlrev_b32_e32 v1, 2, v11
 v_lshlrev_b32_e32 v2, 12, v10
 v_add_nc_u32_e32 v2, v1, v2
-v_add_nc_u32_e32 v8, 4096, v2
+v_add_nc_u32_e32 v21, 4096, v2
 v_dual_mov_b32 v12, 0 :: v_dual_mov_b32 v13, 0
-s_mov_b32 s12, 32
+s_mov_b32 s12, 8
 
 .Ldot:
-global_load_b32 v3, v1, s[6:7]
-global_load_b32 v4, v2, s[4:5]
-global_load_b32 v5, v8, s[4:5]
-v_add_nc_u32_e32 v1, 128, v1
-v_add_nc_u32_e32 v2, 128, v2
-v_add_nc_u32_e32 v8, 128, v8
+global_load_b32 v3, v1, s[6:7] offset:0
+global_load_b32 v6, v1, s[6:7] offset:128
+global_load_b32 v9, v1, s[6:7] offset:256
+global_load_b32 v18, v1, s[6:7] offset:384
+global_load_b32 v4, v2, s[4:5] offset:0
+global_load_b32 v7, v2, s[4:5] offset:128
+global_load_b32 v14, v2, s[4:5] offset:256
+global_load_b32 v19, v2, s[4:5] offset:384
+global_load_b32 v5, v21, s[4:5] offset:0
+global_load_b32 v8, v21, s[4:5] offset:128
+global_load_b32 v15, v21, s[4:5] offset:256
+global_load_b32 v20, v21, s[4:5] offset:384
+v_add_nc_u32_e32 v1, 512, v1
+v_add_nc_u32_e32 v2, 512, v2
+v_add_nc_u32_e32 v21, 512, v21
 s_waitcnt vmcnt(0)
 v_dot2_f32_bf16 v12, v4, v3, v12
 v_dot2_f32_bf16 v13, v5, v3, v13
+v_dot2_f32_bf16 v12, v7, v6, v12
+v_dot2_f32_bf16 v13, v8, v6, v13
+v_dot2_f32_bf16 v12, v14, v9, v12
+v_dot2_f32_bf16 v13, v15, v9, v13
+v_dot2_f32_bf16 v12, v19, v18, v12
+v_dot2_f32_bf16 v13, v20, v18, v13
 s_sub_u32 s12, s12, 1
 s_cmp_lg_u32 s12, 0
 s_cbranch_scc1 .Ldot
@@ -108,7 +123,7 @@ s_endpgm
 .amdhsa_system_sgpr_workgroup_id_y 0
 .amdhsa_system_sgpr_workgroup_id_z 0
 .amdhsa_system_vgpr_workitem_id 0
-.amdhsa_next_free_vgpr 18
+.amdhsa_next_free_vgpr 22
 .amdhsa_next_free_sgpr 16
 .amdhsa_reserve_vcc 1
 .amdhsa_float_denorm_mode_32 3
@@ -148,7 +163,7 @@ amdhsa.kernels:
     .symbol: bf16_router_decode_wave2_fp32_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count: 18
+    .vgpr_count: 22
     .vgpr_spill_count: 0
     .wavefront_size: 32
     .workgroup_processor_mode: 1
