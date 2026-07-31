@@ -62,8 +62,14 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 	v_and_b32_e32 v2, 48, v30
 	s_lshl_b32 s34, s2, 4
 	v_add_u32_e32 v3, s34, v1
-	v_lshlrev_b32_e32 v4, 9, v3
-	v_add_u32_e32 v4, v2, v4
+	// AITER's resident FP8 expert tensor is physically shuffled as
+	// [N/16,K/32,K-half,N-lane,K16]. Address the current N16 tile and
+	// the wave's K16 fragment directly while preserving logical N in v3.
+	s_lshl_b32 s34, s2, 13
+	v_lshlrev_b32_e32 v4, 4, v1
+	v_lshlrev_b32_e32 v5, 4, v2
+	v_add_u32_e32 v4, v4, v5
+	v_add_u32_e32 v4, s34, v4
 
 	v_cmp_eq_u32_e32 vcc, 0, v31
 	s_cbranch_vccnz .Lwave0
@@ -97,6 +103,7 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 	s_mov_b32 s32, 0
 .Lwave1_kblock:
 	s_lshl_b32 s33, s32, 7
+	s_lshl_b32 s37, s32, 11
 	s_lshl_b32 s36, s32, 2
 	s_load_dword s30, s[28:29], s36
 	s_load_dword s31, s[26:27], s36
@@ -104,9 +111,9 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 	v_add_u32_e32 v5, s33, v2
 	global_load_dwordx4 v[10:13], v5, s[22:23]
 	global_load_dwordx4 v[14:17], v5, s[22:23] offset:64
-	v_add_u32_e32 v7, s33, v4
+	v_add_u32_e32 v7, s37, v4
 	global_load_dwordx4 v[18:21], v7, s[24:25]
-	global_load_dwordx4 v[22:25], v7, s[24:25] offset:64
+	global_load_dwordx4 v[22:25], v7, s[24:25] offset:1024
 	v_mov_b32_e32 v26, 0
 	v_mov_b32_e32 v27, 0
 	v_mov_b32_e32 v28, 0
@@ -174,6 +181,7 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 	s_mov_b32 s32, 0
 .Lwave0_kblock:
 	s_lshl_b32 s33, s32, 7
+	s_lshl_b32 s37, s32, 11
 	s_lshl_b32 s36, s32, 2
 	s_load_dword s30, s[28:29], s36
 	s_load_dword s31, s[26:27], s36
@@ -181,9 +189,9 @@ qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950:
 	v_add_u32_e32 v5, s33, v2
 	global_load_dwordx4 v[10:13], v5, s[22:23]
 	global_load_dwordx4 v[14:17], v5, s[22:23] offset:64
-	v_add_u32_e32 v7, s33, v4
+	v_add_u32_e32 v7, s37, v4
 	global_load_dwordx4 v[18:21], v7, s[24:25]
-	global_load_dwordx4 v[22:25], v7, s[24:25] offset:64
+	global_load_dwordx4 v[22:25], v7, s[24:25] offset:1024
 	v_mov_b32_e32 v26, 0
 	v_mov_b32_e32 v27, 0
 	v_mov_b32_e32 v28, 0
