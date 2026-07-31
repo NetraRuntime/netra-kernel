@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 //
-// Raw gfx1151 MXFP4 dense-linear prefill with pair-prefetched pipelined activation loads with persistent dword-layout weights with runtime N and K.
+// Experimental raw gfx1151 group2-A for N12288 dense-linear prefill with runtime N and K.
 // packed=[K32,fragment2,subgroup2,N,4 bytes], scales=[K/32,N], activation=[groups,64,K] BF16,
 // output=[groups,64,N] FP32. N and K must be multiples of 16 and 32.
-// grid=(N/16,group_count,1), block=(32,1,1).
+// grid=(N/32,group_count,1), block=(64,1,1). Two waves share one 4 KiB A tile.
 //
 // Each wave decodes one 16x32 MXFP4 B tile, then reuses it across four
 // 16-row WMMA tiles. The caller pads the final M group to 64 rows.
@@ -13,20 +13,18 @@
 	.text
 
 	.include "mxfp4_prefill_wmma_gfx1151.inc"
-	// Pair two A-tile VMEM issue groups before each dependency wait.
 
-	.macro PREFILL_ACC_TILE_PAIR AOFF0 C0 C1 C2 C3 C4 C5 C6 C7 AOFF1 D0 D1 D2 D3 D4 D5 D6 D7
+	.macro PREFILL_ACC_TILE_GROUP2 LDSOFF C0 C1 C2 C3 C4 C5 C6 C7
 	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
 	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0
 	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0
 	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0
-	v_add_nc_u32_e32 v13, \AOFF0, v8
-	global_load_b128 v[72:75], v13, s[8:9]
-	global_load_b128 v[80:83], v13, s[8:9] offset:32
-	v_add_nc_u32_e32 v14, \AOFF1, v8
-	global_load_b128 v[88:91], v14, s[8:9]
-	global_load_b128 v[96:99], v14, s[8:9] offset:32
-	s_waitcnt vmcnt(2)
+	v_lshlrev_b32_e32 v12, 6, v1
+	v_lshl_add_u32 v12, v2, 4, v12
+	v_add_nc_u32_e32 v12, \LDSOFF, v12
+	ds_load_b128 v[72:75], v12
+	ds_load_b128 v[80:83], v12 offset:32
+	s_waitcnt lgkmcnt(0)
 	ds_swizzle_b32 v76, v72 offset:swizzle(SWAP,16)
 	ds_swizzle_b32 v77, v73 offset:swizzle(SWAP,16)
 	ds_swizzle_b32 v78, v74 offset:swizzle(SWAP,16)
@@ -46,38 +44,14 @@
 	v_fmac_f32_e32 \C5, v69, v104
 	v_fmac_f32_e32 \C6, v70, v104
 	v_fmac_f32_e32 \C7, v71, v104
-	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
-	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0
-	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0
-	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0
-	s_waitcnt vmcnt(0)
-	ds_swizzle_b32 v92, v88 offset:swizzle(SWAP,16)
-	ds_swizzle_b32 v93, v89 offset:swizzle(SWAP,16)
-	ds_swizzle_b32 v94, v90 offset:swizzle(SWAP,16)
-	ds_swizzle_b32 v95, v91 offset:swizzle(SWAP,16)
-	ds_swizzle_b32 v100, v96 offset:swizzle(SWAP,16)
-	ds_swizzle_b32 v101, v97 offset:swizzle(SWAP,16)
-	ds_swizzle_b32 v102, v98 offset:swizzle(SWAP,16)
-	ds_swizzle_b32 v103, v99 offset:swizzle(SWAP,16)
-	s_waitcnt lgkmcnt(0)
-	v_wmma_f32_16x16x16_bf16 v[64:71], v[88:95], v[16:23], v[64:71]
-	v_wmma_f32_16x16x16_bf16 v[64:71], v[96:103], v[24:31], v[64:71]
-	v_fmac_f32_e32 \D0, v64, v104
-	v_fmac_f32_e32 \D1, v65, v104
-	v_fmac_f32_e32 \D2, v66, v104
-	v_fmac_f32_e32 \D3, v67, v104
-	v_fmac_f32_e32 \D4, v68, v104
-	v_fmac_f32_e32 \D5, v69, v104
-	v_fmac_f32_e32 \D6, v70, v104
-	v_fmac_f32_e32 \D7, v71, v104
 	.endm
 
 
-	.protected mxfp4_sgl_linear_prefill_wmma_gfx1151
-	.globl mxfp4_sgl_linear_prefill_wmma_gfx1151
+	.protected mxfp4_sgl_linear_prefill_group2_a_gfx1151
+	.globl mxfp4_sgl_linear_prefill_group2_a_gfx1151
 	.p2align 8
-	.type mxfp4_sgl_linear_prefill_wmma_gfx1151,@function
-mxfp4_sgl_linear_prefill_wmma_gfx1151:
+	.type mxfp4_sgl_linear_prefill_group2_a_gfx1151,@function
+mxfp4_sgl_linear_prefill_group2_a_gfx1151:
 	s_clause 0x2
 	s_load_b128 s[4:7], s[0:1], 0
 	s_load_b128 s[8:11], s[0:1], 16
@@ -95,9 +69,15 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 	s_add_u32 s10, s10, s15
 	s_addc_u32 s11, s11, 0
 
-	v_and_b32_e32 v1, 15, v0
-	v_lshrrev_b32_e32 v2, 4, v0
-	s_lshl_b32 s16, s2, 4
+	// Two waves cover two adjacent N16 tiles in one workgroup.
+	v_and_b32_e32 v31, 31, v0
+	v_lshrrev_b32_e32 v30, 5, v0
+	v_readfirstlane_b32 s27, v30
+	s_lshl_b32 s16, s2, 1
+	s_add_u32 s16, s16, s27
+	s_lshl_b32 s16, s16, 4
+	v_and_b32_e32 v1, 15, v31
+	v_lshrrev_b32_e32 v2, 4, v31
 	s_waitcnt_depctr 0
 	v_add_nc_u32_e32 v3, s16, v1
 
@@ -113,9 +93,10 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 	s_lshl_b32 s25, s13, 6
 	s_mul_i32 s26, s13, 96
 
-	// Lane/subgroup address within the first A tile and current B tile.
-	v_mul_lo_u32 v8, v1, s19
-	v_lshl_add_u32 v8, v2, 4, v8
+	// Cooperative A loader: thread tid owns one complete 64-byte row.
+	v_mul_lo_u32 v8, v0, s19
+	v_lshlrev_b32_e32 v13, 6, v0
+	// Lane/subgroup address within the current packed B tile.
 	v_mul_lo_u32 v9, v2, s17
 	v_lshl_add_u32 v9, v3, 2, v9
 	v_mov_b32_e32 v10, v3
@@ -144,19 +125,32 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 
 .Lmxblock:
 	// Scale and both K=16 B fragments. Dynamic N replaces fixed offsets.
+	// Do not overwrite the shared A tile until every wave consumed the prior one.
+	s_barrier
 	global_load_ubyte v104, v10, s[6:7]
 	global_load_dword v80, v9, s[4:5]
 	v_add_nc_u32_e32 v12, s18, v9
 	global_load_dword v84, v12, s[4:5]
+	global_load_b128 v[72:75], v8, s[8:9]
+	global_load_b128 v[76:79], v8, s[8:9] offset:16
+	global_load_b128 v[88:91], v8, s[8:9] offset:32
+	global_load_b128 v[92:95], v8, s[8:9] offset:48
 	s_waitcnt vmcnt(0)
+	ds_write_b128 v13, v[72:75]
+	ds_write_b128 v13, v[76:79] offset:16
+	ds_write_b128 v13, v[88:91] offset:32
+	ds_write_b128 v13, v[92:95] offset:48
 
 	PREFILL_DECODE_TO v80 v16 v17 v18 v19 v20 v21 v22 v23
 	PREFILL_DECODE_TO v84 v24 v25 v26 v27 v28 v29 v30 v31
 	s_waitcnt lgkmcnt(0)
 	v_lshlrev_b32_e32 v104, 23, v104
+	s_barrier
 
-	PREFILL_ACC_TILE_PAIR 0 v32 v33 v34 v35 v36 v37 v38 v39 s22 v40 v41 v42 v43 v44 v45 v46 v47
-	PREFILL_ACC_TILE_PAIR s25 v48 v49 v50 v51 v52 v53 v54 v55 s26 v56 v57 v58 v59 v60 v61 v62 v63
+	PREFILL_ACC_TILE_GROUP2 0    v32 v33 v34 v35 v36 v37 v38 v39
+	PREFILL_ACC_TILE_GROUP2 1024 v40 v41 v42 v43 v44 v45 v46 v47
+	PREFILL_ACC_TILE_GROUP2 2048 v48 v49 v50 v51 v52 v53 v54 v55
+	PREFILL_ACC_TILE_GROUP2 3072 v56 v57 v58 v59 v60 v61 v62 v63
 
 	s_add_u32 s4, s4, s20
 	s_addc_u32 s5, s5, 0
@@ -184,8 +178,8 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 
 	.section .rodata,"a",@progbits
 	.p2align 6, 0
-	.amdhsa_kernel mxfp4_sgl_linear_prefill_wmma_gfx1151
-		.amdhsa_group_segment_fixed_size 0
+	.amdhsa_kernel mxfp4_sgl_linear_prefill_group2_a_gfx1151
+		.amdhsa_group_segment_fixed_size 4096
 		.amdhsa_private_segment_fixed_size 0
 		.amdhsa_kernarg_size 40
 		.amdhsa_user_sgpr_count 2
@@ -197,7 +191,7 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 		.amdhsa_system_sgpr_workgroup_id_z 0
 		.amdhsa_system_vgpr_workitem_id 0
 		.amdhsa_next_free_vgpr 105
-		.amdhsa_next_free_sgpr 27
+		.amdhsa_next_free_sgpr 28
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_denorm_mode_32 3
 		.amdhsa_float_denorm_mode_16_64 3
@@ -209,7 +203,7 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 	.end_amdhsa_kernel
 	.text
 .Lfunc_end0:
-	.size mxfp4_sgl_linear_prefill_wmma_gfx1151, .Lfunc_end0-mxfp4_sgl_linear_prefill_wmma_gfx1151
+	.size mxfp4_sgl_linear_prefill_group2_a_gfx1151, .Lfunc_end0-mxfp4_sgl_linear_prefill_group2_a_gfx1151
 
 	.amdgpu_metadata
 ---
@@ -227,17 +221,17 @@ amdhsa.kernels:
           .actual_access: write_only }
       - { .offset: 32, .size: 4, .value_kind: by_value }
       - { .offset: 36, .size: 4, .value_kind: by_value }
-    .group_segment_fixed_size: 0
+    .group_segment_fixed_size: 4096
     .kernarg_segment_align: 8
     .kernarg_segment_size: 40
     .language: OpenCL C
     .language_version: [2, 0]
-    .max_flat_workgroup_size: 32
-    .name: mxfp4_sgl_linear_prefill_wmma_gfx1151
+    .max_flat_workgroup_size: 64
+    .name: mxfp4_sgl_linear_prefill_group2_a_gfx1151
     .private_segment_fixed_size: 0
-    .sgpr_count: 29
+    .sgpr_count: 30
     .sgpr_spill_count: 0
-    .symbol: mxfp4_sgl_linear_prefill_wmma_gfx1151.kd
+    .symbol: mxfp4_sgl_linear_prefill_group2_a_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 105

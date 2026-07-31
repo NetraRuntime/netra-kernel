@@ -1,0 +1,99 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "date": "2026-07-31",
+  "model": "Qwen3.6-35B-A3B",
+  "checkpoint_quantization": "MXFP4",
+  "status": "accepted",
+  "shape": {"n": 12288, "k": 2048, "groups": 128, "m_per_group": 64},
+  "production_kernel": "mxfp4_sgl_linear_prefill_wmma_gfx1151",
+  "abi": {
+    "kernarg_bytes": 40,
+    "kernarg_alignment": 8,
+    "grid": [768, 128, 1],
+    "workgroup": [32, 1, 1],
+    "wave_size": 32,
+    "lds_bytes": 0,
+    "scratch_bytes": 0,
+    "allocated_vgpr": 112,
+    "allocated_sgpr": 128
+  },
+  "hsaco_sha256": {
+    "before": "4b50f9587c0a51e5f3e452e46c33de3f95ca63d9f4527b125f4bdf5f3749cb17",
+    "after": "78838e0bce77502c8e0971a5ece2f9a9ac1ab1e6aa6f3dbf141be66d2dcaad82"
+  },
+  "hip_events": {
+    "samples": 31,
+    "interleaved": true,
+    "before_median_ms": 13.823839,
+    "after_median_ms": 13.068698,
+    "speedup": 1.057782,
+    "bit_exact": true,
+    "mismatches": 0,
+    "max_abs": 0.0,
+    "graph_bit_exact": true,
+    "graph_replay_after_median_ms": 13.374315
+  },
+  "rocprofv3": {
+    "signal_handlers_disabled": true,
+    "waves_before": 98304,
+    "waves_after": 98304,
+    "sq_wave_cycles_before": 34874804486.5,
+    "sq_wave_cycles_after": 32364744415.4,
+    "sq_wave_cycles_delta_percent": -7.197345212563533,
+    "sq_busy_cycles_delta_percent": -7.225010756216932,
+    "fetch_size_delta_percent": 6.279417848448099,
+    "l2_hit_before_percent": 77.42021375,
+    "l2_hit_after_percent": 79.212283,
+    "occupancy_before_percent": 74.688099,
+    "occupancy_after_percent": 74.6600652,
+    "direct_dependency_stall_counter": "not exposed for gfx1151"
+  },
+  "serving": [
+    {
+      "input_tokens": 32768,
+      "output_tokens": 1,
+      "cached_tokens": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "paired_cases": 2,
+      "before_host_e2e_median_ms": 20891.5379485,
+      "after_host_e2e_median_ms": 20833.9356445,
+      "delta_percent": -0.2757207446478893,
+      "derived_input_tokens_per_second_before": 1568.499522580554,
+      "derived_input_tokens_per_second_after": 1572.8288935117075,
+      "tokens_bit_exact": true
+    },
+    {
+      "input_tokens": 8192,
+      "output_tokens": 2,
+      "cached_tokens": 0,
+      "graph_mode": "full-decode-tiers-1-2-4-8-12-16",
+      "dflash_mode": "disabled",
+      "paired_cases": 2,
+      "before_host_e2e_median_ms": 4364.423646,
+      "after_host_e2e_median_ms": 4353.7345635,
+      "delta_percent": -0.24491395352503886,
+      "tokens_bit_exact": true
+    }
+  ],
+  "fresh_profile_32768_plus1": {
+    "kernel_launches": 15078,
+    "unique_kernels": 115,
+    "trace_wall_ms": 21679.120826,
+    "total_kernel_gpu_ms": 20644.042322,
+    "positive_launch_gap_ms": 1072.292402,
+    "target_kernel_invocations": 119,
+    "target_kernel_total_gpu_ms": 1549.83273,
+    "target_kernel_mean_gpu_ms": 13.023804453781514,
+    "target_kernel_percent_of_wall": 7.148964860887113,
+    "previous_target_kernel_total_gpu_ms": 1636.254586,
+    "target_kernel_total_delta_ms": -86.421856,
+    "target_kernel_total_delta_percent": -5.281687626084364
+  },
+  "experiments": [
+    {"name": "group2_a", "status": "rejected", "before_ms": 13.647623, "after_ms": 17.563641, "speedup": 0.777038, "reason": "LDS sharing and barriers regressed the exact shape"},
+    {"name": "pair2_a_broad_wait", "status": "superseded", "before_ms": 13.700230, "after_ms": 13.109991, "speedup": 1.045022},
+    {"name": "pair2_pipe_vs_broad_wait", "status": "accepted_component", "before_ms": 13.250736, "after_ms": 13.119409, "speedup": 1.010010}
+  ]
+}

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Raw gfx1151 MXFP4 dense-linear prefill with pair-prefetched pipelined activation loads with persistent dword-layout weights with runtime N and K.
+// Experimental raw gfx1151 MXFP4 pair-prefetch dense-linear prefill with persistent dword-layout weights with runtime N and K.
 // packed=[K32,fragment2,subgroup2,N,4 bytes], scales=[K/32,N], activation=[groups,64,K] BF16,
 // output=[groups,64,N] FP32. N and K must be multiples of 16 and 32.
 // grid=(N/16,group_count,1), block=(32,1,1).
@@ -26,7 +26,7 @@
 	v_add_nc_u32_e32 v14, \AOFF1, v8
 	global_load_b128 v[88:91], v14, s[8:9]
 	global_load_b128 v[96:99], v14, s[8:9] offset:32
-	s_waitcnt vmcnt(2)
+	s_waitcnt vmcnt(0)
 	ds_swizzle_b32 v76, v72 offset:swizzle(SWAP,16)
 	ds_swizzle_b32 v77, v73 offset:swizzle(SWAP,16)
 	ds_swizzle_b32 v78, v74 offset:swizzle(SWAP,16)
@@ -50,7 +50,6 @@
 	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0
 	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0
 	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0
-	s_waitcnt vmcnt(0)
 	ds_swizzle_b32 v92, v88 offset:swizzle(SWAP,16)
 	ds_swizzle_b32 v93, v89 offset:swizzle(SWAP,16)
 	ds_swizzle_b32 v94, v90 offset:swizzle(SWAP,16)
@@ -73,11 +72,11 @@
 	.endm
 
 
-	.protected mxfp4_sgl_linear_prefill_wmma_gfx1151
-	.globl mxfp4_sgl_linear_prefill_wmma_gfx1151
+	.protected mxfp4_sgl_linear_prefill_pair2_a_gfx1151
+	.globl mxfp4_sgl_linear_prefill_pair2_a_gfx1151
 	.p2align 8
-	.type mxfp4_sgl_linear_prefill_wmma_gfx1151,@function
-mxfp4_sgl_linear_prefill_wmma_gfx1151:
+	.type mxfp4_sgl_linear_prefill_pair2_a_gfx1151,@function
+mxfp4_sgl_linear_prefill_pair2_a_gfx1151:
 	s_clause 0x2
 	s_load_b128 s[4:7], s[0:1], 0
 	s_load_b128 s[8:11], s[0:1], 16
@@ -184,7 +183,7 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 
 	.section .rodata,"a",@progbits
 	.p2align 6, 0
-	.amdhsa_kernel mxfp4_sgl_linear_prefill_wmma_gfx1151
+	.amdhsa_kernel mxfp4_sgl_linear_prefill_pair2_a_gfx1151
 		.amdhsa_group_segment_fixed_size 0
 		.amdhsa_private_segment_fixed_size 0
 		.amdhsa_kernarg_size 40
@@ -209,7 +208,7 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 	.end_amdhsa_kernel
 	.text
 .Lfunc_end0:
-	.size mxfp4_sgl_linear_prefill_wmma_gfx1151, .Lfunc_end0-mxfp4_sgl_linear_prefill_wmma_gfx1151
+	.size mxfp4_sgl_linear_prefill_pair2_a_gfx1151, .Lfunc_end0-mxfp4_sgl_linear_prefill_pair2_a_gfx1151
 
 	.amdgpu_metadata
 ---
@@ -233,11 +232,11 @@ amdhsa.kernels:
     .language: OpenCL C
     .language_version: [2, 0]
     .max_flat_workgroup_size: 32
-    .name: mxfp4_sgl_linear_prefill_wmma_gfx1151
+    .name: mxfp4_sgl_linear_prefill_pair2_a_gfx1151
     .private_segment_fixed_size: 0
     .sgpr_count: 29
     .sgpr_spill_count: 0
-    .symbol: mxfp4_sgl_linear_prefill_wmma_gfx1151.kd
+    .symbol: mxfp4_sgl_linear_prefill_pair2_a_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 105

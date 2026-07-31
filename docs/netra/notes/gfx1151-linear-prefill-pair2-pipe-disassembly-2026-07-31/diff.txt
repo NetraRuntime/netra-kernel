@@ -1,0 +1,175 @@
+--- docs/netra/notes/gfx1151-linear-prefill-pair2-pipe-disassembly-2026-07-31/before.txt	2026-07-31 12:13:02.753054818 +0000
++++ docs/netra/notes/gfx1151-linear-prefill-pair2-pipe-disassembly-2026-07-31/after.txt	2026-07-31 12:13:36.060229201 +0000
+@@ -1,5 +1,5 @@
+
+-build/experiments/linear-prefill-pair2-pipe-a/production-before.hsaco:	file format elf64-amdgpu
++build/sglang/mxfp4_sgl_linear_prefill_wmma_gfx1151.hsaco:	file format elf64-amdgpu
+
+ Disassembly of section .text:
+
+@@ -120,45 +120,45 @@
+	v_add_nc_u32_e32 v13, 0, v8                                // 000000001B2C: 4A1A1080
+	global_load_b128 v[72:75], v13, s[8:9]                     // 000000001B30: DC5E0000 4808000D
+	global_load_b128 v[80:83], v13, s[8:9] offset:32           // 000000001B38: DC5E0020 5008000D
+-	s_waitcnt vmcnt(0)                                         // 000000001B40: BF8903F7
+-	ds_swizzle_b32 v76, v72 offset:swizzle(SWAP,16)            // 000000001B44: D8D4401F 4C000048
+-	ds_swizzle_b32 v77, v73 offset:swizzle(SWAP,16)            // 000000001B4C: D8D4401F 4D000049
+-	ds_swizzle_b32 v78, v74 offset:swizzle(SWAP,16)            // 000000001B54: D8D4401F 4E00004A
+-	ds_swizzle_b32 v79, v75 offset:swizzle(SWAP,16)            // 000000001B5C: D8D4401F 4F00004B
+-	ds_swizzle_b32 v84, v80 offset:swizzle(SWAP,16)            // 000000001B64: D8D4401F 54000050
+-	ds_swizzle_b32 v85, v81 offset:swizzle(SWAP,16)            // 000000001B6C: D8D4401F 55000051
+-	ds_swizzle_b32 v86, v82 offset:swizzle(SWAP,16)            // 000000001B74: D8D4401F 56000052
+-	ds_swizzle_b32 v87, v83 offset:swizzle(SWAP,16)            // 000000001B7C: D8D4401F 57000053
+-	s_waitcnt lgkmcnt(0)                                       // 000000001B84: BF89FC07
+-	v_wmma_f32_16x16x16_bf16 v[64:71], v[72:79], v[16:23], v[64:71]// 000000001B88: CC414040 1D022148
+-	v_wmma_f32_16x16x16_bf16 v[64:71], v[80:87], v[24:31], v[64:71]// 000000001B90: CC414040 1D023150
+-	v_fmac_f32_e32 v32, v64, v104                              // 000000001B98: 5640D140
+-	v_fmac_f32_e32 v33, v65, v104                              // 000000001B9C: 5642D141
+-	v_fmac_f32_e32 v34, v66, v104                              // 000000001BA0: 5644D142
+-	v_fmac_f32_e32 v35, v67, v104                              // 000000001BA4: 5646D143
+-	v_fmac_f32_e32 v36, v68, v104                              // 000000001BA8: 5648D144
+-	v_fmac_f32_e32 v37, v69, v104                              // 000000001BAC: 564AD145
+-	v_fmac_f32_e32 v38, v70, v104                              // 000000001BB0: 564CD146
+-	v_fmac_f32_e32 v39, v71, v104                              // 000000001BB4: 564ED147
+-	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0             // 000000001BB8: CA100080 40400080
+-	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0             // 000000001BC0: CA100080 42420080
+-	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0             // 000000001BC8: CA100080 44440080
+-	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0             // 000000001BD0: CA100080 46460080
+-	v_add_nc_u32_e32 v13, s22, v8                              // 000000001BD8: 4A1A1016
+-	global_load_b128 v[72:75], v13, s[8:9]                     // 000000001BDC: DC5E0000 4808000D
+-	global_load_b128 v[80:83], v13, s[8:9] offset:32           // 000000001BE4: DC5E0020 5008000D
++	v_add_nc_u32_e32 v14, s22, v8                              // 000000001B40: 4A1C1016
++	global_load_b128 v[88:91], v14, s[8:9]                     // 000000001B44: DC5E0000 5808000E
++	global_load_b128 v[96:99], v14, s[8:9] offset:32           // 000000001B4C: DC5E0020 6008000E
++	s_waitcnt vmcnt(2)                                         // 000000001B54: BF890BF7
++	ds_swizzle_b32 v76, v72 offset:swizzle(SWAP,16)            // 000000001B58: D8D4401F 4C000048
++	ds_swizzle_b32 v77, v73 offset:swizzle(SWAP,16)            // 000000001B60: D8D4401F 4D000049
++	ds_swizzle_b32 v78, v74 offset:swizzle(SWAP,16)            // 000000001B68: D8D4401F 4E00004A
++	ds_swizzle_b32 v79, v75 offset:swizzle(SWAP,16)            // 000000001B70: D8D4401F 4F00004B
++	ds_swizzle_b32 v84, v80 offset:swizzle(SWAP,16)            // 000000001B78: D8D4401F 54000050
++	ds_swizzle_b32 v85, v81 offset:swizzle(SWAP,16)            // 000000001B80: D8D4401F 55000051
++	ds_swizzle_b32 v86, v82 offset:swizzle(SWAP,16)            // 000000001B88: D8D4401F 56000052
++	ds_swizzle_b32 v87, v83 offset:swizzle(SWAP,16)            // 000000001B90: D8D4401F 57000053
++	s_waitcnt lgkmcnt(0)                                       // 000000001B98: BF89FC07
++	v_wmma_f32_16x16x16_bf16 v[64:71], v[72:79], v[16:23], v[64:71]// 000000001B9C: CC414040 1D022148
++	v_wmma_f32_16x16x16_bf16 v[64:71], v[80:87], v[24:31], v[64:71]// 000000001BA4: CC414040 1D023150
++	v_fmac_f32_e32 v32, v64, v104                              // 000000001BAC: 5640D140
++	v_fmac_f32_e32 v33, v65, v104                              // 000000001BB0: 5642D141
++	v_fmac_f32_e32 v34, v66, v104                              // 000000001BB4: 5644D142
++	v_fmac_f32_e32 v35, v67, v104                              // 000000001BB8: 5646D143
++	v_fmac_f32_e32 v36, v68, v104                              // 000000001BBC: 5648D144
++	v_fmac_f32_e32 v37, v69, v104                              // 000000001BC0: 564AD145
++	v_fmac_f32_e32 v38, v70, v104                              // 000000001BC4: 564CD146
++	v_fmac_f32_e32 v39, v71, v104                              // 000000001BC8: 564ED147
++	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0             // 000000001BCC: CA100080 40400080
++	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0             // 000000001BD4: CA100080 42420080
++	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0             // 000000001BDC: CA100080 44440080
++	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0             // 000000001BE4: CA100080 46460080
+	s_waitcnt vmcnt(0)                                         // 000000001BEC: BF8903F7
+-	ds_swizzle_b32 v76, v72 offset:swizzle(SWAP,16)            // 000000001BF0: D8D4401F 4C000048
+-	ds_swizzle_b32 v77, v73 offset:swizzle(SWAP,16)            // 000000001BF8: D8D4401F 4D000049
+-	ds_swizzle_b32 v78, v74 offset:swizzle(SWAP,16)            // 000000001C00: D8D4401F 4E00004A
+-	ds_swizzle_b32 v79, v75 offset:swizzle(SWAP,16)            // 000000001C08: D8D4401F 4F00004B
+-	ds_swizzle_b32 v84, v80 offset:swizzle(SWAP,16)            // 000000001C10: D8D4401F 54000050
+-	ds_swizzle_b32 v85, v81 offset:swizzle(SWAP,16)            // 000000001C18: D8D4401F 55000051
+-	ds_swizzle_b32 v86, v82 offset:swizzle(SWAP,16)            // 000000001C20: D8D4401F 56000052
+-	ds_swizzle_b32 v87, v83 offset:swizzle(SWAP,16)            // 000000001C28: D8D4401F 57000053
++	ds_swizzle_b32 v92, v88 offset:swizzle(SWAP,16)            // 000000001BF0: D8D4401F 5C000058
++	ds_swizzle_b32 v93, v89 offset:swizzle(SWAP,16)            // 000000001BF8: D8D4401F 5D000059
++	ds_swizzle_b32 v94, v90 offset:swizzle(SWAP,16)            // 000000001C00: D8D4401F 5E00005A
++	ds_swizzle_b32 v95, v91 offset:swizzle(SWAP,16)            // 000000001C08: D8D4401F 5F00005B
++	ds_swizzle_b32 v100, v96 offset:swizzle(SWAP,16)           // 000000001C10: D8D4401F 64000060
++	ds_swizzle_b32 v101, v97 offset:swizzle(SWAP,16)           // 000000001C18: D8D4401F 65000061
++	ds_swizzle_b32 v102, v98 offset:swizzle(SWAP,16)           // 000000001C20: D8D4401F 66000062
++	ds_swizzle_b32 v103, v99 offset:swizzle(SWAP,16)           // 000000001C28: D8D4401F 67000063
+	s_waitcnt lgkmcnt(0)                                       // 000000001C30: BF89FC07
+-	v_wmma_f32_16x16x16_bf16 v[64:71], v[72:79], v[16:23], v[64:71]// 000000001C34: CC414040 1D022148
+-	v_wmma_f32_16x16x16_bf16 v[64:71], v[80:87], v[24:31], v[64:71]// 000000001C3C: CC414040 1D023150
++	v_wmma_f32_16x16x16_bf16 v[64:71], v[88:95], v[16:23], v[64:71]// 000000001C34: CC414040 1D022158
++	v_wmma_f32_16x16x16_bf16 v[64:71], v[96:103], v[24:31], v[64:71]// 000000001C3C: CC414040 1D023160
+	v_fmac_f32_e32 v40, v64, v104                              // 000000001C44: 5650D140
+	v_fmac_f32_e32 v41, v65, v104                              // 000000001C48: 5652D141
+	v_fmac_f32_e32 v42, v66, v104                              // 000000001C4C: 5654D142
+@@ -174,45 +174,45 @@
+	v_add_nc_u32_e32 v13, s25, v8                              // 000000001C84: 4A1A1019
+	global_load_b128 v[72:75], v13, s[8:9]                     // 000000001C88: DC5E0000 4808000D
+	global_load_b128 v[80:83], v13, s[8:9] offset:32           // 000000001C90: DC5E0020 5008000D
+-	s_waitcnt vmcnt(0)                                         // 000000001C98: BF8903F7
+-	ds_swizzle_b32 v76, v72 offset:swizzle(SWAP,16)            // 000000001C9C: D8D4401F 4C000048
+-	ds_swizzle_b32 v77, v73 offset:swizzle(SWAP,16)            // 000000001CA4: D8D4401F 4D000049
+-	ds_swizzle_b32 v78, v74 offset:swizzle(SWAP,16)            // 000000001CAC: D8D4401F 4E00004A
+-	ds_swizzle_b32 v79, v75 offset:swizzle(SWAP,16)            // 000000001CB4: D8D4401F 4F00004B
+-	ds_swizzle_b32 v84, v80 offset:swizzle(SWAP,16)            // 000000001CBC: D8D4401F 54000050
+-	ds_swizzle_b32 v85, v81 offset:swizzle(SWAP,16)            // 000000001CC4: D8D4401F 55000051
+-	ds_swizzle_b32 v86, v82 offset:swizzle(SWAP,16)            // 000000001CCC: D8D4401F 56000052
+-	ds_swizzle_b32 v87, v83 offset:swizzle(SWAP,16)            // 000000001CD4: D8D4401F 57000053
+-	s_waitcnt lgkmcnt(0)                                       // 000000001CDC: BF89FC07
+-	v_wmma_f32_16x16x16_bf16 v[64:71], v[72:79], v[16:23], v[64:71]// 000000001CE0: CC414040 1D022148
+-	v_wmma_f32_16x16x16_bf16 v[64:71], v[80:87], v[24:31], v[64:71]// 000000001CE8: CC414040 1D023150
+-	v_fmac_f32_e32 v48, v64, v104                              // 000000001CF0: 5660D140
+-	v_fmac_f32_e32 v49, v65, v104                              // 000000001CF4: 5662D141
+-	v_fmac_f32_e32 v50, v66, v104                              // 000000001CF8: 5664D142
+-	v_fmac_f32_e32 v51, v67, v104                              // 000000001CFC: 5666D143
+-	v_fmac_f32_e32 v52, v68, v104                              // 000000001D00: 5668D144
+-	v_fmac_f32_e32 v53, v69, v104                              // 000000001D04: 566AD145
+-	v_fmac_f32_e32 v54, v70, v104                              // 000000001D08: 566CD146
+-	v_fmac_f32_e32 v55, v71, v104                              // 000000001D0C: 566ED147
+-	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0             // 000000001D10: CA100080 40400080
+-	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0             // 000000001D18: CA100080 42420080
+-	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0             // 000000001D20: CA100080 44440080
+-	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0             // 000000001D28: CA100080 46460080
+-	v_add_nc_u32_e32 v13, s26, v8                              // 000000001D30: 4A1A101A
+-	global_load_b128 v[72:75], v13, s[8:9]                     // 000000001D34: DC5E0000 4808000D
+-	global_load_b128 v[80:83], v13, s[8:9] offset:32           // 000000001D3C: DC5E0020 5008000D
++	v_add_nc_u32_e32 v14, s26, v8                              // 000000001C98: 4A1C101A
++	global_load_b128 v[88:91], v14, s[8:9]                     // 000000001C9C: DC5E0000 5808000E
++	global_load_b128 v[96:99], v14, s[8:9] offset:32           // 000000001CA4: DC5E0020 6008000E
++	s_waitcnt vmcnt(2)                                         // 000000001CAC: BF890BF7
++	ds_swizzle_b32 v76, v72 offset:swizzle(SWAP,16)            // 000000001CB0: D8D4401F 4C000048
++	ds_swizzle_b32 v77, v73 offset:swizzle(SWAP,16)            // 000000001CB8: D8D4401F 4D000049
++	ds_swizzle_b32 v78, v74 offset:swizzle(SWAP,16)            // 000000001CC0: D8D4401F 4E00004A
++	ds_swizzle_b32 v79, v75 offset:swizzle(SWAP,16)            // 000000001CC8: D8D4401F 4F00004B
++	ds_swizzle_b32 v84, v80 offset:swizzle(SWAP,16)            // 000000001CD0: D8D4401F 54000050
++	ds_swizzle_b32 v85, v81 offset:swizzle(SWAP,16)            // 000000001CD8: D8D4401F 55000051
++	ds_swizzle_b32 v86, v82 offset:swizzle(SWAP,16)            // 000000001CE0: D8D4401F 56000052
++	ds_swizzle_b32 v87, v83 offset:swizzle(SWAP,16)            // 000000001CE8: D8D4401F 57000053
++	s_waitcnt lgkmcnt(0)                                       // 000000001CF0: BF89FC07
++	v_wmma_f32_16x16x16_bf16 v[64:71], v[72:79], v[16:23], v[64:71]// 000000001CF4: CC414040 1D022148
++	v_wmma_f32_16x16x16_bf16 v[64:71], v[80:87], v[24:31], v[64:71]// 000000001CFC: CC414040 1D023150
++	v_fmac_f32_e32 v48, v64, v104                              // 000000001D04: 5660D140
++	v_fmac_f32_e32 v49, v65, v104                              // 000000001D08: 5662D141
++	v_fmac_f32_e32 v50, v66, v104                              // 000000001D0C: 5664D142
++	v_fmac_f32_e32 v51, v67, v104                              // 000000001D10: 5666D143
++	v_fmac_f32_e32 v52, v68, v104                              // 000000001D14: 5668D144
++	v_fmac_f32_e32 v53, v69, v104                              // 000000001D18: 566AD145
++	v_fmac_f32_e32 v54, v70, v104                              // 000000001D1C: 566CD146
++	v_fmac_f32_e32 v55, v71, v104                              // 000000001D20: 566ED147
++	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0             // 000000001D24: CA100080 40400080
++	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0             // 000000001D2C: CA100080 42420080
++	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0             // 000000001D34: CA100080 44440080
++	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0             // 000000001D3C: CA100080 46460080
+	s_waitcnt vmcnt(0)                                         // 000000001D44: BF8903F7
+-	ds_swizzle_b32 v76, v72 offset:swizzle(SWAP,16)            // 000000001D48: D8D4401F 4C000048
+-	ds_swizzle_b32 v77, v73 offset:swizzle(SWAP,16)            // 000000001D50: D8D4401F 4D000049
+-	ds_swizzle_b32 v78, v74 offset:swizzle(SWAP,16)            // 000000001D58: D8D4401F 4E00004A
+-	ds_swizzle_b32 v79, v75 offset:swizzle(SWAP,16)            // 000000001D60: D8D4401F 4F00004B
+-	ds_swizzle_b32 v84, v80 offset:swizzle(SWAP,16)            // 000000001D68: D8D4401F 54000050
+-	ds_swizzle_b32 v85, v81 offset:swizzle(SWAP,16)            // 000000001D70: D8D4401F 55000051
+-	ds_swizzle_b32 v86, v82 offset:swizzle(SWAP,16)            // 000000001D78: D8D4401F 56000052
+-	ds_swizzle_b32 v87, v83 offset:swizzle(SWAP,16)            // 000000001D80: D8D4401F 57000053
++	ds_swizzle_b32 v92, v88 offset:swizzle(SWAP,16)            // 000000001D48: D8D4401F 5C000058
++	ds_swizzle_b32 v93, v89 offset:swizzle(SWAP,16)            // 000000001D50: D8D4401F 5D000059
++	ds_swizzle_b32 v94, v90 offset:swizzle(SWAP,16)            // 000000001D58: D8D4401F 5E00005A
++	ds_swizzle_b32 v95, v91 offset:swizzle(SWAP,16)            // 000000001D60: D8D4401F 5F00005B
++	ds_swizzle_b32 v100, v96 offset:swizzle(SWAP,16)           // 000000001D68: D8D4401F 64000060
++	ds_swizzle_b32 v101, v97 offset:swizzle(SWAP,16)           // 000000001D70: D8D4401F 65000061
++	ds_swizzle_b32 v102, v98 offset:swizzle(SWAP,16)           // 000000001D78: D8D4401F 66000062
++	ds_swizzle_b32 v103, v99 offset:swizzle(SWAP,16)           // 000000001D80: D8D4401F 67000063
+	s_waitcnt lgkmcnt(0)                                       // 000000001D88: BF89FC07
+-	v_wmma_f32_16x16x16_bf16 v[64:71], v[72:79], v[16:23], v[64:71]// 000000001D8C: CC414040 1D022148
+-	v_wmma_f32_16x16x16_bf16 v[64:71], v[80:87], v[24:31], v[64:71]// 000000001D94: CC414040 1D023150
++	v_wmma_f32_16x16x16_bf16 v[64:71], v[88:95], v[16:23], v[64:71]// 000000001D8C: CC414040 1D022158
++	v_wmma_f32_16x16x16_bf16 v[64:71], v[96:103], v[24:31], v[64:71]// 000000001D94: CC414040 1D023160
+	v_fmac_f32_e32 v56, v64, v104                              // 000000001D9C: 5670D140
+	v_fmac_f32_e32 v57, v65, v104                              // 000000001DA0: 5672D141
+	v_fmac_f32_e32 v58, v66, v104                              // 000000001DA4: 5674D142
