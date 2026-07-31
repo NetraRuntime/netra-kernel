@@ -1,0 +1,41 @@
+{
+  "target": "gfx1151",
+  "date": "2026-07-31",
+  "model": "Qwen3.6-35B-A3B",
+  "checkpoint_quantization": "MXFP4",
+  "measurement_status": "measured",
+  "estimated_values": false,
+  "status": "rejected",
+  "production_changed": false,
+  "production_hsaco_sha256": "0ddd7d7d30d17b3d2594c7fbabd9b552c53f8a19f6bd290fed7df6011eaff372",
+  "resource_invariants": {"workgroup_size": 256, "wavefront_size": 32, "vgpr": 248, "sgpr": 128, "lds_bytes": 65536, "scratch_bytes": 0, "kernarg_bytes": 72},
+  "hip_event_four_prefix_results": [
+    {"variant": "combined_kv_preload", "samples_per_prefix": 31, "baseline_sum_ms": 512.065275, "candidate_sum_ms": 510.155809, "speedup": 1.003742907, "bit_exact": true, "decision": "rejected"},
+    {"variant": "v_only_preload", "samples_per_prefix": 11, "baseline_sum_ms": 511.446938, "candidate_sum_ms": 512.519020, "speedup": 0.997908209, "bit_exact": true, "decision": "rejected"},
+    {"variant": "k_only_preload", "samples_per_prefix": 31, "baseline_sum_ms": 511.058306, "candidate_sum_ms": 509.177034, "speedup": 1.003694729, "bit_exact": true, "decision": "rejected_after_serving"},
+    {"variant": "warm_k", "samples_per_prefix": 11, "baseline_sum_ms": 512.298676, "candidate_sum_ms": 511.449387, "speedup": 1.001660553, "bit_exact": true, "decision": "rejected"},
+    {"variant": "true_next_k_pipeline", "samples_per_prefix": 11, "baseline_sum_ms": 510.841000, "candidate_sum_ms": 537.292051, "speedup": 0.950769695, "bit_exact": true, "decision": "rejected"}
+  ],
+  "k_only_rocprofv3": {
+    "waves": {"baseline": 8192, "candidate": 8192},
+    "fetched_kib": {"baseline": 25941007.4375, "candidate": 26658856.5625},
+    "sq_busy_cycles": {"baseline": 13086351686, "candidate": 12695758620},
+    "l2_hit_percent": {"baseline": 7.736016, "candidate": 8.045398},
+    "occupancy_percent_valid_rerun": {"baseline": 10.038756, "candidate": 10.392719, "samples_each": 1},
+    "invalid_excluded": ["initial occupancy collection", "candidate MemUnitBusy rerun", "saturated SQ_WAVE_CYCLES"],
+    "signal_handlers_disabled": true
+  },
+  "serving_32768_plus1": {
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "cached_tokens": 0,
+    "paired_cases": 2,
+    "production_median_host_e2e_ms": 20818.101633,
+    "candidate_median_host_e2e_ms": 20793.8770875,
+    "candidate_delta_percent": -0.1163629,
+    "pair_deltas_ms": [1.702584, -50.151675],
+    "tokens_bit_exact": true,
+    "decision": "rejected_as_noise"
+  },
+  "disassembly_static_counts": {"baseline_instruction_lines": 6695, "k_only_instruction_lines": 6784, "true_pipeline_instruction_lines": 7077, "baseline_global_load_sites": 80, "candidate_global_load_sites": 112, "baseline_wait_sites": 307, "k_only_wait_sites": 307, "true_pipeline_wait_sites": 309, "barrier_sites_all": 4, "wmma_sites_all": 128}
+}
