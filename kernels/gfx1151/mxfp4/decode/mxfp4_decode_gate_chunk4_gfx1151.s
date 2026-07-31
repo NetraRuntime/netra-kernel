@@ -4,6 +4,8 @@
 //
 // Fixed real Qwen3.6-35B-A3B gate/up shape:
 //   8 selected experts, N=512, K=2048, four MX blocks per workgroup.
+// Eight packed-weight and activation pairs are issued before each full
+// dependency wait; arithmetic order and reduction tree remain unchanged.
 //
 // Inputs are load-time repacked (not dequantized):
 //   packed: [8, K/2, N] u8, adjacent K nibbles in each byte
@@ -134,50 +136,44 @@ mxfp4_decode_gate_chunk4_gfx1151:
 
 	// 32 K values = 16 packed rows. The row stride is N=512 bytes;
 	// the scalar activation offset is row*4 bytes.
-	LOAD_ROW v16, s20, 0,    0
-	LOAD_ROW v17, s21, 512,  4
-	s_waitcnt vmcnt(0) lgkmcnt(0)
-	DECODE_DOT v16, s20
-	LOAD_ROW v16, s20, 1024, 8
-	DECODE_DOT v17, s21
-	LOAD_ROW v17, s21, 1536, 12
-	s_waitcnt vmcnt(0) lgkmcnt(0)
-	DECODE_DOT v16, s20
-	LOAD_ROW v16, s20, 2048, 16
-	DECODE_DOT v17, s21
-	LOAD_ROW v17, s21, 2560, 20
-	s_waitcnt vmcnt(0) lgkmcnt(0)
-	DECODE_DOT v16, s20
-	LOAD_ROW v16, s20, 3072, 24
-	DECODE_DOT v17, s21
-	LOAD_ROW v17, s21, 3584, 28
+	LOAD_ROW v16, s20, 0, 0
+	LOAD_ROW v17, s21, 512, 4
+	LOAD_ROW v34, s26, 1024, 8
+	LOAD_ROW v35, s27, 1536, 12
+	LOAD_ROW v36, s28, 2048, 16
+	LOAD_ROW v37, s29, 2560, 20
+	LOAD_ROW v38, s30, 3072, 24
+	LOAD_ROW v39, s31, 3584, 28
 	s_waitcnt vmcnt(0) lgkmcnt(0)
 	DECODE_DOT v16, s20
 	DECODE_DOT v17, s21
+	DECODE_DOT v34, s26
+	DECODE_DOT v35, s27
+	DECODE_DOT v36, s28
+	DECODE_DOT v37, s29
+	DECODE_DOT v38, s30
+	DECODE_DOT v39, s31
 
 	s_add_u32 s4, s4, 4096
 	s_addc_u32 s5, s5, 0
 	s_waitcnt_depctr 0
-	LOAD_ROW v16, s20, 0,    32
-	LOAD_ROW v17, s21, 512,  36
-	s_waitcnt vmcnt(0) lgkmcnt(0)
-	DECODE_DOT v16, s20
-	LOAD_ROW v16, s20, 1024, 40
-	DECODE_DOT v17, s21
-	LOAD_ROW v17, s21, 1536, 44
-	s_waitcnt vmcnt(0) lgkmcnt(0)
-	DECODE_DOT v16, s20
-	LOAD_ROW v16, s20, 2048, 48
-	DECODE_DOT v17, s21
-	LOAD_ROW v17, s21, 2560, 52
-	s_waitcnt vmcnt(0) lgkmcnt(0)
-	DECODE_DOT v16, s20
-	LOAD_ROW v16, s20, 3072, 56
-	DECODE_DOT v17, s21
-	LOAD_ROW v17, s21, 3584, 60
+	LOAD_ROW v16, s20, 0, 32
+	LOAD_ROW v17, s21, 512, 36
+	LOAD_ROW v34, s26, 1024, 40
+	LOAD_ROW v35, s27, 1536, 44
+	LOAD_ROW v36, s28, 2048, 48
+	LOAD_ROW v37, s29, 2560, 52
+	LOAD_ROW v38, s30, 3072, 56
+	LOAD_ROW v39, s31, 3584, 60
 	s_waitcnt vmcnt(0) lgkmcnt(0)
 	DECODE_DOT v16, s20
 	DECODE_DOT v17, s21
+	DECODE_DOT v34, s26
+	DECODE_DOT v35, s27
+	DECODE_DOT v36, s28
+	DECODE_DOT v37, s29
+	DECODE_DOT v38, s30
+	DECODE_DOT v39, s31
 
 	s_waitcnt vmcnt(0)
 	// Apply four per-column E8M0 scales before accumulating the chunk.
@@ -225,8 +221,8 @@ mxfp4_decode_gate_chunk4_gfx1151:
 		.amdhsa_system_sgpr_workgroup_id_y 1
 		.amdhsa_system_sgpr_workgroup_id_z 0
 		.amdhsa_system_vgpr_workitem_id 0
-		.amdhsa_next_free_vgpr 34
-		.amdhsa_next_free_sgpr 26
+		.amdhsa_next_free_vgpr 40
+		.amdhsa_next_free_sgpr 32
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_round_mode_32 0
 		.amdhsa_float_round_mode_16_64 0
@@ -286,12 +282,12 @@ amdhsa.kernels:
     .max_flat_workgroup_size: 128
     .name: mxfp4_decode_gate_chunk4_gfx1151
     .private_segment_fixed_size: 0
-    .sgpr_count: 26
+    .sgpr_count: 32
     .sgpr_spill_count: 0
     .symbol: mxfp4_decode_gate_chunk4_gfx1151.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count: 34
+    .vgpr_count: 40
     .vgpr_spill_count: 0
     .wavefront_size: 32
     .workgroup_processor_mode: 1

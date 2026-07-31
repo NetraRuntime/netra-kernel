@@ -1,0 +1,192 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "date": "2026-07-31",
+  "model": "Qwen3.6-35B-A3B",
+  "checkpoint_quantization": "MXFP4",
+  "candidate": {
+    "kernel": "mxfp4_decode_gate_chunk4_gfx1151",
+    "shape": "M1 selected8 N512 K2048",
+    "change": "issue eight packed-weight and activation load pairs before each full dependency wait",
+    "abi": {
+      "symbol_unchanged": true,
+      "kernarg_bytes": 40,
+      "kernarg_alignment": 8,
+      "grid": [
+        1,
+        128,
+        1
+      ],
+      "workgroup": [
+        128,
+        1,
+        1
+      ],
+      "lds_bytes": 0,
+      "scratch_bytes": 0,
+      "wavefront_size": 32
+    },
+    "hsaco_sha256_before": "7ebefa5aa26bc14d8148fe7661ecb13a90b164c8792a1d58ef70018baeabad14",
+    "hsaco_sha256_after": "b712e54a55335331d035daefe82f2d2ab5bc76f85db5233c8f0c381170e0e451"
+  },
+  "correctness": {
+    "real_checkpoint_layers": 40,
+    "real_fp32_values_compared": 327680,
+    "real_fp32_bit_mismatches": 0,
+    "real_max_abs": 0.0,
+    "fp64_oracle_max_abs_before": 9.596347809e-06,
+    "fp64_oracle_max_abs_after": 9.596347809e-06,
+    "fp64_oracle_mean_abs_before": 1.458880433e-06,
+    "fp64_oracle_mean_abs_after": 1.458880433e-06,
+    "eager_tokens_bit_exact": true,
+    "full_graph_tokens_bit_exact": true
+  },
+  "hip_events": {
+    "real_40_layer_80_gate_up_pairs_ms": {
+      "before_median": 2.8482669591903687,
+      "after_median": 2.313804030418396,
+      "speedup": 1.230988848556603,
+      "saved_ms_per_decode_token_equivalent": 0.5344629287719727
+    },
+    "synthetic_fp64_oracle_pair_us": {
+      "before_median": 13.69554424,
+      "after_median": 12.45053387,
+      "speedup": 1.099996545
+    }
+  },
+  "rocprofv3_counters": {
+    "method": "one counter per fresh process; signal handlers disabled",
+    "before": {
+      "FETCH_SIZE_KiB": 2180.5625,
+      "L2CacheHit_pct": 6.989626,
+      "MeanOccupancyPerActiveCU": 24.706175,
+      "OccupancyPercent": 28.064004,
+      "MemUnitBusy_pct": 63.691517,
+      "SQ_WAVES": 512,
+      "SQ_WAVE_CYCLES": 18143345,
+      "VALUInsts": 1600,
+      "WRITE_SIZE_KiB": 0
+    },
+    "after": {
+      "FETCH_SIZE_KiB": 2180.5625,
+      "L2CacheHit_pct": 6.957529,
+      "MeanOccupancyPerActiveCU": 24.336411,
+      "OccupancyPercent": 26.715705,
+      "MemUnitBusy_pct": 48.736265,
+      "SQ_WAVES": 512,
+      "SQ_WAVE_CYCLES": 16452879,
+      "VALUInsts": 1600,
+      "WRITE_SIZE_KiB": 0
+    },
+    "sq_wave_cycles_delta_pct": -9.317288
+  },
+  "serving": {
+    "eager_1_input_128_output_uncached": {
+      "paired_cases": 4,
+      "before_host_e2e_median_ms": 3151.1090265,
+      "after_host_e2e_median_ms": 3074.64042,
+      "delta_pct": -2.4267204294,
+      "before_output_tps_median": 41.1286058283,
+      "after_output_tps_median": 42.1859821351,
+      "before_ttft_median_ms": 61.7658845,
+      "after_ttft_median_ms": 63.551948,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    },
+    "full_graph_1_input_128_output_uncached": {
+      "paired_cases": 4,
+      "before_host_e2e_median_ms": 3170.706381,
+      "after_host_e2e_median_ms": 3093.7474765,
+      "delta_pct": -2.4271848368,
+      "before_output_tps_median": 40.7351543562,
+      "after_output_tps_median": 41.7209827807,
+      "before_ttft_median_ms": 49.930729,
+      "after_ttft_median_ms": 49.732603,
+      "graph_mode": "full-decode-tiers-1-2-4-8-12-16",
+      "dflash_mode": "disabled"
+    },
+    "eager_210_input_128_output_uncached": {
+      "paired_cases": 4,
+      "before_host_e2e_median_ms": 3543.4116725,
+      "after_host_e2e_median_ms": 3479.5937495,
+      "delta_pct": -1.8010304446,
+      "before_output_tps_median": 40.7552169315,
+      "after_output_tps_median": 41.6725511061,
+      "before_ttft_median_ms": 426.8882165,
+      "after_ttft_median_ms": 428.189851,
+      "before_input_tps_median": 492.1465247253,
+      "after_input_tps_median": 490.7759817036,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    }
+  },
+  "complete_trace_1_input_32_output_eager": {
+    "wall_ms": 837.557369,
+    "kernel_gpu_ms": 739.522391,
+    "positive_launch_gaps_ms": 103.676465,
+    "kernel_launches": 31926,
+    "gate_compute_ms": 69.287148,
+    "gate_mean_us": 26.485912844,
+    "gate_invocations": 2616,
+    "top_kernels_ms": [
+      [
+        "bf16_lm_head_decode_wave1_wg64_gfx1151",
+        159.786
+      ],
+      [
+        "bf16_qkv_decode_wave1_wide128_gfx1151",
+        96.415
+      ],
+      [
+        "mxfp4_decode_gate_chunk4_gfx1151",
+        69.287
+      ],
+      [
+        "mxfp4_linear_decode_n12800_k2048_block64_gfx1151",
+        68.696
+      ],
+      [
+        "bf16_shared_gate_up_silu_decode_wide128_gfx1151",
+        67.322
+      ]
+    ]
+  },
+  "rejected_experiments": [
+    {
+      "family": "N12800 K2048 GDN projection",
+      "variants": "load batch4/batch8, WG128/WG64/WG32",
+      "correctness": "all 30 real GDN layers bit-exact",
+      "best_speedup": 1.01427,
+      "decision": "reject: within noise"
+    },
+    {
+      "family": "N12800 K2048 GDN projection",
+      "variants": "persistent MX blocks 2/4/8/16 with batch2/batch4",
+      "correctness": "bit-exact",
+      "result": "neutral to 6.8% slower",
+      "decision": "reject"
+    },
+    {
+      "family": "BF16 LM head",
+      "variants": "WG256 LDS 4KiB activation reuse",
+      "correctness": "10 activations and argmax bit-exact",
+      "before_ms": 5.01092,
+      "after_ms": 5.246644,
+      "delta_pct": 4.7,
+      "decision": "reject"
+    },
+    {
+      "family": "BF16 router",
+      "variants": "wave1 instead of wave2",
+      "correctness": "all 40 layers FP32 and top8 bit-exact",
+      "before_ms_per_40": 1.04901,
+      "after_ms_per_40": 1.081189,
+      "delta_pct": 3.07,
+      "decision": "reject"
+    }
+  ],
+  "profiler_negative": {
+    "windowed_collection": "request completed but profiler exited 137 and emitted no kernel CSV; rejected",
+    "process_start_collection": "valid kernel and HIP CSV produced; used for complete trace"
+  }
+}
