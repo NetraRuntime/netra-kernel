@@ -1,0 +1,186 @@
+{
+  "target": "gfx1151",
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "model": "Qwen3.6-35B-A3B",
+  "measurement_status": "measured",
+  "estimated_values": false,
+  "decision": "rejected",
+  "reason": "cold full-request fused compute cost increased more than launch gaps decreased",
+  "shape": {
+    "selected_experts": 8,
+    "n": 512,
+    "k": 2048,
+    "weight_format": "MXFP4",
+    "output_dtype": "BF16"
+  },
+  "baseline": {
+    "launches_per_stage": 5,
+    "compute_hsaco_sha256": "7ebefa5aa26bc14d8148fe7661ecb13a90b164c8792a1d58ef70018baeabad14",
+    "reducer_hsaco_sha256": "7a4478e57d2a7d0dafc10c08c032947be4db0075475055b8957600802dc62622",
+    "silu_hsaco_sha256": "4baaace32626351388370c30336dddd44429b9cd8106446c502ef834c5a8d007"
+  },
+  "candidate": {
+    "launches_per_stage": 2,
+    "compute_source": "kernels/gfx1151/mxfp4/decode/experiments/mxfp4_decode_gate_up_chunk4_fused_gfx1151.s",
+    "compute_symbol": "mxfp4_decode_gate_up_chunk4_fused_gfx1151",
+    "compute_hsaco_sha256": "8fd6a67f86202befdaf08462da5605b9d15e0a4cd1e4830f95901fd6589fc850",
+    "compute_grid": [
+      1,
+      128,
+      1
+    ],
+    "compute_workgroup": [
+      128,
+      1,
+      1
+    ],
+    "compute_kernarg_bytes": 56,
+    "compute_allocated_vgpr": 48,
+    "compute_allocated_sgpr": 128,
+    "compute_lds_bytes": 0,
+    "compute_scratch_bytes": 0,
+    "reducer_source": "kernels/gfx1151/mxfp4/decode/experiments/mxfp4_decode_gate_up_chunk4_reduce_silu_gfx1151.s",
+    "reducer_symbol": "mxfp4_decode_gate_up_chunk4_reduce_silu_gfx1151",
+    "reducer_hsaco_sha256": "4d19232971bfe54555416f2f4b4f9d6753663c479ca55e1c98f03e17e2224a03",
+    "reducer_grid": [
+      2,
+      8,
+      1
+    ],
+    "reducer_workgroup": [
+      128,
+      1,
+      1
+    ],
+    "reducer_kernarg_bytes": 16,
+    "reducer_allocated_vgpr": 24,
+    "reducer_allocated_sgpr": 128,
+    "reducer_lds_bytes": 0,
+    "reducer_scratch_bytes": 0,
+    "production_enabled": false
+  },
+  "correctness": {
+    "synthetic_partial_byte_mismatches": 0,
+    "synthetic_output_bf16_mismatches": 0,
+    "real_checkpoint_layers": [
+      0,
+      10,
+      20,
+      30
+    ],
+    "real_checkpoint_experts_per_layer": 8,
+    "real_partial_byte_mismatches": 0,
+    "real_output_bf16_mismatches": 0,
+    "serving_output_hash_matches": 5,
+    "serving_output_hash_total": 5
+  },
+  "hip_event_cache_hot_us": {
+    "synthetic": {
+      "baseline": 29.519962,
+      "candidate": 19.851763,
+      "speedup": 1.48702
+    },
+    "real_layer_0": {
+      "baseline": 29.484863,
+      "candidate": 19.780167,
+      "speedup": 1.490628
+    },
+    "real_layer_10": {
+      "baseline": 29.384619,
+      "candidate": 19.649019,
+      "speedup": 1.495475
+    },
+    "real_layer_20": {
+      "baseline": 29.392258,
+      "candidate": 19.699841,
+      "speedup": 1.492005
+    },
+    "real_layer_30": {
+      "baseline": 29.442551,
+      "candidate": 19.754187,
+      "speedup": 1.490446
+    }
+  },
+  "complete_trace": {
+    "scope": {
+      "input_tokens": 1,
+      "output_tokens": 32,
+      "cached_tokens": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    },
+    "signal_6": false,
+    "baseline": {
+      "host_wall_ms": 860.873222,
+      "total_kernel_gpu_ms": 767.885207,
+      "positive_launch_gap_ms": 95.74182,
+      "kernel_launches": 31444,
+      "kernel_wall_percent": 89.198408,
+      "gap_wall_percent": 11.121477,
+      "gate_up_compute_invocations": 2574,
+      "gate_up_compute_gpu_ms": 83.774203,
+      "reducers_gpu_ms": 4.239313,
+      "silu_gpu_ms": 1.599005,
+      "stage_gpu_ms": 89.612521
+    },
+    "candidate": {
+      "host_wall_ms": 866.111436,
+      "total_kernel_gpu_ms": 782.023512,
+      "positive_launch_gap_ms": 87.769863,
+      "kernel_launches": 27551,
+      "kernel_wall_percent": 90.291327,
+      "gap_wall_percent": 10.133784,
+      "fused_compute_invocations": 1285,
+      "fused_compute_gpu_ms": 94.794857,
+      "fused_compute_mean_us": 73.770317,
+      "fused_compute_median_us": 75.903,
+      "fused_reducer_silu_gpu_ms": 2.775812,
+      "stage_gpu_ms": 97.570669
+    },
+    "derived_change": {
+      "stage_gpu_percent": 8.880621,
+      "fused_compute_vs_separate_compute_percent": 13.151604,
+      "launches": -3893,
+      "launch_count_percent": -12.38074,
+      "positive_launch_gap_ms": -7.971957,
+      "positive_launch_gap_percent": -8.326515
+    }
+  },
+  "serving": {
+    "scope": {
+      "input_tokens": 1,
+      "output_tokens": 128,
+      "cached_tokens": 0,
+      "batch": 1,
+      "samples": 5,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    },
+    "baseline": {
+      "ttft_ms_median": 59.268558,
+      "decode_ms_median": 3169.603517,
+      "output_tps_median": 40.068102941,
+      "e2e_ms_median": 3227.875693,
+      "peak_vram_bytes_max": 77441310720
+    },
+    "candidate": {
+      "ttft_ms_median": 59.401664,
+      "decode_ms_median": 3177.392215,
+      "output_tps_median": 39.969884549,
+      "e2e_ms_median": 3236.173748,
+      "peak_vram_bytes_max": 78067843072
+    },
+    "derived_change": {
+      "ttft_percent": 0.224575,
+      "decode_ms_percent": 0.245731,
+      "output_tps_percent": -0.245129,
+      "e2e_ms_percent": 0.257075
+    }
+  },
+  "artifacts": {
+    "harness": "scripts/rocm/harness/gfx1151/mxfp4/benchmark_decode_gate_up_chunk4_fused.hip",
+    "baseline_trace": "results/profiles/gfx1151/attn-oproj-wide128-qkv-wide128-shared-wide128-complete-eager-b1-1-plus32-20260731",
+    "candidate_trace": "results/profiles/gfx1151/gate-up-chunk4-fused-attn-oproj-qkv-shared-wide128-complete-eager-b1-1-plus32-20260731",
+    "disassembly": "docs/netra/notes/gfx1151-gate-up-chunk4-fusion-rejection-disassembly-2026-07-31"
+  }
+}
