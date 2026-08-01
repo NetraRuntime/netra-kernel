@@ -77,7 +77,8 @@ int main(int argc, char** argv) {
     const std::string base = argv[2];
     const std::string sort = argv[3];
     const int iterations = argc >= 5 ? std::stoi(argv[4]) : 50;
-    const bool run_quant = true;
+    const bool fused_quant = std::getenv("NETRA_KERNEL_FUSED_QUANT") != nullptr;
+    const bool run_quant = !fused_quant;
     const bool run_down = true;
     const std::string quant_co_path = argv[5];
     if (iterations < 2) throw std::runtime_error("iterations must be >= 2");
@@ -181,7 +182,11 @@ int main(int argc, char** argv) {
     void* args[] = {&d_hidden.ptr, &d_hidden_scale.ptr, &d_w13.ptr,
                     &d_w13_scale.ptr, &d_sorted.ptr, &d_experts.ptr,
                     &d_valid.ptr, &output_pointer, &token_rows};
-    unsigned grid_x = 8;
+    void* fused_args[] = {
+        &d_hidden.ptr, &d_hidden_scale.ptr, &d_w13.ptr, &d_w13_scale.ptr,
+        &d_sorted.ptr, &d_experts.ptr, &d_valid.ptr, &d_activation.ptr,
+        &d_activation_scale.ptr, &token_rows};
+    unsigned grid_x = fused_quant ? 4 : 8;
     unsigned grid_y = static_cast<unsigned>(valid / 64);
     if (const char* value = std::getenv("NETRA_GRID_X")) grid_x = std::stoul(value);
     if (const char* value = std::getenv("NETRA_GRID_Y")) grid_y = std::stoul(value);
@@ -189,7 +194,8 @@ int main(int argc, char** argv) {
       throw std::runtime_error("debug grid is out of range");
     auto launch = [&] {
       HIP_CHECK(hipModuleLaunchKernel(function, grid_x, grid_y, 1,
-                                      256, 1, 1, 0, nullptr, args, nullptr));
+                                      256, 1, 1, 0, nullptr,
+                                      fused_quant ? fused_args : args, nullptr));
     };
     int route_count = routes;
     void* quant_args[] = {&d_activation_bf16.ptr, &d_activation.ptr,
@@ -241,22 +247,24 @@ int main(int argc, char** argv) {
     std::vector<float> down_kernel_samples;
     std::vector<float> reduce_samples;
     std::vector<float> complete_samples;
-    if (run_quant) {
+    if (run_quant || fused_quant) {
       launch();
-      HIP_CHECK(hipDeviceSynchronize());
-      for (int i = 0; i < iterations; ++i) {
-        HIP_CHECK(hipEventRecord(start));
-        launch_quant();
-        HIP_CHECK(hipEventRecord(stop));
-        HIP_CHECK(hipEventSynchronize(stop));
-        float milliseconds = 0;
-        HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
-        quant_samples.push_back(milliseconds * 1000.0f);
+      if (run_quant) {
+        HIP_CHECK(hipDeviceSynchronize());
+        for (int i = 0; i < iterations; ++i) {
+          HIP_CHECK(hipEventRecord(start));
+          launch_quant();
+          HIP_CHECK(hipEventRecord(stop));
+          HIP_CHECK(hipEventSynchronize(stop));
+          float milliseconds = 0;
+          HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
+          quant_samples.push_back(milliseconds * 1000.0f);
+        }
       }
       for (int i = 0; i < iterations; ++i) {
         HIP_CHECK(hipEventRecord(start));
         launch();
-        launch_quant();
+        if (run_quant) launch_quant();
         HIP_CHECK(hipEventRecord(stop));
         HIP_CHECK(hipEventSynchronize(stop));
         float milliseconds = 0;
@@ -265,7 +273,7 @@ int main(int argc, char** argv) {
       }
       if (run_down) {
         launch();
-        launch_quant();
+        if (run_quant) launch_quant();
         HIP_CHECK(hipDeviceSynchronize());
         for (int i = 0; i < iterations; ++i) {
           HIP_CHECK(hipEventRecord(start));
@@ -290,7 +298,7 @@ int main(int argc, char** argv) {
         for (int i = 0; i < iterations; ++i) {
           HIP_CHECK(hipEventRecord(start));
           launch();
-          launch_quant();
+          if (run_quant) launch_quant();
           launch_down();
           HIP_CHECK(hipEventRecord(stop));
           HIP_CHECK(hipEventSynchronize(stop));
@@ -308,36 +316,40 @@ int main(int argc, char** argv) {
     double sum_abs = 0.0, dot = 0.0, actual_norm = 0.0, expected_norm = 0.0;
     float max_abs = 0.0f;
     bool finite = true;
-    HIP_CHECK(hipMemcpy(
-        activation_bf16.data(), d_activation_bf16.ptr,
-        activation_bf16.size() * sizeof(uint16_t), hipMemcpyDeviceToHost));
-    for (int route = 0; route < routes; ++route) {
-      for (int col = 0; col < n; ++col) {
-        const size_t index = static_cast<size_t>(route) * n + col;
-        const uint16_t a_bits = activation_bf16[index];
-        const uint16_t e_bits = expected[index];
-        mismatches += a_bits != e_bits;
-        const float a = bf16_to_float(a_bits), e = bf16_to_float(e_bits);
-        const float error = std::abs(a - e);
-        finite = finite && std::isfinite(a);
-        max_abs = std::max(max_abs, error); sum_abs += error;
-        dot += static_cast<double>(a) * e;
-        actual_norm += static_cast<double>(a) * a;
-        expected_norm += static_cast<double>(e) * e;
-        ++compared;
+    double cosine = 1.0;
+    bool correct = true;
+    if (!fused_quant) {
+      HIP_CHECK(hipMemcpy(
+          activation_bf16.data(), d_activation_bf16.ptr,
+          activation_bf16.size() * sizeof(uint16_t), hipMemcpyDeviceToHost));
+      for (int route = 0; route < routes; ++route) {
+        for (int col = 0; col < n; ++col) {
+          const size_t index = static_cast<size_t>(route) * n + col;
+          const uint16_t a_bits = activation_bf16[index];
+          const uint16_t e_bits = expected[index];
+          mismatches += a_bits != e_bits;
+          const float a = bf16_to_float(a_bits), e = bf16_to_float(e_bits);
+          const float error = std::abs(a - e);
+          finite = finite && std::isfinite(a);
+          max_abs = std::max(max_abs, error); sum_abs += error;
+          dot += static_cast<double>(a) * e;
+          actual_norm += static_cast<double>(a) * a;
+          expected_norm += static_cast<double>(e) * e;
+          ++compared;
+        }
       }
+      cosine = dot / std::sqrt(actual_norm * expected_norm);
+      correct = finite && max_abs <= 0.03125f && cosine >= 0.99999;
     }
     double mean = 0.0;
     for (float value : samples) mean += value;
     mean /= samples.size();
-    const double cosine = dot / std::sqrt(actual_norm * expected_norm);
     // Predeclared before running the paired candidate. Downstream FP8 and full
     // output gates remain the stronger inherited raw-M16 acceptance checks.
-    const bool correct = finite && max_abs <= 0.03125f && cosine >= 0.99999;
     size_t activation_byte_mismatches = 0;
     double scale_max_abs = 0.0;
     bool quant_correct = true;
-    if (run_quant) {
+    if (run_quant || fused_quant) {
       std::vector<uint8_t> activation(reference_activation.size());
       std::vector<float> activation_scale(
           reference_activation_scale.size() / sizeof(float));
@@ -412,7 +424,8 @@ int main(int argc, char** argv) {
                      full_aiter_cosine >= 0.9999645;
     }
     std::cout << "architecture=" << props.gcnArchName << "\n"
-              << "block_m=64\nvalid_sorted_ids=" << valid << "\n"
+              << "block_m=64\nfused_quant=" << fused_quant
+              << "\nvalid_sorted_ids=" << valid << "\n"
               << "valid_blocks=" << valid / 64 << "\n"
               << "launched_grid=" << grid_x << "x" << grid_y << "\n"
               << "compared_elements=" << compared << "\n"
@@ -428,17 +441,19 @@ int main(int argc, char** argv) {
               << "p90_us=" << percentile(samples, 0.9) << "\n"
               << "min_us=" << *std::min_element(samples.begin(), samples.end()) << "\n"
               << "max_us=" << *std::max_element(samples.begin(), samples.end()) << "\n";
-    if (run_quant) {
+    if (run_quant || fused_quant) {
       std::cout << "activation_fp8_byte_mismatches="
                 << activation_byte_mismatches << "/"
                 << reference_activation.size() << "\n"
                 << "activation_scale_max_abs=" << scale_max_abs << "\n"
                 << "activation_correctness_gate="
                 << (quant_correct ? "pass" : "fail") << "\n"
-                << "activation_reference_gate=validated_raw_m16_stage6\n"
-                << "quant_median_us=" << percentile(quant_samples, 0.5) << "\n"
-                << "quant_p90_us=" << percentile(quant_samples, 0.9) << "\n"
-                << "paired_quant_median_us="
+                << "activation_reference_gate=validated_raw_m16_stage6\n";
+      if (run_quant) {
+        std::cout << "quant_median_us=" << percentile(quant_samples, 0.5) << "\n"
+                  << "quant_p90_us=" << percentile(quant_samples, 0.9) << "\n";
+      }
+      std::cout << "paired_quant_median_us="
                 << percentile(pipeline_samples, 0.5) << "\n"
                 << "paired_quant_p90_us="
                 << percentile(pipeline_samples, 0.9) << "\n";
