@@ -11,15 +11,26 @@
 #include <mutex>
 #include <string>
 
+#ifndef NETRA_GDN_WAVES_PER_WORKGROUP
+#define NETRA_GDN_WAVES_PER_WORKGROUP 1
+#endif
+
+static_assert(NETRA_GDN_WAVES_PER_WORKGROUP == 1 ||
+                  NETRA_GDN_WAVES_PER_WORKGROUP == 2 ||
+                  NETRA_GDN_WAVES_PER_WORKGROUP == 4 ||
+                  NETRA_GDN_WAVES_PER_WORKGROUP == 8,
+              "GDN waves per workgroup must be 1, 2, 4, or 8");
+
 namespace {
 
 std::mutex module_mutex;
 hipModule_t precompute_module = nullptr;
-hipModule_t core_module = nullptr;
+std::array<hipModule_t, 3> core_modules = {nullptr, nullptr, nullptr};
 hipFunction_t precompute_function = nullptr;
-hipFunction_t core_function = nullptr;
+std::array<hipFunction_t, 3> core_functions = {nullptr, nullptr, nullptr};
 std::string loaded_precompute_path;
-std::string loaded_core_path;
+std::array<std::string, 3> loaded_core_paths;
+bool wavegroup_variants_loaded = false;
 thread_local std::string last_error;
 
 int fail(const char* operation, hipError_t error) {
@@ -33,14 +44,53 @@ int fail_message(const std::string& message) {
 }
 
 void clear_modules() {
-  if (core_module != nullptr) (void)hipModuleUnload(core_module);
+  for (hipModule_t& module : core_modules) {
+    if (module != nullptr) (void)hipModuleUnload(module);
+    module = nullptr;
+  }
   if (precompute_module != nullptr) (void)hipModuleUnload(precompute_module);
   precompute_module = nullptr;
-  core_module = nullptr;
   precompute_function = nullptr;
-  core_function = nullptr;
+  core_functions = {nullptr, nullptr, nullptr};
   loaded_precompute_path.clear();
-  loaded_core_path.clear();
+  loaded_core_paths = {};
+  wavegroup_variants_loaded = false;
+}
+
+int load_precompute(const char* path) {
+  hipError_t error = hipModuleLoad(&precompute_module, path);
+  if (error != hipSuccess) return fail("hipModuleLoad(precompute)", error);
+  error = hipModuleGetFunction(
+      &precompute_function, precompute_module,
+      "qwen36_gdn_verify_m12_batched_precompute_gfx950");
+  if (error != hipSuccess)
+    return fail("hipModuleGetFunction(precompute)", error);
+  return 0;
+}
+
+int load_core(size_t index, const char* path) {
+  hipError_t error = hipModuleLoad(&core_modules[index], path);
+  if (error != hipSuccess) return fail("hipModuleLoad(core)", error);
+  error = hipModuleGetFunction(
+      &core_functions[index], core_modules[index],
+      "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950");
+  if (error != hipSuccess) return fail("hipModuleGetFunction(core)", error);
+  loaded_core_paths[index] = path;
+  return 0;
+}
+
+int validate_device() {
+  int device = 0;
+  hipError_t error = hipGetDevice(&device);
+  if (error != hipSuccess) return fail("hipGetDevice", error);
+  hipDeviceProp_t properties{};
+  error = hipGetDeviceProperties(&properties, device);
+  if (error != hipSuccess) return fail("hipGetDeviceProperties", error);
+  if (std::string(properties.gcnArchName).find("gfx950") == std::string::npos)
+    return fail_message(
+        std::string("Qwen GDN verify modules require gfx950; got ") +
+        properties.gcnArchName);
+  return 0;
 }
 
 }  // namespace
@@ -53,53 +103,50 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_load(
       core_hsaco_path == nullptr || core_hsaco_path[0] == '\0')
     return fail_message("both hsaco paths must be nonempty");
   std::lock_guard<std::mutex> guard(module_mutex);
-  if (precompute_module != nullptr || core_module != nullptr) {
+  if (precompute_module != nullptr || core_modules[0] != nullptr) {
     if (loaded_precompute_path == precompute_hsaco_path &&
-        loaded_core_path == core_hsaco_path) {
+        loaded_core_paths[0] == core_hsaco_path &&
+        !wavegroup_variants_loaded) {
       last_error.clear();
       return 0;
     }
     return fail_message("different GDN verify modules are already loaded");
   }
 
-  int device = 0;
-  hipError_t error = hipGetDevice(&device);
-  if (error != hipSuccess) return fail("hipGetDevice", error);
-  hipDeviceProp_t properties{};
-  error = hipGetDeviceProperties(&properties, device);
-  if (error != hipSuccess) return fail("hipGetDeviceProperties", error);
-  if (std::string(properties.gcnArchName).find("gfx950") ==
-      std::string::npos)
-    return fail_message(
-        std::string("Qwen GDN verify modules require gfx950; got ") +
-        properties.gcnArchName);
-
-  error = hipModuleLoad(&precompute_module, precompute_hsaco_path);
-  if (error != hipSuccess) {
+  if (validate_device() != 0 || load_precompute(precompute_hsaco_path) != 0 ||
+      load_core(0, core_hsaco_path) != 0) {
     clear_modules();
-    return fail("hipModuleLoad(precompute)", error);
-  }
-  error = hipModuleGetFunction(
-      &precompute_function, precompute_module,
-      "qwen36_gdn_verify_m12_batched_precompute_gfx950");
-  if (error != hipSuccess) {
-    clear_modules();
-    return fail("hipModuleGetFunction(precompute)", error);
-  }
-  error = hipModuleLoad(&core_module, core_hsaco_path);
-  if (error != hipSuccess) {
-    clear_modules();
-    return fail("hipModuleLoad(core)", error);
-  }
-  error = hipModuleGetFunction(
-      &core_function, core_module,
-      "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950");
-  if (error != hipSuccess) {
-    clear_modules();
-    return fail("hipModuleGetFunction(core)", error);
+    return -1;
   }
   loaded_precompute_path = precompute_hsaco_path;
-  loaded_core_path = core_hsaco_path;
+  last_error.clear();
+  return 0;
+}
+
+extern "C" int netra_qwen36_gdn_verify_m12_batched_load_wavegroup_variants(
+    const char* precompute_hsaco_path,
+    const char* core_waves1_hsaco_path,
+    const char* core_waves4_hsaco_path,
+    const char* core_waves8_hsaco_path) {
+  const std::array<const char*, 4> paths = {
+      precompute_hsaco_path, core_waves1_hsaco_path,
+      core_waves4_hsaco_path, core_waves8_hsaco_path};
+  if (std::any_of(paths.begin(), paths.end(), [](const char* path) {
+        return path == nullptr || path[0] == '\0';
+      }))
+    return fail_message("all wavegroup-variant hsaco paths must be nonempty");
+  std::lock_guard<std::mutex> guard(module_mutex);
+  if (precompute_module != nullptr || core_modules[0] != nullptr)
+    return fail_message("GDN verify modules are already loaded");
+  if (validate_device() != 0 || load_precompute(precompute_hsaco_path) != 0 ||
+      load_core(0, core_waves1_hsaco_path) != 0 ||
+      load_core(1, core_waves4_hsaco_path) != 0 ||
+      load_core(2, core_waves8_hsaco_path) != 0) {
+    clear_modules();
+    return -1;
+  }
+  loaded_precompute_path = precompute_hsaco_path;
+  wavegroup_variants_loaded = true;
   last_error.clear();
   return 0;
 }
@@ -128,7 +175,7 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
     uint32_t stride_b,
     uint32_t batch_size,
     hipStream_t stream) {
-  if (precompute_function == nullptr || core_function == nullptr)
+  if (precompute_function == nullptr || core_functions[0] == nullptr)
     return fail_message("GDN verify modules are not loaded");
   const std::array<const void*, 16> pointers = {
       output_bf16,
@@ -205,8 +252,26 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
       &intermediate_indices_pointer,
       &stride_v,
   };
+  size_t core_index = 0;
+  uint32_t waves_per_workgroup = NETRA_GDN_WAVES_PER_WORKGROUP;
+  if (wavegroup_variants_loaded) {
+    // Measured on exact packed Qwen3.6 M=12 layouts.  Keep one-wave latency
+    // for very small batches, use eight waves where LDS reuse dominates, and
+    // four waves once larger workgroups provide the best CU-level balance.
+    if (batch_size >= 8 && batch_size <= 16) {
+      core_index = 2;
+      waves_per_workgroup = 8;
+    } else if (batch_size >= 4) {
+      core_index = 1;
+      waves_per_workgroup = 4;
+    } else {
+      waves_per_workgroup = 1;
+    }
+  }
   error = hipModuleLaunchKernel(
-      core_function, batch_size * 256, 1, 1, 64, 1, 1, 0, stream,
+      core_functions[core_index],
+      batch_size * (256 / waves_per_workgroup), 1, 1,
+      64 * waves_per_workgroup, 1, 1, 0, stream,
       core_arguments,
       nullptr);
   if (error != hipSuccess)
@@ -217,22 +282,28 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
 
 extern "C" int netra_qwen36_gdn_verify_m12_batched_unload(void) {
   std::lock_guard<std::mutex> guard(module_mutex);
-  if (precompute_module == nullptr && core_module == nullptr) {
+  if (precompute_module == nullptr && core_modules[0] == nullptr) {
     last_error.clear();
     return 0;
   }
   hipError_t first_error = hipSuccess;
-  if (core_module != nullptr) first_error = hipModuleUnload(core_module);
+  for (hipModule_t module : core_modules) {
+    if (module != nullptr) {
+      const hipError_t error = hipModuleUnload(module);
+      if (first_error == hipSuccess) first_error = error;
+    }
+  }
   if (precompute_module != nullptr) {
     const hipError_t error = hipModuleUnload(precompute_module);
     if (first_error == hipSuccess) first_error = error;
   }
   precompute_module = nullptr;
-  core_module = nullptr;
+  core_modules = {nullptr, nullptr, nullptr};
   precompute_function = nullptr;
-  core_function = nullptr;
+  core_functions = {nullptr, nullptr, nullptr};
   loaded_precompute_path.clear();
-  loaded_core_path.clear();
+  loaded_core_paths = {};
+  wavegroup_variants_loaded = false;
   if (first_error != hipSuccess) return fail("hipModuleUnload", first_error);
   last_error.clear();
   return 0;

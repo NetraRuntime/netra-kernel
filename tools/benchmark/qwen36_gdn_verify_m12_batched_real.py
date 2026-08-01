@@ -157,15 +157,36 @@ def main() -> None:
         ctypes.c_char_p, ctypes.c_char_p
     ]
     bridge.netra_qwen36_gdn_verify_m12_batched_load.restype = ctypes.c_int
+    bridge.netra_qwen36_gdn_verify_m12_batched_load_wavegroup_variants.argtypes = [
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+    ]
+    bridge.netra_qwen36_gdn_verify_m12_batched_load_wavegroup_variants.restype = (
+        ctypes.c_int
+    )
     bridge.netra_qwen36_gdn_verify_m12_batched_launch.argtypes = (
         [ctypes.c_void_p] * 16 + [ctypes.c_uint32] * 6 + [ctypes.c_void_p]
     )
     bridge.netra_qwen36_gdn_verify_m12_batched_launch.restype = ctypes.c_int
     bridge.netra_qwen36_gdn_verify_m12_batched_last_error.restype = ctypes.c_char_p
-    status = bridge.netra_qwen36_gdn_verify_m12_batched_load(
-        str(args.build_dir / "qwen36_gdn_verify_m12_batched_precompute_gfx950.hsaco").encode(),
-        str(args.build_dir / "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950.hsaco").encode(),
-    )
+    precompute_path = args.build_dir / "qwen36_gdn_verify_m12_batched_precompute_gfx950.hsaco"
+    core_path = args.build_dir / "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950.hsaco"
+    core_waves4_path = args.build_dir / "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950_waves4.hsaco"
+    core_waves8_path = args.build_dir / "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950_waves8.hsaco"
+    wavegroup_variants = core_waves4_path.is_file() and core_waves8_path.is_file()
+    if wavegroup_variants:
+        status = bridge.netra_qwen36_gdn_verify_m12_batched_load_wavegroup_variants(
+            str(precompute_path).encode(),
+            str(core_path).encode(),
+            str(core_waves4_path).encode(),
+            str(core_waves8_path).encode(),
+        )
+    else:
+        status = bridge.netra_qwen36_gdn_verify_m12_batched_load(
+            str(precompute_path).encode(), str(core_path).encode()
+        )
     if status:
         raise RuntimeError(bridge.netra_qwen36_gdn_verify_m12_batched_last_error().decode())
 
@@ -242,6 +263,7 @@ def main() -> None:
         "state_pass": str(args.state_pass),
         "shape": {"batch": batch, "tokens_per_sequence": 12, "total_tokens": total_tokens},
         "k0_no_intermediate": args.k0_no_intermediate,
+        "wavegroup_variants": wavegroup_variants,
         "correctness": correctness,
         "bit_exact": exact,
         "timing": timings,

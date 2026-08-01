@@ -48,6 +48,21 @@
 	.ifndef NETRA_GDN_K0_NO_INTERMEDIATE
 	.set NETRA_GDN_K0_NO_INTERMEDIATE, 0
 	.endif
+	// Experimental high-batch launch geometry.  Consecutive logical waves own
+	// adjacent V tiles of the same value head, so a multi-wave workgroup can
+	// stage the shared normalized Q/K vectors once.  Double-buffered LDS keeps
+	// one barrier per recurrent step without allowing the loader wave to
+	// overwrite vectors that a lagging peer has not consumed.  One wave remains
+	// the production/default geometry and preserves the exact existing ISA.
+	.ifndef NETRA_GDN_WAVES_PER_WORKGROUP
+	.set NETRA_GDN_WAVES_PER_WORKGROUP, 1
+	.endif
+	.ifndef NETRA_GDN_SHARE_QK
+	.set NETRA_GDN_SHARE_QK, 1
+	.endif
+	.if (NETRA_GDN_WAVES_PER_WORKGROUP != 1) && (NETRA_GDN_WAVES_PER_WORKGROUP != 2) && (NETRA_GDN_WAVES_PER_WORKGROUP != 4) && (NETRA_GDN_WAVES_PER_WORKGROUP != 8)
+	.error "NETRA_GDN_WAVES_PER_WORKGROUP must be 1, 2, 4, or 8"
+	.endif
 
 	.macro DOT8_K_LOCAL s0, s1, s2, s3, s4, s5, s6, s7, a0
 	.if NETRA_GDN_CORE_VARIANT == 0
@@ -321,7 +336,25 @@
 qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	// Preserve workgroup X, then load the eight data pointers and two
 	// device-side pool-index pointers.
+	.if NETRA_GDN_WAVES_PER_WORKGROUP == 1
 	s_mov_b32 s18, s2
+	s_mov_b32 s30, 0
+	.else
+	// Convert the physical multi-wave workgroup into the original logical
+	// one-wave index.  Normalize v0 back to a wave-local lane ID so the body
+	// below remains instruction-for-instruction identical after mapping.
+	v_readfirstlane_b32 s30, v0
+	s_lshr_b32 s30, s30, 6
+	v_and_b32_e32 v0, 63, v0
+	.if NETRA_GDN_WAVES_PER_WORKGROUP == 2
+	s_lshl_b32 s18, s2, 1
+	.elseif NETRA_GDN_WAVES_PER_WORKGROUP == 4
+	s_lshl_b32 s18, s2, 2
+	.else
+	s_lshl_b32 s18, s2, 3
+	.endif
+	s_add_u32 s18, s18, s30
+	.endif
 	s_load_dwordx2 s[2:3], s[0:1], 0
 	s_load_dwordx2 s[4:5], s[0:1], 8
 	s_load_dwordx2 s[6:7], s[0:1], 16
@@ -390,6 +423,10 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	s_lshr_b32 s19, s18, 3
 	s_and_b32 s20, s18, 7
 	s_lshr_b32 s21, s19, 1
+	// s30:s31 is reused by the output-lane EXEC mask below.  Preserve the
+	// immutable wave index in s18 now that the logical workgroup ID has been
+	// fully decoded.
+	s_mov_b32 s18, s30
 
 	// Lane mapping: row-within-four = lane / 16, K chunk = lane % 16.
 	v_lshrrev_b32_e32 v1, 4, v0
@@ -496,10 +533,22 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 
 .Ltime_loop:
 	// Stage two normalized K and Q FP32 values per lane to LDS.
+	.if (NETRA_GDN_WAVES_PER_WORKGROUP == 1) || (NETRA_GDN_SHARE_QK == 0)
 	v_lshlrev_b32_e32 v5, 3, v0
 	v_add_u32_e32 v6, s22, v5
 	global_load_dwordx2 v[64:65], v6, s[4:5]
 	global_load_dwordx2 v[66:67], v6, s[2:3]
+	.else
+	// Only wave zero fetches Q/K.  Every peer maps to another V tile of the
+	// same HV and therefore consumes the same vectors.
+	s_cmp_eq_u32 s18, 0
+	s_cbranch_scc0 .Lskip_shared_qk_global
+	v_lshlrev_b32_e32 v5, 3, v0
+	v_add_u32_e32 v6, s22, v5
+	global_load_dwordx2 v[64:65], v6, s[4:5]
+	global_load_dwordx2 v[66:67], v6, s[2:3]
+.Lskip_shared_qk_global:
+	.endif
 
 	// Load the four BF16 V values and the two uniform FP32 gates.
 	global_load_ushort v24, v75, s[6:7]
@@ -511,6 +560,7 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	global_load_ushort v27, v5, s[6:7]
 	s_load_dword s24, s[8:9], s23
 	s_load_dword s25, s[10:11], s23
+	.if (NETRA_GDN_WAVES_PER_WORKGROUP == 1) || (NETRA_GDN_SHARE_QK == 0)
 	s_waitcnt vmcnt(4)
 	v_lshlrev_b32_e32 v5, 3, v0
 	ds_write_b64 v5, v[64:65]
@@ -523,6 +573,31 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	ds_read_b128 v[12:15], v5 offset:16
 	ds_read_b128 v[16:19], v5 offset:512
 	ds_read_b128 v[20:23], v5 offset:528
+	.else
+	// Alternate 1 KiB Q/K banks.  Reaching the next bank's barrier proves
+	// every peer has consumed the prior bank, so an end-of-step barrier is not
+	// needed.
+	s_and_b32 s27, s28, 1
+	s_lshl_b32 s27, s27, 10
+	s_cmp_eq_u32 s18, 0
+	s_cbranch_scc0 .Lskip_shared_qk_stage
+	s_waitcnt vmcnt(4)
+	v_lshlrev_b32_e32 v5, 3, v0
+	v_add_u32_e32 v5, s27, v5
+	ds_write_b64 v5, v[64:65]
+	ds_write_b64 v5, v[66:67] offset:512
+.Lskip_shared_qk_stage:
+	s_waitcnt vmcnt(0) lgkmcnt(0)
+	s_barrier
+
+	// Read the lane's eight K and Q values from the selected shared bank.
+	v_lshlrev_b32_e32 v5, 5, v2
+	v_add_u32_e32 v5, s27, v5
+	ds_read_b128 v[8:11], v5
+	ds_read_b128 v[12:15], v5 offset:16
+	ds_read_b128 v[16:19], v5 offset:512
+	ds_read_b128 v[20:23], v5 offset:528
+	.endif
 	s_waitcnt lgkmcnt(0)
 
 	// Optional cooperative Q/K mapping probe.  Even HV workgroups on tile zero
@@ -780,7 +855,7 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	.section .rodata,"a",@progbits
 	.p2align 6, 0
 	.amdhsa_kernel qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950
-		.amdhsa_group_segment_fixed_size 1024
+		.amdhsa_group_segment_fixed_size 2048
 		.amdhsa_private_segment_fixed_size 0
 		.amdhsa_kernarg_size 88
 		.amdhsa_user_sgpr_count 2
@@ -841,12 +916,12 @@ amdhsa.kernels:
           .actual_access: read_only }
       - { .name: stride_v, .offset: 80, .size: 4,
           .value_kind: by_value }
-    .group_segment_fixed_size: 1024
+    .group_segment_fixed_size: 2048
     .kernarg_segment_align: 8
     .kernarg_segment_size: 88
     .language: OpenCL C
     .language_version: [2, 0]
-    .max_flat_workgroup_size: 64
+    .max_flat_workgroup_size: 512
     .name: qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950
     .private_segment_fixed_size: 0
     .sgpr_count: 40

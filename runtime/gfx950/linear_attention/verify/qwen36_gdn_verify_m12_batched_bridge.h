@@ -9,6 +9,14 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_load(
     const char* precompute_hsaco_path,
     const char* core_hsaco_path);
 
+// Load the batch-selected K0 core family.  The three code objects contain the
+// same raw gfx950 kernel assembled for 1, 4, and 8 waves per workgroup.
+extern "C" int netra_qwen36_gdn_verify_m12_batched_load_wavegroup_variants(
+    const char* precompute_hsaco_path,
+    const char* core_waves1_hsaco_path,
+    const char* core_waves4_hsaco_path,
+    const char* core_waves8_hsaco_path);
+
 extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
     void* output_bf16,
     const void* A_log_f32,
