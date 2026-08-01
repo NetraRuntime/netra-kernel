@@ -68,7 +68,9 @@ def main() -> None:
         "sorted_token_ids_m64_i32": sorted_ids.to(torch.int32),
         "sorted_weights_m64_f32": sorted_weights.to(torch.float32),
         "compact_sorted_expert_ids_m64_i32": sorted_experts[:blocks].to(torch.int32),
-        "num_valid_ids_m64_i32": num_valid.to(torch.int32),
+        "compact_sorted_expert_ids_m16_from_m64_i32":
+            sorted_experts[:blocks].to(torch.int32).repeat_interleave(4),
+        "num_valid_ids_m64_i32": torch.tensor([valid], dtype=torch.int32),
     }
     manifest = {
         "schema_version": 1,
