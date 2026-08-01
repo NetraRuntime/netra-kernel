@@ -60,6 +60,16 @@
 	.ifndef NETRA_GDN_SHARE_QK
 	.set NETRA_GDN_SHARE_QK, 1
 	.endif
+	// State-only K0 replay reuses this proven recurrence body but skips Q loads,
+	// output reduction, and rollback snapshots.  Kernarg 5 becomes the output
+	// SSM pool, kernarg 7 carries per-request accepted lengths, and kernarg 9
+	// carries output-state indices.  The default remains the verification ABI.
+	.ifndef NETRA_GDN_STATE_REPLAY
+	.set NETRA_GDN_STATE_REPLAY, 0
+	.endif
+	.if (NETRA_GDN_STATE_REPLAY != 0) && (NETRA_GDN_STATE_REPLAY != 1)
+	.error "NETRA_GDN_STATE_REPLAY must be 0 or 1"
+	.endif
 	.if (NETRA_GDN_WAVES_PER_WORKGROUP != 1) && (NETRA_GDN_WAVES_PER_WORKGROUP != 2) && (NETRA_GDN_WAVES_PER_WORKGROUP != 4) && (NETRA_GDN_WAVES_PER_WORKGROUP != 8)
 	.error "NETRA_GDN_WAVES_PER_WORKGROUP must be 1, 2, 4, or 8"
 	.endif
@@ -375,6 +385,9 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	s_lshl_b32 s20, s19, 2
 	s_load_dword s24, s[24:25], s20
 	s_load_dword s26, s[26:27], s20
+	.if NETRA_GDN_STATE_REPLAY == 1
+	s_load_dword s28, s[16:17], s20
+	.endif
 	s_waitcnt lgkmcnt(0)
 	// Graph capture initializes only the live prefix of its dummy state-index
 	// tensors. Clamp capture-time sentinels to a safe pool slot. The SGLang
@@ -388,10 +401,21 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	s_add_u32 s14, s14, s24
 	s_addc_u32 s15, s15, s25
 	s_mov_b32 s27, 0
+	.if NETRA_GDN_STATE_REPLAY == 1
+	// Destination state uses the ordinary one-MiB pool-slot stride.  Clamp the
+	// accepted length for graph-capture dummy inputs and preserve it in s30
+	// after the immutable wave index has been copied to s18 below.
+	s_lshl_b64 s[26:27], s[26:27], 20
+	s_add_u32 s12, s12, s26
+	s_addc_u32 s13, s13, s27
+	s_max_i32 s28, s28, 0
+	s_min_i32 s28, s28, 12
+	.else
 	s_mul_i32 s26, s26, 12
 	s_lshl_b64 s[26:27], s[26:27], 20
 	s_add_u32 s16, s16, s26
 	s_addc_u32 s17, s17, s27
+	.endif
 	s_lshl_b32 s29, s29, 1
 
 	// Advance compact precompute buffers and the original V/output views to
@@ -414,10 +438,13 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	s_addc_u32 s7, s7, 0
 	// Output is always compact [B*12,32,128] BF16. It must not inherit V's
 	// packed-projection stride; doing so left a 96 KiB hole per sequence and
-	// crossed the graph allocation for B>1.
+	// crossed the graph allocation for B>1. State replay instead addresses its
+	// destination through the pool index above.
+	.if NETRA_GDN_STATE_REPLAY == 0
 	s_mul_i32 s20, s19, 0x18000
 	s_add_u32 s12, s12, s20
 	s_addc_u32 s13, s13, 0
+	.endif
 
 	// hv = workgroup_x / 8, tile = workgroup_x % 8, head = hv / 2.
 	s_lshr_b32 s19, s18, 3
@@ -427,6 +454,11 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	// immutable wave index in s18 now that the logical workgroup ID has been
 	// fully decoded.
 	s_mov_b32 s18, s30
+	.if NETRA_GDN_STATE_REPLAY == 1
+	s_mov_b32 s30, s28
+	s_cmp_eq_u32 s30, 0
+	s_cbranch_scc1 .Lexit
+	.endif
 
 	// Lane mapping: row-within-four = lane / 16, K chunk = lane % 16.
 	v_lshrrev_b32_e32 v1, 4, v0
@@ -537,7 +569,9 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	v_lshlrev_b32_e32 v5, 3, v0
 	v_add_u32_e32 v6, s22, v5
 	global_load_dwordx2 v[64:65], v6, s[4:5]
+	.if NETRA_GDN_STATE_REPLAY == 0
 	global_load_dwordx2 v[66:67], v6, s[2:3]
+	.endif
 	.else
 	// Only wave zero fetches Q/K.  Every peer maps to another V tile of the
 	// same HV and therefore consumes the same vectors.
@@ -546,7 +580,9 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	v_lshlrev_b32_e32 v5, 3, v0
 	v_add_u32_e32 v6, s22, v5
 	global_load_dwordx2 v[64:65], v6, s[4:5]
+	.if NETRA_GDN_STATE_REPLAY == 0
 	global_load_dwordx2 v[66:67], v6, s[2:3]
+	.endif
 .Lskip_shared_qk_global:
 	.endif
 
@@ -564,15 +600,19 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	s_waitcnt vmcnt(4)
 	v_lshlrev_b32_e32 v5, 3, v0
 	ds_write_b64 v5, v[64:65]
+	.if NETRA_GDN_STATE_REPLAY == 0
 	ds_write_b64 v5, v[66:67] offset:512
+	.endif
 	s_waitcnt vmcnt(0) lgkmcnt(0)
 
 	// Read the lane's eight K and Q values.
 	v_lshlrev_b32_e32 v5, 5, v2
 	ds_read_b128 v[8:11], v5
 	ds_read_b128 v[12:15], v5 offset:16
+	.if NETRA_GDN_STATE_REPLAY == 0
 	ds_read_b128 v[16:19], v5 offset:512
 	ds_read_b128 v[20:23], v5 offset:528
+	.endif
 	.else
 	// Alternate 1 KiB Q/K banks.  Reaching the next bank's barrier proves
 	// every peer has consumed the prior bank, so an end-of-step barrier is not
@@ -585,7 +625,9 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	v_lshlrev_b32_e32 v5, 3, v0
 	v_add_u32_e32 v5, s27, v5
 	ds_write_b64 v5, v[64:65]
+	.if NETRA_GDN_STATE_REPLAY == 0
 	ds_write_b64 v5, v[66:67] offset:512
+	.endif
 .Lskip_shared_qk_stage:
 	s_waitcnt vmcnt(0) lgkmcnt(0)
 	s_barrier
@@ -595,8 +637,10 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	v_add_u32_e32 v5, s27, v5
 	ds_read_b128 v[8:11], v5
 	ds_read_b128 v[12:15], v5 offset:16
+	.if NETRA_GDN_STATE_REPLAY == 0
 	ds_read_b128 v[16:19], v5 offset:512
 	ds_read_b128 v[20:23], v5 offset:528
+	.endif
 	.endif
 	s_waitcnt lgkmcnt(0)
 
@@ -763,6 +807,7 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	ROUND_STATE_BF16_PAIR 62,63,76
 	.endif
 
+	.if NETRA_GDN_STATE_REPLAY == 0
 	// o = sum_k(h*q).
 	DOT8_Q_LOCAL 32,33,34,35,36,37,38,39,64
 	DOT8_Q_LOCAL 40,41,42,43,44,45,46,47,66
@@ -786,6 +831,7 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	v_add_u32_e32 v5, 24, v4
 	global_store_short v5, v74, s[12:13]
 	s_or_b64 exec, exec, s[30:31]
+	.endif
 
 	// Packed decode writes BF16 state after producing the current output.  The
 	// next token therefore reloads BF16-rounded state, not the live FP32 value.
@@ -810,7 +856,7 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 
 	// Cache the complete BF16 intermediate state for this step.
 .Lstore_intermediate:
-	.if NETRA_GDN_K0_NO_INTERMEDIATE == 0
+	.if (NETRA_GDN_K0_NO_INTERMEDIATE == 0) && (NETRA_GDN_STATE_REPLAY == 0)
 	v_cvt_pk_bf16_f32 v8, v32, v33
 	v_cvt_pk_bf16_f32 v9, v34, v35
 	v_cvt_pk_bf16_f32 v10, v36, v37
@@ -843,12 +889,45 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	s_add_u32 s23, s23, 128
 	v_add_u32_e32 v4, 8192, v4
 	v_add_u32_e32 v75, s29, v75
-	.if NETRA_GDN_K0_NO_INTERMEDIATE == 0
+	.if (NETRA_GDN_K0_NO_INTERMEDIATE == 0) && (NETRA_GDN_STATE_REPLAY == 0)
 	v_add_u32_e32 v7, 0x100000, v7
 	.endif
+	.if NETRA_GDN_STATE_REPLAY == 1
+	s_cmp_lt_u32 s28, s30
+	.else
 	s_cmp_lt_u32 s28, 12
+	.endif
 	s_cbranch_scc1 .Ltime_loop
 
+	.if NETRA_GDN_STATE_REPLAY == 1
+	// State-only replay exposes only the final BF16 state, matching Triton's
+	// live FP32 recurrence followed by one terminal conversion.
+	v_cvt_pk_bf16_f32 v8, v32, v33
+	v_cvt_pk_bf16_f32 v9, v34, v35
+	v_cvt_pk_bf16_f32 v10, v36, v37
+	v_cvt_pk_bf16_f32 v11, v38, v39
+	v_cvt_pk_bf16_f32 v12, v40, v41
+	v_cvt_pk_bf16_f32 v13, v42, v43
+	v_cvt_pk_bf16_f32 v14, v44, v45
+	v_cvt_pk_bf16_f32 v15, v46, v47
+	v_cvt_pk_bf16_f32 v16, v48, v49
+	v_cvt_pk_bf16_f32 v17, v50, v51
+	v_cvt_pk_bf16_f32 v18, v52, v53
+	v_cvt_pk_bf16_f32 v19, v54, v55
+	v_cvt_pk_bf16_f32 v20, v56, v57
+	v_cvt_pk_bf16_f32 v21, v58, v59
+	v_cvt_pk_bf16_f32 v22, v60, v61
+	v_cvt_pk_bf16_f32 v23, v62, v63
+	global_store_dwordx4 v7, v[8:11], s[12:13]
+	v_add_u32_e32 v5, 1024, v7
+	global_store_dwordx4 v5, v[12:15], s[12:13]
+	v_add_u32_e32 v5, 2048, v7
+	global_store_dwordx4 v5, v[16:19], s[12:13]
+	v_add_u32_e32 v5, 3072, v7
+	global_store_dwordx4 v5, v[20:23], s[12:13]
+	.endif
+
+.Lexit:
 	s_waitcnt vmcnt(0)
 	s_endpgm
 
