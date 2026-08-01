@@ -33,6 +33,13 @@ static std::vector<uint8_t> read_file(const std::string& path) {
   return result;
 }
 
+static void write_file(const std::string& path, const void* data, size_t bytes) {
+  std::ofstream stream(path, std::ios::binary);
+  if (!stream) throw std::runtime_error("cannot create " + path);
+  stream.write(reinterpret_cast<const char*>(data), bytes);
+  if (!stream) throw std::runtime_error("cannot write " + path);
+}
+
 static float bf16_to_float(uint16_t value) {
   uint32_t bits = static_cast<uint32_t>(value) << 16;
   float result;
@@ -60,15 +67,19 @@ static double percentile(std::vector<float> values, double quantile) {
 
 int main(int argc, char** argv) {
   try {
-    if (argc < 4 || argc > 5) {
+    if (argc < 4 || argc > 8 || argc == 7) {
       std::cerr << "usage: " << argv[0]
-                << " KERNEL.hsaco FULL_EXPORT_DIR M64_SORT_DIR [iterations=50]\n";
+                << " W13.hsaco FULL_EXPORT_DIR M64_SORT_DIR [iterations=50]"
+                   " [SILU_QUANT.hsaco [DOWN.hsaco REDUCE.hsaco]]\n";
       return 2;
     }
     const std::string co_path = argv[1];
     const std::string base = argv[2];
     const std::string sort = argv[3];
-    const int iterations = argc == 5 ? std::stoi(argv[4]) : 50;
+    const int iterations = argc >= 5 ? std::stoi(argv[4]) : 50;
+    const bool run_quant = argc >= 6;
+    const bool run_down = argc == 8;
+    const std::string quant_co_path = run_quant ? argv[5] : "";
     if (iterations < 2) throw std::runtime_error("iterations must be >= 2");
 
     hipDeviceProp_t props{};
@@ -81,10 +92,20 @@ int main(int argc, char** argv) {
     const auto w13 = read_file(base + "/active_w13_fp8.bin");
     const auto w13_scale = read_file(base + "/active_w13_scale_f32.bin");
     const auto reference = read_file(base + "/reference_stage1_bf16.bin");
+    const auto reference_activation = read_file(base + "/activation_fp8.bin");
+    const auto reference_activation_scale =
+        read_file(base + "/activation_scale_f32.bin");
+    const auto w2 = read_file(base + "/active_w2_fp8.bin");
+    const auto w2_scale = read_file(base + "/active_w2_scale_f32.bin");
+    const auto topk_weights = read_file(base + "/topk_weights_f32.bin");
+    const auto reference_output_f32 = read_file(base + "/reference_output_f32.bin");
+    const auto reference_output_bf16 = read_file(base + "/reference_output_bf16.bin");
+    const auto aiter_output_bf16 = read_file(base + "/aiter_output_bf16.bin");
     const auto sorted = read_file(sort + "/sorted_token_ids_m64_i32.bin");
     const auto experts =
         read_file(sort + "/compact_sorted_expert_ids_m64_i32.bin");
     const auto valid_bytes = read_file(sort + "/num_valid_ids_m64_i32.bin");
+    const auto sorted_weights = read_file(sort + "/sorted_weights_m64_f32.bin");
     int32_t valid = 0;
     std::memcpy(&valid, valid_bytes.data(), sizeof(valid));
     if (valid <= 0 || valid % 64) throw std::runtime_error("invalid M64 span");
@@ -100,10 +121,24 @@ int main(int argc, char** argv) {
     Buffer d_sorted(sorted.size()), d_experts(experts.size());
     Buffer d_valid(valid_bytes.size());
     Buffer d_output(sorted_capacity * n * sizeof(uint16_t));
+    Buffer d_activation(static_cast<size_t>(rows) * topk * 512);
+    Buffer d_activation_scale(
+        static_cast<size_t>(rows) * topk * 4 * sizeof(float));
+    Buffer d_w2(w2.size()), d_w2_scale(w2_scale.size());
+    Buffer d_sorted_weights(sorted_weights.size());
+    Buffer d_topk_weights(topk_weights.size());
+    Buffer d_partials(
+        (static_cast<size_t>(rows) * topk + valid) * 2048 * sizeof(float));
+    Buffer d_final(static_cast<size_t>(rows) * 2048 * sizeof(uint16_t));
     upload(d_hidden, hidden); upload(d_hidden_scale, hidden_scale);
     upload(d_w13, w13); upload(d_w13_scale, w13_scale);
     upload(d_sorted, sorted); upload(d_experts, experts); upload(d_valid, valid_bytes);
+    upload(d_w2, w2); upload(d_w2_scale, w2_scale);
+    upload(d_sorted_weights, sorted_weights); upload(d_topk_weights, topk_weights);
     HIP_CHECK(hipMemset(d_output.ptr, 0, sorted_capacity * n * sizeof(uint16_t)));
+    HIP_CHECK(hipMemset(d_activation.ptr, 0, rows * topk * 512));
+    HIP_CHECK(hipMemset(
+        d_activation_scale.ptr, 0, rows * topk * 4 * sizeof(float)));
 
     hipModule_t module = nullptr;
     hipFunction_t function = nullptr;
@@ -111,6 +146,26 @@ int main(int argc, char** argv) {
     const char* symbol = std::getenv("NETRA_KERNEL_SYMBOL");
     if (!symbol) symbol = "qwen36_moe_gateup_m64n16_fp8_gfx950";
     HIP_CHECK(hipModuleGetFunction(&function, module, symbol));
+    hipModule_t quant_module = nullptr;
+    hipFunction_t quant_function = nullptr;
+    if (run_quant) {
+      HIP_CHECK(hipModuleLoad(&quant_module, quant_co_path.c_str()));
+      HIP_CHECK(hipModuleGetFunction(
+          &quant_function, quant_module,
+          "qwen36_moe_silu_quant_sorted_m64_fp8_gfx950"));
+    }
+    hipModule_t down_module = nullptr, reduce_module = nullptr;
+    hipFunction_t down_function = nullptr, reduce_function = nullptr;
+    if (run_down) {
+      HIP_CHECK(hipModuleLoad(&down_module, argv[6]));
+      HIP_CHECK(hipModuleLoad(&reduce_module, argv[7]));
+      HIP_CHECK(hipModuleGetFunction(
+          &down_function, down_module,
+          "qwen36_moe_down_m64n64_partial_fp8_gfx950"));
+      HIP_CHECK(hipModuleGetFunction(
+          &reduce_function, reduce_module,
+          "qwen36_moe_route_reduce_f32_gfx950"));
+    }
     int token_rows = rows;
     int debug_stage = 0;
     if (const char* value = std::getenv("NETRA_DEBUG_STAGE"))
@@ -129,7 +184,32 @@ int main(int argc, char** argv) {
       HIP_CHECK(hipModuleLaunchKernel(function, grid_x, grid_y, 1,
                                       256, 1, 1, 0, nullptr, args, nullptr));
     };
-    for (int i = 0; i < 5; ++i) launch();
+    void* quant_args[] = {&d_output.ptr, &d_sorted.ptr, &d_activation.ptr,
+                          &d_activation_scale.ptr, &d_valid.ptr, &token_rows};
+    auto launch_quant = [&] {
+      HIP_CHECK(hipModuleLaunchKernel(
+          quant_function, valid / 4, 1, 1, 256, 1, 1, 0, nullptr,
+          quant_args, nullptr));
+    };
+    void* down_args[] = {
+        &d_activation.ptr, &d_activation_scale.ptr, &d_w2.ptr, &d_w2_scale.ptr,
+        &d_sorted.ptr, &d_sorted_weights.ptr, &d_experts.ptr, &d_valid.ptr,
+        &d_partials.ptr, &token_rows};
+    void* reduce_args[] = {
+        &d_partials.ptr, &d_topk_weights.ptr, &d_final.ptr};
+    auto launch_down = [&] {
+      HIP_CHECK(hipModuleLaunchKernel(
+          down_function, 32, valid / 64, 1, 256, 1, 1, 0, nullptr,
+          down_args, nullptr));
+      HIP_CHECK(hipModuleLaunchKernel(
+          reduce_function, 32, rows, 1, 64, 1, 1, 0, nullptr,
+          reduce_args, nullptr));
+    };
+    for (int i = 0; i < 5; ++i) {
+      launch();
+      if (run_quant) launch_quant();
+      if (run_down) launch_down();
+    }
     HIP_CHECK(hipDeviceSynchronize());
 
     hipEvent_t start = nullptr, stop = nullptr;
@@ -141,6 +221,45 @@ int main(int argc, char** argv) {
       float milliseconds = 0;
       HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
       samples.push_back(milliseconds * 1000.0f);
+    }
+    std::vector<float> quant_samples;
+    std::vector<float> pipeline_samples;
+    std::vector<float> complete_samples;
+    if (run_quant) {
+      launch();
+      HIP_CHECK(hipDeviceSynchronize());
+      for (int i = 0; i < iterations; ++i) {
+        HIP_CHECK(hipEventRecord(start));
+        launch_quant();
+        HIP_CHECK(hipEventRecord(stop));
+        HIP_CHECK(hipEventSynchronize(stop));
+        float milliseconds = 0;
+        HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
+        quant_samples.push_back(milliseconds * 1000.0f);
+      }
+      for (int i = 0; i < iterations; ++i) {
+        HIP_CHECK(hipEventRecord(start));
+        launch();
+        launch_quant();
+        HIP_CHECK(hipEventRecord(stop));
+        HIP_CHECK(hipEventSynchronize(stop));
+        float milliseconds = 0;
+        HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
+        pipeline_samples.push_back(milliseconds * 1000.0f);
+      }
+      if (run_down) {
+        for (int i = 0; i < iterations; ++i) {
+          HIP_CHECK(hipEventRecord(start));
+          launch();
+          launch_quant();
+          launch_down();
+          HIP_CHECK(hipEventRecord(stop));
+          HIP_CHECK(hipEventSynchronize(stop));
+          float milliseconds = 0;
+          HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
+          complete_samples.push_back(milliseconds * 1000.0f);
+        }
+      }
     }
 
     std::vector<uint16_t> output(sorted_capacity * n);
@@ -179,6 +298,83 @@ int main(int argc, char** argv) {
     // boundary: 62,794 BF16 differences, 0.03125 max error, cosine 1.0.
     const bool correct = finite && mismatches <= 62794 &&
                          max_abs <= 0.03125f && cosine >= 0.999999;
+    size_t activation_byte_mismatches = 0;
+    double scale_max_abs = 0.0;
+    bool quant_correct = true;
+    if (run_quant) {
+      std::vector<uint8_t> activation(reference_activation.size());
+      std::vector<float> activation_scale(
+          reference_activation_scale.size() / sizeof(float));
+      HIP_CHECK(hipMemcpy(
+          activation.data(), d_activation.ptr, activation.size(),
+          hipMemcpyDeviceToHost));
+      HIP_CHECK(hipMemcpy(
+          activation_scale.data(), d_activation_scale.ptr,
+          reference_activation_scale.size(), hipMemcpyDeviceToHost));
+      if (const char* export_dir = std::getenv("NETRA_EXPORT_ACTIVATION_DIR")) {
+        write_file(
+            std::string(export_dir) + "/activation_fp8.bin",
+            activation.data(), activation.size());
+        write_file(
+            std::string(export_dir) + "/activation_scale_f32.bin",
+            activation_scale.data(),
+            activation_scale.size() * sizeof(float));
+      }
+      for (size_t index = 0; index < activation.size(); ++index)
+        activation_byte_mismatches +=
+            activation[index] != reference_activation[index];
+      const float* expected_scales =
+          reinterpret_cast<const float*>(reference_activation_scale.data());
+      for (size_t index = 0; index < activation_scale.size(); ++index)
+        scale_max_abs = std::max(
+            scale_max_abs,
+            std::abs(static_cast<double>(activation_scale[index]) -
+                     expected_scales[index]));
+      // Fixed before this candidate from the validated raw M16 stage-6 gate.
+      quant_correct = activation_byte_mismatches <= 101627 &&
+                      scale_max_abs <= 3.48776e-05;
+    }
+    size_t full_mismatches = 0;
+    float full_structural_max_abs = 0.0f, full_aiter_max_abs = 0.0f;
+    double full_structural_cosine = 1.0, full_aiter_cosine = 1.0;
+    bool full_correct = true;
+    if (run_down) {
+      const size_t elements = static_cast<size_t>(rows) * 2048;
+      std::vector<uint16_t> final_output(elements);
+      HIP_CHECK(hipMemcpy(
+          final_output.data(), d_final.ptr, elements * sizeof(uint16_t),
+          hipMemcpyDeviceToHost));
+      const float* structural_f32 =
+          reinterpret_cast<const float*>(reference_output_f32.data());
+      const uint16_t* structural_bf16 =
+          reinterpret_cast<const uint16_t*>(reference_output_bf16.data());
+      const uint16_t* aiter_bf16 =
+          reinterpret_cast<const uint16_t*>(aiter_output_bf16.data());
+      double sdot = 0.0, sanorm = 0.0, senorm = 0.0;
+      double adot = 0.0, aanorm = 0.0, aenorm = 0.0;
+      for (size_t i = 0; i < elements; ++i) {
+        full_mismatches += final_output[i] != structural_bf16[i];
+        const float value = bf16_to_float(final_output[i]);
+        const float structural_value = structural_f32[i];
+        const float aiter_value = bf16_to_float(aiter_bf16[i]);
+        full_structural_max_abs = std::max(
+            full_structural_max_abs, std::abs(value - structural_value));
+        full_aiter_max_abs = std::max(
+            full_aiter_max_abs, std::abs(value - aiter_value));
+        sdot += static_cast<double>(value) * structural_value;
+        sanorm += static_cast<double>(value) * value;
+        senorm += static_cast<double>(structural_value) * structural_value;
+        adot += static_cast<double>(value) * aiter_value;
+        aanorm += static_cast<double>(value) * value;
+        aenorm += static_cast<double>(aiter_value) * aiter_value;
+      }
+      full_structural_cosine = sdot / std::sqrt(sanorm * senorm);
+      full_aiter_cosine = adot / std::sqrt(aanorm * aenorm);
+      full_correct = full_structural_max_abs <= 0.000849762f &&
+                     full_structural_cosine >= 0.9999725 &&
+                     full_aiter_max_abs <= 0.000976563f &&
+                     full_aiter_cosine >= 0.9999645;
+    }
     std::cout << "architecture=" << props.gcnArchName << "\n"
               << "block_m=64\nvalid_sorted_ids=" << valid << "\n"
               << "valid_blocks=" << valid / 64 << "\n"
@@ -196,9 +392,41 @@ int main(int argc, char** argv) {
               << "p90_us=" << percentile(samples, 0.9) << "\n"
               << "min_us=" << *std::min_element(samples.begin(), samples.end()) << "\n"
               << "max_us=" << *std::max_element(samples.begin(), samples.end()) << "\n";
+    if (run_quant) {
+      std::cout << "activation_fp8_byte_mismatches="
+                << activation_byte_mismatches << "/"
+                << reference_activation.size() << "\n"
+                << "activation_scale_max_abs=" << scale_max_abs << "\n"
+                << "activation_correctness_gate="
+                << (quant_correct ? "pass" : "fail") << "\n"
+                << "activation_reference_gate=validated_raw_m16_stage6\n"
+                << "quant_median_us=" << percentile(quant_samples, 0.5) << "\n"
+                << "quant_p90_us=" << percentile(quant_samples, 0.9) << "\n"
+                << "w13_quant_median_us="
+                << percentile(pipeline_samples, 0.5) << "\n"
+                << "w13_quant_p90_us="
+                << percentile(pipeline_samples, 0.9) << "\n";
+    }
+    if (run_down) {
+      std::cout << "full_structural_bf16_mismatches=" << full_mismatches
+                << "/" << static_cast<size_t>(rows) * 2048 << "\n"
+                << "full_structural_max_abs=" << full_structural_max_abs << "\n"
+                << "full_structural_cosine=" << full_structural_cosine << "\n"
+                << "full_aiter_max_abs=" << full_aiter_max_abs << "\n"
+                << "full_aiter_cosine=" << full_aiter_cosine << "\n"
+                << "full_correctness_gate="
+                << (full_correct ? "pass" : "fail") << "\n"
+                << "complete_pipeline_median_us="
+                << percentile(complete_samples, 0.5) << "\n"
+                << "complete_pipeline_p90_us="
+                << percentile(complete_samples, 0.9) << "\n";
+    }
     HIP_CHECK(hipEventDestroy(start)); HIP_CHECK(hipEventDestroy(stop));
     HIP_CHECK(hipModuleUnload(module));
-    return correct ? 0 : 1;
+    if (quant_module) HIP_CHECK(hipModuleUnload(quant_module));
+    if (down_module) HIP_CHECK(hipModuleUnload(down_module));
+    if (reduce_module) HIP_CHECK(hipModuleUnload(reduce_module));
+    return correct && quant_correct && full_correct ? 0 : 1;
   } catch (const std::exception& error) {
     std::cerr << "error: " << error.what() << "\n";
     return 2;
