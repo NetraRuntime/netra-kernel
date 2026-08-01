@@ -3,8 +3,9 @@
 // Qwen3.6 expert-sorted paired FP8 gate/up projection plus SiLU for gfx950.
 // Four wave64s compute matching M64xN64 gate and up tiles, preserve the
 // deployed BF16 gate/up boundary, apply SiLU(gate)*up, and write route-major
-// BF16 activation. Each 8 KiB K slab is reused by all four M16 row waves.
-// Grid: (8 N64 pairs, num_valid_ids/64, 1), workgroup: 256, LDS: 8 KiB.
+// BF16 activation. Paired gate/up 8 KiB K slabs are loaded together and
+// reused by all four M16 row waves.
+// Grid: (8 N64 pairs, num_valid_ids/64, 1), workgroup: 256, LDS: 16 KiB.
 
 	.amdgcn_target "amdgcn-amd-amdhsa--gfx950"
 	.amdhsa_code_object_version 6
@@ -67,9 +68,24 @@ qwen36_moe_gateup_silu_m64n64_fp8_gfx950:
 	v_cndmask_b32_e32 v4, 0, v4, vcc
 
 	// Convert each packed sorted ID to a clamped scale row and a unique
-	// route-major destination. Padded rows use rows*9+sorted_row sinks.
+	// route-major destination. Padded addresses remain valid for uniform
+	// arithmetic, but their final stores are masked.
 	s_lshl_b32 s39, s20, 3
 	s_add_u32 s39, s39, s20
+	// Retain one validity mask for each of the four result rows. These masks
+	// suppress padded stores at the VMEM boundary; real route addresses and
+	// arithmetic remain identical.
+	.macro BUILD_VALID_MASK packed, lo, hi
+	v_lshrrev_b32_e32 v6, 24, v\packed
+	v_and_b32_e32 v7, 0x00ffffff, v\packed
+	v_cmp_gt_u32_e64 s[\lo:\hi], 9, v6
+	v_cmp_gt_u32_e64 s[64:65], s20, v7
+	s_and_b64 s[\lo:\hi], s[\lo:\hi], s[64:65]
+	.endm
+	BUILD_VALID_MASK 84,56,57
+	BUILD_VALID_MASK 85,58,59
+	BUILD_VALID_MASK 86,60,61
+	BUILD_VALID_MASK 87,62,63
 	.macro DECODE_ROUTE token, sortedrow, route
 	v_lshrrev_b32_e32 v6, 24, v\token
 	v_and_b32_e32 v\token, 0x00ffffff, v\token
@@ -147,6 +163,12 @@ qwen36_moe_gateup_silu_m64n64_fp8_gfx950:
 	global_load_dwordx2 v[24:25], v95, s[40:41]
 	global_load_dwordx2 v[32:33], v95, s[42:43]
 	global_load_dwordx2 v[40:41], v95, s[44:45]
+	// Upper LDS is free for the full lifetime of this N64 workgroup, so put
+	// the paired up slab in flight before the common VMEM wait.
+	global_load_dwordx2 v[120:121], v95, s[46:47]
+	global_load_dwordx2 v[122:123], v95, s[48:49]
+	global_load_dwordx2 v[124:125], v95, s[50:51]
+	global_load_dwordx2 v[126:127], v95, s[52:53]
 
 	// Per-wave A fragment.
 	s_lshl_b32 s29, s27, 7
@@ -178,6 +200,10 @@ qwen36_moe_gateup_silu_m64n64_fp8_gfx950:
 	ds_write_b64 v92, v[24:25] offset:2048
 	ds_write_b64 v92, v[32:33] offset:4096
 	ds_write_b64 v92, v[40:41] offset:6144
+	ds_write_b64 v92, v[120:121] offset:8192
+	ds_write_b64 v92, v[122:123] offset:10240
+	ds_write_b64 v92, v[124:125] offset:12288
+	ds_write_b64 v92, v[126:127] offset:14336
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 
@@ -219,28 +245,15 @@ qwen36_moe_gateup_silu_m64n64_fp8_gfx950:
 	SCALE_ACC 62,78,82
 	SCALE_ACC 63,79,83
 
-	// All waves have consumed the gate slab; reuse LDS for the paired up slab.
-	s_barrier
-	global_load_dwordx2 v[16:17], v95, s[46:47]
-	global_load_dwordx2 v[24:25], v95, s[48:49]
-	global_load_dwordx2 v[32:33], v95, s[50:51]
-	global_load_dwordx2 v[40:41], v95, s[52:53]
-	s_waitcnt vmcnt(0)
-	ds_write_b64 v92, v[16:17]
-	ds_write_b64 v92, v[24:25] offset:2048
-	ds_write_b64 v92, v[32:33] offset:4096
-	ds_write_b64 v92, v[40:41] offset:6144
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-
-	ds_read_b128 v[16:19], v93
-	ds_read_b128 v[20:23], v93 offset:1024
-	ds_read_b128 v[24:27], v93 offset:2048
-	ds_read_b128 v[28:31], v93 offset:3072
-	ds_read_b128 v[32:35], v93 offset:4096
-	ds_read_b128 v[36:39], v93 offset:5120
-	ds_read_b128 v[40:43], v93 offset:6144
-	ds_read_b128 v[44:47], v93 offset:7168
+	// Consume the already-resident paired up slab directly.
+	ds_read_b128 v[16:19], v93 offset:8192
+	ds_read_b128 v[20:23], v93 offset:9216
+	ds_read_b128 v[24:27], v93 offset:10240
+	ds_read_b128 v[28:31], v93 offset:11264
+	ds_read_b128 v[32:35], v93 offset:12288
+	ds_read_b128 v[36:39], v93 offset:13312
+	ds_read_b128 v[40:43], v93 offset:14336
+	ds_read_b128 v[44:47], v93 offset:15360
 	s_waitcnt lgkmcnt(0)
 
 	v_mfma_f32_16x16x128_f8f6f4 v[48:51], v[8:15], v[16:23], 0
@@ -283,6 +296,11 @@ qwen36_moe_gateup_silu_m64n64_fp8_gfx950:
 	s_mov_b32 s54, 0xbfb8aa3b
 	s_mov_b32 s55, 0x3f800000
 
+	.macro STORE_VALID address, value, lo, hi
+	s_and_saveexec_b64 s[64:65], s[\lo:\hi]
+	global_store_short v\address, v\value, s[18:19]
+	s_or_b64 exec, exec, s[64:65]
+	.endm
 	.macro ACT_STORE g0,g1,g2,g3,u0,u1,u2,u3,coloff
 	v_cvt_pk_bf16_f32 v16, v\g0, v\g1
 	v_cvt_pk_bf16_f32 v17, v\g2, v\g3
@@ -329,10 +347,10 @@ qwen36_moe_gateup_silu_m64n64_fp8_gfx950:
 	v_add_u32_e32 v34, v117, v32
 	v_add_u32_e32 v35, v118, v32
 	v_add_u32_e32 v36, v119, v32
-	global_store_short v33, v16, s[18:19]
-	global_store_short v34, v18, s[18:19]
-	global_store_short v35, v17, s[18:19]
-	global_store_short v36, v19, s[18:19]
+	STORE_VALID 33,16,56,57
+	STORE_VALID 34,18,58,59
+	STORE_VALID 35,17,60,61
+	STORE_VALID 36,19,62,63
 	.endm
 	ACT_STORE 64,65,66,67,100,101,102,103,0
 	ACT_STORE 68,69,70,71,104,105,106,107,32
@@ -345,7 +363,7 @@ qwen36_moe_gateup_silu_m64n64_fp8_gfx950:
 	.section .rodata,"a",@progbits
 	.p2align 6, 0
 	.amdhsa_kernel qwen36_moe_gateup_silu_m64n64_fp8_gfx950
-		.amdhsa_group_segment_fixed_size 8192
+		.amdhsa_group_segment_fixed_size 16384
 		.amdhsa_private_segment_fixed_size 0
 		.amdhsa_kernarg_size 72
 		.amdhsa_user_sgpr_count 2
@@ -354,9 +372,9 @@ qwen36_moe_gateup_silu_m64n64_fp8_gfx950:
 		.amdhsa_system_sgpr_workgroup_id_x 1
 		.amdhsa_system_sgpr_workgroup_id_y 1
 		.amdhsa_system_vgpr_workitem_id 0
-		.amdhsa_next_free_vgpr 120
-		.amdhsa_accum_offset 120
-		.amdhsa_next_free_sgpr 56
+		.amdhsa_next_free_vgpr 128
+		.amdhsa_accum_offset 128
+		.amdhsa_next_free_sgpr 66
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_denorm_mode_32 3
 		.amdhsa_float_denorm_mode_16_64 3
@@ -381,7 +399,7 @@ amdhsa.kernels:
       - { .name: num_valid_ids_i32, .offset: 48, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
       - { .name: route_activation_bf16, .offset: 56, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: write_only }
       - { .name: rows, .offset: 64, .size: 4, .value_kind: by_value }
-    .group_segment_fixed_size: 8192
+    .group_segment_fixed_size: 16384
     .kernarg_segment_align: 8
     .kernarg_segment_size: 72
     .language: OpenCL C
@@ -389,12 +407,12 @@ amdhsa.kernels:
     .max_flat_workgroup_size: 256
     .name: qwen36_moe_gateup_silu_m64n64_fp8_gfx950
     .private_segment_fixed_size: 0
-    .sgpr_count: 58
+    .sgpr_count: 70
     .sgpr_spill_count: 0
     .symbol: qwen36_moe_gateup_silu_m64n64_fp8_gfx950.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count: 120
+    .vgpr_count: 128
     .vgpr_spill_count: 0
     .wavefront_size: 64
 amdhsa.target: amdgcn-amd-amdhsa--gfx950

@@ -111,8 +111,13 @@ int main(int argc, char** argv) {
     int32_t valid = 0;
     std::memcpy(&valid, valid_bytes.data(), sizeof(valid));
     if (valid <= 0 || valid % 64) throw std::runtime_error("invalid M64 span");
-    constexpr int rows = 1024, topk = 9, n = 512;
-    constexpr int routes = rows * topk;
+    constexpr int hidden_columns = 2048, topk = 9, n = 512;
+    if (hidden.empty() || hidden.size() % hidden_columns != 0)
+      throw std::runtime_error("hidden FP8 capture shape mismatch");
+    const int rows = static_cast<int>(hidden.size() / hidden_columns);
+    if (rows < 1 || rows > 1024)
+      throw std::runtime_error("captured row count is outside 1..1024");
+    const int routes = rows * topk;
     const size_t sorted_capacity = sorted.size() / sizeof(int32_t);
     if (reference_activation_bf16.size() !=
         static_cast<size_t>(routes) * n * sizeof(uint16_t))
@@ -209,16 +214,32 @@ int main(int argc, char** argv) {
         &d_activation.ptr, &d_activation_scale.ptr, &d_w2.ptr, &d_w2_scale.ptr,
         &d_sorted.ptr, &d_sorted_weights.ptr, &d_experts.ptr, &d_valid.ptr,
         &d_partials.ptr, &token_rows};
+    unsigned down_grid_x = 32;
+    if (const char* value = std::getenv("NETRA_DOWN_GRID_X"))
+      down_grid_x = std::stoul(value);
+    if (down_grid_x != 16 && down_grid_x != 32)
+      throw std::runtime_error("NETRA_DOWN_GRID_X must be 16 or 32");
     void* reduce_args[] = {
         &d_partials.ptr, &d_topk_weights.ptr, &d_final.ptr};
+    unsigned reduce_grid_x = 32;
+    unsigned reduce_wg_size = 64;
+    if (const char* value = std::getenv("NETRA_REDUCE_GRID_X"))
+      reduce_grid_x = std::stoul(value);
+    if (const char* value = std::getenv("NETRA_REDUCE_WG_SIZE"))
+      reduce_wg_size = std::stoul(value);
+    if (reduce_grid_x < 1 || reduce_grid_x > 32 ||
+        (reduce_wg_size != 64 && reduce_wg_size != 128 &&
+         reduce_wg_size != 256))
+      throw std::runtime_error("invalid reduction launch geometry");
     auto launch_down_kernel = [&] {
       HIP_CHECK(hipModuleLaunchKernel(
-          down_function, 32, valid / 64, 1, 256, 1, 1, 0, nullptr,
+          down_function, down_grid_x, valid / 64, 1, 256, 1, 1, 0, nullptr,
           down_args, nullptr));
     };
     auto launch_reduce = [&] {
       HIP_CHECK(hipModuleLaunchKernel(
-          reduce_function, 32, rows, 1, 64, 1, 1, 0, nullptr,
+          reduce_function, reduce_grid_x, rows, 1, reduce_wg_size, 1, 1, 0,
+          nullptr,
           reduce_args, nullptr));
     };
     auto launch_down = [&] {

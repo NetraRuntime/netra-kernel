@@ -16,6 +16,8 @@ from pathlib import Path
 
 import torch
 
+from aiter.fused_moe import moe_sorting
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -79,7 +81,6 @@ def main() -> None:
         weights_only=True,
     )
 
-    rows, topk, hidden, inter, block_m = 1024, 9, 2048, 512, 16
     activation = stage2["inter_states"].contiguous()
     activation_scale = stage2["a2_scale"].contiguous()
     topk_ids = call["topk_ids_i32"].to(torch.int64).contiguous()
@@ -98,6 +99,23 @@ def main() -> None:
     sorted_tokens = stage2["sorted_token_ids"].to(torch.int32).contiguous()
     sorted_experts = stage2["sorted_expert_ids"].to(torch.int64).contiguous()
     num_valid = int(stage2["num_valid_ids"].view(-1)[0].item())
+
+    rows, topk, inter = activation.shape
+    hidden = hidden_fp8.shape[1]
+    block_m = next(
+        (
+            candidate
+            for candidate in (16, 32, 64)
+            if num_valid % candidate == 0
+            and num_valid // candidate <= sorted_experts.numel()
+        ),
+        0,
+    )
+    if block_m == 0:
+        raise ValueError(
+            "cannot infer captured sorting block size from "
+            f"num_valid={num_valid}, expert_capacity={sorted_experts.numel()}"
+        )
 
     expected_shapes = {
         "activation": (rows, topk, inter),
@@ -134,7 +152,17 @@ def main() -> None:
     if num_valid % block_m:
         raise ValueError(f"num_valid={num_valid} is not block-M{block_m} aligned")
 
-    compact_by_global = {int(value): index for index, value in enumerate(expert_ids.tolist())}
+    compact_by_global = {
+        int(value): index for index, value in enumerate(expert_ids.tolist())
+    }
+    compact_topk_ids = torch.empty_like(topk_ids, dtype=torch.int32)
+    for global_expert, compact_expert in compact_by_global.items():
+        compact_topk_ids[topk_ids == global_expert] = compact_expert
+    if not torch.equal(
+        expert_ids[compact_topk_ids.to(torch.int64)].reshape_as(topk_ids),
+        topk_ids,
+    ):
+        raise ValueError("failed to compact every routed expert ID")
     valid_blocks = num_valid // block_m
     compact_sorted_experts = torch.zeros_like(sorted_experts, dtype=torch.int32)
     for block in range(valid_blocks):
@@ -150,6 +178,30 @@ def main() -> None:
         arch = getattr(properties, "gcnArchName", "")
         if not str(arch).startswith("gfx950"):
             raise RuntimeError(f"refusing structural oracle on non-gfx950 device: {arch}")
+    (
+        sorted_tokens_m64,
+        sorted_weights_m64,
+        sorted_experts_m64,
+        num_valid_m64_tensor,
+        _,
+    ) = moe_sorting(
+        compact_topk_ids.to(device),
+        topk_weights.to(device),
+        expert_ids.numel(),
+        hidden,
+        torch.bfloat16,
+        block_size=64,
+    )
+    torch.cuda.synchronize(device) if device.type == "cuda" else None
+    sorted_tokens_m64 = sorted_tokens_m64.cpu().to(torch.int32).contiguous()
+    sorted_weights_m64 = sorted_weights_m64.cpu().contiguous()
+    sorted_experts_m64 = sorted_experts_m64.cpu().to(torch.int32).contiguous()
+    num_valid_m64_tensor = num_valid_m64_tensor.cpu().to(torch.int32).contiguous()
+    num_valid_m64 = int(num_valid_m64_tensor.view(-1)[0].item())
+    if num_valid_m64 % 64:
+        raise ValueError(
+            f"M64 num_valid={num_valid_m64} is not block-M64 aligned"
+        )
     hidden_device = hidden_fp8.to(device).float().reshape(rows, 16, 128)
     hidden_device.mul_(hidden_scale.to(device)[:, :, None])
     topk_ids_device = topk_ids.to(device)
@@ -227,6 +279,10 @@ def main() -> None:
         "sorted_token_ids_i32": sorted_tokens,
         "compact_sorted_expert_ids_i32": compact_sorted_experts,
         "num_valid_ids_i32": torch.tensor([num_valid], dtype=torch.int32),
+        "sorted_token_ids_m64_i32": sorted_tokens_m64,
+        "compact_sorted_expert_ids_m64_i32": sorted_experts_m64,
+        "num_valid_ids_m64_i32": num_valid_m64_tensor,
+        "sorted_weights_m64_f32": sorted_weights_m64,
         "topk_weights_f32": topk_weights,
         "aiter_output_bf16": aiter_output,
         "reference_output_f32": reference_cpu,
@@ -245,6 +301,7 @@ def main() -> None:
             "active_experts": expert_ids.numel(),
             "sorted_capacity": sorted_tokens.numel(),
             "valid_sorted_ids": num_valid,
+            "m64_valid_sorted_ids": num_valid_m64,
         },
         "active_global_expert_ids": expert_ids.tolist(),
         "aiter_vs_reference": {
