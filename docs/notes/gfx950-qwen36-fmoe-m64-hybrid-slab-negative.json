@@ -1,0 +1,40 @@
+{
+  "status": "validated_negative_not_integrated",
+  "target": "gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "weight_quantization": "FP8_E4M3_block_128x128",
+  "shape": {
+    "rows": 1024,
+    "topk": 9,
+    "hidden": 2048,
+    "intermediate": 512,
+    "valid_sorted_ids": 18624,
+    "m64_blocks": 291,
+    "active_experts": 197
+  },
+  "correctness": {
+    "activation_fp8_byte_mismatches": 101625,
+    "activation_fp8_elements": 4718592,
+    "activation_scale_max_abs": 0.0000348776,
+    "structural_max_abs": 0.000849761,
+    "structural_cosine": 0.999973,
+    "aiter_max_abs": 0.000976562,
+    "aiter_cosine": 0.999965,
+    "gate": "pass"
+  },
+  "median_us": {
+    "fused_gate_up_silu_quant": 148.9,
+    "down": 86.3,
+    "route_reduce": 14.5205,
+    "complete": 250.061,
+    "retained_raw_complete": 257.881,
+    "aiter_complete": 226.0025
+  },
+  "decision": {
+    "speedup_vs_retained_raw_percent": 3.13,
+    "slower_than_aiter_percent": 10.65,
+    "integrated": false,
+    "reason": "Correct and faster than the prior raw pipeline, but slower than the deployed AITER implementation."
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260801T090000Z-raw-fmoe-m64-fused-quant-gpu4"
+}

@@ -12,6 +12,7 @@ quant_kernel="$repo_root/kernels/gfx950/fp8/moe/verify/experiments/qwen36_moe_si
 down_kernel="$repo_root/kernels/gfx950/fp8/moe/verify/experiments/qwen36_moe_down_m64n64_partial_fp8_gfx950.s"
 down_harness="$repo_root/harness/gfx950/fp8/moe/verify/qwen36_moe_down_m64_partial_pipeline_gfx950.hip"
 paired_kernel="$repo_root/kernels/gfx950/fp8/moe/verify/experiments/qwen36_moe_gateup_silu_m64n64_fp8_gfx950.s"
+paired_quant_kernel="$repo_root/kernels/gfx950/fp8/moe/verify/experiments/qwen36_moe_gateup_silu_quant_m64n128_fp8_gfx950.s"
 quant_bf16_kernel="$repo_root/kernels/gfx950/fp8/moe/verify/experiments/qwen36_moe_quant_bf16_m64_fp8_gfx950.s"
 masked_down_kernel="$repo_root/kernels/gfx950/fp8/moe/verify/experiments/qwen36_moe_down_m64n64_partial_masked_fp8_gfx950.s"
 paired_harness="$repo_root/harness/gfx950/fp8/moe/verify/qwen36_moe_gateup_silu_m64_pipeline_gfx950.hip"
@@ -24,6 +25,7 @@ code_object="$build_dir/qwen36_moe_gateup_m64n64_fp8_gfx950.hsaco"
 "$rocm_root/bin/hipcc" -O3 --offload-arch=gfx950 "$harness" \
   -o "$build_dir/qwen36_moe_gateup_m64n64_gfx950_harness"
 for source in "$quant_kernel" "$down_kernel" "$paired_kernel" \
+  "$paired_quant_kernel" \
   "$quant_bf16_kernel" "$masked_down_kernel"; do
   name=$(basename "$source" .s)
   "$rocm_root/llvm/bin/clang" -x assembler -target amdgcn-amd-amdhsa \
@@ -44,5 +46,6 @@ done
 "$rocm_root/llvm/bin/llvm-readelf" --notes "$code_object" \
   > "$build_dir/qwen36_moe_gateup_m64n64_fp8_gfx950.metadata.txt"
 sha256sum "$kernel" "$quant_kernel" "$down_kernel" "$paired_kernel" \
+  "$paired_quant_kernel" \
   "$quant_bf16_kernel" "$masked_down_kernel" "$build_dir"/*.hsaco \
   > "$build_dir/qwen36_moe_gateup_m64n64_fp8_gfx950.sha256"
