@@ -18,6 +18,10 @@ def args() -> argparse.Namespace:
     parser.add_argument("--layer-pass", type=Path, required=True)
     parser.add_argument("--h-pass", type=Path, required=True)
     parser.add_argument("--fused-build-dir", type=Path, required=True)
+    parser.add_argument(
+        "--fused-kernel",
+        default="qwen36_gdn_fused_h_o_m8192_bv16_gfx950",
+    )
     parser.add_argument("--h-build-dir", type=Path, required=True)
     parser.add_argument("--iterations", type=int, default=30)
     parser.add_argument("--num-chunks", type=int, default=128)
@@ -223,7 +227,8 @@ def main() -> None:
     hlib.netra_qwen36_gdn_h_m8192_bv16_load.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
     hlib.netra_qwen36_gdn_h_m8192_bv16_load.restype = ctypes.c_int
     hlib.netra_qwen36_gdn_h_m8192_bv16_launch.argtypes = [
-        *([ctypes.c_void_p] * 10), ctypes.c_void_p
+        *([ctypes.c_void_p] * 10), ctypes.c_uint32, ctypes.c_uint32,
+        ctypes.c_void_p
     ]
     hlib.netra_qwen36_gdn_h_m8192_bv16_launch.restype = ctypes.c_int
     hlib.netra_qwen36_gdn_h_m8192_bv16_last_error.restype = ctypes.c_char_p
@@ -246,8 +251,8 @@ def main() -> None:
     flib.netra_qwen36_gdn_fused_h_o_m8192_launch.restype = ctypes.c_int
     flib.netra_qwen36_gdn_fused_h_o_m8192_last_error.restype = ctypes.c_char_p
     status = flib.netra_qwen36_gdn_fused_h_o_m8192_load(
-        str(a.fused_build_dir / "qwen36_gdn_fused_h_o_m8192_bv16_gfx950.hsaco").encode(),
-        b"qwen36_gdn_fused_h_o_m8192_bv16_gfx950",
+        str(a.fused_build_dir / f"{a.fused_kernel}.hsaco").encode(),
+        a.fused_kernel.encode(),
     )
     if status:
         raise RuntimeError(flib.netra_qwen36_gdn_fused_h_o_m8192_last_error().decode())
@@ -257,6 +262,7 @@ def main() -> None:
         status = hlib.netra_qwen36_gdn_h_m8192_bv16_launch(
             ptr(k), ptr(u), ptr(w), ptr(baseline_v), ptr(g), ptr(baseline_h),
             ptr(baseline_state), ptr(initial_indices), ptr(cu), ptr(chunk_offsets),
+            ctypes.c_uint32(k.shape[1]), ctypes.c_uint32(initial_indices.numel()),
             ctypes.c_void_p(stream.cuda_stream),
         )
         if status:

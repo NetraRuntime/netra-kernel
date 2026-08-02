@@ -9,6 +9,7 @@ namespace {
 std::mutex module_mutex;
 hipModule_t module = nullptr;
 hipFunction_t function = nullptr;
+unsigned int launch_grid_x = 8;
 thread_local std::string last_error;
 
 int fail(const char* operation, hipError_t error) {
@@ -23,6 +24,7 @@ void clear_module() {
   if (module != nullptr) (void)hipModuleUnload(module);
   module = nullptr;
   function = nullptr;
+  launch_grid_x = 8;
 }
 int validate_device() {
   int device = 0;
@@ -56,6 +58,10 @@ extern "C" int netra_qwen36_gdn_fused_h_o_m8192_load(
     clear_module();
     return fail("hipModuleGetFunction", error);
   }
+  const std::string name(kernel_name);
+  launch_grid_x = name.find("_bv64_") != std::string::npos
+                      ? 2
+                      : (name.find("_bv32_") != std::string::npos ? 4 : 8);
   last_error.clear();
   return 0;
 }
@@ -86,7 +92,44 @@ extern "C" int netra_qwen36_gdn_fused_h_o_m8192_launch(
   void* arguments[] = {
       &q, &k, &u, &w, &g, &state_bf16, &output_bf16, &scale, &num_chunks};
   hipError_t error = hipModuleLaunchKernel(
-      function, 8, 32, 1, 256, 1, 1, 0, stream, arguments, nullptr);
+      function, launch_grid_x, 32, 1, 256, 1, 1, 0, stream, arguments,
+      nullptr);
+  if (error != hipSuccess) return fail("hipModuleLaunchKernel", error);
+  last_error.clear();
+  return 0;
+}
+
+extern "C" int netra_qwen36_gdn_fused_h_o_m8192_launch_varlen(
+    const void* q_bf16,
+    const void* k_bf16,
+    const void* u_bf16,
+    const void* w_bf16,
+    const void* g_f32,
+    void* state_bf16,
+    void* output_bf16,
+    float scale,
+    unsigned int num_chunks_per_sequence,
+    unsigned int num_sequences,
+    hipStream_t stream) {
+  if (function == nullptr) return fail_message("fused GDN module is not loaded");
+  if (q_bf16 == nullptr || k_bf16 == nullptr || u_bf16 == nullptr ||
+      w_bf16 == nullptr || g_f32 == nullptr || state_bf16 == nullptr ||
+      output_bf16 == nullptr)
+    return fail_message("fused GDN launch pointers must be nonnull");
+  if (num_chunks_per_sequence == 0 || num_chunks_per_sequence > 128)
+    return fail_message("fused GDN chunks per sequence must be in [1, 128]");
+  if (num_sequences == 0 || num_sequences > 64)
+    return fail_message("fused GDN sequence count must be in [1, 64]");
+  void* q = const_cast<void*>(q_bf16);
+  void* k = const_cast<void*>(k_bf16);
+  void* u = const_cast<void*>(u_bf16);
+  void* w = const_cast<void*>(w_bf16);
+  void* g = const_cast<void*>(g_f32);
+  void* arguments[] = {&q, &k, &u, &w, &g, &state_bf16, &output_bf16,
+                       &scale, &num_chunks_per_sequence};
+  hipError_t error = hipModuleLaunchKernel(
+      function, launch_grid_x, num_sequences * 32, 1, 256, 1, 1, 0, stream,
+      arguments, nullptr);
   if (error != hipSuccess) return fail("hipModuleLaunchKernel", error);
   last_error.clear();
   return 0;

@@ -5,9 +5,9 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
 out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-gdn-fused-h-o-m8192-experiment"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
-source_file=${repo_dir}/kernels/gfx950/linear_attention/prefill/experiments/qwen36_gdn_fused_h_o_m8192_bv16_gfx950.s
+source_file=${NETRA_FUSED_GDN_SOURCE:-${repo_dir}/kernels/gfx950/linear_attention/prefill/experiments/qwen36_gdn_fused_h_o_m8192_bv16_gfx950.s}
 bridge=${repo_dir}/harness/gfx950/linear_attention/prefill/qwen36_gdn_fused_h_o_m8192_bridge.hip
-stem=qwen36_gdn_fused_h_o_m8192_bv16_gfx950
+stem=$(basename "${source_file%.s}")
 
 mkdir -p "$out_dir"
 rocminfo_text=$(rocminfo 2>/dev/null)
@@ -40,8 +40,19 @@ sha256sum "$source_file" "$bridge" "${out_dir}/${stem}.hsaco" \
   > "${out_dir}/sha256sums.txt"
 {
   printf 'target=gfx950\nwavefront_size=64\n'
-  printf 'shape=B1_T8192_H32_Hg16_K128_V128_BT64_BV16\n'
-  printf 'grid=8x32x1\nblock=256x1x1\nfixed_lds_bytes=18432\n'
+  if [[ $stem == *_n16_t1024_bv64_* ]]; then
+    printf 'shape=B16_T16384_16x1024_H32_Hg16_K128_V128_BT64_BV64\n'
+    printf 'grid=2x512x1\nblock=256x1x1\nfixed_lds_bytes=40960\n'
+  elif [[ $stem == *_n16_t1024_bv32_* ]]; then
+    printf 'shape=B16_T16384_16x1024_H32_Hg16_K128_V128_BT64_BV32\n'
+    printf 'grid=4x512x1\nblock=256x1x1\nfixed_lds_bytes=24576\n'
+  elif [[ $stem == *_bv32_* ]]; then
+    printf 'shape=B1_T8192_H32_Hg16_K128_V128_BT64_BV32\n'
+    printf 'grid=4x32x1\nblock=256x1x1\nfixed_lds_bytes=24576\n'
+  else
+    printf 'shape=B1_T8192_H32_Hg16_K128_V128_BT64_BV16\n'
+    printf 'grid=8x32x1\nblock=256x1x1\nfixed_lds_bytes=18432\n'
+  fi
   printf 'status=rejected_full_path_experiment\n'
   printf 'defsym=%s\n' "${NETRA_FUSED_GDN_DEFSYM:-none}"
 } > "${out_dir}/build-variant.txt"
