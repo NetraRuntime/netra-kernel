@@ -1,0 +1,60 @@
+{
+  "date": "2026-08-02",
+  "status": "accepted_guarded_path",
+  "target": "gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "wavefront_size": 64,
+  "checkpoint_quantization": "FP8 E4M3 128x128 blocks",
+  "shape": {
+    "sequence_count_min": 16,
+    "sequence_count_max": 64,
+    "tokens_per_sequence": 1024,
+    "H": 32,
+    "Hg": 16,
+    "K": 128,
+    "V": 128,
+    "BT": 64,
+    "BV": 128
+  },
+  "code_object": {
+    "raw_source_sha256": "13d2a018d8ef486ea5e81f9b7b93d25bc075137c3e1d647e78b7865c387f94c3",
+    "hsaco_sha256": "a004ae59fd1c9dc5d7f0ea855102518773230c0b15779a7e9efc81c0c9c08893",
+    "kernarg_bytes": 88,
+    "lds_bytes": 73728,
+    "vgpr_count": 248,
+    "sgpr_count": 36,
+    "scratch_bytes": 0,
+    "block_threads": 256
+  },
+  "real_checkpoint_n16_stress200": {
+    "baseline_h_plus_o_median_us": 1100.6659865379333,
+    "fused_median_us": 543.4430241584778,
+    "speedup": 2.0253567303441167,
+    "output_max_abs": 0.015625,
+    "output_cosine": 0.999999463558197,
+    "output_combined_tolerance_failures": 0,
+    "state_max_abs": 0.125,
+    "state_cosine": 0.9999979734420776,
+    "state_combined_tolerance_failures": 0,
+    "guard_failures": 0
+  },
+  "complete_layer": {
+    "n8_speedup": 0.93551146169842,
+    "n16_speedup": 1.1659209609203856,
+    "n64_speedup": 1.1217150857227893
+  },
+  "current_best_native_batch_serving": {
+    "control_output_tok_s": 88.3507889487182,
+    "fused_output_tok_s": 89.68802780195675,
+    "speedup": 1.0151355621058995
+  },
+  "deterministic_serving": {
+    "outputs": 80,
+    "control_self_mismatches": 0,
+    "candidate_self_mismatches": 0,
+    "control_candidate_mismatches": 0,
+    "control_tok_s_range": [52.966668007628215, 53.05062724807006],
+    "candidate_tok_s_range": [53.356876806225316, 53.89068549693623]
+  },
+  "decision": "dispatch only for packed exact-T1024 N16-to-N64 eager metadata"
+}

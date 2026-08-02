@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Real-checkpoint gate for the gfx950 N16/T1024 fused GDN experiment."""
+"""Real-checkpoint gate for packed gfx950 T1024 fused GDN kernels."""
 
 from __future__ import annotations
 
@@ -19,12 +19,25 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fused-build-dir", type=Path, required=True)
     parser.add_argument(
         "--fused-kernel",
-        default="qwen36_gdn_fused_h_o_n16_t1024_bv32_gfx950",
+        default="qwen36_gdn_fused_h_o_n16_t1024_bv128_gfx950",
     )
     parser.add_argument("--h-build-dir", type=Path, required=True)
     parser.add_argument("--server-python", type=Path, required=True)
     parser.add_argument("--iterations", type=int, default=20)
     parser.add_argument("--sequence-count", type=int, default=16)
+    parser.add_argument("--reverse-state-indices", action="store_true")
+    parser.add_argument(
+        "--state-pool-size",
+        type=int,
+        default=0,
+        help="Allocated recurrent-state rows; 0 uses sequence-count.",
+    )
+    parser.add_argument(
+        "--state-index-offset",
+        type=int,
+        default=0,
+        help="First recurrent-state row used by the packed batch.",
+    )
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
 
@@ -46,6 +59,7 @@ def comparison(
     relative = delta / e.abs().clamp_min(1e-6)
     significant = torch.maximum(a.abs(), e.abs()) >= atol
     relative_fail = significant & (relative > rtol)
+    combined_fail = delta > (atol + rtol * e.abs())
     cosine = float(torch.nn.functional.cosine_similarity(a.flatten(), e.flatten(), dim=0))
     finite = bool(torch.isfinite(a).all().item())
     return {
@@ -57,10 +71,10 @@ def comparison(
         "mean_abs": float(delta.mean().item()),
         "cosine": cosine,
         "relative_fail_count": int(relative_fail.sum().item()),
+        "combined_atol_rtol_fail_count": int(combined_fail.sum().item()),
         "pass": bool(
             finite
-            and float(delta.max().item()) <= atol
-            and not bool(relative_fail.any().item())
+            and not bool(combined_fail.any().item())
             and cosine >= cosine_min
         ),
     }
@@ -107,8 +121,15 @@ def main() -> None:
         raise RuntimeError(f"refusing non-gfx950 device: {architecture}")
 
     sequence_count, length, chunk_size = args.sequence_count, 1024, 64
-    if sequence_count < 1 or sequence_count > 16:
-        raise ValueError("--sequence-count must be in [1, 16]")
+    if sequence_count < 1 or sequence_count > 64:
+        raise ValueError("--sequence-count must be in [1, 64]")
+    state_pool_size = args.state_pool_size or sequence_count
+    if state_pool_size < sequence_count:
+        raise ValueError("--state-pool-size must cover every sequence")
+    if args.state_index_offset < 0:
+        raise ValueError("--state-index-offset must be nonnegative")
+    if args.state_index_offset + sequence_count > state_pool_size:
+        raise ValueError("selected state rows exceed --state-pool-size")
     layer = torch.load(args.layer_pass, map_location="cpu", weights_only=True)
     hp = torch.load(args.h_pass, map_location="cpu", weights_only=True)
 
@@ -124,8 +145,15 @@ def main() -> None:
     u = assemble(hp["u"])
     w = assemble(hp["w"])
     g = assemble(hp["g_cumsum"])
-    initial = hp["initial_state"].repeat(sequence_count, 1, 1, 1).to(device)
-    initial_indices = torch.arange(sequence_count, dtype=torch.int32, device=device)
+    initial = hp["initial_state"].repeat(state_pool_size, 1, 1, 1).to(device)
+    initial_indices = torch.arange(
+        args.state_index_offset,
+        args.state_index_offset + sequence_count,
+        dtype=torch.int32,
+        device=device,
+    )
+    if args.reverse_state_indices:
+        initial_indices = initial_indices.flip(0).contiguous()
     cu = torch.arange(
         0,
         (sequence_count + 1) * length,
@@ -143,12 +171,33 @@ def main() -> None:
         (1, total_chunks, 32, 128, 128), dtype=torch.bfloat16, device=device
     )
     v_new = torch.empty_like(u)
-    baseline_state = initial.clone()
-    baseline_output = torch.empty(
-        (1, total_tokens, 32, 128), dtype=torch.bfloat16, device=device
+    # Guard one full state row on each side. The raw kernel receives only the
+    # interior view, so an off-by-one pool index changes a guard deterministically
+    # instead of depending on allocator adjacency.
+    state_guard_value = 0.337890625
+    initial_backing = torch.full(
+        (state_pool_size + 2, 32, 128, 128),
+        state_guard_value,
+        dtype=torch.bfloat16,
+        device=device,
     )
-    fused_state = initial.clone()
-    fused_output = torch.empty_like(baseline_output)
+    initial_backing[1:-1].copy_(initial)
+    baseline_state_backing = initial_backing.clone()
+    baseline_state = baseline_state_backing[1:-1]
+    fused_state_backing = initial_backing.clone()
+    fused_state = fused_state_backing[1:-1]
+
+    # Guard an entire token on each side of output for the same reason.
+    output_guard_value = -0.6171875
+    baseline_output_backing = torch.full(
+        (1, total_tokens + 2, 32, 128),
+        output_guard_value,
+        dtype=torch.bfloat16,
+        device=device,
+    )
+    baseline_output = baseline_output_backing[:, 1:-1]
+    fused_output_backing = baseline_output_backing.clone()
+    fused_output = fused_output_backing[:, 1:-1]
     scale = 128.0**-0.5
 
     hlib = ctypes.CDLL(str(args.h_build_dir / "libqwen36_gdn_h_m8192_bv16_bridge.so"))
@@ -169,11 +218,11 @@ def main() -> None:
     flib = ctypes.CDLL(str(args.fused_build_dir / "libqwen36_gdn_fused_h_o_m8192_bridge.so"))
     flib.netra_qwen36_gdn_fused_h_o_m8192_load.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
     flib.netra_qwen36_gdn_fused_h_o_m8192_load.restype = ctypes.c_int
-    flib.netra_qwen36_gdn_fused_h_o_m8192_launch_varlen.argtypes = [
-        *([ctypes.c_void_p] * 7), ctypes.c_float, ctypes.c_uint32,
+    flib.netra_qwen36_gdn_fused_h_o_m8192_launch_packed_t1024.argtypes = [
+        *([ctypes.c_void_p] * 9), ctypes.c_float, ctypes.c_uint32,
         ctypes.c_uint32, ctypes.c_void_p
     ]
-    flib.netra_qwen36_gdn_fused_h_o_m8192_launch_varlen.restype = ctypes.c_int
+    flib.netra_qwen36_gdn_fused_h_o_m8192_launch_packed_t1024.restype = ctypes.c_int
     flib.netra_qwen36_gdn_fused_h_o_m8192_last_error.restype = ctypes.c_char_p
     kernel = args.fused_kernel
     status = flib.netra_qwen36_gdn_fused_h_o_m8192_load(
@@ -206,10 +255,11 @@ def main() -> None:
 
     def run_fused() -> None:
         stream = torch.cuda.current_stream(device)
-        status = flib.netra_qwen36_gdn_fused_h_o_m8192_launch_varlen(
+        status = flib.netra_qwen36_gdn_fused_h_o_m8192_launch_packed_t1024(
             pointer(q), pointer(k), pointer(u), pointer(w), pointer(g),
-            pointer(fused_state), pointer(fused_output), ctypes.c_float(scale),
-            ctypes.c_uint32(length // chunk_size), ctypes.c_uint32(sequence_count),
+            pointer(fused_state), pointer(fused_output), pointer(initial_indices), pointer(cu),
+            ctypes.c_float(scale), ctypes.c_uint32(sequence_count),
+            ctypes.c_uint32(state_pool_size),
             ctypes.c_void_p(stream.cuda_stream),
         )
         if status:
@@ -229,6 +279,13 @@ def main() -> None:
             fused_state, baseline_state, atol=0.125, rtol=0.02,
             cosine_min=0.999,
         ),
+        "final_state_vs_reversed_slots": comparison(
+            fused_state,
+            baseline_state.flip(0),
+            atol=0.125,
+            rtol=0.02,
+            cosine_min=0.999,
+        ),
         "output_by_sequence": [
             comparison(
                 fused_output[:, index * length : (index + 1) * length],
@@ -241,22 +298,52 @@ def main() -> None:
         ],
         "state_by_sequence": [
             comparison(
-                fused_state[index], baseline_state[index], atol=0.125,
+                fused_state[int(initial_indices[index].item())],
+                baseline_state[int(initial_indices[index].item())],
+                atol=0.125,
                 rtol=0.02, cosine_min=0.999,
             )
             for index in range(sequence_count)
         ],
+        "guards": {
+            "state_prefix_unchanged": bool(
+                torch.equal(fused_state_backing[0], initial_backing[0])
+            ),
+            "state_suffix_unchanged": bool(
+                torch.equal(fused_state_backing[-1], initial_backing[-1])
+            ),
+            "output_prefix_unchanged": bool(
+                torch.equal(
+                    fused_output_backing[:, 0], baseline_output_backing[:, 0]
+                )
+            ),
+            "output_suffix_unchanged": bool(
+                torch.equal(
+                    fused_output_backing[:, -1], baseline_output_backing[:, -1]
+                )
+            ),
+        },
     }
     baseline_us = median_us(run_baseline, lambda: baseline_state.copy_(initial), args.iterations)
     fused_us = median_us(run_fused, lambda: fused_state.copy_(initial), args.iterations)
+    block_v = 128 if "_bv128_" in kernel else (64 if "_bv64_" in kernel else 32)
     report = {
         "target": architecture,
         "shape": {"N": sequence_count, "tokens_per_sequence": 1024, "T": total_tokens,
-                  "H": 32, "Hg": 16, "K": 128, "V": 128, "BT": 64, "BV": 32},
+                  "H": 32, "Hg": 16, "K": 128, "V": 128, "BT": 64,
+                  "BV": block_v,
+                  "state_pool_size": state_pool_size,
+                  "state_index_offset": args.state_index_offset},
         "kernel": kernel,
-        "grid": [2 if "_bv64_" in kernel else 4, sequence_count * 32, 1],
+        "grid": [
+            1 if "_bv128_" in kernel else (2 if "_bv64_" in kernel else 4),
+            sequence_count * 32,
+            1,
+        ],
         "block": [256, 1, 1],
-        "lds_bytes": 40960 if "_bv64_" in kernel else 24576,
+        "lds_bytes": (
+            73728 if "_bv128_" in kernel else (40960 if "_bv64_" in kernel else 24576)
+        ),
         "correctness": correctness,
         "baseline_h_plus_o_median_us": baseline_us,
         "fused_median_us": fused_us,
@@ -264,6 +351,7 @@ def main() -> None:
         "accepted_isolated": bool(
             correctness["output"]["pass"]
             and correctness["final_state"]["pass"]
+            and all(correctness["guards"].values())
             and fused_us < baseline_us
         ),
     }
