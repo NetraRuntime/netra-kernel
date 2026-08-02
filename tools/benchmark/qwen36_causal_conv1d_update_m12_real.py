@@ -37,6 +37,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--build-dir", type=Path)
     parser.add_argument("--iterations", type=int, default=100)
+    parser.add_argument("--state-slot-offset", type=int, default=0)
+    parser.add_argument("--intermediate-slot-offset", type=int, default=0)
+    parser.add_argument("--valid-batch", type=int, default=BATCH)
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
 
@@ -87,6 +90,10 @@ def main() -> None:
         raise FileExistsError(args.output)
     if args.iterations <= 0:
         raise ValueError("--iterations must be positive")
+    if args.state_slot_offset < 0 or args.intermediate_slot_offset < 0:
+        raise ValueError("slot offsets must be nonnegative")
+    if not 1 <= args.valid_batch <= BATCH:
+        raise ValueError(f"valid batch must be in [1,{BATCH}]")
 
     device = torch.device("cuda", 0)
     architecture = torch.cuda.get_device_properties(device).gcnArchName
@@ -206,19 +213,60 @@ def main() -> None:
                 bridge.netra_qwen36_gdn_causal_conv_m12_last_error().decode()
             )
 
-        raw_state = initial_state.clone(memory_format=torch.preserve_format)
-        raw_window = torch.empty_like(expected_window)
+        valid_batch = args.valid_batch
+        raw_state_pool = torch.empty(
+            (args.state_slot_offset + valid_batch, DIM, WIDTH - 1),
+            dtype=torch.bfloat16,
+            device=device,
+        )
+        raw_state = raw_state_pool[
+            args.state_slot_offset : args.state_slot_offset + valid_batch
+        ]
+        raw_state.copy_(initial_state[:valid_batch])
+        raw_window_pool = torch.empty(
+            (
+                args.intermediate_slot_offset + valid_batch,
+                TOKENS_PER_SEQUENCE,
+                DIM,
+                WIDTH - 1,
+            ),
+            dtype=torch.bfloat16,
+            device=device,
+        )
+        raw_window = raw_window_pool[
+            args.intermediate_slot_offset : args.intermediate_slot_offset
+            + valid_batch
+        ]
         raw_output_view = torch.empty_like(x)
+        raw_output_view.zero_()
+        raw_state_indices = torch.full(
+            (BATCH,), -1, dtype=torch.int32, device=device
+        )
+        raw_intermediate_indices = torch.full(
+            (BATCH,), -1, dtype=torch.int32, device=device
+        )
+        raw_state_indices[:valid_batch] = torch.arange(
+            args.state_slot_offset,
+            args.state_slot_offset + valid_batch,
+            dtype=torch.int32,
+            device=device,
+        )
+        raw_intermediate_indices[:valid_batch] = torch.arange(
+            args.intermediate_slot_offset,
+            args.intermediate_slot_offset + valid_batch,
+            dtype=torch.int32,
+            device=device,
+        )
 
         def invoke_raw() -> None:
             stream = torch.cuda.current_stream(device)
             status = bridge.netra_qwen36_gdn_causal_conv_m12_launch(
                 pointer(x),
                 pointer(weight),
-                pointer(raw_state),
-                pointer(state_indices),
-                pointer(raw_window),
-                pointer(intermediate_indices),
+                pointer(raw_state_pool),
+                pointer(raw_state_indices),
+                pointer(raw_window_pool),
+                pointer(raw_intermediate_indices),
                 pointer(raw_output_view),
                 BATCH,
                 ctypes.c_void_p(stream.cuda_stream),
@@ -234,18 +282,26 @@ def main() -> None:
             BATCH * TOKENS_PER_SEQUENCE, DIM
         )
         raw_correctness = {
-            "output": compare(raw_output, expected_output),
-            "final_state": compare(raw_state, expected_state),
-            "intermediate_window": compare(raw_window, expected_window),
+            "output": compare(
+                raw_output[: valid_batch * TOKENS_PER_SEQUENCE],
+                expected_output[: valid_batch * TOKENS_PER_SEQUENCE],
+            ),
+            "final_state": compare(raw_state, expected_state[:valid_batch]),
+            "intermediate_window": compare(
+                raw_window, expected_window[:valid_batch]
+            ),
+            "padded_output_unchanged": bool(
+                torch.count_nonzero(raw_output_view[valid_batch:]).item() == 0
+            ),
         }
 
         for _ in range(5):
-            raw_state.copy_(initial_state)
+            raw_state.copy_(initial_state[:valid_batch])
             invoke_raw()
         torch.cuda.synchronize(device)
         raw_timings_us: list[float] = []
         for _ in range(args.iterations):
-            raw_state.copy_(initial_state)
+            raw_state.copy_(initial_state[:valid_batch])
             start = torch.cuda.Event(enable_timing=True)
             end = torch.cuda.Event(enable_timing=True)
             start.record()
@@ -255,6 +311,9 @@ def main() -> None:
             raw_timings_us.append(float(start.elapsed_time(end) * 1000.0))
         raw_result = {
             "hsaco": str(hsaco),
+            "state_slot_offset": args.state_slot_offset,
+            "intermediate_slot_offset": args.intermediate_slot_offset,
+            "valid_batch": valid_batch,
             "correctness": raw_correctness,
             "hip_event": distribution(raw_timings_us),
         }
@@ -287,10 +346,13 @@ def main() -> None:
 
     if not all(entry["bit_exact"] for entry in correctness.values()):
         raise SystemExit("captured Triton reconstruction was not bit exact")
-    if raw_result is not None and not all(
-        entry["bit_exact"] for entry in raw_result["correctness"].values()
-    ):
-        raise SystemExit("raw gfx950 convolution was not bit exact")
+    if raw_result is not None:
+        raw_correctness = raw_result["correctness"]
+        if not all(
+            raw_correctness[name]["bit_exact"]
+            for name in ("output", "final_state", "intermediate_window")
+        ) or not raw_correctness["padded_output_unchanged"]:
+            raise SystemExit("raw gfx950 convolution was not bit exact")
 
 
 if __name__ == "__main__":

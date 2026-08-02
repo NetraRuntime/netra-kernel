@@ -30,6 +30,9 @@ grep -q 'private_segment_fixed_size:[[:space:]]*0' \
   "${out_dir}/${stem}.metadata.txt"
 grep -q 'v_exp_f32' "${out_dir}/${stem}.disassembly.txt"
 grep -q 'v_div_fixup_f32' "${out_dir}/${stem}.disassembly.txt"
+test "$(grep -c 's_mul_hi_u32' "${out_dir}/${stem}.disassembly.txt")" -ge 2
+grep -q 's_cmp_eq_u32 s23, -1' "${out_dir}/${stem}.disassembly.txt"
+grep -q 's_cmp_eq_u32 s24, -1' "${out_dir}/${stem}.disassembly.txt"
 ! grep -q 's_barrier' "${out_dir}/${stem}.disassembly.txt"
 
 library=${out_dir}/libqwen36_gdn_causal_conv_m12_bridge.so

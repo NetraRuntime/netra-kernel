@@ -103,6 +103,13 @@ qwen36_gdn_causal_conv_m12_gfx950:
 	s_load_dword s23, s[10:11], s25
 	s_load_dword s24, s[14:15], s25
 	s_waitcnt lgkmcnt(0)
+	// Captured B64 graphs replay smaller live batches with -1 in padded cache
+	// slots.  Triton's USE_PAD_SLOT path returns before touching either cache;
+	// preserve the same contract in raw assembly.
+	s_cmp_eq_u32 s23, 0xffffffff
+	s_cbranch_scc1 .Lend
+	s_cmp_eq_u32 s24, 0xffffffff
+	s_cbranch_scc1 .Lend
 
 	// Sequence-local x/output base plus the 256-feature block.
 	s_mul_i32 s25, s21, 0x30000
@@ -118,23 +125,26 @@ qwen36_gdn_causal_conv_m12_gfx950:
 	s_add_u32 s6, s6, s25
 	s_addc_u32 s7, s7, 0
 
-	// Live cache state is contiguous (cache,D,3).
+	// Live cache state is contiguous (cache,D,3).  The serving cache has
+	// millions of slots, so slot*49152 exceeds 32 bits.  Preserve both halves
+	// of the product before adding the small feature-block displacement.
 	s_mul_i32 s25, s23, 0xc000
-	s_lshl_b32 s26, s22, 10
-	s_lshl_b32 s27, s22, 9
-	s_add_u32 s26, s26, s27
-	s_add_u32 s25, s25, s26
+	s_mul_hi_u32 s26, s23, 0xc000
+	s_mul_i32 s27, s22, 0x600
+	s_add_u32 s25, s25, s27
+	s_addc_u32 s26, s26, 0
 	s_add_u32 s8, s8, s25
-	s_addc_u32 s9, s9, 0
+	s_addc_u32 s9, s9, s26
 
-	// Speculative window is contiguous (cache,12,D,3).
+	// Speculative window is contiguous (cache,12,D,3).  Its 589824-byte slot
+	// stride crosses 4 GiB even sooner, so widen this address independently.
 	s_mul_i32 s25, s24, 0x90000
-	s_lshl_b32 s26, s22, 10
-	s_lshl_b32 s27, s22, 9
-	s_add_u32 s26, s26, s27
-	s_add_u32 s25, s25, s26
+	s_mul_hi_u32 s26, s24, 0x90000
+	s_mul_i32 s27, s22, 0x600
+	s_add_u32 s25, s25, s27
+	s_addc_u32 s26, s26, 0
 	s_add_u32 s12, s12, s25
-	s_addc_u32 s13, s13, 0
+	s_addc_u32 s13, s13, s26
 
 	// Lane byte offsets for BF16 feature, four BF16 weights, and 3-BF16
 	// intermediate records.
