@@ -3,10 +3,10 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
-out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-gdn-fused-h-o-m8192-experiment"}
+out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-gdn-fused-h-o-t1024-bv128"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
-source_file=${NETRA_FUSED_GDN_SOURCE:-${repo_dir}/kernels/gfx950/linear_attention/prefill/experiments/qwen36_gdn_fused_h_o_m8192_bv16_gfx950.s}
-bridge=${repo_dir}/harness/gfx950/linear_attention/prefill/qwen36_gdn_fused_h_o_m8192_bridge.hip
+source_file=${NETRA_FUSED_GDN_SOURCE:-${repo_dir}/kernels/gfx950/linear_attention/prefill/qwen36_gdn_fused_h_o_n16_t1024_bv128_gfx950.s}
+bridge=${repo_dir}/runtime/gfx950/linear_attention/prefill/qwen36_gdn_fused_h_o_t1024_bv128_bridge.hip
 stem=$(basename "${source_file%.s}")
 
 mkdir -p "$out_dir"
@@ -40,7 +40,10 @@ sha256sum "$source_file" "$bridge" "${out_dir}/${stem}.hsaco" \
   > "${out_dir}/sha256sums.txt"
 {
   printf 'target=gfx950\nwavefront_size=64\n'
-  if [[ $stem == *_n16_t1024_bv64_* ]]; then
+  if [[ $stem == *_n16_t1024_bv128_* ]]; then
+    printf 'shape=B16_T16384_16x1024_H32_Hg16_K128_V128_BT64_BV128\n'
+    printf 'grid=1x512x1\nblock=256x1x1\nfixed_lds_bytes=73728\n'
+  elif [[ $stem == *_n16_t1024_bv64_* ]]; then
     printf 'shape=B16_T16384_16x1024_H32_Hg16_K128_V128_BT64_BV64\n'
     printf 'grid=2x512x1\nblock=256x1x1\nfixed_lds_bytes=40960\n'
   elif [[ $stem == *_n16_t1024_bv32_* ]]; then
@@ -53,8 +56,8 @@ sha256sum "$source_file" "$bridge" "${out_dir}/${stem}.hsaco" \
     printf 'shape=B1_T8192_H32_Hg16_K128_V128_BT64_BV16\n'
     printf 'grid=8x32x1\nblock=256x1x1\nfixed_lds_bytes=18432\n'
   fi
-  printf 'status=rejected_full_path_experiment\n'
+  printf 'status=accepted_exact_T1024_N16_to_N64_serving_path\n'
   printf 'defsym=%s\n' "${NETRA_FUSED_GDN_DEFSYM:-none}"
 } > "${out_dir}/build-variant.txt"
 
-printf 'gfx950 Qwen fused GDN experiment build complete: %s\n' "$out_dir"
+printf 'gfx950 Qwen fused GDN build complete: %s\n' "$out_dir"
