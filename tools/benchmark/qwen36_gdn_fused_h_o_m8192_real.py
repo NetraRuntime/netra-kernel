@@ -386,6 +386,12 @@ def main() -> None:
                 }
             )
     timing = {
+        "shipped_raw_h": timed(
+            run_h, lambda: baseline_state.copy_(initial), a.iterations, device
+        ),
+        "triton_o": timed(
+            run_o, lambda: None, a.iterations, device
+        ),
         "shipped_raw_h_plus_triton_o": timed(
             run_baseline, lambda: baseline_state.copy_(initial), a.iterations, device
         ),
