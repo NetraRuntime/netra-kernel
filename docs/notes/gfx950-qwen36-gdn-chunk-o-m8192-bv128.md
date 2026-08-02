@@ -43,6 +43,14 @@ control. The earlier 200-question stochastic runs ranged from 0.940 to 0.960
 for instruction-identical candidates, so the full-set comparison is the
 quality gate.
 
+An isolated GPU2 control replica failed before producing a comparable full-set
+result. At `2026-08-02 03:02:53 UTC`, with this chunk kernel disabled and before
+any exact-T8192 dispatch, the kernel log recorded an AMDGPU VM permission fault
+for server PID 2973196/PASID 32858 at `0x00007dc2a83f8000`; the container then
+exited. That run's 99.92% invalid responses are excluded. The valid control is
+the still-live GPU1 current-best server above. The fault is a separate existing
+batch-32/control-stack correctness issue and is not attributed to this module.
+
 ## Performance
 
 The cleaned production build measured 87.561 us eager and 95.961 us graph
