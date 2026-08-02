@@ -1,0 +1,26 @@
+{
+  "architecture": "gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "kernel": "qwen36_gdn_causal_conv_m12_gfx950",
+  "root_causes": {
+    "state_offset": "32-bit slot*49152 overflow above slot 87381",
+    "intermediate_offset": "32-bit slot*589824 overflow above slot 7281",
+    "graph_padding": "captured B64 replay dereferenced -1 cache indices"
+  },
+  "fixed_hsaco_sha256": "1e1f1f23b1d8b77323b1b41ce9e588e4717b956e012dd97824537a4126357da4",
+  "isolated_regression": {
+    "batch": 64,
+    "valid_batch": 32,
+    "state_slot_offset": 90000,
+    "intermediate_slot_offset": 8000,
+    "output_bit_exact": true,
+    "final_state_bit_exact": true,
+    "intermediate_window_bit_exact": true,
+    "padded_output_unchanged": true
+  },
+  "gsm8k_full": [
+    {"examples": 1319, "concurrency": 32, "accuracy": 0.9530, "invalid": 0.0121},
+    {"examples": 1319, "concurrency": 32, "accuracy": 0.9560, "invalid": 0.0144}
+  ],
+  "artifact": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T061000Z-gpu2-gdn-causal-conv-64bit-padguard"
+}
