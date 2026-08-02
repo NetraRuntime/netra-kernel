@@ -1,0 +1,43 @@
+{
+  "date": "2026-08-02",
+  "target": "gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "wavefront_size": 64,
+  "shape": {"B": 1, "T": 8192, "H": 32, "Hg": 16, "K": 128, "V": 128, "BT": 64},
+  "segments": 4,
+  "chunks_per_segment": 32,
+  "grid": [32, 32, 1],
+  "block": [256, 1, 1],
+  "lds_bytes": 20480,
+  "resources": {"vgpr": 115, "sgpr": 36, "scratch_bytes": 0},
+  "fp32_affine_oracle": {
+    "single_summary_bit_exact": true,
+    "four_segment_max_abs": 0.00002288818359375,
+    "four_segment_cosine": 1.0
+  },
+  "raw_diagnostic_deterministic": false,
+  "raw_diagnostic_replay_max_abs_range": [0.022491455078125, 0.057861682027578354],
+  "raw_diagnostic_composed_vs_direct": {
+    "max_abs": 0.24807000160217285,
+    "mean_abs": 0.00002185168159485329,
+    "cosine": 0.9999843239784241,
+    "elements_over_0p125": 8
+  },
+  "raw_diagnostic_composed_vs_captured_bf16": {
+    "max_abs": 0.24966633319854736,
+    "mean_abs": 0.00003768551323446445,
+    "cosine": 0.9999831914901733,
+    "elements_over_0p125": 8
+  },
+  "median_us": {
+    "shipped_raw_h": 448.4650045633316,
+    "triton_o": 130.68100064992905,
+    "shipped_h_plus_triton_o": 556.2459826469421,
+    "raw_transition_v0": 242.88300424814224,
+    "raw_transition_v1": 324.7240036725998,
+    "raw_transition_diagnostic": 357.20400512218475
+  },
+  "raw_source_sha256": "d01ee686cd0cdda01c86571b20697d20c772e2138c230e6c3ceb23922776dcd7",
+  "gfx950_hsaco_sha256": "674ec48d9bf7be84dcfa3a68787f1798f436cfcc3b436a3bec96a17b985fe2e0",
+  "decision": "rejected_nondeterministic_and_transition_overhead_exceeds_available_full_path_budget"
+}
