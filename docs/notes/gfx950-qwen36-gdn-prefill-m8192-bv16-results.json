@@ -1,0 +1,98 @@
+{
+  "date": "2026-08-02",
+  "hardware": {
+    "gpu": "AMD Instinct MI350X",
+    "target": "gfx950:sramecc+:xnack-",
+    "wavefront_size": 64,
+    "physical_cus": 256
+  },
+  "model": {
+    "checkpoint": "Qwen/Qwen3.6-35B-A3B-FP8",
+    "revision": "95a723d08a9490559dae23d0cff1d9466213d989",
+    "weight_quantization": "FP8 E4M3 128x128 blocks",
+    "kv_cache_dtype": "FP8 E4M3"
+  },
+  "shape": {
+    "B": 1,
+    "T": 8192,
+    "H": 32,
+    "Hg": 16,
+    "K": 128,
+    "V": 128,
+    "BT": 64,
+    "BV": 16
+  },
+  "launch": {
+    "grid": [8, 32, 1],
+    "block": [256, 1, 1],
+    "dynamic_lds_bytes": 103296,
+    "vgpr_count": 108,
+    "sgpr_count": 94,
+    "scratch_bytes": 0,
+    "spills": 0,
+    "mfma": "v_mfma_f32_16x16x32_bf16"
+  },
+  "isolated_hip_event_us": {
+    "deployed_bv32_median": 542.586,
+    "clean_raw_source": {
+      "iterations": 100,
+      "mean": 437.1557089686394,
+      "median": 436.7839992046356,
+      "p90": 440.883994102478,
+      "minimum": 431.9640100002289,
+      "maximum": 444.28399205207825
+    },
+    "median_reduction_percent": 19.499
+  },
+  "correctness": {
+    "bit_exact": true,
+    "h_elements": 67108864,
+    "v_new_elements": 33554432,
+    "final_state_elements": 524288,
+    "mismatch_count": 0,
+    "max_abs": 0.0
+  },
+  "serving_exact_8192_input_1_output": {
+    "mode": "piecewise HIP graph, dFlash block 12, TP1, radix disabled",
+    "control": {
+      "requests": 10,
+      "median_latency_ms": 130.75791,
+      "mean_latency_ms": 130.9084251,
+      "median_input_tokens_per_second": 62713.1955919865,
+      "stable_hash_requests": 8
+    },
+    "candidate": {
+      "requests": 10,
+      "median_latency_ms": 128.1746175,
+      "mean_latency_ms": 128.4580299,
+      "median_input_tokens_per_second": 63972.182924982306,
+      "stable_hash_requests": 7
+    },
+    "median_latency_reduction_percent": 1.975,
+    "median_input_throughput_increase_percent": 2.008,
+    "observed_output_token_ids": [220, 5525],
+    "observed_output_ids_sha256": [
+      "991a26ff4edaa7d5244848d1b20fa4c667589de6f83f6e38b45c763f8bee10eb",
+      "fe35d1a3c0760792a0d6bdcab22a2fb092fe748ae19db565df36668319c4f1c3"
+    ],
+    "shared_control_variance": true
+  },
+  "gsm8k_gate": {
+    "questions": 200,
+    "shots": 5,
+    "thinking": false,
+    "accuracy": 0.955,
+    "invalid_fraction": 0.015,
+    "note": "Current-best whole-server quality gate; prompts do not activate the exact M8192 specialization."
+  },
+  "artifacts": {
+    "capture": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T064900Z-gdn-prefill-m8192-capture-gpu1/gdn-prefill-m8192-layer0-h-kernel.pt",
+    "candidate": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T010136Z-gdn-h-m8192-final-candidate-gpu1",
+    "control": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T004440Z-gdn-h-m8192-control-flush-sync-gpu1",
+    "clean_source_result": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T085000Z-gdn-h-m8192-stage3-candidate-gpu1/gdn-h-m8192-bv16-clean-source-result.json"
+  },
+  "reference": {
+    "name": "QwenLM/FlashQLA",
+    "commit": "821fd9d37ede18fdc2a4e707fefe3770bfc32e58"
+  }
+}
