@@ -32,6 +32,7 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_launch(
     uint32_t stride_b,
     uint32_t batch_size,
     uint32_t waves_per_workgroup,
+    uint32_t state_slot_count,
     hipStream_t stream);
 
 extern "C" int netra_qwen36_gdn_state_replay_m12_launch_precomputed(
@@ -46,6 +47,7 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_launch_precomputed(
     uint32_t stride_v,
     uint32_t batch_size,
     uint32_t waves_per_workgroup,
+    uint32_t state_slot_count,
     hipStream_t stream);
 
 extern "C" int netra_qwen36_gdn_state_replay_m12_unload(void);

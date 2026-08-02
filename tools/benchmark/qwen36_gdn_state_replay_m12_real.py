@@ -134,13 +134,13 @@ def main() -> None:
     bridge.netra_qwen36_gdn_state_replay_m12_load.restype = ctypes.c_int
     bridge.netra_qwen36_gdn_state_replay_m12_launch.argtypes = (
         [ctypes.c_void_p] * 14
-        + [ctypes.c_uint32] * 6
+        + [ctypes.c_uint32] * 7
         + [ctypes.c_void_p]
     )
     bridge.netra_qwen36_gdn_state_replay_m12_launch.restype = ctypes.c_int
     bridge.netra_qwen36_gdn_state_replay_m12_launch_precomputed.argtypes = (
         [ctypes.c_void_p] * 8
-        + [ctypes.c_uint32] * 3
+        + [ctypes.c_uint32] * 4
         + [ctypes.c_void_p]
     )
     bridge.netra_qwen36_gdn_state_replay_m12_launch_precomputed.restype = (
@@ -212,6 +212,7 @@ def main() -> None:
             b.stride(-2),
             batch,
             waves,
+            states.shape[0],
             ctypes.c_void_p(stream.cuda_stream),
         )
         if status:
@@ -235,6 +236,7 @@ def main() -> None:
             v.stride(1),
             batch,
             waves,
+            states.shape[0],
             ctypes.c_void_p(stream.cuda_stream),
         )
         if status:

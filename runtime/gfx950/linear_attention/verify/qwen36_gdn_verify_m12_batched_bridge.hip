@@ -174,6 +174,7 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
     uint32_t stride_a,
     uint32_t stride_b,
     uint32_t batch_size,
+    uint32_t state_slot_count,
     hipStream_t stream) {
   if (precompute_function == nullptr || core_functions[0] == nullptr)
     return fail_message("GDN verify modules are not loaded");
@@ -201,8 +202,10 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
   if (stride_q < 2048 || stride_k < 2048 || stride_v < 4096 ||
       stride_a < 32 || stride_b < 32)
     return fail_message("GDN verify tensor stride is smaller than its row");
-  if (batch_size == 0 || batch_size > 64)
-    return fail_message("GDN M=12 verify batch size must be in [1,64]");
+  if (batch_size == 0 || batch_size > UINT32_MAX / 256)
+    return fail_message("GDN M=12 verify batch size exceeds launch range");
+  if (state_slot_count == 0)
+    return fail_message("GDN M=12 verify state pool must be nonempty");
 
   void* A_log_pointer = const_cast<void*>(A_log_f32);
   void* a_pointer = const_cast<void*>(a_bf16);
@@ -251,6 +254,7 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
       &initial_indices_pointer,
       &intermediate_indices_pointer,
       &stride_v,
+      &state_slot_count,
   };
   size_t core_index = 0;
   uint32_t waves_per_workgroup = NETRA_GDN_WAVES_PER_WORKGROUP;

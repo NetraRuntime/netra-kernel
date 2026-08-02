@@ -167,7 +167,7 @@ def main() -> None:
         ctypes.c_int
     )
     bridge.netra_qwen36_gdn_verify_m12_batched_launch.argtypes = (
-        [ctypes.c_void_p] * 16 + [ctypes.c_uint32] * 6 + [ctypes.c_void_p]
+        [ctypes.c_void_p] * 16 + [ctypes.c_uint32] * 7 + [ctypes.c_void_p]
     )
     bridge.netra_qwen36_gdn_verify_m12_batched_launch.restype = ctypes.c_int
     bridge.netra_qwen36_gdn_verify_m12_batched_last_error.restype = ctypes.c_char_p
@@ -205,7 +205,7 @@ def main() -> None:
             pointer(indices), pointer(raw_intermediate), pointer(indices),
             pointer(q_normalized), pointer(k_normalized), pointer(decay), pointer(beta),
             q.stride(1), k.stride(1), v.stride(1), a.stride(-2), b.stride(-2),
-            batch, ctypes.c_void_p(stream.cuda_stream),
+            batch, initial.shape[0], ctypes.c_void_p(stream.cuda_stream),
         )
         if status:
             raise RuntimeError(

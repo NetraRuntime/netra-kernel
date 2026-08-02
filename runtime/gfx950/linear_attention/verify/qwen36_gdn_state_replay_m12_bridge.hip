@@ -121,6 +121,7 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_launch(
     uint32_t stride_b,
     uint32_t batch_size,
     uint32_t waves_per_workgroup,
+    uint32_t state_slot_count,
     hipStream_t stream) {
   if (precompute_function == nullptr || core_functions[0] == nullptr)
     return fail_message("GDN state-replay modules are not loaded");
@@ -135,8 +136,10 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_launch(
     return fail_message("GDN state-replay launch pointers must be nonnull");
   if (stride_k < 2048 || stride_v < 4096 || stride_a < 32 || stride_b < 32)
     return fail_message("GDN state-replay stride is smaller than its row");
-  if (batch_size == 0 || batch_size > 64)
-    return fail_message("GDN state-replay batch size must be in [1,64]");
+  if (batch_size == 0 || batch_size > UINT32_MAX / 256)
+    return fail_message("GDN state-replay batch size exceeds launch range");
+  if (state_slot_count == 0)
+    return fail_message("GDN state-replay state pool must be nonempty");
 
   size_t core_index = 0;
   if (waves_per_workgroup == 4) {
@@ -195,6 +198,7 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_launch(
       &initial_indices_pointer,
       &output_indices_pointer,
       &stride_v,
+      &state_slot_count,
   };
   error = hipModuleLaunchKernel(
       core_functions[core_index],
@@ -217,6 +221,7 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_launch_precomputed(
     uint32_t stride_v,
     uint32_t batch_size,
     uint32_t waves_per_workgroup,
+    uint32_t state_slot_count,
     hipStream_t stream) {
   if (core_functions[0] == nullptr)
     return fail_message("GDN state-replay modules are not loaded");
@@ -230,8 +235,10 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_launch_precomputed(
     return fail_message("precomputed GDN state-replay pointers must be nonnull");
   if (stride_v < 4096)
     return fail_message("GDN state-replay V stride is smaller than its row");
-  if (batch_size == 0 || batch_size > 64)
-    return fail_message("GDN state-replay batch size must be in [1,64]");
+  if (batch_size == 0 || batch_size > UINT32_MAX / 256)
+    return fail_message("GDN state-replay batch size exceeds launch range");
+  if (state_slot_count == 0)
+    return fail_message("GDN state-replay state pool must be nonempty");
 
   size_t core_index = 0;
   if (waves_per_workgroup == 4) {
@@ -264,6 +271,7 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_launch_precomputed(
       &initial_indices_pointer,
       &output_indices_pointer,
       &stride_v,
+      &state_slot_count,
   };
   const hipError_t error = hipModuleLaunchKernel(
       core_functions[core_index],
