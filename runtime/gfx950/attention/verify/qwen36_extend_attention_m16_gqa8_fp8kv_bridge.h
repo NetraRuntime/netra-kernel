@@ -15,9 +15,10 @@ extern "C" int netra_qwen36_extend_attention_m16_gqa8_fp8kv_launch(
     const void* value_extend_bf16,
     const void* key_buffer_fp8_e4m3,
     const void* value_buffer_fp8_e4m3,
-    const void* query_indptr_i64,
+    const void* query_indptr,
     const void* kv_indptr_i32,
     const void* kv_indices_i64,
+    uint32_t query_indptr_stride_bytes,
     float softmax_scale,
     uint32_t batch_size,
     hipStream_t stream);

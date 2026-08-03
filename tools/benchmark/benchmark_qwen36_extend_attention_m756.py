@@ -86,15 +86,6 @@ def parse_args() -> argparse.Namespace:
         help="replay the live piecewise-graph int64 qo_indptr ABI",
     )
     parser.add_argument(
-        "--kv-slot-offset",
-        type=int,
-        default=0,
-        help=(
-            "shift captured KV slots into a larger buffer; offsets above "
-            "1048575 exercise cache byte addresses beyond 2 GiB"
-        ),
-    )
-    parser.add_argument(
         "--variants",
         default="16x32x4,16x64x4,16x128x4,32x32x4,32x64x4,32x128x4,64x64x4,64x128x4",
         help=(
@@ -609,6 +600,7 @@ class RawHipModule:
             self._device_pointer(kv_indptr),
             self._device_pointer(kv_indices),
             ctypes.c_float(sm_scale),
+            ctypes.c_uint32(qo_indptr.element_size()),
             ctypes.c_void_p(),
             ctypes.c_void_p(),
         ]
@@ -718,21 +710,6 @@ def main() -> None:
         qo_indptr = qo_indptr.to(torch.int64)
     kv_indptr = tensors["kv_indptr"]
     kv_indices = tensors["kv_indices"]
-    if args.kv_slot_offset < 0:
-        raise ValueError("--kv-slot-offset must be nonnegative")
-    if args.kv_slot_offset:
-        padded_shape = (args.kv_slot_offset + k_buffer.shape[0], *k_buffer.shape[1:])
-        padded_k_buffer = torch.empty(
-            padded_shape, device=k_buffer.device, dtype=k_buffer.dtype
-        )
-        padded_v_buffer = torch.empty(
-            padded_shape, device=v_buffer.device, dtype=v_buffer.dtype
-        )
-        padded_k_buffer[args.kv_slot_offset :].copy_(k_buffer)
-        padded_v_buffer[args.kv_slot_offset :].copy_(v_buffer)
-        k_buffer = padded_k_buffer
-        v_buffer = padded_v_buffer
-        kv_indices = kv_indices + args.kv_slot_offset
     custom_mask = tensors["custom_mask"]
     mask_indptr = tensors["mask_indptr"]
     sinks = tensors["sinks"]

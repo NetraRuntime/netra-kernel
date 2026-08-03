@@ -292,6 +292,7 @@ Each promoted or experimental gfx950 family has a focused build script under
 
 ```bash
 tools/benchmark/iterate_gfx950_qwen36_moe_silu_mul_quant.sh
+tools/build/build_gfx950_qwen36_gdn_fused_h_o_t1024_bv128.sh
 ```
 
 These loops reuse controlled real-request captures to avoid restarting the
@@ -318,6 +319,7 @@ Start with these records:
 - [Qwen3.6 FP8 kernel development](docs/notes/gfx950-qwen36-fp8-kernels.md)
 - [Machine-readable FP8 results](docs/notes/gfx950-qwen36-fp8-results.json)
 - [Accepted M=16 GDN verification pipeline](docs/notes/gfx950-qwen36-gdn-verify-m16-accepted.md)
+- [Accepted packed T1024 BV128 GDN prefill fusion](docs/notes/gfx950-qwen36-flashqla-bv128-prefill-accepted.md)
 - [Accepted FP32 verification argmax](docs/notes/gfx950-qwen36-argmax-f32-accepted.md)
 
 Every reported performance number is architecture- and workload-specific.

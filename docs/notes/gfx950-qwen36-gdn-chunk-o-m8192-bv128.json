@@ -1,0 +1,13 @@
+{
+  "date": "2026-08-02",
+  "target": "AMD Instinct MI350X gfx950 wave64",
+  "shape": {"B": 1, "T": 8192, "H": 32, "Hg": 16, "K": 128, "V": 128, "BT": 64, "BK": 128, "BV": 128},
+  "launch": {"grid": [1, 128, 32], "block": [256, 1, 1], "dynamic_lds_bytes": 32768},
+  "resources": {"vgpr": 138, "sgpr": 56, "scratch_bytes": 0, "vgpr_spills": 0, "sgpr_spills": 0},
+  "correctness": {"elements": 33554432, "raw_vs_bv128_triton_mismatches": 0, "raw_vs_capture_mismatches": 172, "max_abs": 0.00390625, "cosine": 0.9999999403953552, "pass": true},
+  "hip_event_us": {"iterations": 100, "bv128_triton_eager_median": 100.76099634170532, "raw_eager_median": 87.5605009496212, "bv128_triton_graph_median": 102.5409996509552, "raw_graph_median": 95.96100077033043},
+  "serving_exact_8192_1": {"samples_per_arm": 30, "warmups_discarded_per_arm": 1, "control_median_ms": 127.966713, "candidate_median_ms": 127.563348, "median_latency_reduction_percent": 0.31620759906678675, "control_mean_ms": 128.09718820689656, "candidate_mean_ms": 127.6377793448276, "mean_latency_reduction_percent": 0.3599317258786039},
+  "gsm8k_nonthinking": {"questions": 1319, "control_accuracy": 0.9484457922668689, "candidate_accuracy": 0.9552691432903715, "control_invalid": 0.012130401819560273, "candidate_invalid": 0.013646702047005308},
+  "excluded_control_failure": {"time_utc": "2026-08-02T03:02:53Z", "gpu": 2, "server_pid": 2973196, "pasid": 32858, "fault_address": "0x00007dc2a83f8000", "amdgpu_status": "VM permission fault", "new_chunk_kernel_enabled": false, "exact_t8192_dispatched": false},
+  "sha256": {"source": "1646495cd1ac8862debb80c99e036a35caee7500bf19881e8f71de3ff6bcde9b", "hsaco": "75299ddad1d39da42ea4f7b337987a83e1b36a1a928b5f5c1e5b83d4f3954305", "bridge": "876174f67e186aaeed323bcb20a6988d135b3c613db5bb0dee19cb618627fb78"}
+}

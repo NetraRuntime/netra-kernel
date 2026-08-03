@@ -21,7 +21,8 @@ constexpr unsigned kMaximumBatch = 64;
 
 std::mutex module_mutex;
 hipModule_t module = nullptr;
-hipFunction_t function = nullptr;
+hipFunction_t function_i32 = nullptr;
+hipFunction_t function_i64 = nullptr;
 std::string loaded_path;
 thread_local std::string last_error;
 
@@ -38,7 +39,8 @@ int fail_message(const std::string& message) {
 void clear_module() {
   if (module != nullptr) (void)hipModuleUnload(module);
   module = nullptr;
-  function = nullptr;
+  function_i32 = nullptr;
+  function_i64 = nullptr;
   loaded_path.clear();
 }
 
@@ -76,10 +78,16 @@ extern "C" int netra_qwen36_extend_attention_m16_gqa8_fp8kv_load(
     return fail("hipModuleLoad", error);
   }
   error = hipModuleGetFunction(
-      &function, module, "qwen36_extend_attention_m16_gqa8_fp8kv_gfx950");
+      &function_i32, module, "qwen36_extend_attention_m16_gqa8_fp8kv_i32_gfx950");
   if (error != hipSuccess) {
     clear_module();
-    return fail("hipModuleGetFunction", error);
+    return fail("hipModuleGetFunction(i32)", error);
+  }
+  error = hipModuleGetFunction(
+      &function_i64, module, "qwen36_extend_attention_m16_gqa8_fp8kv_i64_gfx950");
+  if (error != hipSuccess) {
+    clear_module();
+    return fail("hipModuleGetFunction(i64)", error);
   }
 
   loaded_path = hsaco_path;
@@ -94,23 +102,27 @@ extern "C" int netra_qwen36_extend_attention_m16_gqa8_fp8kv_launch(
     const void* value_extend_bf16,
     const void* key_buffer_fp8_e4m3,
     const void* value_buffer_fp8_e4m3,
-    const void* query_indptr_i64,
+    const void* query_indptr,
     const void* kv_indptr_i32,
     const void* kv_indices_i64,
+    uint32_t query_indptr_stride_bytes,
     float softmax_scale,
     uint32_t batch_size,
     hipStream_t stream) {
-  if (function == nullptr)
+  if (function_i32 == nullptr || function_i64 == nullptr)
     return fail_message("target grouped attention module is not loaded");
   const std::array<const void*, 9> pointers = {
       output_bf16,       query_bf16,       key_extend_bf16,
       value_extend_bf16, key_buffer_fp8_e4m3, value_buffer_fp8_e4m3,
-      query_indptr_i64,  kv_indptr_i32,    kv_indices_i64,
+      query_indptr,      kv_indptr_i32,    kv_indices_i64,
   };
   for (const void* pointer : pointers) {
     if (pointer == nullptr)
       return fail_message("target grouped attention pointers must be nonnull");
   }
+  if (query_indptr_stride_bytes != 4 && query_indptr_stride_bytes != 8)
+    return fail_message(
+        "target grouped attention query indptr entries must be 4 or 8 bytes");
   if (batch_size == 0 || batch_size > kMaximumBatch)
     return fail_message("target grouped attention batch must be in [1,64]");
 
@@ -119,11 +131,13 @@ extern "C" int netra_qwen36_extend_attention_m16_gqa8_fp8kv_launch(
   void* value_extend_pointer = const_cast<void*>(value_extend_bf16);
   void* key_buffer_pointer = const_cast<void*>(key_buffer_fp8_e4m3);
   void* value_buffer_pointer = const_cast<void*>(value_buffer_fp8_e4m3);
-  void* query_indptr_pointer = const_cast<void*>(query_indptr_i64);
+  void* query_indptr_pointer = const_cast<void*>(query_indptr);
   void* kv_indptr_pointer = const_cast<void*>(kv_indptr_i32);
   void* kv_indices_pointer = const_cast<void*>(kv_indices_i64);
   void* hidden_scratch = nullptr;
   void* hidden_profile = nullptr;
+  hipFunction_t launch_function =
+      query_indptr_stride_bytes == 4 ? function_i32 : function_i64;
   void* arguments[] = {
       &query_pointer,
       &key_extend_pointer,
@@ -135,11 +149,12 @@ extern "C" int netra_qwen36_extend_attention_m16_gqa8_fp8kv_launch(
       &kv_indptr_pointer,
       &kv_indices_pointer,
       &softmax_scale,
+      &query_indptr_stride_bytes,
       &hidden_scratch,
       &hidden_profile,
   };
   const hipError_t error = hipModuleLaunchKernel(
-      function, batch_size, kKvHeads, kQueryHeadGroups, kThreads, 1, 1,
+      launch_function, batch_size, kKvHeads, kQueryHeadGroups, kThreads, 1, 1,
       kDynamicLdsBytes, stream, arguments, nullptr);
   if (error != hipSuccess) return fail("hipModuleLaunchKernel", error);
   last_error.clear();
@@ -154,7 +169,8 @@ extern "C" int netra_qwen36_extend_attention_m16_gqa8_fp8kv_unload(void) {
   }
   const hipError_t error = hipModuleUnload(module);
   module = nullptr;
-  function = nullptr;
+  function_i32 = nullptr;
+  function_i64 = nullptr;
   loaded_path.clear();
   if (error != hipSuccess) return fail("hipModuleUnload", error);
   last_error.clear();

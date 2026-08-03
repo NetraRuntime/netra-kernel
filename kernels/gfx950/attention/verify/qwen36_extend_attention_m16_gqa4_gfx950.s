@@ -507,55 +507,7 @@ qwen36_extend_attention_m16_gqa4_gfx950:
 	buffer_load_dwordx2 v[88:89], v42, s[84:87], 0 offen
 	.loc	1 143 16                        ; benchmark_qwen36_extend_attention_m756.py:143:16
 	s_mov_b32 s83, s87
-	s_waitcnt vmcnt(0)
-	; The live KV pool is larger than 2 GiB.  The original Triton-derived
-	; buffer descriptors bounded every cache load to 0x7ffffffe bytes, so
-	; recycled token slots above 1,048,575 silently read zero.  Preserve full
-	; 64-bit byte addresses for the four cache locations and use global loads.
-	; Mask invalid tail lanes before widening. Buffer OOB loads do not provide a
-	; usable int64 high dword, while every live cache slot fits in uint32.
-	v_cndmask_b32_e32 v138, 0, v36, vcc
-	v_cndmask_b32_e64 v140, 0, v38, s[0:1]
-	v_cndmask_b32_e64 v142, 0, v40, s[6:7]
-	v_cndmask_b32_e64 v144, 0, v88, s[10:11]
-	v_lshrrev_b32_e32 v139, 21, v138
-	v_lshrrev_b32_e32 v141, 21, v140
-	v_lshrrev_b32_e32 v143, 21, v142
-	v_lshrrev_b32_e32 v145, 21, v144
-	v_lshlrev_b32_e32 v138, 11, v138
-	v_lshlrev_b32_e32 v140, 11, v140
-	v_lshlrev_b32_e32 v142, 11, v142
-	v_lshlrev_b32_e32 v144, 11, v144
-	v_add_co_u32 v138, vcc, v138, v58
-	v_addc_co_u32 v139, vcc, v139, 0, vcc
-	v_add_co_u32 v140, vcc, v140, v58
-	v_addc_co_u32 v141, vcc, v141, 0, vcc
-	v_add_co_u32 v142, vcc, v142, v58
-	v_addc_co_u32 v143, vcc, v143, 0, vcc
-	v_add_co_u32 v144, vcc, v144, v58
-	v_addc_co_u32 v145, vcc, v145, 0, vcc
-	v_mov_b64_e32 v[146:147], v[138:139]
-	v_mov_b64_e32 v[148:149], v[140:141]
-	v_mov_b64_e32 v[150:151], v[142:143]
-	v_mov_b64_e32 v[152:153], v[144:145]
-	v_mov_b32_e32 v154, s81
-	v_mov_b32_e32 v155, s13
-	v_add_co_u32 v138, vcc, v138, s80
-	v_addc_co_u32 v139, vcc, v139, v154, vcc
-	v_add_co_u32 v140, vcc, v140, s80
-	v_addc_co_u32 v141, vcc, v141, v154, vcc
-	v_add_co_u32 v142, vcc, v142, s80
-	v_addc_co_u32 v143, vcc, v143, v154, vcc
-	v_add_co_u32 v144, vcc, v144, s80
-	v_addc_co_u32 v145, vcc, v145, v154, vcc
-	v_add_co_u32 v146, vcc, v146, s12
-	v_addc_co_u32 v147, vcc, v147, v155, vcc
-	v_add_co_u32 v148, vcc, v148, s12
-	v_addc_co_u32 v149, vcc, v149, v155, vcc
-	v_add_co_u32 v150, vcc, v150, s12
-	v_addc_co_u32 v151, vcc, v151, v155, vcc
-	v_add_co_u32 v152, vcc, v152, s12
-	v_addc_co_u32 v153, vcc, v153, v155, vcc
+	s_waitcnt vmcnt(1)
 	v_add_u32_e32 v41, 0, v52
 	v_add_u32_e32 v42, 0, v53
 	v_add_u32_e32 v71, 0, v54
@@ -568,10 +520,10 @@ qwen36_extend_attention_m16_gqa4_gfx950:
 	v_cndmask_b32_e64 v37, v66, v36, s[0:1]
 	v_cndmask_b32_e64 v36, v66, v38, s[6:7]
 	v_cndmask_b32_e64 v38, v66, v39, s[10:11]
-	global_load_dwordx4 v[120:123], v[138:139], off
-	global_load_dwordx4 v[124:127], v[140:141], off
-	global_load_dwordx4 v[128:131], v[142:143], off
-	global_load_dwordx4 v[132:135], v[144:145], off
+	buffer_load_dwordx4 v[120:123], v35, s[80:83], 0 offen
+	buffer_load_dwordx4 v[124:127], v37, s[80:83], 0 offen
+	buffer_load_dwordx4 v[128:131], v36, s[80:83], 0 offen
+	buffer_load_dwordx4 v[132:135], v38, s[80:83], 0 offen
 	.loc	1 125 27                        ; benchmark_qwen36_extend_attention_m756.py:125:27
 	v_add_u32_e32 v39, s74, v55
 	.loc	1 143 16                        ; benchmark_qwen36_extend_attention_m756.py:143:16
@@ -1054,10 +1006,10 @@ qwen36_extend_attention_m16_gqa4_gfx950:
 	v_cndmask_b32_e64 v115, 0, v69, s[0:1]
 	v_fmac_f32_e32 v115, 0x3fb8aa3b, v90
 	.loc	1 162 16 is_stmt 1              ; benchmark_qwen36_extend_attention_m756.py:162:16
-	global_load_dwordx4 v[88:91], v[146:147], off
-	global_load_dwordx4 v[92:95], v[148:149], off
-	global_load_dwordx4 v[96:99], v[150:151], off
-	global_load_dwordx4 v[100:103], v[152:153], off
+	buffer_load_dwordx4 v[88:91], v35, s[12:15], 0 offen
+	buffer_load_dwordx4 v[92:95], v37, s[12:15], 0 offen
+	buffer_load_dwordx4 v[96:99], v36, s[12:15], 0 offen
+	buffer_load_dwordx4 v[100:103], v38, s[12:15], 0 offen
 	.loc	1 153 35                        ; benchmark_qwen36_extend_attention_m756.py:153:35
 	v_exp_f32_e32 v35, v115
 	v_cndmask_b32_e32 v36, 0, v70, vcc
@@ -2746,7 +2698,7 @@ amdhsa.kernels:
     .symbol:         qwen36_extend_attention_m16_gqa4_gfx950.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count:     156
+    .vgpr_count:     137
     .vgpr_spill_count: 0
     .wavefront_size: 64
 amdhsa.target:   amdgcn-amd-amdhsa--gfx950

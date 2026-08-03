@@ -40,6 +40,7 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
     uint32_t stride_a,
     uint32_t stride_b,
     uint32_t batch_size,
+    uint32_t state_capacity,
     hipStream_t stream);
 
 extern "C" int netra_qwen36_gdn_verify_m12_batched_unload(void);
