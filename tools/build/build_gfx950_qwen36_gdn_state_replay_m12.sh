@@ -52,6 +52,23 @@ for waves in 1 4 8; do
   ! grep -q 'global_store_short' "${out_dir}/${stem}.disassembly.txt"
 done
 
+dual_core_stems=()
+for waves in 1 4 8; do
+  stem=qwen36_gdn_state_replay_m12_dual_waves${waves}_gfx950
+  dual_core_stems+=("$stem")
+  build_kernel "$core_source" "$stem" \
+    -Wa,-defsym,NETRA_GDN_CORE_VARIANT=13 \
+    -Wa,-defsym,NETRA_GDN_K0_NO_INTERMEDIATE=1 \
+    -Wa,-defsym,NETRA_GDN_STATE_REPLAY=1 \
+    -Wa,-defsym,NETRA_GDN_STATE_REPLAY_DUAL=1 \
+    -Wa,-defsym,NETRA_GDN_WAVES_PER_WORKGROUP="$waves" \
+    -Wa,-defsym,NETRA_GDN_SHARE_QK=1
+  grep -q 'qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950' \
+    "${out_dir}/${stem}.disassembly.txt"
+  grep -q 'v_pk_fma_f32' "${out_dir}/${stem}.disassembly.txt"
+  ! grep -q 'global_store_short' "${out_dir}/${stem}.disassembly.txt"
+done
+
 bridge_library=${out_dir}/libqwen36_gdn_state_replay_m12_bridge.so
 "${rocm_dir}/bin/hipcc" --offload-arch=gfx950 -O3 -std=c++17 -fPIC \
   -shared "$bridge" -o "$bridge_library"
@@ -66,6 +83,9 @@ hash_inputs=(
 for stem in "${core_stems[@]}"; do
   hash_inputs+=("${out_dir}/${stem}.hsaco")
 done
+for stem in "${dual_core_stems[@]}"; do
+  hash_inputs+=("${out_dir}/${stem}.hsaco")
+done
 hash_inputs+=("$bridge_library")
 sha256sum "${hash_inputs[@]}" > "${out_dir}/sha256sums.txt"
 
@@ -75,6 +95,7 @@ sha256sum "${hash_inputs[@]}" > "${out_dir}/sha256sums.txt"
   printf 'core_variant=fused-exact\ncore_variant_id=13\n'
   printf 'state_replay=1\nk0_no_intermediate=1\n'
   printf 'waves_per_workgroup=1 4 8\nshare_k=1\n'
+  printf 'dual_destination_state_replay=1\n'
 } > "${out_dir}/build-variant.txt"
 
 echo "gfx950 Qwen GDN M12 state-replay build complete: ${out_dir}"

@@ -29,6 +29,12 @@ def parse_args() -> argparse.Namespace:
             "FP32 live recurrence across all 12 positions."
         ),
     )
+    parser.add_argument(
+        "--index-mode",
+        choices=("same", "high"),
+        default="same",
+        help="Use captured slots or recycled state-pool slots above 64.",
+    )
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
 
@@ -110,6 +116,20 @@ def main() -> None:
     expected_intermediate = gpu("gdn.layer.0.intermediate_ssm")
     del payload
 
+    if args.index_mode == "high":
+        # Preserve the captured per-request state values while relocating them
+        # above the old fixed B64 clamp. This directly gates serving slot reuse.
+        if initial.shape[0] < 65:
+            initial = torch.cat((initial, initial[:1].clone()), dim=0)
+        first_high_slot = initial.shape[0]
+        initial = torch.cat((initial, initial[:batch].clone()), dim=0)
+        indices = torch.arange(
+            first_high_slot,
+            first_high_slot + batch,
+            dtype=torch.int32,
+            device=device,
+        )
+
     value_heads, width = 32, 128
     triton_output = torch.empty((1, *v.shape), dtype=torch.bfloat16, device=device)
     triton_intermediate = torch.empty_like(expected_intermediate)
@@ -167,7 +187,7 @@ def main() -> None:
         ctypes.c_int
     )
     bridge.netra_qwen36_gdn_verify_m12_batched_launch.argtypes = (
-        [ctypes.c_void_p] * 16 + [ctypes.c_uint32] * 6 + [ctypes.c_void_p]
+        [ctypes.c_void_p] * 16 + [ctypes.c_uint32] * 7 + [ctypes.c_void_p]
     )
     bridge.netra_qwen36_gdn_verify_m12_batched_launch.restype = ctypes.c_int
     bridge.netra_qwen36_gdn_verify_m12_batched_last_error.restype = ctypes.c_char_p
@@ -205,7 +225,7 @@ def main() -> None:
             pointer(indices), pointer(raw_intermediate), pointer(indices),
             pointer(q_normalized), pointer(k_normalized), pointer(decay), pointer(beta),
             q.stride(1), k.stride(1), v.stride(1), a.stride(-2), b.stride(-2),
-            batch, ctypes.c_void_p(stream.cuda_stream),
+            batch, initial.shape[0], ctypes.c_void_p(stream.cuda_stream),
         )
         if status:
             raise RuntimeError(
@@ -263,6 +283,7 @@ def main() -> None:
         "state_pass": str(args.state_pass),
         "shape": {"batch": batch, "tokens_per_sequence": 12, "total_tokens": total_tokens},
         "k0_no_intermediate": args.k0_no_intermediate,
+        "index_mode": args.index_mode,
         "wavegroup_variants": wavegroup_variants,
         "correctness": correctness,
         "bit_exact": exact,

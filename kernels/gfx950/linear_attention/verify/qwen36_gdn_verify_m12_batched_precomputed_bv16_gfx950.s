@@ -70,6 +70,15 @@
 	.if (NETRA_GDN_STATE_REPLAY != 0) && (NETRA_GDN_STATE_REPLAY != 1)
 	.error "NETRA_GDN_STATE_REPLAY must be 0 or 1"
 	.endif
+// Dual state replay stores an earlier tracking-prefix snapshot and the final
+// accepted-prefix state from one live FP32 recurrence. It is valid only for
+// the state-only replay specialization.
+.ifndef NETRA_GDN_STATE_REPLAY_DUAL
+.set NETRA_GDN_STATE_REPLAY_DUAL, 0
+.endif
+.if (NETRA_GDN_STATE_REPLAY_DUAL != 0) && (NETRA_GDN_STATE_REPLAY != 1)
+.error "NETRA_GDN_STATE_REPLAY_DUAL requires NETRA_GDN_STATE_REPLAY=1"
+.endif
 	.if (NETRA_GDN_WAVES_PER_WORKGROUP != 1) && (NETRA_GDN_WAVES_PER_WORKGROUP != 2) && (NETRA_GDN_WAVES_PER_WORKGROUP != 4) && (NETRA_GDN_WAVES_PER_WORKGROUP != 8)
 	.error "NETRA_GDN_WAVES_PER_WORKGROUP must be 1, 2, 4, or 8"
 	.endif
@@ -338,12 +347,46 @@
 	v_lshlrev_b32_e32 v\lo, 16, v\tmp
 	v_and_b32_e32 v\hi, 0xffff0000, v\tmp
 	.endm
+.macro PACK_STORE_STATE_BF16 base_lo, base_hi
+v_cvt_pk_bf16_f32 v8, v32, v33
+v_cvt_pk_bf16_f32 v9, v34, v35
+v_cvt_pk_bf16_f32 v10, v36, v37
+v_cvt_pk_bf16_f32 v11, v38, v39
+v_cvt_pk_bf16_f32 v12, v40, v41
+v_cvt_pk_bf16_f32 v13, v42, v43
+v_cvt_pk_bf16_f32 v14, v44, v45
+v_cvt_pk_bf16_f32 v15, v46, v47
+v_cvt_pk_bf16_f32 v16, v48, v49
+v_cvt_pk_bf16_f32 v17, v50, v51
+v_cvt_pk_bf16_f32 v18, v52, v53
+v_cvt_pk_bf16_f32 v19, v54, v55
+v_cvt_pk_bf16_f32 v20, v56, v57
+v_cvt_pk_bf16_f32 v21, v58, v59
+v_cvt_pk_bf16_f32 v22, v60, v61
+v_cvt_pk_bf16_f32 v23, v62, v63
+global_store_dwordx4 v7, v[8:11], s[\base_lo:\base_hi]
+v_add_u32_e32 v5, 1024, v7
+global_store_dwordx4 v5, v[12:15], s[\base_lo:\base_hi]
+v_add_u32_e32 v5, 2048, v7
+global_store_dwordx4 v5, v[16:19], s[\base_lo:\base_hi]
+v_add_u32_e32 v5, 3072, v7
+global_store_dwordx4 v5, v[20:23], s[\base_lo:\base_hi]
+.endm
 
+
+	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
+	.protected qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950
+	.globl qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950
+	.p2align 8
+	.type qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950,@function
+qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950:
+	.else
 	.protected qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950
 	.globl qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950
 	.p2align 8
 	.type qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950,@function
 qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
+	.endif
 	// Preserve workgroup X, then load the eight data pointers and two
 	// device-side pool-index pointers.
 	.if NETRA_GDN_WAVES_PER_WORKGROUP == 1
@@ -376,6 +419,14 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	s_load_dwordx2 s[24:25], s[0:1], 64
 	s_load_dwordx2 s[26:27], s[0:1], 72
 	s_load_dword s29, s[0:1], 80
+	// The serving pool is sized independently of the verification batch.  Its
+	// runtime capacity occupies the ABI padding at byte 84 so recycled request
+	// and tracking slots above 64 remain distinct.
+	s_load_dword s31, s[0:1], 84
+	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
+	s_load_dwordx2 s[32:33], s[0:1], 88
+	s_load_dwordx2 s[34:35], s[0:1], 96
+	.endif
 	s_waitcnt lgkmcnt(0)
 
 	// Decode the sequence and local workgroup. Resolve each sequence's selected
@@ -388,14 +439,22 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	.if NETRA_GDN_STATE_REPLAY == 1
 	s_load_dword s28, s[16:17], s20
 	.endif
+	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
+	s_load_dword s36, s[32:33], s20
+	s_load_dword s37, s[34:35], s20
+	.endif
 	s_waitcnt lgkmcnt(0)
 	// Graph capture initializes only the live prefix of its dummy state-index
-	// tensors. Clamp capture-time sentinels to a safe pool slot. The SGLang
-	// pools have 65 slots, so 64 is a valid live index.
+	// tensors. Clamp capture-time sentinels to the actual runtime pool capacity.
+	s_sub_u32 s31, s31, 1
 	s_max_i32 s24, s24, 0
-	s_min_i32 s24, s24, 64
+	s_min_i32 s24, s24, s31
 	s_max_i32 s26, s26, 0
-	s_min_i32 s26, s26, 64
+	s_min_i32 s26, s26, s31
+	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
+	s_max_i32 s37, s37, 0
+	s_min_i32 s37, s37, s31
+	.endif
 	s_mov_b32 s25, 0
 	s_lshl_b64 s[24:25], s[24:25], 20
 	s_add_u32 s14, s14, s24
@@ -405,6 +464,18 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	// Destination state uses the ordinary one-MiB pool-slot stride.  Clamp the
 	// accepted length for graph-capture dummy inputs and preserve it in s30
 	// after the immutable wave index has been copied to s18 below.
+	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
+	// Preserve the tracking length and resolve its independent destination
+	// while s12:s13 still holds the common state-pool base.
+	s_max_i32 s36, s36, 0
+	s_min_i32 s36, s36, 12
+	s_mov_b32 s38, s36
+	s_mov_b32 s36, s37
+	s_mov_b32 s37, 0
+	s_lshl_b64 s[36:37], s[36:37], 20
+	s_add_u32 s34, s12, s36
+	s_addc_u32 s35, s13, s37
+	.endif
 	s_lshl_b64 s[26:27], s[26:27], 20
 	s_add_u32 s12, s12, s26
 	s_addc_u32 s13, s13, s27
@@ -885,6 +956,13 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	// Advance to the next verification token.
 .Ladvance:
 	s_add_u32 s28, s28, 1
+	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
+	// Snapshot the earlier prefix without rounding the live FP32 recurrence.
+	s_cmp_eq_u32 s28, s38
+	s_cbranch_scc0 .Lskip_tracking_state_store
+	PACK_STORE_STATE_BF16 34, 35
+.Lskip_tracking_state_store:
+	.endif
 	s_add_u32 s22, s22, 8192
 	s_add_u32 s23, s23, 128
 	v_add_u32_e32 v4, 8192, v4
@@ -902,29 +980,7 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	.if NETRA_GDN_STATE_REPLAY == 1
 	// State-only replay exposes only the final BF16 state, matching Triton's
 	// live FP32 recurrence followed by one terminal conversion.
-	v_cvt_pk_bf16_f32 v8, v32, v33
-	v_cvt_pk_bf16_f32 v9, v34, v35
-	v_cvt_pk_bf16_f32 v10, v36, v37
-	v_cvt_pk_bf16_f32 v11, v38, v39
-	v_cvt_pk_bf16_f32 v12, v40, v41
-	v_cvt_pk_bf16_f32 v13, v42, v43
-	v_cvt_pk_bf16_f32 v14, v44, v45
-	v_cvt_pk_bf16_f32 v15, v46, v47
-	v_cvt_pk_bf16_f32 v16, v48, v49
-	v_cvt_pk_bf16_f32 v17, v50, v51
-	v_cvt_pk_bf16_f32 v18, v52, v53
-	v_cvt_pk_bf16_f32 v19, v54, v55
-	v_cvt_pk_bf16_f32 v20, v56, v57
-	v_cvt_pk_bf16_f32 v21, v58, v59
-	v_cvt_pk_bf16_f32 v22, v60, v61
-	v_cvt_pk_bf16_f32 v23, v62, v63
-	global_store_dwordx4 v7, v[8:11], s[12:13]
-	v_add_u32_e32 v5, 1024, v7
-	global_store_dwordx4 v5, v[12:15], s[12:13]
-	v_add_u32_e32 v5, 2048, v7
-	global_store_dwordx4 v5, v[16:19], s[12:13]
-	v_add_u32_e32 v5, 3072, v7
-	global_store_dwordx4 v5, v[20:23], s[12:13]
+	PACK_STORE_STATE_BF16 12, 13
 	.endif
 
 .Lexit:
@@ -933,6 +989,30 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 
 	.section .rodata,"a",@progbits
 	.p2align 6, 0
+	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
+	.amdhsa_kernel qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950
+		.amdhsa_group_segment_fixed_size 2048
+		.amdhsa_private_segment_fixed_size 0
+		.amdhsa_kernarg_size 104
+		.amdhsa_user_sgpr_count 2
+		.amdhsa_user_sgpr_kernarg_segment_ptr 1
+		.amdhsa_enable_private_segment 0
+		.amdhsa_system_sgpr_workgroup_id_x 1
+		.amdhsa_system_sgpr_workgroup_id_y 0
+		.amdhsa_system_vgpr_workitem_id 0
+		.amdhsa_next_free_vgpr 80
+		.amdhsa_accum_offset 80
+		.amdhsa_next_free_sgpr 39
+		.amdhsa_reserve_vcc 1
+		.amdhsa_float_round_mode_32 0
+		.amdhsa_float_round_mode_16_64 0
+		.amdhsa_float_denorm_mode_32 3
+		.amdhsa_float_denorm_mode_16_64 3
+		.amdhsa_dx10_clamp 1
+		.amdhsa_ieee_mode 1
+		.amdhsa_tg_split 0
+	.end_amdhsa_kernel
+	.else
 	.amdhsa_kernel qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950
 		.amdhsa_group_segment_fixed_size 2048
 		.amdhsa_private_segment_fixed_size 0
@@ -955,10 +1035,81 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 		.amdhsa_ieee_mode 1
 		.amdhsa_tg_split 0
 	.end_amdhsa_kernel
+	.endif
 	.text
 .Lfunc_end0:
+	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
+	.size qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950, .Lfunc_end0-qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950
+	.else
 	.size qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950, .Lfunc_end0-qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950
+	.endif
 
+	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
+	.amdgpu_metadata
+---
+amdhsa.kernels:
+  - .args:
+      - { .name: q_normalized_f32, .offset: 0, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: k_normalized_f32, .offset: 8, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: v_bf16, .offset: 16, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: decay_f32, .offset: 24, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: beta_f32, .offset: 32, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: output_state_pool_bf16, .offset: 40, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: write_only }
+      - { .name: initial_state_pool_bf16, .offset: 48, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: main_lengths_i32, .offset: 56, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: initial_state_indices_i32, .offset: 64, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: main_output_state_indices_i32, .offset: 72, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: stride_v, .offset: 80, .size: 4,
+          .value_kind: by_value }
+      - { .name: state_capacity, .offset: 84, .size: 4,
+          .value_kind: by_value }
+      - { .name: tracking_lengths_i32, .offset: 88, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+      - { .name: tracking_output_state_indices_i32, .offset: 96, .size: 8,
+          .value_kind: global_buffer, .address_space: global,
+          .actual_access: read_only }
+    .group_segment_fixed_size: 2048
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 104
+    .language: OpenCL C
+    .language_version: [2, 0]
+    .max_flat_workgroup_size: 512
+    .name: qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950
+    .private_segment_fixed_size: 0
+    .sgpr_count: 40
+    .sgpr_spill_count: 0
+    .symbol: qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950.kd
+    .uniform_work_group_size: 1
+    .uses_dynamic_stack: false
+    .vgpr_count: 80
+    .vgpr_spill_count: 0
+    .wavefront_size: 64
+amdhsa.target: amdgcn-amd-amdhsa--gfx950
+amdhsa.version: [1, 2]
+...
+	.end_amdgpu_metadata
+	.else
 	.amdgpu_metadata
 ---
 amdhsa.kernels:
@@ -995,6 +1146,8 @@ amdhsa.kernels:
           .actual_access: read_only }
       - { .name: stride_v, .offset: 80, .size: 4,
           .value_kind: by_value }
+      - { .name: state_capacity, .offset: 84, .size: 4,
+          .value_kind: by_value }
     .group_segment_fixed_size: 2048
     .kernarg_segment_align: 8
     .kernarg_segment_size: 88
@@ -1015,3 +1168,4 @@ amdhsa.target: amdgcn-amd-amdhsa--gfx950
 amdhsa.version: [1, 2]
 ...
 	.end_amdgpu_metadata
+	.endif
