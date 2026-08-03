@@ -1,0 +1,39 @@
+{
+  "date_utc": "2026-08-03",
+  "decision": "rejected_end_to_end_regression",
+  "target": "gfx950",
+  "wavefront_size": 64,
+  "dtype": "bfloat16",
+  "layout": "[T,16,256], gate_head_stride=512",
+  "isolated": [
+    {"tokens": 1, "eager_us": 14.44, "raw_us": 12.48, "speedup": 1.157, "mismatches": 0},
+    {"tokens": 12, "eager_us": 15.9205, "raw_us": 12.48, "speedup": 1.276, "mismatches": 0},
+    {"tokens": 64, "eager_us": 16.08, "raw_us": 12.56, "speedup": 1.280, "mismatches": 0},
+    {"tokens": 768, "eager_us": 19.36, "raw_us": 13.001, "speedup": 1.489, "mismatches": 0},
+    {"tokens": 1024, "eager_us": 22.24, "raw_us": 13.48, "speedup": 1.650, "mismatches": 0}
+  ],
+  "graph_replay_bitwise_equal": true,
+  "serving": {
+    "gpu_count": 1,
+    "graph_mode": "piecewise",
+    "dflash_block_size": 12,
+    "kv_cache_dtype": "fp8_e4m3",
+    "concurrency": 64,
+    "input_tokens": 1024,
+    "output_tokens": 1024,
+    "requests_per_run": 192,
+    "raw_draft_gqa4": false,
+    "control_output_tok_s": [6998.359917621176, 7117.290376184485],
+    "candidate_output_tok_s": [7078.229755710162, 6999.71636632972],
+    "control_median_output_tok_s": 7057.82514690283,
+    "candidate_median_output_tok_s": 7038.97306101994,
+    "median_speedup": 0.9973289100409122,
+    "deterministic_response_sha256": "273f42231e06430aa603044d44a698e50a450cc0d936ef86a4cc586f3acaabe8"
+  },
+  "invalidated_raw_gqa4_acceptance_state_drift_control": {
+    "before_accept_length": 4.177019809059175,
+    "after_accept_length": 2.7266676439061484,
+    "before_output_tok_s": 7282.6403161586595,
+    "after_output_tok_s": 3099.801107191693
+  }
+}
