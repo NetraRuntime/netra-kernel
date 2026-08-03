@@ -38,9 +38,11 @@ grep -q 's_cmp_eq_u32 s24, -1' "${out_dir}/${stem}.disassembly.txt"
 library=${out_dir}/libqwen36_gdn_causal_conv_m12_bridge.so
 "${rocm_dir}/bin/hipcc" --offload-arch=gfx950 -O3 -std=c++17 -fPIC \
   -shared "$bridge" -o "$library"
+nm -D "$library" |
+  grep -q 'netra_qwen36_gdn_causal_conv_m12_batch_capacity'
 
 sha256sum "$source_file" "$bridge" "$header" "${out_dir}/${stem}.hsaco" \
   "$library" > "${out_dir}/sha256sums.txt"
-printf 'target=gfx950\nwavefront_size=64\nshape=B1-64,M12,D8192,W4\n' \
+printf 'target=gfx950\nwavefront_size=64\nshape=B1+,M12,D8192,W4\n' \
   > "${out_dir}/build-variant.txt"
 echo "gfx950 Qwen GDN M12 causal convolution build complete: ${out_dir}"

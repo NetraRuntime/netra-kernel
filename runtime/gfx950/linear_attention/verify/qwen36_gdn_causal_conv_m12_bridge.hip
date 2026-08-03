@@ -69,6 +69,10 @@ extern "C" int netra_qwen36_gdn_causal_conv_m12_load(
   return 0;
 }
 
+extern "C" uint32_t netra_qwen36_gdn_causal_conv_m12_batch_capacity(void) {
+  return UINT32_MAX;
+}
+
 extern "C" int netra_qwen36_gdn_causal_conv_m12_launch(
     const void* x_bf16,
     const void* weight_bf16,
@@ -88,8 +92,8 @@ extern "C" int netra_qwen36_gdn_causal_conv_m12_launch(
     if (pointer == nullptr)
       return fail_message("GDN causal-convolution pointers must be nonnull");
   }
-  if (batch_size == 0 || batch_size > 64)
-    return fail_message("GDN M=12 batch size must be in [1,64]");
+  if (batch_size == 0)
+    return fail_message("GDN M=12 batch size must be positive");
 
   void* x_pointer = const_cast<void*>(x_bf16);
   void* weight_pointer = const_cast<void*>(weight_bf16);

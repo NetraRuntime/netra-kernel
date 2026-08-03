@@ -10,6 +10,10 @@ extern "C" {
 
 int netra_qwen36_gdn_causal_conv_m12_load(const char* hsaco_path);
 
+// UINT32_MAX denotes that launch capacity is limited only by the caller's
+// validated buffers and the HIP grid, not by an implementation batch ceiling.
+uint32_t netra_qwen36_gdn_causal_conv_m12_batch_capacity(void);
+
 int netra_qwen36_gdn_causal_conv_m12_launch(
     const void* x_bf16,
     const void* weight_bf16,

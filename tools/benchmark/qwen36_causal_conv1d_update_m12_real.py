@@ -24,7 +24,7 @@ from sglang.srt.layers.attention.mamba.causal_conv1d_triton import (
 
 
 LAYER = 0
-BATCH = 64
+CAPTURE_BATCH = 64
 TOKENS_PER_SEQUENCE = 12
 DIM = 8192
 WIDTH = 4
@@ -36,10 +36,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--state-pass", type=Path, required=True)
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--build-dir", type=Path)
+    parser.add_argument("--batch-size", type=int, default=CAPTURE_BATCH)
     parser.add_argument("--iterations", type=int, default=100)
     parser.add_argument("--state-slot-offset", type=int, default=0)
     parser.add_argument("--intermediate-slot-offset", type=int, default=0)
-    parser.add_argument("--valid-batch", type=int, default=BATCH)
+    parser.add_argument("--valid-batch", type=int)
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
 
@@ -90,10 +91,14 @@ def main() -> None:
         raise FileExistsError(args.output)
     if args.iterations <= 0:
         raise ValueError("--iterations must be positive")
+    if args.batch_size <= 0:
+        raise ValueError("--batch-size must be positive")
+    batch_size = args.batch_size
+    valid_batch = batch_size if args.valid_batch is None else args.valid_batch
     if args.state_slot_offset < 0 or args.intermediate_slot_offset < 0:
         raise ValueError("slot offsets must be nonnegative")
-    if not 1 <= args.valid_batch <= BATCH:
-        raise ValueError(f"valid batch must be in [1,{BATCH}]")
+    if not 1 <= valid_batch <= batch_size:
+        raise ValueError(f"valid batch must be in [1,{batch_size}]")
 
     device = torch.device("cuda", 0)
     architecture = torch.cuda.get_device_properties(device).gcnArchName
@@ -102,9 +107,9 @@ def main() -> None:
 
     payload = torch.load(args.state_pass, map_location="cpu", weights_only=False)
     metadata = payload["metadata"]
-    if int(metadata["batch_size"]) != BATCH:
-        raise ValueError(f"expected B{BATCH} capture, got {metadata}")
-    if int(metadata["input_token_count"]) != BATCH * TOKENS_PER_SEQUENCE:
+    if int(metadata["batch_size"]) != CAPTURE_BATCH:
+        raise ValueError(f"expected B{CAPTURE_BATCH} capture, got {metadata}")
+    if int(metadata["input_token_count"]) != CAPTURE_BATCH * TOKENS_PER_SEQUENCE:
         raise ValueError(f"expected M={TOKENS_PER_SEQUENCE} capture, got {metadata}")
 
     prefix = f"gdn_stage.layer.{LAYER}.backend"
@@ -117,11 +122,11 @@ def main() -> None:
     ]
 
     expected_shapes = {
-        "mixed_qkv": (BATCH * TOKENS_PER_SEQUENCE, DIM),
-        "initial_state": (BATCH, DIM, WIDTH - 1),
-        "output": (BATCH * TOKENS_PER_SEQUENCE, DIM),
-        "state": (BATCH, DIM, WIDTH - 1),
-        "window": (BATCH, TOKENS_PER_SEQUENCE, DIM, WIDTH - 1),
+        "mixed_qkv": (CAPTURE_BATCH * TOKENS_PER_SEQUENCE, DIM),
+        "initial_state": (CAPTURE_BATCH, DIM, WIDTH - 1),
+        "output": (CAPTURE_BATCH * TOKENS_PER_SEQUENCE, DIM),
+        "state": (CAPTURE_BATCH, DIM, WIDTH - 1),
+        "window": (CAPTURE_BATCH, TOKENS_PER_SEQUENCE, DIM, WIDTH - 1),
     }
     tensors = {
         "mixed_qkv": mixed_qkv_cpu,
@@ -136,11 +141,27 @@ def main() -> None:
         if tensor.dtype != torch.bfloat16:
             raise TypeError(f"unexpected {name} dtype: {tensor.dtype}")
 
+    # The captured B64 rows are independent for this grouped causal update.
+    # Tile them to validate graph-capture capacities without synthesizing a
+    # different numerical workload or changing the real-checkpoint weights.
+    repeat_factor = (batch_size + CAPTURE_BATCH - 1) // CAPTURE_BATCH
+    mixed_qkv_cpu = mixed_qkv_cpu.repeat((repeat_factor, 1))[
+        : batch_size * TOKENS_PER_SEQUENCE
+    ]
+    expected_output_cpu = expected_output_cpu.repeat((repeat_factor, 1))[
+        : batch_size * TOKENS_PER_SEQUENCE
+    ]
+    initial_state_cpu = initial_state_cpu.repeat((repeat_factor, 1, 1))[:batch_size]
+    expected_state_cpu = expected_state_cpu.repeat((repeat_factor, 1, 1))[:batch_size]
+    expected_window_cpu = expected_window_cpu.repeat((repeat_factor, 1, 1, 1))[
+        :batch_size
+    ]
+
     weight_cpu, weight_shard = load_weight(args.model_dir)
     mixed_qkv = mixed_qkv_cpu.contiguous().to(device)
     # Production ABI: token-major storage viewed as (B, D, M), so feature is
     # contiguous and the token stride is DIM.
-    x = mixed_qkv.view(BATCH, TOKENS_PER_SEQUENCE, DIM).transpose(1, 2)
+    x = mixed_qkv.view(batch_size, TOKENS_PER_SEQUENCE, DIM).transpose(1, 2)
     # The live Mamba cache is contiguous (cache, D, win), matching the capture.
     initial_state = initial_state_cpu.contiguous().to(device)
     expected_output = expected_output_cpu.contiguous().to(device)
@@ -149,8 +170,8 @@ def main() -> None:
     weight = weight_cpu.to(device)
     del payload
 
-    state_indices = torch.arange(BATCH, dtype=torch.int32, device=device)
-    intermediate_indices = torch.arange(BATCH, dtype=torch.int32, device=device)
+    state_indices = torch.arange(batch_size, dtype=torch.int32, device=device)
+    intermediate_indices = torch.arange(batch_size, dtype=torch.int32, device=device)
 
     def invoke(state: torch.Tensor, window: torch.Tensor) -> torch.Tensor:
         output = causal_conv1d_update(
@@ -163,7 +184,9 @@ def main() -> None:
             intermediate_conv_window=window,
             intermediate_state_indices=intermediate_indices,
         )
-        return output.transpose(1, 2).reshape(BATCH * TOKENS_PER_SEQUENCE, DIM)
+        return output.transpose(1, 2).reshape(
+            batch_size * TOKENS_PER_SEQUENCE, DIM
+        )
 
     actual_state = initial_state.clone()
     actual_window = torch.empty_like(expected_window)
@@ -213,7 +236,6 @@ def main() -> None:
                 bridge.netra_qwen36_gdn_causal_conv_m12_last_error().decode()
             )
 
-        valid_batch = args.valid_batch
         raw_state_pool = torch.empty(
             (args.state_slot_offset + valid_batch, DIM, WIDTH - 1),
             dtype=torch.bfloat16,
@@ -240,10 +262,10 @@ def main() -> None:
         raw_output_view = torch.empty_like(x)
         raw_output_view.zero_()
         raw_state_indices = torch.full(
-            (BATCH,), -1, dtype=torch.int32, device=device
+            (batch_size,), -1, dtype=torch.int32, device=device
         )
         raw_intermediate_indices = torch.full(
-            (BATCH,), -1, dtype=torch.int32, device=device
+            (batch_size,), -1, dtype=torch.int32, device=device
         )
         raw_state_indices[:valid_batch] = torch.arange(
             args.state_slot_offset,
@@ -268,7 +290,7 @@ def main() -> None:
                 pointer(raw_window_pool),
                 pointer(raw_intermediate_indices),
                 pointer(raw_output_view),
-                BATCH,
+                batch_size,
                 ctypes.c_void_p(stream.cuda_stream),
             )
             if status:
@@ -279,7 +301,7 @@ def main() -> None:
         invoke_raw()
         torch.cuda.synchronize(device)
         raw_output = raw_output_view.transpose(1, 2).reshape(
-            BATCH * TOKENS_PER_SEQUENCE, DIM
+            batch_size * TOKENS_PER_SEQUENCE, DIM
         )
         raw_correctness = {
             "output": compare(
@@ -324,7 +346,7 @@ def main() -> None:
         "weight_shard": str(weight_shard),
         "weight_key": WEIGHT_KEY,
         "shape": {
-            "batch": BATCH,
+            "batch": batch_size,
             "tokens_per_sequence": TOKENS_PER_SEQUENCE,
             "dim": DIM,
             "width": WIDTH,

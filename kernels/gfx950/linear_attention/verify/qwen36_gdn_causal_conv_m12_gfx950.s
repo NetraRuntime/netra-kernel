@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 //
 // Qwen3.6 GDN target-verification causal convolution for gfx950.
-// Exact shape family: B=1..64, M=12, D=8192, width=4, BF16, SiLU.
+// Exact shape family: B>=1, M=12, D=8192, width=4, BF16, SiLU.
 //
 // One 256-thread wave64 workgroup owns 256 contiguous features of one
 // sequence.  Unlike the Triton oracle, the raw kernel has no masked lanes,

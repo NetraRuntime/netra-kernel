@@ -1,0 +1,40 @@
+{
+  "architecture": "gfx950:sramecc+:xnack-",
+  "checkpoint": "Qwen/Qwen3.6-35B-A3B-FP8@95a723d08a9490559dae23d0cff1d9466213d989",
+  "decision": "accept_capacity_fix_performance_neutral",
+  "isolated": {
+    "all_live_b256": {
+      "artifact": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260803T171000Z-gdn-conv-b256-capacity-gpu6/all-live-b256.json",
+      "raw_median_us": 76.2609988451004,
+      "triton_median_us": 110.16199737787247,
+      "output_mismatches": 0,
+      "state_mismatches": 0,
+      "window_mismatches": 0
+    },
+    "padded_b256_live64_offset961": {
+      "artifact": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260803T171000Z-gdn-conv-b256-capacity-gpu6/padded-b256-live64-offset961.json",
+      "raw_median_us": 22.060000337660313,
+      "output_mismatches": 0,
+      "state_mismatches": 0,
+      "window_mismatches": 0,
+      "padded_output_unchanged": true
+    }
+  },
+  "serving": {
+    "control_artifact": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260803T164500Z-currentstack-gdn-conv-control-gpu6",
+    "candidate_artifact": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260803T175000Z-currentstack-gdn-conv-raw-capacity-wired-gpu6",
+    "concurrency": 64,
+    "input_tokens_per_request": 1024,
+    "output_tokens_per_request": 1024,
+    "requests_per_repeat": 192,
+    "control_output_tok_s": [5857.58077107402, 6191.885815235909],
+    "candidate_output_tok_s": [5839.017491589861, 6224.870072940027],
+    "control_mean_output_tok_s": 6024.7332931549645,
+    "candidate_mean_output_tok_s": 6031.943782264943,
+    "mean_delta_percent": 0.11968146570358051,
+    "control_accept_length": [4.233916178646604, 4.245903200211584],
+    "candidate_accept_length": [4.192437946557634, 4.236479567599523],
+    "all_requests_completed": true,
+    "all_output_lengths_exact": true
+  }
+}
