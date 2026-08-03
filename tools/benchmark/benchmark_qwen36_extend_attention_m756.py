@@ -600,6 +600,7 @@ class RawHipModule:
             self._device_pointer(kv_indptr),
             self._device_pointer(kv_indices),
             ctypes.c_float(sm_scale),
+            ctypes.c_uint32(qo_indptr.element_size()),
             ctypes.c_void_p(),
             ctypes.c_void_p(),
         ]
