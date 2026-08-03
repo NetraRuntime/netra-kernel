@@ -177,7 +177,6 @@ def main() -> None:
             HAS_INPUT_TOKEN_INDICES=False,
             HAS_INPUT_SEQUENCE_INDICES=False,
             HAS_INPUT_SEQUENCE_LENGTHS=False,
-            USE_APPROX_RSQRT=False,
             num_warps=1,
             num_stages=3,
         )

@@ -165,7 +165,7 @@ def main() -> None:
             CACHE_INTERMEDIATE_STATES=not args.k0_no_intermediate,
             HAS_EAGLE_TREE_CUSTOM_ATTN_MASK=False,
             HAS_INPUT_TOKEN_INDICES=False, HAS_INPUT_SEQUENCE_INDICES=False,
-            HAS_INPUT_SEQUENCE_LENGTHS=False, USE_APPROX_RSQRT=False,
+            HAS_INPUT_SEQUENCE_LENGTHS=False,
             num_warps=1, num_stages=3,
         )
         return triton_output.squeeze(0)
