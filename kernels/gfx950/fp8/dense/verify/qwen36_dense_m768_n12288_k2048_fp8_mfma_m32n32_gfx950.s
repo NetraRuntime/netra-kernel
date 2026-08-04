@@ -183,7 +183,7 @@ qwen36_dense_m768_n12288_k2048_fp8_mfma_m32n32_gfx950:
 	v_fmac_f32_e32 v103, v71, v95
 
 	// Scale loads are small and can trail the bulk A/B prefetch.
-	s_mul_i32 s22, s27, 840
+	s_mul_i32 s22, s27, 3072
 	s_add_u32 s22, s22, s18
 	v_lshlrev_b32_e32 v44, 4, v40
 	v_add_u32_e32 v44, s22, v44
@@ -354,7 +354,7 @@ qwen36_dense_m768_n12288_k2048_fp8_mfma_m32n32_gfx950:
 	v_fmac_f32_e32 v100, v68, v92
 	v_fmac_f32_e32 v101, v69, v93
 
-	s_mul_i32 s22, s27, 840
+	s_mul_i32 s22, s27, 3072
 	s_add_u32 s22, s22, s18
 	v_lshlrev_b32_e32 v44, 4, v40
 	v_add_u32_e32 v44, s22, v44
@@ -570,4 +570,3 @@ amdhsa.target: amdgcn-amd-amdhsa--gfx950
 amdhsa.version: [1, 2]
 ...
 	.end_amdgpu_metadata
-
