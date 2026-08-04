@@ -123,6 +123,16 @@ def main() -> None:
     torch.cuda.synchronize()
     mismatch_count = int((actual != reference).sum().item())
 
+    repeated_mismatch_counts: list[int] = []
+    repeated_hashes: list[str] = []
+    for _ in range(20):
+        raw()
+        torch.cuda.synchronize()
+        repeated = output.clone()
+        torch.cuda.synchronize()
+        repeated_mismatch_counts.append(int((repeated != reference).sum().item()))
+        repeated_hashes.append(tensor_hash(repeated))
+
     graph = torch.cuda.CUDAGraph()
     raw()
     torch.cuda.synchronize()
@@ -144,6 +154,8 @@ def main() -> None:
         },
         "correctness": {
             "mismatches": mismatch_count,
+            "repeated_mismatch_counts": repeated_mismatch_counts,
+            "distinct_repeated_hashes": len(set(repeated_hashes)),
             "graph_exact": graph_exact,
             "raw_sha256": tensor_hash(actual),
             "control_sha256": tensor_hash(reference),
