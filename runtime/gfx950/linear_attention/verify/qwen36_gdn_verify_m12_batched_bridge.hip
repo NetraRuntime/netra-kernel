@@ -202,10 +202,10 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
   if (stride_q < 2048 || stride_k < 2048 || stride_v < 4096 ||
       stride_a < 32 || stride_b < 32)
     return fail_message("GDN verify tensor stride is smaller than its row");
-  if (batch_size == 0)
-    return fail_message("GDN M=12 verify batch size must be positive");
-  if (state_capacity <= batch_size)
-    return fail_message("GDN M=12 verify state capacity must exceed batch size");
+  if (batch_size == 0 || batch_size > UINT32_MAX / 256)
+    return fail_message("GDN M=12 verify batch size exceeds launch range");
+  if (state_capacity < batch_size)
+    return fail_message("GDN M=12 verify state capacity must cover batch size");
 
   void* A_log_pointer = const_cast<void*>(A_log_f32);
   void* a_pointer = const_cast<void*>(a_bf16);

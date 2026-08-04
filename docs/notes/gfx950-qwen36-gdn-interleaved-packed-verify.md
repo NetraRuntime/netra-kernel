@@ -44,3 +44,8 @@ clamps. With signed `s_min_i32`, graph capture destroyed the HIP context at the
 batch-64 verifier. Restoring the tested branch's `s_min_u32` for both initial
 and output state indices makes the emitted verification core match the
 validated candidate instruction stream.
+
+The capacity-aware main bridge additionally required capacity to be strictly
+greater than the batch. Capture workspaces legitimately use one state slot per
+captured row, so `capacity == batch` must be accepted. The bridge now requires
+`capacity >= batch` and separately bounds the launch grid.
