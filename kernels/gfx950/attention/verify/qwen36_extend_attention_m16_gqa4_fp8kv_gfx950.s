@@ -2116,6 +2116,9 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 	v_mul_f32_e32 v27, v27, v46
 	v_mul_f32_e32 v28, v28, v46
 	v_mul_f32_e32 v29, v29, v46
+	// These two packs were interleaved in the skipped compiler divide chain.
+	v_cvt_pk_bf16_f32 v6, v26, v27
+	v_cvt_pk_bf16_f32 v7, v28, v29
 	v_mul_f32_e32 v22, v22, v46
 	v_mul_f32_e32 v23, v23, v46
 	v_mul_f32_e32 v24, v24, v46
