@@ -430,6 +430,19 @@ int main(int argc, char** argv) {
                    final_output.size() * sizeof(uint16_t));
         if (!dump) throw std::runtime_error("cannot write final-output dump");
       }
+      if (const char* dump_path = std::getenv("NETRA_DUMP_PARTIALS")) {
+        const size_t partial_elements =
+            static_cast<size_t>(rows) * topk * 2048;
+        std::vector<float> partial_output(partial_elements);
+        HIP_CHECK(hipMemcpy(
+            partial_output.data(), d_partials.ptr,
+            partial_output.size() * sizeof(float), hipMemcpyDeviceToHost));
+        std::ofstream dump(dump_path, std::ios::binary | std::ios::trunc);
+        if (!dump) throw std::runtime_error("cannot open route-partial dump");
+        dump.write(reinterpret_cast<const char*>(partial_output.data()),
+                   partial_output.size() * sizeof(float));
+        if (!dump) throw std::runtime_error("cannot write route-partial dump");
+      }
       const float* structural_f32 =
           reinterpret_cast<const float*>(reference_output_f32.data());
       const uint16_t* structural_bf16 =
