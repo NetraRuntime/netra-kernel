@@ -10,7 +10,7 @@ readobj=${LLVM_READOBJ:-$rocm_root/llvm/bin/llvm-readobj}
 hipcc=${HIPCC:-$rocm_root/bin/hipcc}
 output_dir=${OUTPUT_DIR:-$repo_root/build/gfx950-qwen36-extend-attention-gqa4-fp8kv}
 
-assembly=$repo_root/kernels/gfx950/attention/verify/experiments/qwen36_extend_attention_m16_gqa4_fp8kv_gfx950.s
+assembly=$repo_root/kernels/gfx950/attention/verify/qwen36_extend_attention_m16_gqa4_fp8kv_gfx950.s
 bridge=$repo_root/runtime/gfx950/attention/verify/qwen36_extend_attention_m16_gqa4_fp8kv_bridge.hip
 header_dir=$repo_root/runtime/gfx950/attention/verify
 object=$output_dir/qwen36_extend_attention_m16_gqa4_fp8kv_gfx950.o

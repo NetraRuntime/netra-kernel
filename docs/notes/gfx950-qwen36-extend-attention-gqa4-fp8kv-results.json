@@ -1,0 +1,56 @@
+{
+  "date": "2026-08-04",
+  "target": "gfx950",
+  "wave_size": 64,
+  "kernel": "qwen36_extend_attention_m16_gqa4_fp8kv_gfx950",
+  "quantization": {
+    "weights": "FP8 E4M3 block 128x128",
+    "target_kv": "FP8 E4M3",
+    "draft_kv": "FP8 E4M3"
+  },
+  "metadata": {
+    "workgroup_size": 256,
+    "vgpr": 136,
+    "sgpr": 82,
+    "scratch_bytes": 0,
+    "dynamic_lds_bytes": 16384
+  },
+  "isolated_real_checkpoint": {
+    "batch": 63,
+    "actual_m": 756,
+    "max_extend": 12,
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "elements": 3096576,
+    "bf16_mismatches": 26,
+    "max_abs": 0.0078125,
+    "max_rel": 0.0068493,
+    "cosine": 1.0,
+    "rmse": 0.000009559,
+    "raw_median_us": 122.740,
+    "grouped_triton_median_us": 130.120,
+    "deployed_one_wave_triton_median_us": 185.200
+  },
+  "serving_c64_n192_i1024_o1024": {
+    "candidate_output_toks": [6770.06, 6783.26],
+    "candidate_mean_output_toks": 6776.66,
+    "control_output_toks": [6755.84, 6589.23],
+    "control_mean_output_toks": 6672.535,
+    "mean_speedup_percent": 1.5605,
+    "candidate_accept_length_range": [4.20, 4.21]
+  },
+  "gsm8k_200_chat_nonthinking": {
+    "parallel": 64,
+    "candidate_accuracy": 0.97,
+    "candidate_invalid": 0.02,
+    "control_accuracy": 0.945,
+    "control_invalid": 0.025
+  },
+  "artifacts": [
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T024500Z-gqa4-fp8kv-oracle-gpu6",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T025936Z-qwen36-best-gpu6",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T030505Z-qwen36-best-gpu6",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T031533Z-qwen36-best-gpu6"
+  ]
+}
