@@ -19,7 +19,10 @@ import torch
 import triton
 import triton.language as tl
 
-from sglang.srt.layers.attention.triton_ops.extend_attention import _fwd_kernel
+from sglang.srt.layers.attention.triton_ops.extend_attention import (
+    _fwd_kernel,
+    extend_attention_fwd,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -84,6 +87,15 @@ def parse_args() -> argparse.Namespace:
         "--grouped-qo-indptr-int64",
         action="store_true",
         help="replay the live piecewise-graph int64 qo_indptr ABI",
+    )
+    parser.add_argument(
+        "--quantize-cache-fp8",
+        action="store_true",
+        help=(
+            "convert the retained compact BF16 cache tensors to E4M3 and "
+            "recompute the deployed Triton oracle; checkpoint tensors are "
+            "not modified"
+        ),
     )
     parser.add_argument(
         "--variants",
@@ -183,7 +195,7 @@ def _grouped_gqa4_fwd_kernel(
                 mask=mask_n[None, :],
                 other=0.0,
             )
-            qk = tl.dot(q, k, out_dtype=tl.float32) * sm_scale
+            qk = tl.dot(q.to(k.dtype), k, out_dtype=tl.float32) * sm_scale
             qk = tl.where(final_mask, qk, float("-inf"))
             row_max = tl.max(qk, axis=1)
             row_max = tl.where(row_max == float("-inf"), -1.0e20, row_max)
@@ -705,6 +717,9 @@ def main() -> None:
     v_extend = tensors["v_extend"]
     k_buffer = tensors["k_buffer"]
     v_buffer = tensors["v_buffer"]
+    if args.quantize_cache_fp8:
+        k_buffer = k_buffer.to(torch.float8_e4m3fn)
+        v_buffer = v_buffer.to(torch.float8_e4m3fn)
     qo_indptr = tensors["qo_indptr"]
     if args.grouped_qo_indptr_int64:
         qo_indptr = qo_indptr.to(torch.int64)
@@ -722,7 +737,36 @@ def main() -> None:
     head_dim = q.shape[-1]
     sm_scale = 1.0 / math.sqrt(q.shape[-1])
     output = torch.empty_like(q)
-    expected_device = expected.cuda()
+    if args.quantize_cache_fp8:
+        expected_device = torch.empty_like(q)
+        extend_attention_fwd(
+            q,
+            k_extend,
+            v_extend,
+            expected_device,
+            k_buffer,
+            v_buffer,
+            qo_indptr,
+            kv_indptr,
+            kv_indices,
+            custom_mask,
+            True,
+            mask_indptr,
+            max_len_extend,
+            1.0,
+            1.0,
+            sm_scale=sm_scale,
+            logit_cap=0.0,
+            skip_prefix_custom_mask=True,
+            sliding_window_size=args.sliding_window_size,
+            sinks=sinks,
+            window_kv_offsets=window_kv_offsets,
+            xai_temperature_len=-1,
+        )
+        torch.cuda.synchronize()
+        expected_device = expected_device.clone()
+    else:
+        expected_device = expected.cuda()
 
     results: list[dict[str, object]] = []
     for encoded in (value for value in args.variants.split(",") if value):
