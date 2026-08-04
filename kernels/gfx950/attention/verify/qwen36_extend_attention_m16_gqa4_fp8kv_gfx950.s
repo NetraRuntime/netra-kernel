@@ -1780,10 +1780,6 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 	v_rcp_f32_e32 v40, v38
 	v_div_fmas_f32 v17, v17, v43, v39
 	v_div_fixup_f32 v17, v17, v13, v41
-	// Both final PV MFMAs and all output addresses are now complete. Preserve
-	// these first four reference quotients, then share one reciprocal across the
-	// remaining 28 outputs without duplicating compiler scheduling.
-	s_branch .Lfast_shared_reciprocal
 	v_fma_f32 v39, -v38, v40, 1.0
 	v_fmac_f32_e32 v40, v39, v40
 	v_div_scale_f32 v39, vcc, v34, v13, v34
@@ -2048,6 +2044,9 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 	v_rcp_f32_e32 v39, v6
 	v_div_fmas_f32 v4, v4, v43, v5
 	v_div_fixup_f32 v43, v4, v13, v7
+	// Preserve the first 28 compiler quotients and replace only the final four.
+	// This is the minimal register-group gate for reciprocal sharing.
+	s_branch .Lfast_shared_reciprocal
 	v_fma_f32 v4, -v6, v39, 1.0
 	v_fmac_f32_e32 v39, v4, v39
 	v_div_scale_f32 v4, vcc, v0, v13, v0
@@ -2098,39 +2097,15 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 	v_div_fixup_f32 v13, v0, v13, v3
 .Lfast_shared_reciprocal:
 	// Valid online-softmax rows have a positive finite denominator. Refine the
-	// hardware reciprocal twice before sharing it across the remaining outputs.
+	// hardware reciprocal twice before sharing it across the final four outputs.
 	v_rcp_f32_e32 v46, v13
 	v_fma_f32 v47, -v13, v46, 1.0
 	v_fmac_f32_e32 v46, v47, v46
 	v_fma_f32 v47, -v13, v46, 1.0
 	v_fmac_f32_e32 v46, v47, v46
-	v_mul_f32_e32 v34, v34, v46
-	v_mul_f32_e32 v35, v35, v46
-	v_mul_f32_e32 v36, v36, v46
-	v_mul_f32_e32 v37, v37, v46
-	v_mul_f32_e32 v30, v30, v46
-	v_mul_f32_e32 v31, v31, v46
-	v_mul_f32_e32 v32, v32, v46
-	v_mul_f32_e32 v33, v33, v46
-	v_mul_f32_e32 v26, v26, v46
-	v_mul_f32_e32 v27, v27, v46
-	v_mul_f32_e32 v28, v28, v46
-	v_mul_f32_e32 v29, v29, v46
-	// These two packs were interleaved in the skipped compiler divide chain.
+	// These two packs were interleaved in the skipped final-four divide chain.
 	v_cvt_pk_bf16_f32 v6, v26, v27
 	v_cvt_pk_bf16_f32 v7, v28, v29
-	v_mul_f32_e32 v22, v22, v46
-	v_mul_f32_e32 v23, v23, v46
-	v_mul_f32_e32 v24, v24, v46
-	v_mul_f32_e32 v25, v25, v46
-	v_mul_f32_e32 v18, v18, v46
-	v_mul_f32_e32 v19, v19, v46
-	v_mul_f32_e32 v20, v20, v46
-	v_mul_f32_e32 v21, v21, v46
-	v_mul_f32_e32 v38, v4, v46
-	v_mul_f32_e32 v40, v5, v46
-	v_mul_f32_e32 v41, v6, v46
-	v_mul_f32_e32 v43, v7, v46
 	v_mul_f32_e32 v39, v0, v46
 	v_mul_f32_e32 v44, v1, v46
 	v_mul_f32_e32 v45, v2, v46
