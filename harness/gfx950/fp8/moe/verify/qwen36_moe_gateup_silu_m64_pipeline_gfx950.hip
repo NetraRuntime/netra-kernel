@@ -219,8 +219,8 @@ int main(int argc, char** argv) {
     unsigned down_grid_x = 32;
     if (const char* value = std::getenv("NETRA_DOWN_GRID_X"))
       down_grid_x = std::stoul(value);
-    if (down_grid_x != 16 && down_grid_x != 32)
-      throw std::runtime_error("NETRA_DOWN_GRID_X must be 16 or 32");
+    if (down_grid_x != 8 && down_grid_x != 16 && down_grid_x != 32)
+      throw std::runtime_error("NETRA_DOWN_GRID_X must be 8, 16, or 32");
     void* reduce_args[] = {
         &d_partials.ptr, &d_topk_weights.ptr, &d_final.ptr};
     unsigned reduce_grid_x = 32;
