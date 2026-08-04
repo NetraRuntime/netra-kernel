@@ -50,9 +50,10 @@ and draft KV, context 262,144, chunk 16,384, and max-prefill 131,072.
 - candidate mean 6,776.66 versus control mean 6,672.54: +1.56%;
 - acceptance remained effectively unchanged (candidate 4.20--4.21).
 
-The established 200-question chat-format, thinking-disabled GSM8K gate at
-concurrency 64 scored 97.0% with 2.0% invalid for the raw candidate, versus
-94.5% with 2.5% invalid for the reverse-order control.
+The established 200-question chat-format, thinking-disabled GSM8K gate used
+concurrency 64, temperature 0.7, top-p 0.8, and a 1,024-token cap. It scored
+97.0% with 2.0% invalid for the raw candidate, versus 94.5% with 2.5% invalid
+for the reverse-order control.
 
 ## Evidence
 
