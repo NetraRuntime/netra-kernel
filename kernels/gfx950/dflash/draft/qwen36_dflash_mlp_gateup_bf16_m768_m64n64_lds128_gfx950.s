@@ -47,6 +47,7 @@ qwen36_dflash_mlp_gateup_bf16_m768_m64n64_lds128_gfx950:
 	s_add_u32 s16, s20, s14      // absolute wave row base
 	s_add_u32 s17, s21, s15      // absolute wave col base
 	s_mov_b32 s22, LDS_PITCH     // padded LDS row pitch
+	s_mov_b32 s23, 6144          // lane-group output-row offset multiplier
 
 	// Cooperative global load mapping: four threads per row, each thread loads
 	// four 16-byte vectors separated by 64 bytes, covering a 128-BF16 row slab.
@@ -172,7 +173,7 @@ qwen36_dflash_mlp_gateup_bf16_m768_m64n64_lds128_gfx950:
 
 	// Base output byte address for accumulator 00.
 	v_and_b32_e32 v12, 48, v1
-	v_mul_lo_u32 v12, 6144, v12
+	v_mul_lo_u32 v12, s23, v12
 	s_mul_i32 s19, s16, 24576
 	v_add_u32_e32 v13, s17, v3
 	v_lshlrev_b32_e32 v13, 1, v13
@@ -251,7 +252,7 @@ qwen36_dflash_mlp_gateup_bf16_m768_m64n64_lds128_gfx950:
 		.amdhsa_system_vgpr_workitem_id 0
 		.amdhsa_next_free_vgpr 80
 		.amdhsa_accum_offset 80
-		.amdhsa_next_free_sgpr 23
+		.amdhsa_next_free_sgpr 24
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_round_mode_32 0
 		.amdhsa_float_round_mode_16_64 0
@@ -286,7 +287,7 @@ amdhsa.kernels:
     .max_flat_workgroup_size: 256
     .name: qwen36_dflash_mlp_gateup_bf16_m768_m64n64_lds128_gfx950
     .private_segment_fixed_size: 0
-    .sgpr_count: 23
+    .sgpr_count: 24
     .sgpr_spill_count: 0
     .symbol: qwen36_dflash_mlp_gateup_bf16_m768_m64n64_lds128_gfx950.kd
     .uniform_work_group_size: 1
