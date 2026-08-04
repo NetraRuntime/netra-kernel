@@ -80,6 +80,7 @@ int main(int argc, char** argv) {
     const bool fused_quant = std::getenv("NETRA_KERNEL_FUSED_QUANT") != nullptr;
     const bool run_quant = !fused_quant;
     const bool run_down = true;
+    const bool down_atomic = std::getenv("NETRA_DOWN_ATOMIC") != nullptr;
     const std::string quant_co_path = argv[5];
     if (iterations < 2) throw std::runtime_error("iterations must be >= 2");
 
@@ -210,10 +211,11 @@ int main(int argc, char** argv) {
           quant_function, (routes + 3) / 4, 1, 1, 256, 1, 1, 0, nullptr,
           quant_args, nullptr));
     };
+    void* down_output = down_atomic ? d_final.ptr : d_partials.ptr;
     void* down_args[] = {
         &d_activation.ptr, &d_activation_scale.ptr, &d_w2.ptr, &d_w2_scale.ptr,
         &d_sorted.ptr, &d_sorted_weights.ptr, &d_experts.ptr, &d_valid.ptr,
-        &d_partials.ptr, &token_rows};
+        &down_output, &token_rows};
     unsigned down_grid_x = 32;
     if (const char* value = std::getenv("NETRA_DOWN_GRID_X"))
       down_grid_x = std::stoul(value);
@@ -232,11 +234,17 @@ int main(int argc, char** argv) {
          reduce_wg_size != 256))
       throw std::runtime_error("invalid reduction launch geometry");
     auto launch_down_kernel = [&] {
+      if (down_atomic) {
+        HIP_CHECK(hipMemsetAsync(
+            d_final.ptr, 0,
+            static_cast<size_t>(rows) * 2048 * sizeof(uint16_t), nullptr));
+      }
       HIP_CHECK(hipModuleLaunchKernel(
           down_function, down_grid_x, valid / 64, 1, 256, 1, 1, 0, nullptr,
           down_args, nullptr));
     };
     auto launch_reduce = [&] {
+      if (down_atomic) return;
       HIP_CHECK(hipModuleLaunchKernel(
           reduce_function, reduce_grid_x, rows, 1, reduce_wg_size, 1, 1, 0,
           nullptr,
@@ -305,16 +313,18 @@ int main(int argc, char** argv) {
           HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
           down_kernel_samples.push_back(milliseconds * 1000.0f);
         }
-        launch_down_kernel();
-        HIP_CHECK(hipDeviceSynchronize());
-        for (int i = 0; i < iterations; ++i) {
-          HIP_CHECK(hipEventRecord(start));
-          launch_reduce();
-          HIP_CHECK(hipEventRecord(stop));
-          HIP_CHECK(hipEventSynchronize(stop));
-          float milliseconds = 0;
-          HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
-          reduce_samples.push_back(milliseconds * 1000.0f);
+        if (!down_atomic) {
+          launch_down_kernel();
+          HIP_CHECK(hipDeviceSynchronize());
+          for (int i = 0; i < iterations; ++i) {
+            HIP_CHECK(hipEventRecord(start));
+            launch_reduce();
+            HIP_CHECK(hipEventRecord(stop));
+            HIP_CHECK(hipEventSynchronize(stop));
+            float milliseconds = 0;
+            HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
+            reduce_samples.push_back(milliseconds * 1000.0f);
+          }
         }
         for (int i = 0; i < iterations; ++i) {
           HIP_CHECK(hipEventRecord(start));
@@ -492,10 +502,14 @@ int main(int argc, char** argv) {
                 << percentile(down_kernel_samples, 0.5) << "\n"
                 << "down_kernel_p90_us="
                 << percentile(down_kernel_samples, 0.9) << "\n"
-                << "reduce_median_us="
-                << percentile(reduce_samples, 0.5) << "\n"
-                << "reduce_p90_us="
-                << percentile(reduce_samples, 0.9) << "\n"
+                << "down_atomic=" << (down_atomic ? 1 : 0) << "\n";
+      if (!down_atomic) {
+        std::cout << "reduce_median_us="
+                  << percentile(reduce_samples, 0.5) << "\n"
+                  << "reduce_p90_us="
+                  << percentile(reduce_samples, 0.9) << "\n";
+      }
+      std::cout
                 << "complete_pipeline_median_us="
                 << percentile(complete_samples, 0.5) << "\n"
                 << "complete_pipeline_p90_us="
