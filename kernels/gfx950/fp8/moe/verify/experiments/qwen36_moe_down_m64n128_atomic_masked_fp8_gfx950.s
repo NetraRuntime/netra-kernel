@@ -314,8 +314,8 @@ qwen36_moe_down_m64n128_atomic_masked_fp8_gfx950:
 	v_add_u32_e32 v118, v116, v118
 	v_lshlrev_b32_e32 v119, 12, v86
 	v_add_u32_e32 v119, v116, v119
-	v_lshlrev_b32_e32 v124, 12, v87
-	v_add_u32_e32 v124, v116, v124
+	v_lshlrev_b32_e32 v112, 12, v87
+	v_add_u32_e32 v112, v116, v112
 	s_and_b64 s[42:43], s[46:47], s[44:45]
 	s_and_saveexec_b64 s[54:55], s[42:43]
 	global_atomic_pk_add_bf16 v117, v20, s[20:21]
@@ -330,7 +330,7 @@ qwen36_moe_down_m64n128_atomic_masked_fp8_gfx950:
 	s_or_b64 exec, exec, s[54:55]
 	s_and_b64 s[42:43], s[52:53], s[44:45]
 	s_and_saveexec_b64 s[54:55], s[42:43]
-	global_atomic_pk_add_bf16 v124, v23, s[20:21]
+	global_atomic_pk_add_bf16 v112, v23, s[20:21]
 	s_or_b64 exec, exec, s[54:55]
 	.endm
 	ATOMIC_TILE 64,65,66,67,0
