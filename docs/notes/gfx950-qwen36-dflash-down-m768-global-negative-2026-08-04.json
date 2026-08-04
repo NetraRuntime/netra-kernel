@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "shape": {"m": 768, "n": 2048, "k": 6144},
+  "dtype": {"input": "BF16", "weight": "BF16", "output": "BF16"},
+  "weight_key": "layers.0.mlp.down_proj.weight",
+  "code_object": {
+    "wavefront_size": 64,
+    "workgroup_size": 256,
+    "vgpr_count": 80,
+    "sgpr_count": 20,
+    "lds_bytes": 0,
+    "scratch_bytes": 0
+  },
+  "timing_us": {
+    "torch_rocblas_median": 48.760999,
+    "raw_median": 191.964,
+    "raw_p90": 192.283,
+    "slowdown_x": 3.94
+  },
+  "correctness": {
+    "elements": 1572864,
+    "bf16_mismatches": 521,
+    "max_abs_error": 0.015625,
+    "mean_abs_error": 4.6654372454213444e-7,
+    "graph_replay_exact_to_raw": true,
+    "gate": "fail"
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T060000Z-dflash-down-m768-gpu6"
+}
