@@ -1726,6 +1726,9 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 	v_or_b32_e32 v12, 32, v42
 	s_waitcnt lgkmcnt(0)
 	v_mfma_f32_16x16x32_bf16 v[0:3], v[78:81], v[46:49], v[0:3]
+	// The compiler's original divide chain covered the final MFMA latency.
+	// The shortened epilogue must explicitly wait for its accumulator writes.
+	s_waitcnt_depctr 0x0
 	v_or_b32_e32 v11, 64, v42
 	v_or_b32_e32 v10, 0x60, v42
 	s_branch .Lfast_shared_reciprocal

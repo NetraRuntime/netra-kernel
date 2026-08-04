@@ -666,6 +666,8 @@ def evaluate_launch(
     expected_f32 = expected.float()
     delta = actual_f32 - expected_f32
     absolute_delta = delta.abs()
+    finite_pair = torch.isfinite(actual_f32) & torch.isfinite(expected_f32)
+    finite_absolute_delta = absolute_delta[finite_pair]
     worst_flat_index = int(absolute_delta.reshape(-1).argmax().item())
     relative_delta = absolute_delta / expected_f32.abs().clamp_min(1.0e-6)
     applicable_relative = ~(
@@ -686,6 +688,17 @@ def evaluate_launch(
         "worst_flat_index": worst_flat_index,
         "nan_count": int(torch.isnan(actual_f32).sum().item()),
         "inf_count": int(torch.isinf(actual_f32).sum().item()),
+        "finite_pair_count": int(finite_pair.sum().item()),
+        "finite_max_abs": (
+            float(finite_absolute_delta.max().item())
+            if bool(finite_pair.any().item())
+            else None
+        ),
+        "finite_mean_abs": (
+            float(finite_absolute_delta.mean().item())
+            if bool(finite_pair.any().item())
+            else None
+        ),
         "cosine": float(
             torch.nn.functional.cosine_similarity(
                 actual_f32.reshape(1, -1), expected_f32.reshape(1, -1)
