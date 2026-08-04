@@ -1717,23 +1717,6 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 .Ltmp90:
 	.loc	1 238 28                        ; benchmark_qwen36_extend_attention_m756.py:238:28
 	v_fmac_f32_e32 v13, v61, v8
-	// Complete the two outstanding PV MFMAs and address setup before taking the
-	// specialized reciprocal epilogue. The original compiler-generated divide
-	// expansion remains below as dead reference code.
-	s_waitcnt lgkmcnt(2)
-	v_mfma_f32_16x16x32_bf16 v[4:7], v[62:65], v[46:49], v[4:7]
-	v_lshl_add_u32 v8, v44, 12, s18
-	v_or_b32_e32 v12, 32, v42
-	s_waitcnt lgkmcnt(0)
-	v_mfma_f32_16x16x32_bf16 v[0:3], v[78:81], v[46:49], v[0:3]
-	// gfx950 has no s_waitcnt_depctr.  The compiler's original divide chain
-	// covered this final MFMA latency, so retain 32 explicit issue-delay cycles
-	// before the shortened epilogue consumes its accumulator writes.
-	s_nop 15
-	s_nop 15
-	v_or_b32_e32 v11, 64, v42
-	v_or_b32_e32 v10, 0x60, v42
-	s_branch .Lfast_shared_reciprocal
 	.loc	1 257 14                        ; benchmark_qwen36_extend_attention_m756.py:257:14
 	v_div_scale_f32 v14, s[0:1], v13, v13, v38
 	v_rcp_f32_e32 v15, v14
@@ -1797,6 +1780,10 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 	v_rcp_f32_e32 v40, v38
 	v_div_fmas_f32 v17, v17, v43, v39
 	v_div_fixup_f32 v17, v17, v13, v41
+	// Both final PV MFMAs and all output addresses are now complete. Preserve
+	// these first four reference quotients, then share one reciprocal across the
+	// remaining 28 outputs without duplicating compiler scheduling.
+	s_branch .Lfast_shared_reciprocal
 	v_fma_f32 v39, -v38, v40, 1.0
 	v_fmac_f32_e32 v40, v39, v40
 	v_div_scale_f32 v39, vcc, v34, v13, v34
@@ -2111,7 +2098,7 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 	v_div_fixup_f32 v13, v0, v13, v3
 .Lfast_shared_reciprocal:
 	// Compute one fully corrected IEEE reciprocal per output row, then reuse it
-	// for all 32 resident accumulators.  Keep the compiler's scale/fixup path
+	// for the remaining 28 resident accumulators. Keep the compiler's scale/fixup path
 	// so masked rows and extreme denominators retain the reference semantics.
 	v_div_scale_f32 v46, s[0:1], v13, v13, 1.0
 	v_rcp_f32_e32 v47, v46
@@ -2124,10 +2111,6 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 	v_fma_f32 v46, -v46, v49, v48
 	v_div_fmas_f32 v46, v46, v47, v49
 	v_div_fixup_f32 v46, v46, v13, 1.0
-	v_mul_f32_e32 v14, v38, v46
-	v_mul_f32_e32 v15, v39, v46
-	v_mul_f32_e32 v16, v40, v46
-	v_mul_f32_e32 v17, v41, v46
 	v_mul_f32_e32 v34, v34, v46
 	v_mul_f32_e32 v35, v35, v46
 	v_mul_f32_e32 v36, v36, v46
