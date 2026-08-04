@@ -90,11 +90,14 @@ qwen36_argmax_f32_row512_gfx950:
 	v_mov_b32_e32 v51, -1
 	v_mov_b32_e32 v4, 0
 	v_mov_b32_e32 v5, 0
-	s_mov_b32 s10, 0
-
-.Lrow_round:
+	// Prime round zero. The paired loop overlaps the following VMEM load with
+	// the current round's key construction.
 	global_load_dwordx4 v[16:19], v3, s[6:7]
 	s_waitcnt vmcnt(0)
+	s_mov_b32 s10, 0
+
+.Lrow_round_pair:
+	global_load_dwordx4 v[24:27], v3, s[6:7] offset:8192
 	UPDATE_LOCAL_VALUE v16, v6
 	v_add_u32_e32 v20, 1, v6
 	UPDATE_LOCAL_VALUE v17, v20
@@ -102,25 +105,46 @@ qwen36_argmax_f32_row512_gfx950:
 	UPDATE_LOCAL_VALUE v18, v20
 	v_add_u32_e32 v20, 3, v6
 	UPDATE_LOCAL_VALUE v19, v20
-	v_add_u32_e32 v3, 8192, v3
-	v_add_u32_e32 v6, 2048, v6
+	s_waitcnt vmcnt(0)
+	global_load_dwordx4 v[16:19], v3, s[6:7] offset:16384
+	v_add_u32_e32 v21, 2048, v6
+	UPDATE_LOCAL_VALUE v24, v21
+	v_add_u32_e32 v20, 1, v21
+	UPDATE_LOCAL_VALUE v25, v20
+	v_add_u32_e32 v20, 2, v21
+	UPDATE_LOCAL_VALUE v26, v20
+	v_add_u32_e32 v20, 3, v21
+	UPDATE_LOCAL_VALUE v27, v20
+	s_waitcnt vmcnt(0)
+	v_add_u32_e32 v3, 16384, v3
+	v_add_u32_e32 v6, 4096, v6
 	s_add_u32 s10, s10, 1
-	s_cmp_lt_u32 s10, 121
-	s_cbranch_scc1 .Lrow_round
+	s_cmp_lt_u32 s10, 60
+	s_cbranch_scc1 .Lrow_round_pair
+
+	// The paired loop consumed rounds 0..119 and left round 120 in v16:v19.
+	UPDATE_LOCAL_VALUE v16, v6
+	v_add_u32_e32 v20, 1, v6
+	UPDATE_LOCAL_VALUE v17, v20
+	v_add_u32_e32 v20, 2, v6
+	UPDATE_LOCAL_VALUE v18, v20
+	v_add_u32_e32 v20, 3, v6
+	UPDATE_LOCAL_VALUE v19, v20
 
 	// 121 rounds cover 247,808 values. Waves 0 and 1 cover the exact
 	// remaining 512 values without masked global memory accesses.
 	v_cmp_gt_u32_e32 vcc, 2, v2
 	s_and_saveexec_b64 s[16:17], vcc
-	global_load_dwordx4 v[16:19], v3, s[6:7]
+	global_load_dwordx4 v[24:27], v3, s[6:7] offset:8192
 	s_waitcnt vmcnt(0)
-	UPDATE_LOCAL_VALUE v16, v6
-	v_add_u32_e32 v20, 1, v6
-	UPDATE_LOCAL_VALUE v17, v20
-	v_add_u32_e32 v20, 2, v6
-	UPDATE_LOCAL_VALUE v18, v20
-	v_add_u32_e32 v20, 3, v6
-	UPDATE_LOCAL_VALUE v19, v20
+	v_add_u32_e32 v21, 2048, v6
+	UPDATE_LOCAL_VALUE v24, v21
+	v_add_u32_e32 v20, 1, v21
+	UPDATE_LOCAL_VALUE v25, v20
+	v_add_u32_e32 v20, 2, v21
+	UPDATE_LOCAL_VALUE v26, v20
+	v_add_u32_e32 v20, 3, v21
+	UPDATE_LOCAL_VALUE v27, v20
 	s_or_b64 exec, exec, s[16:17]
 
 	// Add the index tie-break key once, then reduce the 64 lane keys.
