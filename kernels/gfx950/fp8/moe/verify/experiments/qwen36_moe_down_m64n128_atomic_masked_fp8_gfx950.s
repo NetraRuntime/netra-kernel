@@ -303,10 +303,10 @@ qwen36_moe_down_m64n128_atomic_masked_fp8_gfx950:
 	ds_bpermute_b32 v18, v113, v\a2
 	ds_bpermute_b32 v19, v113, v\a3
 	s_waitcnt lgkmcnt(0)
-	v_cvt_pk_bf16_f32 v20, v\a0, v16
-	v_cvt_pk_bf16_f32 v21, v\a1, v17
-	v_cvt_pk_bf16_f32 v22, v\a2, v18
-	v_cvt_pk_bf16_f32 v23, v\a3, v19
+	v_cvt_pk_bf16_f32 v20, v16, v\a0
+	v_cvt_pk_bf16_f32 v21, v17, v\a1
+	v_cvt_pk_bf16_f32 v22, v18, v\a2
+	v_cvt_pk_bf16_f32 v23, v19, v\a3
 	v_add_u32_e32 v116, \coloff, v115
 	v_lshlrev_b32_e32 v117, 12, v84
 	v_add_u32_e32 v117, v116, v117
