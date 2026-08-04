@@ -13,7 +13,7 @@
 namespace {
 
 constexpr uint32_t kGridX = 8;
-constexpr uint32_t kGridY = 32;
+constexpr uint32_t kHeads = 32;
 constexpr uint32_t kBlockX = 256;
 constexpr uint32_t kDynamicLdsBytes = 103296;
 constexpr uint32_t kTokens = 8192;
@@ -100,6 +100,7 @@ extern "C" int netra_qwen36_gdn_h_m8192_bv16_launch(
     const void* initial_state_indices_i32,
     const void* cu_seqlens_i32,
     const void* chunk_offsets_i64,
+    uint32_t sequence_count,
     hipStream_t stream) {
   if (function == nullptr) return fail_message("GDN M8192 module is not loaded");
   const std::array<const void*, 10> pointers = {
@@ -109,6 +110,9 @@ extern "C" int netra_qwen36_gdn_h_m8192_bv16_launch(
     if (pointer == nullptr)
       return fail_message("GDN M8192 launch pointers must be nonnull");
   }
+  if (sequence_count == 0 || sequence_count > 64)
+    return fail_message("GDN M8192 sequence count must be in [1, 64]");
+
 
   void* k_pointer = const_cast<void*>(k_bf16);
   void* v_pointer = const_cast<void*>(v_bf16);
@@ -139,7 +143,7 @@ extern "C" int netra_qwen36_gdn_h_m8192_bv16_launch(
       &profile_scratch,
   };
   hipError_t error = hipModuleLaunchKernel(
-      function, kGridX, kGridY, 1, kBlockX, 1, 1, kDynamicLdsBytes, stream,
+      function, kGridX, kHeads * sequence_count, 1, kBlockX, 1, 1, kDynamicLdsBytes, stream,
       arguments, nullptr);
   if (error != hipSuccess) return fail("hipModuleLaunchKernel", error);
   last_error.clear();
