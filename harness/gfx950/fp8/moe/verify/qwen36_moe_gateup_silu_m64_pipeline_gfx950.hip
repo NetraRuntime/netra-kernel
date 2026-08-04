@@ -423,6 +423,13 @@ int main(int argc, char** argv) {
       HIP_CHECK(hipMemcpy(
           final_output.data(), d_final.ptr, elements * sizeof(uint16_t),
           hipMemcpyDeviceToHost));
+      if (const char* dump_path = std::getenv("NETRA_DUMP_FINAL")) {
+        std::ofstream dump(dump_path, std::ios::binary | std::ios::trunc);
+        if (!dump) throw std::runtime_error("cannot open final-output dump");
+        dump.write(reinterpret_cast<const char*>(final_output.data()),
+                   final_output.size() * sizeof(uint16_t));
+        if (!dump) throw std::runtime_error("cannot write final-output dump");
+      }
       const float* structural_f32 =
           reinterpret_cast<const float*>(reference_output_f32.data());
       const uint16_t* structural_bf16 =
