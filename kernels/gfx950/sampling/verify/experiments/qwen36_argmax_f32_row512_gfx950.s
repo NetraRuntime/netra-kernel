@@ -76,7 +76,6 @@ qwen36_argmax_f32_row512_gfx950:
 	// Lane/wave decomposition. Each wave starts at a distinct 256-value panel.
 	v_and_b32_e32 v1, 63, v0
 	v_lshrrev_b32_e32 v2, 6, v0
-	v_readfirstlane_b32 s14, v2
 	v_lshlrev_b32_e32 v3, 10, v2
 	v_lshlrev_b32_e32 v6, 4, v1
 	v_add_u32_e32 v3, v3, v6
@@ -111,8 +110,8 @@ qwen36_argmax_f32_row512_gfx950:
 
 	// 121 rounds cover 247,808 values. Waves 0 and 1 cover the exact
 	// remaining 512 values without masked global memory accesses.
-	s_cmp_lt_u32 s14, 2
-	s_cbranch_scc0 .Lrow_local_done
+	v_cmp_gt_u32_e32 vcc, 2, v2
+	s_and_saveexec_b64 s[16:17], vcc
 	global_load_dwordx4 v[16:19], v3, s[6:7]
 	s_waitcnt vmcnt(0)
 	UPDATE_LOCAL_VALUE v16, v6
@@ -122,8 +121,8 @@ qwen36_argmax_f32_row512_gfx950:
 	UPDATE_LOCAL_VALUE v18, v20
 	v_add_u32_e32 v20, 3, v6
 	UPDATE_LOCAL_VALUE v19, v20
+	s_or_b64 exec, exec, s[16:17]
 
-.Lrow_local_done:
 	// Add the index tie-break key once, then reduce the 64 lane keys.
 	v_not_b32_e32 v5, v5
 	REDUCE_KEY_XOR 1
@@ -142,9 +141,10 @@ qwen36_argmax_f32_row512_gfx950:
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 
-	// Only wave zero performs the final eight-key reduction.
-	s_cmp_eq_u32 s14, 0
-	s_cbranch_scc0 .Lrow_end
+	// Mask the final eight-key reduction to wave zero without allowing the
+	// other seven waves to exit while its LDS data is still live.
+	v_cmp_eq_u32_e32 vcc, 0, v2
+	s_and_saveexec_b64 s[14:15], vcc
 	v_mov_b32_e32 v4, 0
 	v_mov_b32_e32 v5, 0
 	v_lshlrev_b32_e32 v6, 3, v1
@@ -167,7 +167,8 @@ qwen36_argmax_f32_row512_gfx950:
 	v_mov_b32_e32 v6, 0
 	global_store_dwordx2 v6, v[8:9], s[4:5]
 	s_waitcnt vmcnt(0)
-.Lrow_end:
+	s_or_b64 exec, exec, s[16:17]
+	s_or_b64 exec, exec, s[14:15]
 	s_endpgm
 
 	.section .rodata,"a",@progbits
