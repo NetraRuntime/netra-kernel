@@ -56,7 +56,7 @@ def main() -> None:
     parser.add_argument("--repeats", type=int, default=200)
     parser.add_argument(
         "--stem",
-        default="qwen36_dflash_mlp_gateup_bf16_m768_m64n64_lds128_gfx950",
+        default="qwen36_dflash_mlp_gateup_bf16_m768_m64n128_lds128_gfx950",
     )
     args = parser.parse_args()
 
