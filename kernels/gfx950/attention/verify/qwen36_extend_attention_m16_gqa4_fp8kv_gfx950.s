@@ -1717,6 +1717,18 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 .Ltmp90:
 	.loc	1 238 28                        ; benchmark_qwen36_extend_attention_m756.py:238:28
 	v_fmac_f32_e32 v13, v61, v8
+	// Complete the two outstanding PV MFMAs and address setup before taking the
+	// specialized reciprocal epilogue. The original compiler-generated divide
+	// expansion remains below as dead reference code.
+	s_waitcnt lgkmcnt(2)
+	v_mfma_f32_16x16x32_bf16 v[4:7], v[62:65], v[46:49], v[4:7]
+	v_lshl_add_u32 v8, v44, 12, s18
+	v_or_b32_e32 v12, 32, v42
+	s_waitcnt lgkmcnt(0)
+	v_mfma_f32_16x16x32_bf16 v[0:3], v[78:81], v[46:49], v[0:3]
+	v_or_b32_e32 v11, 64, v42
+	v_or_b32_e32 v10, 0x60, v42
+	s_branch .Lfast_shared_reciprocal
 	.loc	1 257 14                        ; benchmark_qwen36_extend_attention_m756.py:257:14
 	v_div_scale_f32 v14, s[0:1], v13, v13, v38
 	v_rcp_f32_e32 v15, v14
@@ -2092,6 +2104,44 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 	v_fma_f32 v0, -v4, v1, v0
 	v_div_fmas_f32 v0, v0, v5, v1
 	v_div_fixup_f32 v13, v0, v13, v3
+.Lfast_shared_reciprocal:
+	// Online softmax guarantees one positive finite denominator per output row.
+	// Refine one reciprocal and reuse it for all 32 resident accumulators.
+	v_rcp_f32_e32 v46, v13
+	v_fma_f32 v47, -v13, v46, 1.0
+	v_fmac_f32_e32 v46, v47, v46
+	v_mul_f32_e32 v14, v38, v46
+	v_mul_f32_e32 v15, v39, v46
+	v_mul_f32_e32 v16, v40, v46
+	v_mul_f32_e32 v17, v41, v46
+	v_mul_f32_e32 v34, v34, v46
+	v_mul_f32_e32 v35, v35, v46
+	v_mul_f32_e32 v36, v36, v46
+	v_mul_f32_e32 v37, v37, v46
+	v_mul_f32_e32 v30, v30, v46
+	v_mul_f32_e32 v31, v31, v46
+	v_mul_f32_e32 v32, v32, v46
+	v_mul_f32_e32 v33, v33, v46
+	v_mul_f32_e32 v26, v26, v46
+	v_mul_f32_e32 v27, v27, v46
+	v_mul_f32_e32 v28, v28, v46
+	v_mul_f32_e32 v29, v29, v46
+	v_mul_f32_e32 v22, v22, v46
+	v_mul_f32_e32 v23, v23, v46
+	v_mul_f32_e32 v24, v24, v46
+	v_mul_f32_e32 v25, v25, v46
+	v_mul_f32_e32 v18, v18, v46
+	v_mul_f32_e32 v19, v19, v46
+	v_mul_f32_e32 v20, v20, v46
+	v_mul_f32_e32 v21, v21, v46
+	v_mul_f32_e32 v38, v4, v46
+	v_mul_f32_e32 v40, v5, v46
+	v_mul_f32_e32 v41, v6, v46
+	v_mul_f32_e32 v43, v7, v46
+	v_mul_f32_e32 v39, v0, v46
+	v_mul_f32_e32 v44, v1, v46
+	v_mul_f32_e32 v45, v2, v46
+	v_mul_f32_e32 v13, v3, v46
 	.loc	1 257 8                         ; benchmark_qwen36_extend_attention_m756.py:257:8
 	v_cvt_pk_bf16_f32 v0, v14, v15
 	v_cvt_pk_bf16_f32 v1, v16, v17
