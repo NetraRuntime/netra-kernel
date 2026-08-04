@@ -177,7 +177,7 @@ qwen36_dflash_mlp_down_bf16_m768_m64n64_global_gfx950:
 		.amdhsa_system_sgpr_workgroup_id_y 1
 		.amdhsa_system_vgpr_workitem_id 0
 		.amdhsa_next_free_vgpr 80
-		.amdhsa_accum_offset 84
+		.amdhsa_accum_offset 80
 		.amdhsa_next_free_sgpr 20
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_round_mode_32 0
