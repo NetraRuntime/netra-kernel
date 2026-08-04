@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "workload": {
+    "model_path": "dFlash verification",
+    "query_tokens": 3072,
+    "batch_sequences": 63,
+    "heads": "GQA4/D128",
+    "kv_cache": "FP8 E4M3"
+  },
+  "baseline": {
+    "median_us": 122.74,
+    "bf16_mismatches": 26,
+    "elements": 3096576,
+    "max_abs": 0.0078125,
+    "cosine": 1.0
+  },
+  "minimal_final_four_variant": {
+    "median_us": 220.642,
+    "bf16_mismatches": 258072,
+    "elements": 3096576,
+    "max_abs": 12.812498092651367,
+    "cosine": 0.9513425827026367,
+    "nan_count": 0,
+    "inf_count": 0,
+    "deterministic_two_launches": true,
+    "correctness_gate": "fail"
+  },
+  "assembler_negative": "s_waitcnt_depctr is not supported on gfx950",
+  "production_source_restored": true,
+  "feature_branch": "perf/gfx950-qwen36-gqa4-h2"
+}
