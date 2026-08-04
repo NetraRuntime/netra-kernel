@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "quantization": "FP8 E4M3, 128x128 blocks",
+  "shape": {
+    "rows": 768,
+    "hidden": 2048,
+    "intermediate": 512,
+    "topk": 9,
+    "valid_sorted_ids": 15872,
+    "m64_blocks": 248
+  },
+  "code_object": {
+    "wavefront_size": 64,
+    "workgroup_size": 256,
+    "lds_bytes": 32768,
+    "vgpr_count": 140,
+    "sgpr_count": 58,
+    "scratch_bytes": 0
+  },
+  "timing_us": {
+    "atomic_pipeline_median": 187.817,
+    "atomic_pipeline_p90": 194.149,
+    "fixed_order_pipeline_median": 185.198,
+    "fixed_order_pipeline_p90": 188.606,
+    "aiter_64x256_median": 182.60199576616287,
+    "aiter_64x256_p90": 187.77400702238083
+  },
+  "correctness": {
+    "structural_max_abs": 0.00084421,
+    "structural_cosine": 0.999966,
+    "aiter_max_abs": 0.000976562,
+    "aiter_cosine": 0.999963,
+    "gate": "fail"
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T043000Z-moe-down-atomic-gpu6"
+}
