@@ -5,7 +5,7 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
 out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-dflash-mlp-down-bf16-m768"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
-stem=qwen36_dflash_mlp_down_bf16_m768_m64n64_global_gfx950
+stem=${QWEN36_DFLASH_M768_STEM:-qwen36_dflash_mlp_down_bf16_m768_m64n64_global_gfx950}
 kernel=${repo_dir}/kernels/gfx950/dflash/draft/${stem}.s
 bridge=${repo_dir}/runtime/gfx950/dflash/draft/qwen36_dflash_mlp_down_bf16_m768_bridge.hip
 

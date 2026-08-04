@@ -54,6 +54,10 @@ def main() -> None:
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--repeats", type=int, default=200)
+    parser.add_argument(
+        "--stem",
+        default="qwen36_dflash_mlp_down_bf16_m768_m64n64_global_gfx950",
+    )
     args = parser.parse_args()
 
     properties = torch.cuda.get_device_properties(0)
@@ -72,10 +76,7 @@ def main() -> None:
     output = torch.empty((M, N), device="cuda", dtype=torch.bfloat16)
 
     bridge = args.build_dir / "libqwen36_dflash_mlp_down_bf16_m768_bridge.so"
-    hsaco = (
-        args.build_dir
-        / "qwen36_dflash_mlp_down_bf16_m768_m64n64_global_gfx950.hsaco"
-    )
+    hsaco = args.build_dir / f"{args.stem}.hsaco"
     library = ctypes.CDLL(str(bridge.resolve()))
     library.netra_qwen36_dflash_mlp_down_bf16_m768_load.argtypes = [ctypes.c_char_p]
     library.netra_qwen36_dflash_mlp_down_bf16_m768_load.restype = ctypes.c_int

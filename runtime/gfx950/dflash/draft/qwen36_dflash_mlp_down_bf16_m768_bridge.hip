@@ -54,7 +54,12 @@ extern "C" int netra_qwen36_dflash_mlp_down_bf16_m768_load(
   }
   error = hipModuleGetFunction(
       &function, module,
-      "qwen36_dflash_mlp_down_bf16_m768_m64n64_global_gfx950");
+      "qwen36_dflash_mlp_down_bf16_m768_m64n64_lds128_gfx950");
+  if (error != hipSuccess) {
+    error = hipModuleGetFunction(
+        &function, module,
+        "qwen36_dflash_mlp_down_bf16_m768_m64n64_global_gfx950");
+  }
   if (error != hipSuccess) {
     (void)hipModuleUnload(module);
     module = nullptr;
