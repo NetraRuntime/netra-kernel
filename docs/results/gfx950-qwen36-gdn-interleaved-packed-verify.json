@@ -4,6 +4,7 @@
   "model": "Qwen3.6-35B-A3B-FP8",
   "weights": "FP8 E4M3 128x128 blocks",
   "candidate": "packed-pair-interleaved",
+  "state_index_clamp": "s_min_u32",
   "source_experiment_commit": "f61f3ff88c79fe8726d1be5b37f21c202d1e1857",
   "isolated_real_capture": {
     "batch_size": 64,

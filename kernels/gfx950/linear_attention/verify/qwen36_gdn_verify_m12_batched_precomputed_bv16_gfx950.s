@@ -514,9 +514,9 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	// tensors. Clamp capture-time sentinels to the actual runtime pool capacity.
 	s_sub_u32 s31, s31, 1
 	s_max_i32 s24, s24, 0
-	s_min_i32 s24, s24, s31
+	s_min_u32 s24, s24, s31
 	s_max_i32 s26, s26, 0
-	s_min_i32 s26, s26, s31
+	s_min_u32 s26, s26, s31
 	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
 	s_max_i32 s37, s37, 0
 	s_min_i32 s37, s37, s31

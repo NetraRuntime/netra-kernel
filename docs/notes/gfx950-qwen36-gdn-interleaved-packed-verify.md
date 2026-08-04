@@ -38,3 +38,9 @@ The original experiment is commit `f61f3ff88c79fe8726d1be5b37f21c202d1e1857`
 on `codex/gdn-k0-interleaved-unbounded-gfx950`. Only the interleaved arithmetic
 and build selection were ported onto current main; older bridge and state-replay
 changes from that diverged branch were deliberately not restored.
+
+The first clean-main rebuild also exposed two omitted unsigned pool-index
+clamps. With signed `s_min_i32`, graph capture destroyed the HIP context at the
+batch-64 verifier. Restoring the tested branch's `s_min_u32` for both initial
+and output state indices makes the emitted verification core match the
+validated candidate instruction stream.
