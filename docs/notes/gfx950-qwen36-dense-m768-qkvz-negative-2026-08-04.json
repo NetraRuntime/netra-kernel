@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "quantization": "FP8 E4M3, 128x128 blocks",
+  "shape": {
+    "m": 768,
+    "n": 12288,
+    "k": 2048,
+    "role": "target GDN QKVZ projection"
+  },
+  "code_object": {
+    "wavefront_size": 64,
+    "workgroup_size": 64,
+    "vgpr_count": 106,
+    "sgpr_count": 34,
+    "lds_bytes": 0,
+    "scratch_bytes": 0
+  },
+  "isolated_timing_us": {
+    "cktile_median": 115.441,
+    "cktile_p90": 149.002,
+    "raw_median": 110.121,
+    "raw_p90": 111.849,
+    "raw_speedup_percent": 4.61
+  },
+  "isolated_correctness": {
+    "bf16_mismatches": 0,
+    "elements": 9437184,
+    "graph_exact": true,
+    "fp32_max_abs": 0.030221,
+    "fp32_cosine": 0.999999
+  },
+  "serving": {
+    "workload": "c64, n192, input 1024, output 1024",
+    "candidate_output_tok_s": [6601.93, 6503.54, 6602.20],
+    "candidate_accept_length": [4.09, 4.13, 4.13],
+    "warmed_candidate_mean_output_tok_s": 6552.87,
+    "control_output_tok_s": [7026.21, 6975.27],
+    "control_accept_length": [4.22, 4.21],
+    "control_mean_output_tok_s": 7000.74,
+    "regression_percent": 6.40,
+    "gate": "fail"
+  },
+  "artifact_roots": {
+    "isolated": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T063000Z-dense-m768-qkvz-gpu6",
+    "candidate": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T052914Z-qwen36-best-gpu6",
+    "control": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T053525Z-qwen36-best-gpu6"
+  }
+}
