@@ -51,3 +51,7 @@ pool with device indices selecting/reusing its slots. The raw kernel already
 clamps those indices to the supplied capacity. The bridge therefore requires
 only a nonempty state pool and separately bounds the launch grid, matching the
 tested experiment branch.
+
+The synthetic harness was updated with the same capacity argument. Without it,
+ctypes shifted the HIP stream into the capacity slot and made the harness an
+invalid ABI test.
