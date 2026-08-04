@@ -54,12 +54,7 @@ extern "C" int netra_qwen36_dflash_mlp_gateup_bf16_m768_load(
   }
   error = hipModuleGetFunction(
       &function, module,
-      "qwen36_dflash_mlp_gateup_bf16_m768_m64n128_lds128_gfx950");
-  if (error != hipSuccess) {
-    error = hipModuleGetFunction(
-        &function, module,
-        "qwen36_dflash_mlp_gateup_bf16_m768_m64n64_global_gfx950");
-  }
+      "qwen36_dflash_mlp_gateup_bf16_m768_m128n128_lds128_gfx950");
   if (error != hipSuccess) {
     (void)hipModuleUnload(module);
     module = nullptr;
@@ -83,7 +78,7 @@ extern "C" int netra_qwen36_dflash_mlp_gateup_bf16_m768_launch(
   void* weight_pointer = const_cast<void*>(weight_bf16);
   void* arguments[] = {&output_bf16, &input_pointer, &weight_pointer};
   hipError_t error = hipModuleLaunchKernel(
-      function, 96, 12, 1, 512, 1, 1, 0, stream, arguments, nullptr);
+      function, 96, 6, 1, 256, 1, 1, 0, stream, arguments, nullptr);
   if (error != hipSuccess) return fail("hipModuleLaunchKernel", error);
   last_error.clear();
   return 0;
