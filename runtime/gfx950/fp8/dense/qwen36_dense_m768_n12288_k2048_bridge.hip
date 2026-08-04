@@ -89,8 +89,8 @@ extern "C" int netra_qwen36_dense_m768_n12288_k2048_launch(
       shuffled_weight_fp8 == nullptr || weight_scale_f32 == nullptr ||
       output_bf16 == nullptr)
     return fail_message("dense M=768 N=12288 K=2048 pointers must be nonnull");
-  if (n != 9216 && n != 12288)
-    return fail_message("dense M=768 N=12288 K=2048 n must be 9216 or 12288");
+  if (n != 12288)
+    return fail_message("dense M=768 N=12288 K=2048 n must be 12288");
 
   void* activation_pointer = const_cast<void*>(activation_fp8);
   void* activation_scale_pointer =
@@ -132,4 +132,3 @@ extern "C" int netra_qwen36_dense_m768_n12288_k2048_unload(void) {
 extern "C" const char* netra_qwen36_dense_m768_n12288_k2048_last_error(void) {
   return last_error.c_str();
 }
-
