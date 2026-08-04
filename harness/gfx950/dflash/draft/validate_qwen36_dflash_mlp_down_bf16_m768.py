@@ -94,9 +94,8 @@ def main() -> None:
         raise RuntimeError(
             library.netra_qwen36_dflash_mlp_down_bf16_m768_last_error().decode()
         )
-    stream = torch.cuda.current_stream()
-
     def raw() -> torch.Tensor:
+        stream = torch.cuda.current_stream()
         rc = library.netra_qwen36_dflash_mlp_down_bf16_m768_launch(
             output.data_ptr(), input_.data_ptr(), weight.data_ptr(), stream.cuda_stream
         )
@@ -118,11 +117,12 @@ def main() -> None:
     graph_output = torch.empty_like(output)
     graph = torch.cuda.CUDAGraph()
     with torch.cuda.graph(graph):
+        capture_stream = torch.cuda.current_stream()
         rc = library.netra_qwen36_dflash_mlp_down_bf16_m768_launch(
             graph_output.data_ptr(),
             input_.data_ptr(),
             weight.data_ptr(),
-            stream.cuda_stream,
+            capture_stream.cuda_stream,
         )
         if rc:
             raise RuntimeError(
