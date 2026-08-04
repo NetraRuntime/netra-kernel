@@ -55,6 +55,16 @@ def parse_args() -> argparse.Namespace:
         help="screen grouped target-attention GQA8 tiles with native FP8 KV",
     )
     parser.add_argument(
+        "--grouped-gqa4-fp8kv",
+        action="store_true",
+        help="screen grouped draft-attention GQA4 tiles with native FP8 KV",
+    )
+    parser.add_argument(
+        "--grouped-gqa4-fp8kv-sizes",
+        default="1,2,4",
+        help="comma-separated query-head group sizes dividing the GQA4 group",
+    )
+    parser.add_argument(
         "--grouped-gqa8-sizes",
         default="2,4",
         help="comma-separated query-head group sizes dividing the GQA8 group",
@@ -656,6 +666,8 @@ def evaluate_launch(
     expected_f32 = expected.float()
     delta = actual_f32 - expected_f32
     absolute_delta = delta.abs()
+    finite_pair = torch.isfinite(actual_f32) & torch.isfinite(expected_f32)
+    finite_absolute_delta = absolute_delta[finite_pair]
     worst_flat_index = int(absolute_delta.reshape(-1).argmax().item())
     relative_delta = absolute_delta / expected_f32.abs().clamp_min(1.0e-6)
     applicable_relative = ~(
@@ -676,6 +688,17 @@ def evaluate_launch(
         "worst_flat_index": worst_flat_index,
         "nan_count": int(torch.isnan(actual_f32).sum().item()),
         "inf_count": int(torch.isinf(actual_f32).sum().item()),
+        "finite_pair_count": int(finite_pair.sum().item()),
+        "finite_max_abs": (
+            float(finite_absolute_delta.max().item())
+            if bool(finite_pair.any().item())
+            else None
+        ),
+        "finite_mean_abs": (
+            float(finite_absolute_delta.mean().item())
+            if bool(finite_pair.any().item())
+            else None
+        ),
         "cosine": float(
             torch.nn.functional.cosine_similarity(
                 actual_f32.reshape(1, -1), expected_f32.reshape(1, -1)
@@ -855,6 +878,77 @@ def main() -> None:
         }
         results.append(item)
         print(json.dumps(item, sort_keys=True), flush=True)
+
+    if args.grouped_gqa4_fp8kv:
+        if kv_group_num != 4 or head_dim != 128:
+            raise ValueError(
+                "--grouped-gqa4-fp8kv requires draft GQA4 with head_dim=128"
+            )
+        for grouped_q_heads in (
+            int(value)
+            for value in args.grouped_gqa4_fp8kv_sizes.split(",")
+            if value
+        ):
+            if grouped_q_heads not in (1, 2, 4):
+                raise ValueError("grouped GQA4 size must be one of 1,2,4")
+            grouped_m = grouped_q_heads * 16
+            grouped_grid = (
+                batch_size,
+                k_buffer.shape[1],
+                kv_group_num // grouped_q_heads,
+            )
+
+            def launch_grouped_gqa4_fp8kv() -> None:
+                _grouped_gqa8_fp8kv_fwd_kernel[grouped_grid](
+                    q,
+                    k_extend,
+                    v_extend,
+                    output,
+                    k_buffer,
+                    v_buffer,
+                    qo_indptr,
+                    kv_indptr,
+                    kv_indices,
+                    sm_scale,
+                    stride_qbs=q.stride(0),
+                    stride_qh=q.stride(1),
+                    stride_kbs=k_extend.stride(0),
+                    stride_kh=k_extend.stride(1),
+                    stride_vbs=v_extend.stride(0),
+                    stride_vh=v_extend.stride(1),
+                    stride_obs=output.stride(0),
+                    stride_oh=output.stride(1),
+                    stride_buf_kbs=k_buffer.stride(0),
+                    stride_buf_kh=k_buffer.stride(1),
+                    stride_buf_vbs=v_buffer.stride(0),
+                    stride_buf_vh=v_buffer.stride(1),
+                    GROUPED_Q_HEADS=grouped_q_heads,
+                    GROUPED_M=grouped_m,
+                    HEAD_DIM=head_dim,
+                    KV_GROUP_NUM=kv_group_num,
+                    SLIDING_WINDOW_SIZE=args.sliding_window_size,
+                    num_warps=grouped_q_heads,
+                    num_stages=1,
+                    waves_per_eu=1,
+                    matrix_instr_nonkdim=16,
+                    kpack=1,
+                )
+
+            correctness, timing = evaluate_launch(
+                launch_grouped_gqa4_fp8kv,
+                output,
+                expected_device,
+                args.warmup,
+                args.repeats,
+            )
+            item = {
+                "variant": f"grouped_gqa4_fp8kv_h{grouped_q_heads}",
+                "grid": list(grouped_grid),
+                "correctness": correctness,
+                "timing": timing,
+            }
+            results.append(item)
+            print(json.dumps(item, sort_keys=True), flush=True)
 
     if args.grouped_gqa8:
         if kv_group_num != 8 or head_dim != 256:
