@@ -121,49 +121,50 @@ qwen36_dflash_mlp_down_bf16_m768_m64n64_lds128_gfx950:
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 
-	// K[0:32]
+	// Prime K[0:32] into operand set 0.
 	ds_read_b128 v[16:19], v50
 	ds_read_b128 v[20:23], v51
 	ds_read_b128 v[24:27], v52
 	ds_read_b128 v[28:31], v53
 	s_waitcnt lgkmcnt(0)
+
+	// Prefetch K[32:64] into operand set 1 while the four independent
+	// K[0:32] MFMAs issue.
+	ds_read_b128 v[32:35], v50 offset:64
+	ds_read_b128 v[36:39], v51 offset:64
+	ds_read_b128 v[40:43], v52 offset:64
+	ds_read_b128 v[44:47], v53 offset:64
 	v_mfma_f32_16x16x32_bf16 v[64:67], v[16:19], v[24:27], v[64:67]
 	v_mfma_f32_16x16x32_bf16 v[68:71], v[16:19], v[28:31], v[68:71]
 	v_mfma_f32_16x16x32_bf16 v[72:75], v[20:23], v[24:27], v[72:75]
 	v_mfma_f32_16x16x32_bf16 v[76:79], v[20:23], v[28:31], v[76:79]
-
-	// K[32:64]
-	ds_read_b128 v[16:19], v50 offset:64
-	ds_read_b128 v[20:23], v51 offset:64
-	ds_read_b128 v[24:27], v52 offset:64
-	ds_read_b128 v[28:31], v53 offset:64
 	s_waitcnt lgkmcnt(0)
-	v_mfma_f32_16x16x32_bf16 v[64:67], v[16:19], v[24:27], v[64:67]
-	v_mfma_f32_16x16x32_bf16 v[68:71], v[16:19], v[28:31], v[68:71]
-	v_mfma_f32_16x16x32_bf16 v[72:75], v[20:23], v[24:27], v[72:75]
-	v_mfma_f32_16x16x32_bf16 v[76:79], v[20:23], v[28:31], v[76:79]
 
-	// K[64:96]
+	// Prefetch K[64:96] back into operand set 0 while K[32:64] issues.
 	ds_read_b128 v[16:19], v50 offset:128
 	ds_read_b128 v[20:23], v51 offset:128
 	ds_read_b128 v[24:27], v52 offset:128
 	ds_read_b128 v[28:31], v53 offset:128
+	v_mfma_f32_16x16x32_bf16 v[64:67], v[32:35], v[40:43], v[64:67]
+	v_mfma_f32_16x16x32_bf16 v[68:71], v[32:35], v[44:47], v[68:71]
+	v_mfma_f32_16x16x32_bf16 v[72:75], v[36:39], v[40:43], v[72:75]
+	v_mfma_f32_16x16x32_bf16 v[76:79], v[36:39], v[44:47], v[76:79]
 	s_waitcnt lgkmcnt(0)
-	v_mfma_f32_16x16x32_bf16 v[64:67], v[16:19], v[24:27], v[64:67]
-	v_mfma_f32_16x16x32_bf16 v[68:71], v[16:19], v[28:31], v[68:71]
-	v_mfma_f32_16x16x32_bf16 v[72:75], v[20:23], v[24:27], v[72:75]
-	v_mfma_f32_16x16x32_bf16 v[76:79], v[20:23], v[28:31], v[76:79]
 
-	// K[96:128]
-	ds_read_b128 v[16:19], v50 offset:192
-	ds_read_b128 v[20:23], v51 offset:192
-	ds_read_b128 v[24:27], v52 offset:192
-	ds_read_b128 v[28:31], v53 offset:192
-	s_waitcnt lgkmcnt(0)
+	// Prefetch K[96:128] into operand set 1 while K[64:96] issues.
+	ds_read_b128 v[32:35], v50 offset:192
+	ds_read_b128 v[36:39], v51 offset:192
+	ds_read_b128 v[40:43], v52 offset:192
+	ds_read_b128 v[44:47], v53 offset:192
 	v_mfma_f32_16x16x32_bf16 v[64:67], v[16:19], v[24:27], v[64:67]
 	v_mfma_f32_16x16x32_bf16 v[68:71], v[16:19], v[28:31], v[68:71]
 	v_mfma_f32_16x16x32_bf16 v[72:75], v[20:23], v[24:27], v[72:75]
 	v_mfma_f32_16x16x32_bf16 v[76:79], v[20:23], v[28:31], v[76:79]
+	s_waitcnt lgkmcnt(0)
+	v_mfma_f32_16x16x32_bf16 v[64:67], v[32:35], v[40:43], v[64:67]
+	v_mfma_f32_16x16x32_bf16 v[68:71], v[32:35], v[44:47], v[68:71]
+	v_mfma_f32_16x16x32_bf16 v[72:75], v[36:39], v[40:43], v[72:75]
+	v_mfma_f32_16x16x32_bf16 v[76:79], v[36:39], v[44:47], v[76:79]
 
 	// All waves must finish LDS reads before the next slab overwrites it.
 	s_barrier
