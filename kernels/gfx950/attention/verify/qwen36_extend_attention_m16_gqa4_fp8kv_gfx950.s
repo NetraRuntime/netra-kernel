@@ -2105,11 +2105,20 @@ qwen36_extend_attention_m16_gqa4_fp8kv_gfx950:               ; @qwen36_extend_at
 	v_div_fmas_f32 v0, v0, v5, v1
 	v_div_fixup_f32 v13, v0, v13, v3
 .Lfast_shared_reciprocal:
-	// Online softmax guarantees one positive finite denominator per output row.
-	// Refine one reciprocal and reuse it for all 32 resident accumulators.
-	v_rcp_f32_e32 v46, v13
-	v_fma_f32 v47, -v13, v46, 1.0
-	v_fmac_f32_e32 v46, v47, v46
+	// Compute one fully corrected IEEE reciprocal per output row, then reuse it
+	// for all 32 resident accumulators.  Keep the compiler's scale/fixup path
+	// so masked rows and extreme denominators retain the reference semantics.
+	v_div_scale_f32 v46, s[0:1], v13, v13, 1.0
+	v_rcp_f32_e32 v47, v46
+	v_fma_f32 v48, -v46, v47, 1.0
+	v_fmac_f32_e32 v47, v48, v47
+	v_div_scale_f32 v48, vcc, 1.0, v13, 1.0
+	v_mul_f32_e32 v49, v48, v47
+	v_fma_f32 v50, -v46, v49, v48
+	v_fmac_f32_e32 v49, v50, v47
+	v_fma_f32 v46, -v46, v49, v48
+	v_div_fmas_f32 v46, v46, v47, v49
+	v_div_fixup_f32 v46, v46, v13, 1.0
 	v_mul_f32_e32 v14, v38, v46
 	v_mul_f32_e32 v15, v39, v46
 	v_mul_f32_e32 v16, v40, v46
