@@ -42,6 +42,11 @@
 	//  14: rejected pre-output BF16 state round; changes the current output
 	//  15: variant 13 output arithmetic, then a BF16 state commit before the
 	//      next verification position (the actual packed-decode lifecycle)
+	//  16: experimental packed even/odd dot-product chains. This reduces each
+	//      eight-term local dot from eleven instructions to five, but changes
+	//      the FP32 reduction order and therefore requires real-checkpoint gates.
+	//  17: variant 16 arithmetic with four independent V-row chains interleaved
+	//      to cover packed-VALU dependency latency on gfx950.
 	.ifndef NETRA_GDN_CORE_VARIANT
 	.set NETRA_GDN_CORE_VARIANT, 15
 	.endif
@@ -119,6 +124,15 @@
 	v_pk_mul_f32 v[76:77], v[\s6:\s7], v[14:15]
 	v_add_f32_e32 v\a0, v76, v\a0
 	v_add_f32_e32 v\a0, v77, v\a0
+	.elseif NETRA_GDN_CORE_VARIANT == 16
+	// Accumulate even and odd products independently in packed FP32, then
+	// combine the chains. This variant is retained for attribution; variant 17
+	// interleaves four rows to hide their packed-VALU dependency latency.
+	v_pk_mul_f32 v[76:77], v[\s0:\s1], v[8:9]
+	v_pk_fma_f32 v[76:77], v[\s2:\s3], v[10:11], v[76:77]
+	v_pk_fma_f32 v[76:77], v[\s4:\s5], v[12:13], v[76:77]
+	v_pk_fma_f32 v[76:77], v[\s6:\s7], v[14:15], v[76:77]
+	v_add_f32_e32 v\a0, v76, v77
 	.elseif NETRA_GDN_CORE_VARIANT == 4
 	v_pk_mul_f32 v[76:77], v[\s0:\s1], v[8:9]
 	v_add_f32_e32 v\a0, v76, v77
@@ -134,6 +148,52 @@
 	.else
 	.error "unsupported NETRA_GDN_CORE_VARIANT"
 	.endif
+	.endm
+
+	.macro DOT8_K_LOCAL4_INTERLEAVED
+	v_pk_mul_f32 v[64:65], v[32:33], v[8:9]
+	v_pk_mul_f32 v[66:67], v[40:41], v[8:9]
+	v_pk_mul_f32 v[68:69], v[48:49], v[8:9]
+	v_pk_mul_f32 v[70:71], v[56:57], v[8:9]
+	v_pk_fma_f32 v[64:65], v[34:35], v[10:11], v[64:65]
+	v_pk_fma_f32 v[66:67], v[42:43], v[10:11], v[66:67]
+	v_pk_fma_f32 v[68:69], v[50:51], v[10:11], v[68:69]
+	v_pk_fma_f32 v[70:71], v[58:59], v[10:11], v[70:71]
+	v_pk_fma_f32 v[64:65], v[36:37], v[12:13], v[64:65]
+	v_pk_fma_f32 v[66:67], v[44:45], v[12:13], v[66:67]
+	v_pk_fma_f32 v[68:69], v[52:53], v[12:13], v[68:69]
+	v_pk_fma_f32 v[70:71], v[60:61], v[12:13], v[70:71]
+	v_pk_fma_f32 v[64:65], v[38:39], v[14:15], v[64:65]
+	v_pk_fma_f32 v[66:67], v[46:47], v[14:15], v[66:67]
+	v_pk_fma_f32 v[68:69], v[54:55], v[14:15], v[68:69]
+	v_pk_fma_f32 v[70:71], v[62:63], v[14:15], v[70:71]
+	v_add_f32_e32 v64, v64, v65
+	v_add_f32_e32 v66, v66, v67
+	v_add_f32_e32 v68, v68, v69
+	v_add_f32_e32 v70, v70, v71
+	.endm
+
+	.macro DOT8_Q_LOCAL4_INTERLEAVED
+	v_pk_mul_f32 v[64:65], v[32:33], v[16:17]
+	v_pk_mul_f32 v[66:67], v[40:41], v[16:17]
+	v_pk_mul_f32 v[68:69], v[48:49], v[16:17]
+	v_pk_mul_f32 v[70:71], v[56:57], v[16:17]
+	v_pk_fma_f32 v[64:65], v[34:35], v[18:19], v[64:65]
+	v_pk_fma_f32 v[66:67], v[42:43], v[18:19], v[66:67]
+	v_pk_fma_f32 v[68:69], v[50:51], v[18:19], v[68:69]
+	v_pk_fma_f32 v[70:71], v[58:59], v[18:19], v[70:71]
+	v_pk_fma_f32 v[64:65], v[36:37], v[20:21], v[64:65]
+	v_pk_fma_f32 v[66:67], v[44:45], v[20:21], v[66:67]
+	v_pk_fma_f32 v[68:69], v[52:53], v[20:21], v[68:69]
+	v_pk_fma_f32 v[70:71], v[60:61], v[20:21], v[70:71]
+	v_pk_fma_f32 v[64:65], v[38:39], v[22:23], v[64:65]
+	v_pk_fma_f32 v[66:67], v[46:47], v[22:23], v[66:67]
+	v_pk_fma_f32 v[68:69], v[54:55], v[22:23], v[68:69]
+	v_pk_fma_f32 v[70:71], v[62:63], v[22:23], v[70:71]
+	v_add_f32_e32 v64, v64, v65
+	v_add_f32_e32 v66, v66, v67
+	v_add_f32_e32 v68, v68, v69
+	v_add_f32_e32 v70, v70, v71
 	.endm
 
 	.macro DOT8_Q_LOCAL s0, s1, s2, s3, s4, s5, s6, s7, a0
@@ -242,6 +302,12 @@
 	v_fma_f32 v\a0, v\s5, v21, v\a0
 	v_fma_f32 v\a0, v\s6, v22, v\a0
 	v_fma_f32 v\a0, v\s7, v23, v\a0
+	.elseif NETRA_GDN_CORE_VARIANT == 16
+	v_pk_mul_f32 v[76:77], v[\s0:\s1], v[16:17]
+	v_pk_fma_f32 v[76:77], v[\s2:\s3], v[18:19], v[76:77]
+	v_pk_fma_f32 v[76:77], v[\s4:\s5], v[20:21], v[76:77]
+	v_pk_fma_f32 v[76:77], v[\s6:\s7], v[22:23], v[76:77]
+	v_add_f32_e32 v\a0, v76, v77
 	.else
 	.error "unsupported NETRA_GDN_CORE_VARIANT"
 	.endif
@@ -804,10 +870,14 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	.endif
 
 	// v -= sum_k(h*k); v *= beta.
+	.if NETRA_GDN_CORE_VARIANT == 17
+	DOT8_K_LOCAL4_INTERLEAVED
+	.else
 	DOT8_K_LOCAL 32,33,34,35,36,37,38,39,64
 	DOT8_K_LOCAL 40,41,42,43,44,45,46,47,66
 	DOT8_K_LOCAL 48,49,50,51,52,53,54,55,68
 	DOT8_K_LOCAL 56,57,58,59,60,61,62,63,70
+	.endif
 	REDUCE4_BROADCAST 64,66,68,70,65
 	v_sub_f32_e32 v24, v24, v64
 	v_sub_f32_e32 v25, v25, v66
@@ -880,10 +950,14 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 
 	.if NETRA_GDN_STATE_REPLAY == 0
 	// o = sum_k(h*q).
+	.if NETRA_GDN_CORE_VARIANT == 17
+	DOT8_Q_LOCAL4_INTERLEAVED
+	.else
 	DOT8_Q_LOCAL 32,33,34,35,36,37,38,39,64
 	DOT8_Q_LOCAL 40,41,42,43,44,45,46,47,66
 	DOT8_Q_LOCAL 48,49,50,51,52,53,54,55,68
 	DOT8_Q_LOCAL 56,57,58,59,60,61,62,63,70
+	.endif
 	REDUCE4_BROADCAST 64,66,68,70,65
 
 	// One lane per 16-lane row stores the four BF16 outputs.

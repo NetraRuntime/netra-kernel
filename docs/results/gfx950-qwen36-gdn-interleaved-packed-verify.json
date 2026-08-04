@@ -1,0 +1,42 @@
+{
+  "target": "gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "model": "Qwen3.6-35B-A3B-FP8",
+  "weights": "FP8 E4M3 128x128 blocks",
+  "candidate": "packed-pair-interleaved",
+  "source_experiment_commit": "f61f3ff88c79fe8726d1be5b37f21c202d1e1857",
+  "isolated_real_capture": {
+    "batch_size": 64,
+    "verification_tokens": 12,
+    "control_median_us": 115.821,
+    "candidate_median_us": 100.941,
+    "triton_median_us": 197.322,
+    "candidate_vs_control_speedup": 1.1474,
+    "different_elements_vs_triton": 163,
+    "elements": 3145728,
+    "max_abs_error": 0.0009765625,
+    "mean_abs_error": 3.17e-10
+  },
+  "serving": {
+    "input_tokens": 1024,
+    "output_tokens": 1024,
+    "requests": 192,
+    "concurrency": 64,
+    "context_length": 262144,
+    "chunked_prefill_size": 16384,
+    "max_prefill_tokens": 131072,
+    "mem_fraction_static": 0.9,
+    "control_output_tok_s": [6637.31, 6585.88],
+    "candidate_output_tok_s": [6691.42, 6710.81],
+    "control_median_output_tok_s": 6611.595,
+    "candidate_median_output_tok_s": 6701.115,
+    "median_gain_percent": 1.354
+  },
+  "quality": {
+    "gate": "GSM8K-200 five-shot non-thinking temperature-zero",
+    "correct": 189,
+    "questions": 200,
+    "accuracy": 0.945,
+    "accepted_by_user": true
+  }
+}
