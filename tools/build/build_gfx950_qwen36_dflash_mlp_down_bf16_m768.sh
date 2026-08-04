@@ -8,13 +8,20 @@ rocm_dir=${ROCM_DIR:-/opt/rocm}
 stem=${QWEN36_DFLASH_M768_STEM:-qwen36_dflash_mlp_down_bf16_m768_m64n64_global_gfx950}
 kernel=${repo_dir}/kernels/gfx950/dflash/draft/${stem}.s
 bridge=${repo_dir}/runtime/gfx950/dflash/draft/qwen36_dflash_mlp_down_bf16_m768_bridge.hip
+assembler_args=()
+if [[ -n "${QWEN36_DFLASH_M768_LDS_PITCH:-}" ]]; then
+  assembler_args+=(
+    "-Wa,-defsym,LDS_PITCH=${QWEN36_DFLASH_M768_LDS_PITCH}"
+  )
+fi
 
 mkdir -p "$out_dir"
 rocminfo_text=$(rocminfo 2>/dev/null)
 grep -q 'Name:[[:space:]]*gfx950' <<<"$rocminfo_text"
 
 "${rocm_dir}/llvm/bin/clang" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-  -x assembler -c "$kernel" -o "${out_dir}/${stem}.o"
+  "${assembler_args[@]}" -x assembler -c "$kernel" \
+  -o "${out_dir}/${stem}.o"
 "${rocm_dir}/llvm/bin/ld.lld" -shared "${out_dir}/${stem}.o" \
   -o "${out_dir}/${stem}.hsaco"
 "${rocm_dir}/llvm/bin/llvm-objdump" --disassemble --mcpu=gfx950 \

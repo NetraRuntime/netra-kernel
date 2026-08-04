@@ -12,6 +12,11 @@
 
 	.amdgcn_target "amdgcn-amd-amdhsa--gfx950"
 	.amdhsa_code_object_version 6
+	.ifndef LDS_PITCH
+	.set LDS_PITCH, 272
+	.endif
+	.set LDS_A_BYTES, LDS_PITCH * 64
+	.set LDS_ROW16_BYTES, LDS_PITCH * 16
 	.text
 	.protected qwen36_dflash_mlp_down_bf16_m768_m64n64_lds128_gfx950
 	.globl qwen36_dflash_mlp_down_bf16_m768_m64n64_lds128_gfx950
@@ -41,7 +46,7 @@ qwen36_dflash_mlp_down_bf16_m768_m64n64_lds128_gfx950:
 	s_lshl_b32 s21, s12, 6       // workgroup col base
 	s_add_u32 s16, s20, s14      // absolute wave row base
 	s_add_u32 s17, s21, s15      // absolute wave col base
-	s_mov_b32 s22, 272           // padded LDS row pitch
+	s_mov_b32 s22, LDS_PITCH     // padded LDS row pitch
 
 	// Cooperative global load mapping: four threads per row, each thread loads
 	// four 16-byte vectors separated by 64 bytes, covering a 128-BF16 row slab.
@@ -62,18 +67,18 @@ qwen36_dflash_mlp_down_bf16_m768_m64n64_lds128_gfx950:
 	// Cooperative LDS write offsets. A occupies [0,17408), B [17408,34816).
 	v_mul_lo_u32 v48, v7, s22
 	v_add_u32_e32 v48, v48, v12
-	v_add_u32_e32 v49, 17408, v48
+	v_add_u32_e32 v49, LDS_A_BYTES, v48
 
 	// Per-wave LDS read offsets for two 16-row and two 16-column panels.
 	v_add_u32_e32 v50, s14, v3
 	v_mul_lo_u32 v50, v50, s22
 	v_add_u32_e32 v50, v50, v4
-	v_add_u32_e32 v51, 4352, v50
+	v_add_u32_e32 v51, LDS_ROW16_BYTES, v50
 	v_add_u32_e32 v52, s15, v3
 	v_mul_lo_u32 v52, v52, s22
 	v_add_u32_e32 v52, v52, v4
-	v_add_u32_e32 v52, 17408, v52
-	v_add_u32_e32 v53, 4352, v52
+	v_add_u32_e32 v52, LDS_A_BYTES, v52
+	v_add_u32_e32 v53, LDS_ROW16_BYTES, v52
 
 	// Four 16x16 FP32 accumulators per lane.
 	v_mov_b32_e32 v64, 0
@@ -237,7 +242,8 @@ qwen36_dflash_mlp_down_bf16_m768_m64n64_lds128_gfx950:
 	.section .rodata,"a",@progbits
 	.p2align 6, 0
 	.amdhsa_kernel qwen36_dflash_mlp_down_bf16_m768_m64n64_lds128_gfx950
-		.amdhsa_group_segment_fixed_size 34816
+		// Reserve the largest screened pitch (320 B x 64 rows x A/B).
+		.amdhsa_group_segment_fixed_size 40960
 		.amdhsa_private_segment_fixed_size 0
 		.amdhsa_kernarg_size 24
 		.amdhsa_user_sgpr_count 2
@@ -275,7 +281,7 @@ amdhsa.kernels:
       - { .name: weight_bf16, .offset: 16, .size: 8,
           .value_kind: global_buffer, .address_space: global,
           .actual_access: read_only }
-    .group_segment_fixed_size: 34816
+    .group_segment_fixed_size: 40960
     .kernarg_segment_align: 8
     .kernarg_segment_size: 24
     .language: OpenCL C
