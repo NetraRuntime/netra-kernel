@@ -45,7 +45,9 @@ batch-64 verifier. Restoring the tested branch's `s_min_u32` for both initial
 and output state indices makes the emitted verification core match the
 validated candidate instruction stream.
 
-The capacity-aware main bridge additionally required capacity to be strictly
-greater than the batch. Capture workspaces legitimately use one state slot per
-captured row, so `capacity == batch` must be accepted. The bridge now requires
-`capacity >= batch` and separately bounds the launch grid.
+The capacity-aware main bridge additionally assumed state capacity tracked the
+verification batch. It does not: graph capture can use a smaller stable state
+pool with device indices selecting/reusing its slots. The raw kernel already
+clamps those indices to the supplied capacity. The bridge therefore requires
+only a nonempty state pool and separately bounds the launch grid, matching the
+tested experiment branch.
