@@ -122,6 +122,15 @@ def main() -> None:
     actual = raw().clone()
     torch.cuda.synchronize()
     mismatch_count = int((actual != reference).sum().item())
+    mismatch_rows = torch.nonzero(actual != reference).flatten()[:32]
+    mismatch_diagnostics = [
+        {
+            "row": int(row),
+            "raw": int(actual[row]),
+            "control": int(reference[row]),
+        }
+        for row in mismatch_rows.cpu().tolist()
+    ]
 
     repeated_mismatch_counts: list[int] = []
     repeated_hashes: list[str] = []
@@ -132,6 +141,9 @@ def main() -> None:
         torch.cuda.synchronize()
         repeated_mismatch_counts.append(int((repeated != reference).sum().item()))
         repeated_hashes.append(tensor_hash(repeated))
+    repeated_mismatch_rows = (
+        torch.nonzero(repeated != reference).flatten()[:32].cpu().tolist()
+    )
 
     graph = torch.cuda.CUDAGraph()
     raw()
@@ -154,7 +166,9 @@ def main() -> None:
         },
         "correctness": {
             "mismatches": mismatch_count,
+            "mismatch_diagnostics": mismatch_diagnostics,
             "repeated_mismatch_counts": repeated_mismatch_counts,
+            "final_repeated_mismatch_rows": repeated_mismatch_rows,
             "distinct_repeated_hashes": len(set(repeated_hashes)),
             "graph_exact": graph_exact,
             "raw_sha256": tensor_hash(actual),
