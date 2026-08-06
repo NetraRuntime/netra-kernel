@@ -15,7 +15,7 @@
 
 namespace {
 
-constexpr unsigned kVerifyTokens = 16;
+constexpr unsigned kMaxVerifyTokens = 16;
 constexpr unsigned kQueryHeadGroups = 2;
 constexpr unsigned kQueryHeads = 16;
 constexpr unsigned kMaxKvSplits = 129;
@@ -23,10 +23,13 @@ constexpr unsigned kThreads = 256;
 constexpr unsigned kStage1DynamicLdsBytes = 8192;
 
 std::mutex module_mutex;
+hipModule_t prepare_module = nullptr;
 hipModule_t stage1_module = nullptr;
 hipModule_t stage2_module = nullptr;
+hipFunction_t prepare_function = nullptr;
 hipFunction_t stage1_function = nullptr;
 hipFunction_t stage2_function = nullptr;
+std::string loaded_prepare_path;
 std::string loaded_stage1_path;
 std::string loaded_stage2_path;
 thread_local std::string last_error;
@@ -44,10 +47,14 @@ int fail_message(const std::string& message) {
 void clear_modules() {
   if (stage2_module != nullptr) (void)hipModuleUnload(stage2_module);
   if (stage1_module != nullptr) (void)hipModuleUnload(stage1_module);
+  if (prepare_module != nullptr) (void)hipModuleUnload(prepare_module);
+  prepare_module = nullptr;
   stage1_module = nullptr;
   stage2_module = nullptr;
+  prepare_function = nullptr;
   stage1_function = nullptr;
   stage2_function = nullptr;
+  loaded_prepare_path.clear();
   loaded_stage1_path.clear();
   loaded_stage2_path.clear();
 }
@@ -55,15 +62,19 @@ void clear_modules() {
 }  // namespace
 
 extern "C" int netra_qwen36_full_attention_verify_m16_load(
+    const char* prepare_hsaco_path,
     const char* stage1_hsaco_path,
     const char* stage2_hsaco_path) {
-  if (stage1_hsaco_path == nullptr || stage1_hsaco_path[0] == '\0' ||
+  if (prepare_hsaco_path == nullptr || prepare_hsaco_path[0] == '\0' ||
+      stage1_hsaco_path == nullptr || stage1_hsaco_path[0] == '\0' ||
       stage2_hsaco_path == nullptr || stage2_hsaco_path[0] == '\0')
-    return fail_message("both attention HSACO paths must be nonempty");
+    return fail_message("all attention HSACO paths must be nonempty");
 
   std::lock_guard<std::mutex> guard(module_mutex);
-  if (stage1_module != nullptr || stage2_module != nullptr) {
-    if (loaded_stage1_path == stage1_hsaco_path &&
+  if (prepare_module != nullptr || stage1_module != nullptr ||
+      stage2_module != nullptr) {
+    if (loaded_prepare_path == prepare_hsaco_path &&
+        loaded_stage1_path == stage1_hsaco_path &&
         loaded_stage2_path == stage2_hsaco_path) {
       last_error.clear();
       return 0;
@@ -82,6 +93,19 @@ extern "C" int netra_qwen36_full_attention_verify_m16_load(
     return fail_message(
         std::string("Qwen full-attention verify modules require gfx950; got ") +
         properties.gcnArchName);
+
+  error = hipModuleLoad(&prepare_module, prepare_hsaco_path);
+  if (error != hipSuccess) {
+    clear_modules();
+    return fail("hipModuleLoad(prepare)", error);
+  }
+  error = hipModuleGetFunction(
+      &prepare_function, prepare_module,
+      "qwen36_full_attention_verify_prepare_m16_gfx950");
+  if (error != hipSuccess) {
+    clear_modules();
+    return fail("hipModuleGetFunction(prepare)", error);
+  }
 
   error = hipModuleLoad(&stage1_module, stage1_hsaco_path);
   if (error != hipSuccess) {
@@ -109,8 +133,47 @@ extern "C" int netra_qwen36_full_attention_verify_m16_load(
     return fail("hipModuleGetFunction(stage2)", error);
   }
 
+  loaded_prepare_path = prepare_hsaco_path;
   loaded_stage1_path = stage1_hsaco_path;
   loaded_stage2_path = stage2_hsaco_path;
+  last_error.clear();
+  return 0;
+}
+
+extern "C" int netra_qwen36_full_attention_verify_m16_prepare(
+    void* unified_indices_i64,
+    void* sequence_lengths_i32,
+    const void* prefix_length_i32,
+    const void* req_to_token_i32,
+    const void* req_pool_index_i64,
+    uint32_t req_to_token_stride,
+    uint32_t verify_tokens,
+    hipStream_t stream) {
+  if (prepare_function == nullptr)
+    return fail_message("attention verify prepare module is not loaded");
+  if (unified_indices_i64 == nullptr || sequence_lengths_i32 == nullptr ||
+      prefix_length_i32 == nullptr || req_to_token_i32 == nullptr ||
+      req_pool_index_i64 == nullptr)
+    return fail_message("attention verify prepare pointers must be nonnull");
+  if (verify_tokens == 0 || verify_tokens > kMaxVerifyTokens)
+    return fail_message("attention verify token count must be in [1,16]");
+
+  void* prefix_pointer = const_cast<void*>(prefix_length_i32);
+  void* req_to_token_pointer = const_cast<void*>(req_to_token_i32);
+  void* req_pool_index_pointer = const_cast<void*>(req_pool_index_i64);
+  void* arguments[] = {
+      &unified_indices_i64,
+      &sequence_lengths_i32,
+      &prefix_pointer,
+      &req_to_token_pointer,
+      &req_pool_index_pointer,
+      &req_to_token_stride,
+      &verify_tokens,
+  };
+  const hipError_t error = hipModuleLaunchKernel(
+      prepare_function, 1, 1, 1, 64, 1, 1, 0, stream, arguments, nullptr);
+  if (error != hipSuccess)
+    return fail("hipModuleLaunchKernel(prepare)", error);
   last_error.clear();
   return 0;
 }
@@ -138,6 +201,7 @@ extern "C" int netra_qwen36_full_attention_verify_m16_launch(
     uint32_t stride_mid_split,
     uint32_t stride_output_batch,
     uint32_t stride_output_head,
+    uint32_t verify_tokens,
     hipStream_t stream) {
   if (stage1_function == nullptr || stage2_function == nullptr)
     return fail_message("attention verify modules are not loaded");
@@ -166,6 +230,8 @@ extern "C" int netra_qwen36_full_attention_verify_m16_launch(
       stride_output_batch < kQueryHeads * 256 ||
       stride_output_head < 256)
     return fail_message("attention verify tensor stride is smaller than its row");
+  if (verify_tokens == 0 || verify_tokens > kMaxVerifyTokens)
+    return fail_message("attention verify token count must be in [1,16]");
 
   void* query_pointer = const_cast<void*>(query_bf16);
   void* key_pointer = const_cast<void*>(key_cache_fp8_e4m3);
@@ -199,7 +265,7 @@ extern "C" int netra_qwen36_full_attention_verify_m16_launch(
       &hidden_profile,
   };
   hipError_t error = hipModuleLaunchKernel(
-      stage1_function, kVerifyTokens, kQueryHeadGroups, kMaxKvSplits,
+      stage1_function, verify_tokens, kQueryHeadGroups, kMaxKvSplits,
       kThreads, 1, 1, kStage1DynamicLdsBytes, stream, stage1_arguments,
       nullptr);
   if (error != hipSuccess)
@@ -221,7 +287,7 @@ extern "C" int netra_qwen36_full_attention_verify_m16_launch(
       &hidden_profile,
   };
   error = hipModuleLaunchKernel(
-      stage2_function, kVerifyTokens, kQueryHeads, 1, kThreads, 1, 1, 0,
+      stage2_function, verify_tokens, kQueryHeads, 1, kThreads, 1, 1, 0,
       stream, stage2_arguments, nullptr);
   if (error != hipSuccess)
     return fail("hipModuleLaunchKernel(stage2)", error);
@@ -232,7 +298,8 @@ extern "C" int netra_qwen36_full_attention_verify_m16_launch(
 
 extern "C" int netra_qwen36_full_attention_verify_m16_unload(void) {
   std::lock_guard<std::mutex> guard(module_mutex);
-  if (stage1_module == nullptr && stage2_module == nullptr) {
+  if (prepare_module == nullptr && stage1_module == nullptr &&
+      stage2_module == nullptr) {
     last_error.clear();
     return 0;
   }
@@ -242,11 +309,18 @@ extern "C" int netra_qwen36_full_attention_verify_m16_unload(void) {
     const hipError_t error = hipModuleUnload(stage1_module);
     if (first_error == hipSuccess) first_error = error;
   }
+  if (prepare_module != nullptr) {
+    const hipError_t error = hipModuleUnload(prepare_module);
+    if (first_error == hipSuccess) first_error = error;
+  }
   stage1_module = nullptr;
+  prepare_module = nullptr;
   stage2_module = nullptr;
   stage1_function = nullptr;
+  prepare_function = nullptr;
   stage2_function = nullptr;
   loaded_stage1_path.clear();
+  loaded_prepare_path.clear();
   loaded_stage2_path.clear();
   if (first_error != hipSuccess) return fail("hipModuleUnload", first_error);
   last_error.clear();

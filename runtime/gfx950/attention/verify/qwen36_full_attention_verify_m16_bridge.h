@@ -6,8 +6,19 @@
 #include <cstdint>
 
 extern "C" int netra_qwen36_full_attention_verify_m16_load(
+    const char* prepare_hsaco_path,
     const char* stage1_hsaco_path,
     const char* stage2_hsaco_path);
+
+extern "C" int netra_qwen36_full_attention_verify_m16_prepare(
+    void* unified_indices_i64,
+    void* sequence_lengths_i32,
+    const void* prefix_length_i32,
+    const void* req_to_token_i32,
+    const void* req_pool_index_i64,
+    uint32_t req_to_token_stride,
+    uint32_t verify_tokens,
+    hipStream_t stream);
 
 // Fixed real-checkpoint specialization:
 //   M=16, Q heads=16, KV heads=2, head dim=256, FP8 E4M3 K/V,
@@ -38,6 +49,7 @@ extern "C" int netra_qwen36_full_attention_verify_m16_launch(
     uint32_t stride_mid_split,
     uint32_t stride_output_batch,
     uint32_t stride_output_head,
+    uint32_t verify_tokens,
     hipStream_t stream);
 
 extern "C" int netra_qwen36_full_attention_verify_m16_unload(void);
