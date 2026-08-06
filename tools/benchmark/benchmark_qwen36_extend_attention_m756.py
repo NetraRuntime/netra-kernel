@@ -94,6 +94,11 @@ def parse_args() -> argparse.Namespace:
         default="qwen36_extend_attention_m16_gqa8_fp8kv_gfx950",
     )
     parser.add_argument(
+        "--grouped-gqa8-raw-grid-x",
+        type=int,
+        help="override raw grouped GQA8 grid.x for segmented prefill experiments",
+    )
+    parser.add_argument(
         "--grouped-qo-indptr-int64",
         action="store_true",
         help="replay the live piecewise-graph int64 qo_indptr ABI",
@@ -610,6 +615,7 @@ class RawHipModule:
         batch_size: int,
         kv_heads: int,
         q_head_groups: int,
+        grid_x: int | None = None,
     ) -> None:
         values: list[ctypes._SimpleCData] = [
             self._device_pointer(q),
@@ -632,7 +638,7 @@ class RawHipModule:
         self._check(
             self._hip.hipModuleLaunchKernel(
                 self._function,
-                batch_size,
+                batch_size if grid_x is None else grid_x,
                 kv_heads,
                 q_head_groups,
                 512,
@@ -1045,6 +1051,7 @@ def main() -> None:
                     batch_size=batch_size,
                     kv_heads=k_buffer.shape[1],
                     q_head_groups=2,
+                    grid_x=args.grouped_gqa8_raw_grid_x,
                 )
 
             correctness, timing = evaluate_launch(
@@ -1058,7 +1065,7 @@ def main() -> None:
                 "variant": "grouped_gqa8_fp8kv_h4_raw_hsaco",
                 "hsaco": str(args.grouped_gqa8_raw_hsaco),
                 "symbol": args.grouped_gqa8_raw_symbol,
-                "grid": [batch_size, k_buffer.shape[1], 2],
+                "grid": [args.grouped_gqa8_raw_grid_x or batch_size, k_buffer.shape[1], 2],
                 "block": [512, 1, 1],
                 "dynamic_shared_bytes": 32768,
                 "correctness": correctness,
