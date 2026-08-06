@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "status": "accepted",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "wavefront_size": 64,
+  "quantization": "FP8 E4M3 weights and target/draft KV",
+  "shape": {"verify_tokens": 12, "q_heads": 16, "kv_heads": 2, "head_dim": 256, "prefix_length": 49152, "splits": 32},
+  "isolated": {"oracle_ms": 1.1086605072, "candidate_ms": 0.2528859138, "speedup": 4.3840342482, "mismatches": 0, "sha256": "a1e3fab44a709a9f2044f4d07837e9be4039fc0780eddada19b56e709c07a06d"},
+  "serving": {"requests": 192, "concurrency": 64, "input_tokens_each": 32768, "output_tokens_each": 16384, "control_output_tok_s": 4170.2155791, "candidate_output_tok_s": 4311.3650025, "delta_percent": 3.385874, "control_total_tok_s": 12510.6467374, "candidate_total_tok_s": 12934.0950075, "control_accept_length": 9.0324541, "candidate_accept_length": 8.8874626},
+  "gsm8k": [{"correct": 1258, "total": 1319, "accuracy": 0.9537528431}, {"correct": 1256, "total": 1319, "accuracy": 0.9522365428}],
+  "open_issue": "forced post-completion survivor acceptance can still collapse to one; no bypass is enabled",
+  "artifacts": {"isolated": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260806T214529Z-attention-splitseq-m12-gpu0", "serving": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260806T222732Z-qwen36-c64-gpu0"}
+}
