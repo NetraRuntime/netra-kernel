@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "status": "validated_opt_in_not_promoted",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "checkpoint_quantization": "FP8 E4M3, 128x128 blocks",
+  "abi": {
+    "input_qkvz": ["M", 12288],
+    "input_ba": ["M", 64],
+    "output_qkv": ["M", 8192],
+    "output_z": ["M", 4096],
+    "output_b": ["M", 32],
+    "output_a": ["M", 32],
+    "dtype": "BF16"
+  },
+  "code_object": {
+    "wavefront_size": 64,
+    "workgroup_size": 256,
+    "vgpr_count": 36,
+    "sgpr_count": 20,
+    "lds_bytes": 0,
+    "scratch_bytes": 0,
+    "vgpr_spills": 0,
+    "sgpr_spills": 0
+  },
+  "correctness": {
+    "sampled_exact_rows": [0, 174761, 174762, 174763],
+    "full_m32768_all_outputs_exact": true,
+    "long_requests": 192,
+    "long_input_tokens_each": 32768,
+    "long_output_tokens_each": 16384
+  },
+  "timing_us": [
+    {"rows": 32768, "triton_median": 492.244497, "raw_mean": 299.833923, "reduction_percent": 39.09},
+    {"rows": 98304, "triton_median": 1444.113016, "raw_mean": 915.204834, "reduction_percent": 36.62},
+    {"rows": 229376, "triton_median": 3237.149477, "raw_mean": 2158.336182, "reduction_percent": 33.33}
+  ],
+  "serving_prefill": {
+    "workload": "8 requests, concurrency 8, 32768 input, 1 output",
+    "control_input_tok_s": 53240.86,
+    "raw_input_tok_s": 54955.03,
+    "gain_percent": 3.22
+  },
+  "long_serving_gate": {
+    "workload": "192 requests, concurrency 64, 32768 input, 16384 forced output",
+    "raw_output_tok_s": 3485.848617,
+    "raw_accept_length": 8.978978,
+    "control_output_tok_s": 6740.063568,
+    "control_accept_length": 10.283165,
+    "passed": false,
+    "blocker": "existing nondeterministic low-batch DFlash acceptance collapse"
+  },
+  "artifact_roots": [
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260806T150140Z-gdn-fused-proj-raw-gpu3",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260806T151801Z-qwen36-c64-gpu5",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260806T153816Z-qwen36-c64-gpu5"
+  ]
+}
