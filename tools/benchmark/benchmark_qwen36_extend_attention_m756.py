@@ -45,6 +45,18 @@ def parse_args() -> argparse.Namespace:
         help="kernel symbol in --raw-hsaco",
     )
     parser.add_argument(
+        "--raw-m128-hsaco",
+        type=Path,
+        help="replay the exact one-sequence M8192/N128/W8 Triton ABI",
+    )
+    parser.add_argument(
+        "--raw-m128-symbol",
+        default=(
+            "qwen36_prefill_attention_m8192_m128n128_w8_exact_"
+            "gqa8_fp8kv_gfx950"
+        ),
+    )
+    parser.add_argument(
         "--grouped-gqa4",
         action="store_true",
         help="screen one 4-wave workgroup per sequence/KV head",
@@ -549,6 +561,78 @@ class RawHipModule:
             "hipModuleLaunchKernel",
         )
 
+    def launch_exact_m128(
+        self,
+        *,
+        q: torch.Tensor,
+        k_extend: torch.Tensor,
+        v_extend: torch.Tensor,
+        output: torch.Tensor,
+        k_buffer: torch.Tensor,
+        v_buffer: torch.Tensor,
+        qo_indptr: torch.Tensor,
+        kv_indptr: torch.Tensor,
+        kv_indices: torch.Tensor,
+        sm_scale: float,
+        kv_group_num: int,
+        heads: int,
+        blocks_m: int,
+    ) -> None:
+        """Launch the exact deployed M128/N128/W8 ABI.
+
+        The final two null pointers are Triton's hidden profile-scratch
+        arguments. All model tensors and scalar strides retain their deployed
+        BF16/native-E4M3 contract.
+        """
+        values: list[ctypes._SimpleCData] = [
+            self._device_pointer(q),
+            self._device_pointer(k_extend),
+            self._device_pointer(v_extend),
+            self._device_pointer(output),
+            self._device_pointer(k_buffer),
+            self._device_pointer(v_buffer),
+            self._device_pointer(qo_indptr),
+            self._device_pointer(kv_indptr),
+            self._device_pointer(kv_indices),
+            ctypes.c_float(sm_scale),
+            ctypes.c_float(1.0),
+            ctypes.c_float(1.0),
+            ctypes.c_int32(kv_group_num),
+            ctypes.c_int32(q.stride(0)),
+            ctypes.c_int32(q.stride(1)),
+            ctypes.c_int32(k_extend.stride(0)),
+            ctypes.c_int32(k_extend.stride(1)),
+            ctypes.c_int32(v_extend.stride(0)),
+            ctypes.c_int32(v_extend.stride(1)),
+            ctypes.c_int32(output.stride(0)),
+            ctypes.c_int32(output.stride(1)),
+            ctypes.c_int32(k_buffer.stride(0)),
+            ctypes.c_int32(k_buffer.stride(1)),
+            ctypes.c_int32(v_buffer.stride(0)),
+            ctypes.c_int32(v_buffer.stride(1)),
+            ctypes.c_void_p(),
+            ctypes.c_void_p(),
+        ]
+        arguments = (ctypes.c_void_p * len(values))(
+            *(ctypes.cast(ctypes.byref(value), ctypes.c_void_p) for value in values)
+        )
+        self._check(
+            self._hip.hipModuleLaunchKernel(
+                self._function,
+                1,
+                heads,
+                blocks_m,
+                512,
+                1,
+                1,
+                65536,
+                ctypes.c_void_p(torch.cuda.current_stream().cuda_stream),
+                arguments,
+                None,
+            ),
+            "hipModuleLaunchKernel(exact_m128)",
+        )
+
     def launch_grouped_gqa4(
         self,
         *,
@@ -663,10 +747,19 @@ def evaluate_launch(
     for _ in range(warmup):
         launch()
     torch.cuda.synchronize()
-    first = output.clone()
+
+    # Poison between independent launches so a no-op or partial raw kernel
+    # cannot inherit a prior variant's output and falsely pass correctness.
+    output.fill_(float("nan"))
     launch()
     torch.cuda.synchronize()
-    deterministic = bool(torch.equal(first, output))
+    unwritten_elements = int(torch.isnan(output).sum().item())
+    first = output.clone()
+
+    output.fill_(float("nan"))
+    launch()
+    torch.cuda.synchronize()
+    deterministic = unwritten_elements == 0 and bool(torch.equal(first, output))
 
     actual_f32 = output.float()
     expected_f32 = expected.float()
@@ -711,6 +804,7 @@ def evaluate_launch(
             ).item()
         ),
         "deterministic_two_launches": deterministic,
+        "unwritten_elements": unwritten_elements,
     }
 
     timings: list[float] = []
@@ -884,6 +978,66 @@ def main() -> None:
         }
         results.append(item)
         print(json.dumps(item, sort_keys=True), flush=True)
+
+    if args.raw_m128_hsaco is not None:
+        if (
+            batch_size != 1
+            or max_len_extend != 8192
+            or kv_group_num != 8
+            or head_dim != 256
+        ):
+            raise ValueError(
+                "--raw-m128-hsaco requires one M8192 sequence and GQA8/D256"
+            )
+        raw_qo_indptr = (
+            qo_indptr
+            if qo_indptr.dtype == torch.int64
+            else qo_indptr.to(torch.int64)
+        )
+        raw_m128 = RawHipModule(
+            args.raw_m128_hsaco,
+            args.raw_m128_symbol,
+        )
+        try:
+
+            def launch_raw_m128() -> None:
+                raw_m128.launch_exact_m128(
+                    q=q,
+                    k_extend=k_extend,
+                    v_extend=v_extend,
+                    output=output,
+                    k_buffer=k_buffer,
+                    v_buffer=v_buffer,
+                    qo_indptr=raw_qo_indptr,
+                    kv_indptr=kv_indptr,
+                    kv_indices=kv_indices,
+                    sm_scale=sm_scale,
+                    kv_group_num=kv_group_num,
+                    heads=heads,
+                    blocks_m=triton.cdiv(max_len_extend, 128),
+                )
+
+            correctness, timing = evaluate_launch(
+                launch_raw_m128,
+                output,
+                expected_device,
+                args.warmup,
+                args.repeats,
+            )
+            item = {
+                "variant": "raw_m128n128_w8_exact_hsaco",
+                "hsaco": str(args.raw_m128_hsaco),
+                "symbol": args.raw_m128_symbol,
+                "grid": [1, heads, triton.cdiv(max_len_extend, 128)],
+                "block": [512, 1, 1],
+                "dynamic_shared_bytes": 65536,
+                "correctness": correctness,
+                "timing": timing,
+            }
+            results.append(item)
+            print(json.dumps(item, sort_keys=True), flush=True)
+        finally:
+            raw_m128.close()
 
     if args.grouped_gqa4_fp8kv:
         if kv_group_num != 4 or head_dim != 128:
