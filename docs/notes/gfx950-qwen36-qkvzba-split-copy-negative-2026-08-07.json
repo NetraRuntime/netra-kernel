@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "status": "rejected_end_to_end",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "checkpoint_quantization": "FP8 E4M3, 128x128 blocks",
+  "operation": {
+    "inputs": ["BF16 Mx12288", "BF16 Mx64"],
+    "outputs": ["BF16 Mx8192", "BF16 Mx32x128", "BF16 Mx32", "BF16 Mx32"]
+  },
+  "trace_baseline": {
+    "total_ms": 19.018,
+    "invocations": 836,
+    "gpu_time_percent": 1.8
+  },
+  "code_object": {
+    "wavefront_size": 64,
+    "workgroup_size": 256,
+    "workgroups_per_token": 2,
+    "vgpr_count": 20,
+    "sgpr_count": 32,
+    "lds_bytes": 0,
+    "scratch_bytes": 0,
+    "global_load_dwordx4_static": 16,
+    "global_store_dwordx4_static": 16
+  },
+  "isolated": {
+    "timing": "HIP events, 20 warmup, 200 repetitions",
+    "all_bit_mismatches": 0,
+    "graph_replay_bit_exact_m": [12, 64, 768],
+    "results": [
+      {"m": 1, "raw_median_us": 11.36, "triton_median_us": 19.44, "speedup": 1.7112676997},
+      {"m": 12, "raw_median_us": 10.72, "triton_median_us": 18.681, "speedup": 1.7426307361},
+      {"m": 64, "raw_median_us": 11.0005, "triton_median_us": 19.04, "speedup": 1.7308303794},
+      {"m": 210, "raw_median_us": 11.24, "triton_median_us": 19.24, "speedup": 1.7117437292},
+      {"m": 768, "raw_median_us": 18.96, "triton_median_us": 22.12, "speedup": 1.1666667649},
+      {"m": 1024, "raw_median_us": 22.04, "triton_median_us": 24.0, "speedup": 1.0889292199},
+      {"m": 8192, "raw_median_us": 110.721, "triton_median_us": 113.6615, "speedup": 1.0265577626}
+    ]
+  },
+  "gsm8k": {
+    "requests": 1319,
+    "gpu": 6,
+    "control": {
+      "correct": 1254,
+      "accuracy": 0.9507202426,
+      "output_throughput_tok_s": 11595.9057422,
+      "total_throughput_tok_s": 14400.5261425,
+      "mean_ttft_ms": 169.818709,
+      "mean_tpot_ms": 4.74543825,
+      "accept_length": 6.86464718
+    },
+    "candidate": {
+      "correct": 1252,
+      "accuracy": 0.9492039424,
+      "output_throughput_tok_s": 11425.0250593,
+      "total_throughput_tok_s": 14200.1324901,
+      "mean_ttft_ms": 171.1014304,
+      "mean_tpot_ms": 4.7443954,
+      "accept_length": 6.89239164
+    },
+    "relative": {
+      "accuracy_percentage_points": -0.15162902,
+      "output_throughput_percent": -1.47362946,
+      "total_throughput_percent": -1.39157174
+    }
+  },
+  "artifact_roots": [
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260807T143000Z-qkvzba-split-copy-gpu6",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260807T144915Z-qwen36-c64-gpu6",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260807T145352Z-qwen36-c64-gpu6"
+  ]
+}

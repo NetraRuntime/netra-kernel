@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare Qwen3.6 QKVZ/BA split-copy kernels with HIP events on gfx1151."""
+"""Compare Qwen3.6 QKVZ/BA split-copy kernels with HIP events."""
 
 import argparse
 import ctypes
@@ -9,12 +9,9 @@ from pathlib import Path
 
 import torch
 
-from sglang.kernels.ops.attention.triton_gdn_fused_proj import (
+from sglang.jit_kernel.triton.gdn_fused_proj import (
     fused_qkvzba_split_reshape_cat_contiguous_kernel,
 )
-
-
-LIBRARY = "/root/netra-mxfp4-gfx1151/build/sglang/libnetra_mxfp4_sgl.so"
 
 
 def pointer(tensor: torch.Tensor) -> ctypes.c_void_p:
@@ -22,19 +19,26 @@ def pointer(tensor: torch.Tensor) -> ctypes.c_void_p:
 
 
 class RawKernel:
-    def __init__(self) -> None:
-        self.library = ctypes.CDLL(LIBRARY)
-        self.library.netra_mxfp4_sgl_init.restype = ctypes.c_int
-        self.library.netra_mxfp4_sgl_error.restype = ctypes.c_char_p
-        self.library.netra_qkvzba_split_copy.argtypes = (
+    def __init__(self, library: Path, hsaco: Path) -> None:
+        self.library = ctypes.CDLL(str(library))
+        self.library.netra_qwen36_qkvzba_split_copy_load.argtypes = [
+            ctypes.c_char_p
+        ]
+        self.library.netra_qwen36_qkvzba_split_copy_load.restype = ctypes.c_int
+        self.library.netra_qwen36_qkvzba_split_copy_last_error.restype = (
+            ctypes.c_char_p
+        )
+        self.library.netra_qwen36_qkvzba_split_copy_launch.argtypes = (
             [ctypes.c_void_p] * 6
             + [ctypes.c_uint, ctypes.c_void_p]
         )
-        self.library.netra_qkvzba_split_copy.restype = ctypes.c_int
-        status = self.library.netra_mxfp4_sgl_init()
+        self.library.netra_qwen36_qkvzba_split_copy_launch.restype = ctypes.c_int
+        status = self.library.netra_qwen36_qkvzba_split_copy_load(
+            str(hsaco).encode()
+        )
         if status:
             raise RuntimeError(
-                self.library.netra_mxfp4_sgl_error().decode()
+                self.library.netra_qwen36_qkvzba_split_copy_last_error().decode()
             )
 
     def __call__(
@@ -47,7 +51,7 @@ class RawKernel:
         a: torch.Tensor,
     ) -> None:
         stream = ctypes.c_void_p(torch.cuda.current_stream().cuda_stream)
-        status = self.library.netra_qkvzba_split_copy(
+        status = self.library.netra_qwen36_qkvzba_split_copy_launch(
             pointer(mixed_qkvz),
             pointer(mixed_ba),
             pointer(mixed_qkv),
@@ -58,7 +62,7 @@ class RawKernel:
             stream,
         )
         if status:
-            raise RuntimeError(f"raw gfx1151 launch failed: {status}")
+            raise RuntimeError(f"raw gfx950 launch failed: {status}")
 
 
 def allocate_outputs(tokens: int) -> tuple[torch.Tensor, ...]:
@@ -101,14 +105,17 @@ def main() -> None:
     parser.add_argument("--tokens", nargs="+", type=int, default=[1, 64, 210, 8192])
     parser.add_argument("--warmup", type=int, default=20)
     parser.add_argument("--repetitions", type=int, default=100)
+    parser.add_argument("--library", type=Path, required=True)
+    parser.add_argument("--hsaco", type=Path, required=True)
+    parser.add_argument("--target", default="gfx950")
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("results/kernels/gfx1151/qkvzba-split-copy.json"),
+        default=Path("results/kernels/gfx950/qkvzba-split-copy.json"),
     )
     args = parser.parse_args()
     torch.manual_seed(20260729)
-    raw = RawKernel()
+    raw = RawKernel(args.library, args.hsaco)
     results = []
 
     for tokens in args.tokens:
@@ -158,7 +165,7 @@ def main() -> None:
         torch.cuda.empty_cache()
 
     report = {
-        "target": "gfx1151",
+        "target": args.target,
         "measurement_status": "measured",
         "timing": "HIP events",
         "raw_compute": "hand-written AMDGCN .s",
