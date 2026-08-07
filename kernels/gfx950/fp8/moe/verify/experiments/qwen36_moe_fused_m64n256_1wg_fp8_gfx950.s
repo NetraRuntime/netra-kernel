@@ -5,13 +5,15 @@
 // One 4-wave64 workgroup consumes an expert-sorted M64 route block.  It
 // retains all four activation K128 slices in LDS, then owns N256 of the W2
 // output at a time without inter-workgroup split-K.  It performs the
-// complete expert path without a global activation payload or route partial:
-// activation or route-partial workspace:
+// complete expert path without a global activation payload:
 //
 //   hidden FP8 x W13 FP8 -> BF16 gate/up boundary
 //   BF16 SiLU(gate) * up -> BF16 activation boundary
 //   per-route 1x128 E4M3 quantization in LDS
-//   activation FP8 x W2 FP8 -> router-weighted packed-BF16 atomic output
+//   activation FP8 x W2 FP8 -> unweighted FP32 route partials
+//
+// A fixed-order raw gfx950 reducer applies the nine router weights, removing
+// the deployed unordered packed-BF16 atomic accumulation.
 //
 // W13 and W2 use the deployed AITER 16x16 shuffled layouts.  Four waves own
 // four M16 row tiles and cooperatively load every weight slab once.  The
@@ -26,13 +28,13 @@
 	.amdgcn_target "amdgcn-amd-amdhsa--gfx950"
 	.amdhsa_code_object_version 6
 	.text
-	.protected qwen36_moe_fused_m64n256_atomic_fp8_gfx950
-	.globl qwen36_moe_fused_m64n256_atomic_fp8_gfx950
+	.protected qwen36_moe_fused_m64n256_partial_fp8_gfx950
+	.globl qwen36_moe_fused_m64n256_partial_fp8_gfx950
 	.p2align 8
-	.type qwen36_moe_fused_m64n256_atomic_fp8_gfx950,@function
-qwen36_moe_fused_m64n256_atomic_fp8_gfx950:
+	.type qwen36_moe_fused_m64n256_partial_fp8_gfx950,@function
+qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	// hidden, hidden scale, W13, W13 scale, W2, W2 scale, sorted IDs,
-	// sorted route weights, compact experts, valid count, BF16 output, rows.
+	// unused sorted weights, compact experts, valid count, FP32 partials, rows.
 	s_load_dwordx2 s[4:5], s[0:1], 0
 	s_load_dwordx2 s[6:7], s[0:1], 8
 	s_load_dwordx2 s[8:9], s[0:1], 16
@@ -70,7 +72,8 @@ qwen36_moe_fused_m64n256_atomic_fp8_gfx950:
 	v_lshlrev_b32_e32 v3, 2, v3
 	global_load_dword v4, v3, s[16:17]
 
-	// Four result rows per lane and their route weights.
+	// Four result rows per lane. v120:v123 retain flattened original
+	// [token, top-k slot] route indices for the deterministic reducer.
 	v_lshrrev_b32_e32 v3, 2, v2
 	v_add_u32_e32 v88, v5, v3
 	v_add_u32_e32 v89, 1, v88
@@ -81,10 +84,6 @@ qwen36_moe_fused_m64n256_atomic_fp8_gfx950:
 	global_load_dword v85, v3, s[16:17] offset:4
 	global_load_dword v86, v3, s[16:17] offset:8
 	global_load_dword v87, v3, s[16:17] offset:12
-	global_load_dword v120, v3, s[18:19]
-	global_load_dword v121, v3, s[18:19] offset:4
-	global_load_dword v122, v3, s[18:19] offset:8
-	global_load_dword v123, v3, s[18:19] offset:12
 	s_waitcnt vmcnt(0)
 
 	// Clamp the hidden row for padded routes.
@@ -96,18 +95,28 @@ qwen36_moe_fused_m64n256_atomic_fp8_gfx950:
 	v_cndmask_b32_e32 v4, 0, v4, vcc
 
 	// Retain one exact validity mask and decoded token row per result.
-	.macro DECODE_RESULT packed, masklo, maskhi
+	.macro DECODE_RESULT packed, route, masklo, maskhi
 	v_lshrrev_b32_e32 v6, 24, v\packed
 	v_and_b32_e32 v7, 0x00ffffff, v\packed
+	v_mul_lo_u32 v\route, 9, v7
+	v_add_u32_e32 v\route, v6, v\route
 	v_cmp_gt_u32_e64 s[\masklo:\maskhi], 9, v6
 	v_cmp_gt_u32_e64 s[82:83], s26, v7
 	s_and_b64 s[\masklo:\maskhi], s[\masklo:\maskhi], s[82:83]
 	v_cndmask_b32_e64 v\packed, 0, v7, s[\masklo:\maskhi]
 	.endm
-	DECODE_RESULT 84,56,57
-	DECODE_RESULT 85,58,59
-	DECODE_RESULT 86,60,61
-	DECODE_RESULT 87,62,63
+	DECODE_RESULT 84,120,56,57
+	DECODE_RESULT 85,121,58,59
+	DECODE_RESULT 86,122,60,61
+	DECODE_RESULT 87,123,62,63
+	// Invalid padded rows use one bounded sink per M64 workgroup.
+	s_mul_i32 s54, s26, 9
+	s_add_u32 s54, s54, s3
+	v_mov_b32_e32 v6, s54
+	v_cndmask_b32_e64 v120, v6, v120, s[56:57]
+	v_cndmask_b32_e64 v121, v6, v121, s[58:59]
+	v_cndmask_b32_e64 v122, v6, v122, s[60:61]
+	v_cndmask_b32_e64 v123, v6, v123, s[62:63]
 	s_or_b64 s[66:67], s[56:57], s[58:59]
 	s_or_b64 s[64:65], s[60:61], s[62:63]
 	s_or_b64 s[66:67], s[66:67], s[64:65]
@@ -657,74 +666,43 @@ qwen36_moe_fused_m64n256_atomic_fp8_gfx950:
 	s_cmp_lt_u32 s38, 4
 	s_cbranch_scc1 .Ldown_k
 
-	// Apply route weights and atomically accumulate adjacent BF16 columns.
-	// Neighbor exchange stays within each 16-lane MFMA column subgroup.
+	// Store unweighted FP32 route partials in original top-k slot order.
 	s_cmp_eq_u64 s[66:67], 0
 	s_cbranch_scc1 .Ldown_n256_done
-	v_and_b32_e32 v112, 63, v0
-	v_xor_b32_e32 v113, 1, v112
-	v_lshlrev_b32_e32 v113, 2, v113
-	v_and_b32_e32 v114, 1, v1
-	v_cmp_eq_u32_e64 s[82:83], 0, v114
 	s_lshl_b32 s54, s80, 8
 	v_add_u32_e32 v115, s54, v1
-	v_lshlrev_b32_e32 v115, 1, v115
-	.macro ATOMIC_TILE a0,a1,a2,a3,coloff
-	v_mul_f32_e32 v\a0, v120, v\a0
-	v_mul_f32_e32 v\a1, v121, v\a1
-	v_mul_f32_e32 v\a2, v122, v\a2
-	v_mul_f32_e32 v\a3, v123, v\a3
-	ds_bpermute_b32 v16, v113, v\a0
-	ds_bpermute_b32 v17, v113, v\a1
-	ds_bpermute_b32 v18, v113, v\a2
-	ds_bpermute_b32 v19, v113, v\a3
-	s_waitcnt lgkmcnt(0)
-	v_cvt_pk_bf16_f32 v20, v\a0, v16
-	v_cvt_pk_bf16_f32 v21, v\a1, v17
-	v_cvt_pk_bf16_f32 v22, v\a2, v18
-	v_cvt_pk_bf16_f32 v23, v\a3, v19
+	.macro PARTIAL_TILE a0,a1,a2,a3,coloff
 	v_add_u32_e32 v116, \coloff, v115
-	v_lshlrev_b32_e32 v117, 12, v84
+	v_lshlrev_b32_e32 v116, 2, v116
+	v_lshlrev_b32_e32 v117, 13, v120
 	v_add_u32_e32 v117, v116, v117
-	v_lshlrev_b32_e32 v118, 12, v85
+	v_lshlrev_b32_e32 v118, 13, v121
 	v_add_u32_e32 v118, v116, v118
-	v_lshlrev_b32_e32 v119, 12, v86
+	v_lshlrev_b32_e32 v119, 13, v122
 	v_add_u32_e32 v119, v116, v119
-	v_lshlrev_b32_e32 v124, 12, v87
+	v_lshlrev_b32_e32 v124, 13, v123
 	v_add_u32_e32 v124, v116, v124
-	s_and_b64 s[78:79], s[56:57], s[82:83]
-	s_and_saveexec_b64 s[64:65], s[78:79]
-	global_atomic_pk_add_bf16 v117, v20, s[24:25]
-	s_or_b64 exec, exec, s[64:65]
-	s_and_b64 s[78:79], s[58:59], s[82:83]
-	s_and_saveexec_b64 s[64:65], s[78:79]
-	global_atomic_pk_add_bf16 v118, v21, s[24:25]
-	s_or_b64 exec, exec, s[64:65]
-	s_and_b64 s[78:79], s[60:61], s[82:83]
-	s_and_saveexec_b64 s[64:65], s[78:79]
-	global_atomic_pk_add_bf16 v119, v22, s[24:25]
-	s_or_b64 exec, exec, s[64:65]
-	s_and_b64 s[78:79], s[62:63], s[82:83]
-	s_and_saveexec_b64 s[64:65], s[78:79]
-	global_atomic_pk_add_bf16 v124, v23, s[24:25]
-	s_or_b64 exec, exec, s[64:65]
+	global_store_dword v117, v\a0, s[24:25]
+	global_store_dword v118, v\a1, s[24:25]
+	global_store_dword v119, v\a2, s[24:25]
+	global_store_dword v124, v\a3, s[24:25]
 	.endm
-	ATOMIC_TILE 128,129,130,131,0
-	ATOMIC_TILE 132,133,134,135,32
-	ATOMIC_TILE 136,137,138,139,64
-	ATOMIC_TILE 140,141,142,143,96
-	ATOMIC_TILE 144,145,146,147,128
-	ATOMIC_TILE 148,149,150,151,160
-	ATOMIC_TILE 152,153,154,155,192
-	ATOMIC_TILE 156,157,158,159,224
-	ATOMIC_TILE 160,161,162,163,256
-	ATOMIC_TILE 164,165,166,167,288
-	ATOMIC_TILE 168,169,170,171,320
-	ATOMIC_TILE 172,173,174,175,352
-	ATOMIC_TILE 176,177,178,179,384
-	ATOMIC_TILE 180,181,182,183,416
-	ATOMIC_TILE 184,185,186,187,448
-	ATOMIC_TILE 188,189,190,191,480
+	PARTIAL_TILE 128,129,130,131,0
+	PARTIAL_TILE 132,133,134,135,16
+	PARTIAL_TILE 136,137,138,139,32
+	PARTIAL_TILE 140,141,142,143,48
+	PARTIAL_TILE 144,145,146,147,64
+	PARTIAL_TILE 148,149,150,151,80
+	PARTIAL_TILE 152,153,154,155,96
+	PARTIAL_TILE 156,157,158,159,112
+	PARTIAL_TILE 160,161,162,163,128
+	PARTIAL_TILE 164,165,166,167,144
+	PARTIAL_TILE 168,169,170,171,160
+	PARTIAL_TILE 172,173,174,175,176
+	PARTIAL_TILE 176,177,178,179,192
+	PARTIAL_TILE 180,181,182,183,208
+	PARTIAL_TILE 184,185,186,187,224
+	PARTIAL_TILE 188,189,190,191,240
 .Ldown_n256_done:
 	s_waitcnt vmcnt(0)
 	s_add_u32 s80, s80, 1
@@ -735,7 +713,7 @@ qwen36_moe_fused_m64n256_atomic_fp8_gfx950:
 
 	.section .rodata,"a",@progbits
 	.p2align 6, 0
-	.amdhsa_kernel qwen36_moe_fused_m64n256_atomic_fp8_gfx950
+	.amdhsa_kernel qwen36_moe_fused_m64n256_partial_fp8_gfx950
 		.amdhsa_group_segment_fixed_size 65536
 		.amdhsa_private_segment_fixed_size 0
 		.amdhsa_kernarg_size 112
@@ -757,7 +735,7 @@ qwen36_moe_fused_m64n256_atomic_fp8_gfx950:
 	.end_amdhsa_kernel
 	.text
 .Lfunc_end0:
-	.size qwen36_moe_fused_m64n256_atomic_fp8_gfx950, .Lfunc_end0-qwen36_moe_fused_m64n256_atomic_fp8_gfx950
+	.size qwen36_moe_fused_m64n256_partial_fp8_gfx950, .Lfunc_end0-qwen36_moe_fused_m64n256_partial_fp8_gfx950
 
 	.amdgpu_metadata
 ---
@@ -770,10 +748,10 @@ amdhsa.kernels:
       - { .name: shuffled_w2_fp8, .offset: 32, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
       - { .name: w2_scale_f32, .offset: 40, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
       - { .name: sorted_token_ids_i32, .offset: 48, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
-      - { .name: sorted_weights_f32, .offset: 56, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
+      - { .name: unused_sorted_weights_f32, .offset: 56, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
       - { .name: compact_sorted_expert_ids_i32, .offset: 64, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
       - { .name: num_valid_ids_i32, .offset: 72, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_only }
-      - { .name: output_bf16, .offset: 80, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_write }
+      - { .name: partial_f32, .offset: 80, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: write_only }
       - { .name: rows, .offset: 88, .size: 4, .value_kind: by_value }
       - { .name: route_scale_workspace_f32, .offset: 96, .size: 8, .value_kind: global_buffer, .address_space: global, .actual_access: read_write }
       - { .name: debug_stage, .offset: 104, .size: 4, .value_kind: by_value }
@@ -783,11 +761,11 @@ amdhsa.kernels:
     .language: OpenCL C
     .language_version: [2, 0]
     .max_flat_workgroup_size: 256
-    .name: qwen36_moe_fused_m64n256_atomic_fp8_gfx950
+    .name: qwen36_moe_fused_m64n256_partial_fp8_gfx950
     .private_segment_fixed_size: 0
     .sgpr_count: 90
     .sgpr_spill_count: 0
-    .symbol: qwen36_moe_fused_m64n256_atomic_fp8_gfx950.kd
+    .symbol: qwen36_moe_fused_m64n256_partial_fp8_gfx950.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
     .vgpr_count: 192

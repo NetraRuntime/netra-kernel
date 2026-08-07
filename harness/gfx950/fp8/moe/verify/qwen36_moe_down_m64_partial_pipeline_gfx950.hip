@@ -104,6 +104,8 @@ int main(int argc, char** argv) {
     const std::string co_path = argv[1], reduce_co_path = argv[2];
     const std::string base = argv[3], sort = argv[4];
     const std::string activation_dir = argv[5];
+    const bool fused_complete =
+        std::getenv("NETRA_FUSED_COMPLETE_M64N256") != nullptr;
     const int iterations = argc == 7 ? std::stoi(argv[6]) : 50;
     constexpr int rows = 1024, hidden = 2048, topk = 9;
     const size_t output_elements = static_cast<size_t>(rows) * hidden;
@@ -116,6 +118,10 @@ int main(int argc, char** argv) {
     const auto activation = read_file(activation_dir + "/activation_fp8.bin");
     const auto activation_scale =
         read_file(activation_dir + "/activation_scale_f32.bin");
+    const auto hidden_fp8 = read_file(base + "/hidden_fp8.bin");
+    const auto hidden_scale = read_file(base + "/hidden_scale_f32.bin");
+    const auto w13 = read_file(base + "/active_w13_fp8.bin");
+    const auto w13_scale = read_file(base + "/active_w13_scale_f32.bin");
     const auto w2 = read_file(base + "/active_w2_fp8.bin");
     const auto w2_scale = read_file(base + "/active_w2_scale_f32.bin");
     const auto sorted = read_file(sort + "/sorted_token_ids_m64_i32.bin");
@@ -132,12 +138,18 @@ int main(int argc, char** argv) {
     if (valid <= 0 || valid % 64) throw std::runtime_error("invalid M64 span");
     if (activation.size() != static_cast<size_t>(rows) * topk * 512 ||
         activation_scale.size() != static_cast<size_t>(rows) * topk * 4 * 4 ||
+        hidden_fp8.size() != static_cast<size_t>(rows) * hidden ||
+        hidden_scale.size() != static_cast<size_t>(rows) * 16 * sizeof(float) ||
+        w13.empty() || w13_scale.empty() ||
         reference_f32_bytes.size() != output_elements * 4 ||
         reference_bf16_bytes.size() != output_elements * 2 ||
         aiter_bf16_bytes.size() != output_elements * 2)
       throw std::runtime_error("capture size mismatch");
 
     Buffer d_activation(activation.size()), d_activation_scale(activation_scale.size());
+    Buffer d_hidden(hidden_fp8.size()), d_hidden_scale(hidden_scale.size());
+    Buffer d_w13(w13.size()), d_w13_scale(w13_scale.size());
+    Buffer d_route_scale((static_cast<size_t>(valid) + 64) * 4 * sizeof(float));
     Buffer d_w2(w2.size()), d_w2_scale(w2_scale.size());
     Buffer d_sorted(sorted.size()), d_sorted_weights(sorted_weights.size());
     Buffer d_experts(experts.size()), d_valid(valid_bytes.size());
@@ -146,6 +158,8 @@ int main(int argc, char** argv) {
     Buffer d_topk_weights(topk_weights.size());
     Buffer d_output(output_elements * sizeof(uint16_t));
     upload(d_activation, activation); upload(d_activation_scale, activation_scale);
+    upload(d_hidden, hidden_fp8); upload(d_hidden_scale, hidden_scale);
+    upload(d_w13, w13); upload(d_w13_scale, w13_scale);
     upload(d_w2, w2); upload(d_w2_scale, w2_scale); upload(d_sorted, sorted);
     upload(d_sorted_weights, sorted_weights); upload(d_experts, experts);
     upload(d_valid, valid_bytes);
@@ -155,20 +169,29 @@ int main(int argc, char** argv) {
     hipFunction_t function = nullptr, reduce_function = nullptr;
     HIP_CHECK(hipModuleLoad(&module, co_path.c_str()));
     HIP_CHECK(hipModuleLoad(&reduce_module, reduce_co_path.c_str()));
-    HIP_CHECK(hipModuleGetFunction(
-        &function, module, "qwen36_moe_down_m64n64_partial_fp8_gfx950"));
+    const char* kernel_symbol = fused_complete
+        ? "qwen36_moe_fused_m64n256_partial_fp8_gfx950"
+        : "qwen36_moe_down_m64n64_partial_fp8_gfx950";
+    HIP_CHECK(hipModuleGetFunction(&function, module, kernel_symbol));
     HIP_CHECK(hipModuleGetFunction(
         &reduce_function, reduce_module, "qwen36_moe_route_reduce_f32_gfx950"));
     int token_rows = rows;
-    void* args[] = {
+    void* down_args[] = {
         &d_activation.ptr, &d_activation_scale.ptr, &d_w2.ptr, &d_w2_scale.ptr,
         &d_sorted.ptr, &d_sorted_weights.ptr, &d_experts.ptr, &d_valid.ptr,
         &d_partials.ptr, &token_rows};
+    int debug_stage = 0;
+    void* fused_args[] = {
+        &d_hidden.ptr, &d_hidden_scale.ptr, &d_w13.ptr, &d_w13_scale.ptr,
+        &d_w2.ptr, &d_w2_scale.ptr, &d_sorted.ptr, &d_sorted_weights.ptr,
+        &d_experts.ptr, &d_valid.ptr, &d_partials.ptr, &token_rows,
+        &d_route_scale.ptr, &debug_stage};
     void* reduce_args[] = {
         &d_partials.ptr, &d_topk_weights.ptr, &d_output.ptr};
     auto launch = [&] {
       HIP_CHECK(hipModuleLaunchKernel(
-          function, 32, valid / 64, 1, 256, 1, 1, 0, nullptr, args, nullptr));
+          function, fused_complete ? 1 : 32, valid / 64, 1, 256, 1, 1, 0,
+          nullptr, fused_complete ? fused_args : down_args, nullptr));
       HIP_CHECK(hipModuleLaunchKernel(
           reduce_function, 32, rows, 1, 64, 1, 1, 0, nullptr,
           reduce_args, nullptr));
@@ -201,6 +224,16 @@ int main(int argc, char** argv) {
     bool finite = true;
     for (uint16_t value : output_bf16)
       finite = finite && std::isfinite(bf16_to_float(value));
+    const std::vector<uint16_t> first_output = output_bf16;
+    size_t nondeterministic_iterations = 0;
+    for (int i = 0; i < 20; ++i) {
+      launch();
+      HIP_CHECK(hipDeviceSynchronize());
+      HIP_CHECK(hipMemcpy(
+          output_bf16.data(), d_output.ptr,
+          output_bf16.size() * sizeof(uint16_t), hipMemcpyDeviceToHost));
+      nondeterministic_iterations += output_bf16 != first_output;
+    }
     std::vector<float> reference_f32(output_elements);
     std::vector<uint16_t> reference_bf16(output_elements), aiter_bf16(output_elements);
     std::memcpy(reference_f32.data(), reference_f32_bytes.data(), reference_f32_bytes.size());
@@ -216,11 +249,13 @@ int main(int argc, char** argv) {
     const bool correct = finite && structural.max_abs <= 0.000849762f &&
                          structural.cosine >= 0.9999725 &&
                          aiter.max_abs <= 0.000976563f &&
-                         aiter.cosine >= 0.9999645;
+                         aiter.cosine >= 0.9999645 &&
+                         nondeterministic_iterations == 0;
 
     std::cout << "architecture=" << props.gcnArchName << "\n"
+              << "kernel=" << kernel_symbol << "\n"
               << "valid_sorted_ids=" << valid << "\n"
-              << "grid=32x" << valid / 64 << "\n"
+              << "grid=" << (fused_complete ? 1 : 32) << "x" << valid / 64 << "\n"
               << "structural_bf16_mismatches=" << structural.mismatches << "/"
               << output_elements << "\n"
               << "structural_max_abs=" << structural.max_abs << "\n"
@@ -232,6 +267,8 @@ int main(int argc, char** argv) {
               << "aiter_mean_abs=" << aiter.mean_abs << "\n"
               << "aiter_cosine=" << aiter.cosine << "\n"
               << "finite=" << finite << "\n"
+              << "nondeterministic_iterations="
+              << nondeterministic_iterations << "/20\n"
               << "correctness_gate=" << (correct ? "pass" : "fail") << "\n"
               << "reference_gate=validated_raw_m16_complete_output\n"
               << "median_us=" << percentile(samples, 0.5) << "\n"
