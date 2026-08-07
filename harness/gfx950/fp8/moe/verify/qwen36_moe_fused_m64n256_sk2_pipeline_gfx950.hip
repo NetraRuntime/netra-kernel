@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
     Buffer d_experts(experts.size()), d_valid(valid_bytes.size());
     const size_t partial_bytes =
         (static_cast<size_t>(rows) * topk + valid) * hidden * sizeof(float);
-    Buffer d_partials(partial_bytes);
+    Buffer d_partials(partial_bytes * 2);
     Buffer d_route_scales(static_cast<size_t>(valid) * 16);
     Buffer d_topk_weights(topk_weights.size());
     Buffer d_output(output_elements * sizeof(uint16_t));
@@ -153,7 +153,8 @@ int main(int argc, char** argv) {
     upload(d_sorted, sorted); upload(d_sorted_weights, sorted_weights);
     upload(d_experts, experts); upload(d_valid, valid_bytes);
     upload(d_topk_weights, topk_weights);
-    HIP_CHECK(hipMemset(d_partials.ptr, 0, partial_bytes));
+    HIP_CHECK(hipMemset(d_partials.ptr, 0, partial_bytes * 2));
+    void* half1_ptr = static_cast<char*>(d_partials.ptr) + partial_bytes;
     HIP_CHECK(hipMemset(d_route_scales.ptr, 0, static_cast<size_t>(valid) * 16));
 
     hipModule_t module = nullptr, reduce_module = nullptr;
@@ -163,7 +164,7 @@ int main(int argc, char** argv) {
     HIP_CHECK(hipModuleGetFunction(
         &function, module, "qwen36_moe_fused_m64n256_partial_fp8_gfx950"));
     HIP_CHECK(hipModuleGetFunction(
-        &reduce_function, reduce_module, "qwen36_moe_route_reduce_f32_gfx950"));
+        &reduce_function, reduce_module, "qwen36_moe_route_reduce_f32_2h_gfx950"));
     int token_rows = rows;
     int debug_stage = 0;
     if (const char* ds = getenv("NETRA_DEBUG_STAGE")) debug_stage = std::atoi(ds);
@@ -173,10 +174,10 @@ int main(int argc, char** argv) {
         &d_experts.ptr, &d_valid.ptr, &d_partials.ptr, &token_rows,
         &d_route_scales.ptr, &debug_stage};
     void* reduce_args[] = {
-        &d_partials.ptr, &d_topk_weights.ptr, &d_output.ptr};
+        &d_partials.ptr, &d_topk_weights.ptr, &d_output.ptr, &half1_ptr};
     auto launch = [&] {
       HIP_CHECK(hipModuleLaunchKernel(
-          function, 1, valid / 64, 1, 256, 1, 1, 0, nullptr, args, nullptr));
+          function, 2, valid / 64, 1, 256, 1, 1, 0, nullptr, args, nullptr));
       HIP_CHECK(hipModuleLaunchKernel(
           reduce_function, 32, rows, 1, 64, 1, 1, 0, nullptr,
           reduce_args, nullptr));
@@ -197,7 +198,7 @@ int main(int argc, char** argv) {
       HIP_CHECK(hipMemset(d_output.ptr, 0, output_elements * sizeof(uint16_t)));
       HIP_CHECK(hipEventRecord(start));
       HIP_CHECK(hipModuleLaunchKernel(
-          function, 1, valid / 64, 1, 256, 1, 1, 0, nullptr, args, nullptr));
+          function, 2, valid / 64, 1, 256, 1, 1, 0, nullptr, args, nullptr));
       HIP_CHECK(hipEventRecord(mid));
       HIP_CHECK(hipModuleLaunchKernel(
           reduce_function, 32, rows, 1, 64, 1, 1, 0, nullptr,
@@ -242,7 +243,7 @@ int main(int argc, char** argv) {
     std::cout << "architecture=" << props.gcnArchName << "\n"
               << "kernel=qwen36_moe_fused_m64n256_partial_fp8_gfx950\n"
               << "valid_sorted_ids=" << valid << "\n"
-              << "grid=1x" << valid / 64 << "\n"
+              << "grid=2x" << valid / 64 << "\n"
               << "structural_bf16_mismatches=" << structural.mismatches << "/"
               << output_elements << "\n"
               << "structural_max_abs=" << structural.max_abs << "\n"
