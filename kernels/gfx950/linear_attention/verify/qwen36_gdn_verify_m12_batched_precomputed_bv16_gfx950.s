@@ -47,6 +47,10 @@
 	//      the FP32 reduction order and therefore requires real-checkpoint gates.
 	//  17: variant 16 arithmetic with four independent V-row chains interleaved
 	//      to cover packed-VALU dependency latency on gfx950.
+//  18: variant 17 arithmetic with each decay pair issued immediately before
+//      the corresponding packed K-dot stage. This preserves every FP32
+//      operation and dependency while overlapping the independent recurrence
+//      decay and dot-product chains.
 	.ifndef NETRA_GDN_CORE_VARIANT
 	.set NETRA_GDN_CORE_VARIANT, 15
 	.endif
@@ -163,6 +167,53 @@
 	v_pk_fma_f32 v[66:67], v[44:45], v[12:13], v[66:67]
 	v_pk_fma_f32 v[68:69], v[52:53], v[12:13], v[68:69]
 	v_pk_fma_f32 v[70:71], v[60:61], v[12:13], v[70:71]
+	v_pk_fma_f32 v[64:65], v[38:39], v[14:15], v[64:65]
+	v_pk_fma_f32 v[66:67], v[46:47], v[14:15], v[66:67]
+	v_pk_fma_f32 v[68:69], v[54:55], v[14:15], v[68:69]
+	v_pk_fma_f32 v[70:71], v[62:63], v[14:15], v[70:71]
+	v_add_f32_e32 v64, v64, v65
+	v_add_f32_e32 v66, v66, v67
+	v_add_f32_e32 v68, v68, v69
+	v_add_f32_e32 v70, v70, v71
+	.endm
+
+	.macro DECAY_DOT8_K_LOCAL4_INTERLEAVED
+	// Keep the decay scalar outside v64:v71, which become the four packed dot
+	// accumulators as soon as the first state pair has been decayed.
+	v_mov_b32_e32 v72, s24
+	v_mov_b32_e32 v73, s24
+
+	// Pair 0: decay all four independent V rows, then start their K chains.
+	v_pk_mul_f32 v[32:33], v[72:73], v[32:33]
+	v_pk_mul_f32 v[40:41], v[72:73], v[40:41]
+	v_pk_mul_f32 v[48:49], v[72:73], v[48:49]
+	v_pk_mul_f32 v[56:57], v[72:73], v[56:57]
+	v_pk_mul_f32 v[64:65], v[32:33], v[8:9]
+	v_pk_mul_f32 v[66:67], v[40:41], v[8:9]
+	v_pk_mul_f32 v[68:69], v[48:49], v[8:9]
+	v_pk_mul_f32 v[70:71], v[56:57], v[8:9]
+
+	// Pairs 1..3: each decay group fills the latency before its dependent FMA.
+	v_pk_mul_f32 v[34:35], v[72:73], v[34:35]
+	v_pk_mul_f32 v[42:43], v[72:73], v[42:43]
+	v_pk_mul_f32 v[50:51], v[72:73], v[50:51]
+	v_pk_mul_f32 v[58:59], v[72:73], v[58:59]
+	v_pk_fma_f32 v[64:65], v[34:35], v[10:11], v[64:65]
+	v_pk_fma_f32 v[66:67], v[42:43], v[10:11], v[66:67]
+	v_pk_fma_f32 v[68:69], v[50:51], v[10:11], v[68:69]
+	v_pk_fma_f32 v[70:71], v[58:59], v[10:11], v[70:71]
+	v_pk_mul_f32 v[36:37], v[72:73], v[36:37]
+	v_pk_mul_f32 v[44:45], v[72:73], v[44:45]
+	v_pk_mul_f32 v[52:53], v[72:73], v[52:53]
+	v_pk_mul_f32 v[60:61], v[72:73], v[60:61]
+	v_pk_fma_f32 v[64:65], v[36:37], v[12:13], v[64:65]
+	v_pk_fma_f32 v[66:67], v[44:45], v[12:13], v[66:67]
+	v_pk_fma_f32 v[68:69], v[52:53], v[12:13], v[68:69]
+	v_pk_fma_f32 v[70:71], v[60:61], v[12:13], v[70:71]
+	v_pk_mul_f32 v[38:39], v[72:73], v[38:39]
+	v_pk_mul_f32 v[46:47], v[72:73], v[46:47]
+	v_pk_mul_f32 v[54:55], v[72:73], v[54:55]
+	v_pk_mul_f32 v[62:63], v[72:73], v[62:63]
 	v_pk_fma_f32 v[64:65], v[38:39], v[14:15], v[64:65]
 	v_pk_fma_f32 v[66:67], v[46:47], v[14:15], v[66:67]
 	v_pk_fma_f32 v[68:69], v[54:55], v[14:15], v[68:69]
@@ -845,7 +896,9 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	v_lshlrev_b32_e32 v26, 16, v26
 	v_lshlrev_b32_e32 v27, 16, v27
 
-	// h *= decay, using packed FP32 operations.
+	// h *= decay, using packed FP32 operations. Variant 18 pipelines these
+	// instructions into its packed K-dot macro below without changing the math.
+	.if NETRA_GDN_CORE_VARIANT != 18
 	v_mov_b32_e32 v64, s24
 	v_mov_b32_e32 v65, s24
 	v_pk_mul_f32 v[32:33], v[64:65], v[32:33]
@@ -863,14 +916,17 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 	v_pk_mul_f32 v[56:57], v[64:65], v[56:57]
 	v_pk_mul_f32 v[58:59], v[64:65], v[58:59]
 	v_pk_mul_f32 v[60:61], v[64:65], v[60:61]
-	v_pk_mul_f32 v[62:63], v[64:65], v[62:63]
+	 v_pk_mul_f32 v[62:63], v[64:65], v[62:63]
+	.endif
 
 	.ifdef NETRA_DEBUG_DECAY_ONLY
 	s_branch .Lstore_intermediate
 	.endif
 
 	// v -= sum_k(h*k); v *= beta.
-	.if NETRA_GDN_CORE_VARIANT == 17
+	.if NETRA_GDN_CORE_VARIANT == 18
+	DECAY_DOT8_K_LOCAL4_INTERLEAVED
+	.elseif NETRA_GDN_CORE_VARIANT == 17
 	DOT8_K_LOCAL4_INTERLEAVED
 	.else
 	DOT8_K_LOCAL 32,33,34,35,36,37,38,39,64
@@ -950,7 +1006,7 @@ qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950:
 
 	.if NETRA_GDN_STATE_REPLAY == 0
 	// o = sum_k(h*q).
-	.if NETRA_GDN_CORE_VARIANT == 17
+	.if (NETRA_GDN_CORE_VARIANT == 17) || (NETRA_GDN_CORE_VARIANT == 18)
 	DOT8_Q_LOCAL4_INTERLEAVED
 	.else
 	DOT8_Q_LOCAL 32,33,34,35,36,37,38,39,64

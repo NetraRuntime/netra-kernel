@@ -42,6 +42,7 @@ case "$core_variant" in
   fused-packed-decode-sequence) core_variant_id=15 ;;
   packed-pair-chains) core_variant_id=16 ;;
   packed-pair-interleaved) core_variant_id=17 ;;
+  packed-pair-decay-dot-interleaved) core_variant_id=18 ;;
   *)
     echo "Unsupported NETRA_GDN_CORE_VARIANT: $core_variant" >&2
     exit 2
@@ -56,7 +57,7 @@ case "$k0_no_intermediate" in
     ;;
 esac
 
-if [[ "$k0_no_intermediate" == 1 && "$core_variant_id" != 13 && "$core_variant_id" != 16 && "$core_variant_id" != 17 ]]; then
+if [[ "$k0_no_intermediate" == 1 && "$core_variant_id" != 13 && "$core_variant_id" != 16 && "$core_variant_id" != 17 && "$core_variant_id" != 18 ]]; then
   echo "K0 no-intermediate verification requires fused-exact or packed-pair arithmetic" >&2
   exit 2
 fi

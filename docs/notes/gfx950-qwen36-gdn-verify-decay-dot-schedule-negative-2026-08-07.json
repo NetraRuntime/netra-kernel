@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "model": "Qwen3.6-35B-A3B-FP8",
+  "quantization": "FP8 E4M3, 128x128 blocks (unchanged)",
+  "shape": {
+    "batch": 64,
+    "tokens_per_sequence": 12,
+    "total_tokens": 768,
+    "value_heads": 32,
+    "state_width": 128
+  },
+  "candidate": "packed-pair-decay-dot-interleaved (variant 18)",
+  "control": "packed-pair-interleaved (variant 17)",
+  "code_object": {
+    "wavefront_size": 64,
+    "workgroup_size": 256,
+    "lds_bytes": 2048,
+    "vgpr_count": 80,
+    "sgpr_count": 40,
+    "scratch_bytes": 0
+  },
+  "timing_us": {
+    "iterations": 1000,
+    "candidate_mean": 101.40348187088966,
+    "candidate_median": 100.72100162506104,
+    "candidate_p90": 103.32100093364716,
+    "control_mean": 101.33735793828964,
+    "control_median": 100.8009985089302,
+    "control_p90": 103.12099754810333
+  },
+  "candidate_relative_percent": {
+    "median_faster": 0.07936120339277574,
+    "mean_slower": 0.06525321809794747,
+    "p90_slower": 0.19395024052723123
+  },
+  "correctness": {
+    "oracle_signature_matches_control": true,
+    "raw_vs_triton_mismatch_count": 163,
+    "element_count": 3145728,
+    "max_abs": 0.0009765625,
+    "mean_abs": 3.173931117927964e-10
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260807T135705Z-gdn-verify-schedule-gpu6"
+}
