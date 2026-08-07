@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "status": "rejected_serving_performance",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "checkpoint_quantization": "FP8 E4M3, 128x128 blocks",
+  "shape": {
+    "batch": 1,
+    "tokens": 8192,
+    "dimension": 8192,
+    "width": 4,
+    "dtype": "bfloat16",
+    "activation": "silu",
+    "input_strides": [1, 8192]
+  },
+  "code_object": {
+    "wavefront_size": 64,
+    "workgroup_size": 256,
+    "grid_size": 8192,
+    "vgpr_count": 33,
+    "sgpr_count": 34,
+    "lds_bytes": 0,
+    "scratch_bytes": 0
+  },
+  "isolated": {
+    "timing_method": "HIP events",
+    "repetitions": 30,
+    "triton_median_us": 135.16149669885635,
+    "triton_p90_us": 139.40100371837616,
+    "raw_median_us": 90.32100066542625,
+    "raw_p90_us": 93.44100207090378,
+    "speedup": 1.496457033282122,
+    "correctness": {
+      "fresh_state_output_bit_exact": true,
+      "initial_state_output_bit_exact": true,
+      "physical_state_pool_bit_exact": true,
+      "output_elements": 67108864,
+      "state_elements": 98304,
+      "max_abs": 0.0
+    }
+  },
+  "serving_screen_32k_1": {
+    "requests": 10,
+    "concurrency": 1,
+    "candidate_input_throughput_tok_s": 57374.6283,
+    "control_input_throughput_tok_s": 57034.8045,
+    "candidate_delta_percent": 0.596
+  },
+  "gsm8k": {
+    "requests": 1319,
+    "correct": 1253,
+    "invalid": 16,
+    "accuracy": 0.9499620925,
+    "input_throughput_tok_s": 2778.56,
+    "output_throughput_tok_s": 11431.96,
+    "total_throughput_tok_s": 14210.52,
+    "mean_ttft_ms": 170.83,
+    "mean_tpot_ms": 4.77,
+    "accept_length": 6.93,
+    "gate": "pass"
+  },
+  "canonical_serving": {
+    "requests": 192,
+    "concurrency": 64,
+    "input_tokens_per_request": 32768,
+    "output_tokens_per_request": 16384,
+    "candidate": {
+      "duration_s": 818.1651579799363,
+      "input_throughput_tok_s": 7689.713914894288,
+      "output_throughput_tok_s": 3844.856957447144,
+      "total_throughput_tok_s": 11534.570872341432,
+      "mean_ttft_ms": 11560.709902219363,
+      "mean_tpot_ms": 7.337194271623877,
+      "accept_length": 8.968059364413616,
+      "verification_calls": 335640
+    },
+    "control": {
+      "duration_s": 772.3786831529578,
+      "input_throughput_tok_s": 8145.5588265556435,
+      "output_throughput_tok_s": 4072.7794132778217,
+      "total_throughput_tok_s": 12218.338239833465,
+      "mean_ttft_ms": 11419.800248885318,
+      "mean_tpot_ms": 7.261233216947163,
+      "accept_length": 9.489223657326768,
+      "verification_calls": 331669
+    },
+    "candidate_output_throughput_delta_percent": -5.596,
+    "exact_total_input_tokens_each": 6291456,
+    "exact_total_output_tokens_each": 3145728,
+    "all_requests_complete": true,
+    "errors": 0
+  },
+  "promotion_gate": "fail_end_to_end_performance",
+  "artifact_roots": [
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260807T010500Z-gdn-causal-conv-m8192-gpu1",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260807T013102Z-qwen36-c64-gpu1",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260807T013626Z-qwen36-c64-gpu2"
+  ]
+}
