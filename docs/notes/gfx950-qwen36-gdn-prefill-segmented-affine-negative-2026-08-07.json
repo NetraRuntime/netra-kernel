@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "target": "gfx950:sramecc+:xnack-",
+  "gpu": "AMD Instinct MI350X",
+  "checkpoint_quantization": "FP8 E4M3, 128x128 blocks",
+  "shape": {
+    "sequences": 1,
+    "tokens": 8192,
+    "segments": 8,
+    "segment_tokens": 1024,
+    "heads": 32,
+    "query_heads": 16,
+    "key_dim": 128,
+    "value_dim": 128,
+    "chunk_tokens": 64
+  },
+  "control": {
+    "implementation": "raw gfx950 M8192 H plus Triton chunk output",
+    "output_bit_exact": true,
+    "final_state_bit_exact": true
+  },
+  "candidate": {
+    "implementation": "eight independent raw gfx950 T1024 fused H/O segments plus scalar affine prefix correction",
+    "output_max_abs": 2.5751953125,
+    "output_cosine": 0.9559345245361328,
+    "output_tolerance_failures": 806773,
+    "final_state_max_abs": 60.5,
+    "final_state_cosine": 0.847610592842102,
+    "final_state_tolerance_failures": 1204,
+    "gate": false
+  },
+  "root_cause": "The GDN delta transition contains v_new = v - W*H and is a full KxK operator, not a scalar decay.",
+  "artifact": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260807T121000Z-gdn-segmented-m8192-gpu1/prototype.json"
+}
