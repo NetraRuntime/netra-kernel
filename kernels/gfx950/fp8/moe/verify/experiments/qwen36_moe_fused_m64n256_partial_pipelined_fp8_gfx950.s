@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
 // Qwen3.6 FP8 E4M3 one-stage routed expert kernel, deterministic partial
-// output variant with software-pipelined W13 and W2 weight streams: the
-// next weight slab is always in flight in staging v[192:223] while the
-// current slab computes, and A fragments/scales prefetch after the ACC
-// chains. Same kernel symbol and ABI as the unpipelined baseline.
 // output variant, reconstructed from the retained 2026-08-07 code object
 // (SHA-verified disassembly round trip). One workgroup owns a complete
 // expert-sorted M64 route block: W13 -> SiLU -> FP8 quant -> W2, writing
@@ -222,7 +218,13 @@ qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	s_load_dword s73, s[34:35], s54
 .L_dbuf_primed:
 .L_0358:
-	s_waitcnt vmcnt(0) lgkmcnt(0)
+	s_cmp_eq_u64 s[66:67], 0
+	s_cbranch_scc1 .L_w13_padwait
+	s_waitcnt vmcnt(6)
+	s_branch .L_w13_waited
+.L_w13_padwait:
+	s_waitcnt vmcnt(0)
+.L_w13_waited:
 	v_add_u32_e32 v96, 0x8000, v92
 	ds_write_b64 v96, v[192:193]
 	ds_write_b64 v96, v[194:195] offset:2048
@@ -258,7 +260,13 @@ qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	ds_read_b128 v[36:39], v93 offset:5120
 	ds_read_b128 v[40:43], v93 offset:6144
 	ds_read_b128 v[44:47], v93 offset:7168
-	s_waitcnt lgkmcnt(0)
+	s_cmp_lt_u32 s38, 16
+	s_cbranch_scc0 .L_w13_lastwait
+	s_waitcnt vmcnt(8) lgkmcnt(0)
+	s_branch .L_w13_mfma
+.L_w13_lastwait:
+	s_waitcnt vmcnt(0) lgkmcnt(0)
+.L_w13_mfma:
 	v_mfma_f32_16x16x128_f8f6f4 v[48:51], v[8:15], v[16:23], 0
 	v_mfma_f32_16x16x128_f8f6f4 v[52:55], v[8:15], v[24:31], 0
 	v_mfma_f32_16x16x128_f8f6f4 v[56:59], v[8:15], v[32:39], 0
@@ -829,7 +837,13 @@ qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	s_load_dword s73, s[70:71], s54
 .L_w2_primed:
 .L_0dbc:
-	s_waitcnt vmcnt(0) lgkmcnt(0)
+	s_cmp_eq_u64 s[66:67], 0
+	s_cbranch_scc1 .L_w2_padwait
+	s_waitcnt vmcnt(4)
+	s_branch .L_w2_waited
+.L_w2_padwait:
+	s_waitcnt vmcnt(0)
+.L_w2_waited:
 	v_add_u32_e32 v100, 0x8000, v96
 	ds_write_b64 v100, v[192:193]
 	ds_write_b64 v100, v[194:195] offset:2048
@@ -896,7 +910,13 @@ qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	ds_read_b128 v[36:39], v97 offset:5120
 	ds_read_b128 v[40:43], v97 offset:6144
 	ds_read_b128 v[44:47], v97 offset:7168
-	s_waitcnt lgkmcnt(0)
+	s_cmp_lt_u32 s38, 4
+	s_cbranch_scc0 .L_w2_lastwait
+	s_waitcnt vmcnt(16) lgkmcnt(0)
+	s_branch .L_w2_mfma
+.L_w2_lastwait:
+	s_waitcnt vmcnt(0) lgkmcnt(0)
+.L_w2_mfma:
 	v_mfma_f32_16x16x128_f8f6f4 v[48:51], v[8:15], v[16:23], 0
 	v_mfma_f32_16x16x128_f8f6f4 v[52:55], v[8:15], v[24:31], 0
 	v_mfma_f32_16x16x128_f8f6f4 v[56:59], v[8:15], v[32:39], 0

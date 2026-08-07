@@ -165,6 +165,8 @@ int main(int argc, char** argv) {
     HIP_CHECK(hipModuleGetFunction(
         &reduce_function, reduce_module, "qwen36_moe_route_reduce_f32_gfx950"));
     int token_rows = rows;
+    int launch_blocks = valid / 64;
+    if (const char* nb = getenv("NETRA_BLOCKS")) launch_blocks = std::atoi(nb);
     int debug_stage = 0;
     if (const char* ds = getenv("NETRA_DEBUG_STAGE")) debug_stage = std::atoi(ds);
     void* args[] = {
@@ -176,7 +178,7 @@ int main(int argc, char** argv) {
         &d_partials.ptr, &d_topk_weights.ptr, &d_output.ptr};
     auto launch = [&] {
       HIP_CHECK(hipModuleLaunchKernel(
-          function, 1, valid / 64, 1, 256, 1, 1, 0, nullptr, args, nullptr));
+          function, 1, launch_blocks, 1, 256, 1, 1, 0, nullptr, args, nullptr));
       HIP_CHECK(hipModuleLaunchKernel(
           reduce_function, 32, rows, 1, 64, 1, 1, 0, nullptr,
           reduce_args, nullptr));
@@ -197,7 +199,7 @@ int main(int argc, char** argv) {
       HIP_CHECK(hipMemset(d_output.ptr, 0, output_elements * sizeof(uint16_t)));
       HIP_CHECK(hipEventRecord(start));
       HIP_CHECK(hipModuleLaunchKernel(
-          function, 1, valid / 64, 1, 256, 1, 1, 0, nullptr, args, nullptr));
+          function, 1, launch_blocks, 1, 256, 1, 1, 0, nullptr, args, nullptr));
       HIP_CHECK(hipEventRecord(mid));
       HIP_CHECK(hipModuleLaunchKernel(
           reduce_function, 32, rows, 1, 64, 1, 1, 0, nullptr,
