@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "date_utc": "2026-08-08",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "quantization": "FP8 E4M3, 128x128 blocks",
+  "shape": {
+    "rows": 1024,
+    "hidden": 2048,
+    "intermediate": 512,
+    "topk": 9,
+    "valid_sorted_ids": 18624,
+    "m64_blocks": 291
+  },
+  "code_object": {
+    "wavefront_size": 64,
+    "workgroup_size": 256,
+    "lds_bytes": 65536,
+    "vgpr_count": 224,
+    "sgpr_count": 90,
+    "scratch_bytes": 0
+  },
+  "timing_us": {
+    "retained_latea_fused_median": 267.303,
+    "retained_latea_reducer_median": 15.32,
+    "retained_latea_total_median": 282.763,
+    "directb_fused_median": 347.045,
+    "directb_reducer_median": 15.16,
+    "directb_total_median": 362.264,
+    "directb_one_workgroup_fused": 180.101,
+    "directb_w13_stage_fused": 241.822,
+    "aiter_fused_median": 226.0
+  },
+  "correctness": {
+    "gate": "pass",
+    "deterministic_mismatch_iterations": 0,
+    "iterations": 100,
+    "result": "bit-identical to retained late-A output"
+  },
+  "counter_medians": {
+    "retained_latea": {
+      "SQ_INSTS_LDS": 4336800,
+      "SQ_INSTS_VMEM": 2798268,
+      "SQ_WAIT_ANY": 71892508,
+      "TCC_READ_SECTORS_sum": 34637508,
+      "TCC_HIT_sum": 1841951,
+      "TCC_MISS_sum": 8138577
+    },
+    "directb": {
+      "SQ_INSTS_LDS": 1737888,
+      "SQ_INSTS_VMEM": 3013308,
+      "SQ_WAIT_ANY": 83328019.5,
+      "TCC_READ_SECTORS_sum": 37561380,
+      "TCC_HIT_sum": 2456548.5,
+      "TCC_MISS_sum": 8224862.5
+    }
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260808T193000Z-fmoe-directb-w13-gpu1"
+}

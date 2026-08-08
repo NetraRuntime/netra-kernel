@@ -113,7 +113,11 @@ qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	v_lshlrev_b32_e32 v92, 4, v1
 	v_add_u32_e32 v93, v93, v92
 	v_add_u32_e32 v93, 0x8000, v93
-	v_lshlrev_b32_e32 v92, 3, v0
+	// Direct-B address shared by all four waves: each wave consumes the
+	// same 16-byte fragment for its lane.  This experiment asks L2 to
+	// absorb the redundant wave reads instead of staging B through LDS.
+	v_and_b32_e32 v92, 63, v0
+	v_lshlrev_b32_e32 v92, 4, v92
 	s_lshl_b32 s30, s29, 21
 	s_add_u32 s68, s8, s30
 	s_addc_u32 s69, s9, 0
@@ -180,21 +184,21 @@ qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	v_mov_b32_e32 v114, 0
 	v_mov_b32_e32 v115, 0
 	s_mov_b32 s38, 0
-	// Software pipeline: slab s38 weights are always in flight in
-	// staging v[192:207] at the loop head; A fragments and scales
-	// for the next slab issue after the ACC chains consume them.
+	s_cmp_eq_u64 s[66:67], 0
+	s_cbranch_scc1 .L_064c
+	// Barrier-free W13 K loop.  Each wave directly streams both 1 KiB
+	// halves of four expert-weight rows.  This is 4x L2 request traffic
+	// per workgroup over the same logical weight cache lines.
 	s_lshl_b32 s39, s38, 11
 	v_add_u32_e32 v95, s39, v92
-	global_load_dwordx2 v[192:193], v95, s[36:37]
-	global_load_dwordx2 v[194:195], v95, s[40:41]
-	global_load_dwordx2 v[196:197], v95, s[42:43]
-	global_load_dwordx2 v[198:199], v95, s[44:45]
-	global_load_dwordx2 v[200:201], v95, s[46:47]
-	global_load_dwordx2 v[202:203], v95, s[48:49]
-	global_load_dwordx2 v[204:205], v95, s[50:51]
-	global_load_dwordx2 v[206:207], v95, s[52:53]
-	s_cmp_eq_u64 s[66:67], 0
-	s_cbranch_scc1 .L_dbuf_primed
+	global_load_dwordx4 v[192:195], v95, s[36:37]
+	global_load_dwordx4 v[196:199], v95, s[36:37] offset:1024
+	global_load_dwordx4 v[200:203], v95, s[40:41]
+	global_load_dwordx4 v[204:207], v95, s[40:41] offset:1024
+	global_load_dwordx4 v[208:211], v95, s[42:43]
+	global_load_dwordx4 v[212:215], v95, s[42:43] offset:1024
+	global_load_dwordx4 v[216:219], v95, s[44:45]
+	global_load_dwordx4 v[220:223], v95, s[44:45] offset:1024
 	s_lshl_b32 s54, s38, 7
 	v_add_u32_e32 v96, s54, v94
 	global_load_dwordx4 v[8:11], v96, s[4:5]
@@ -216,61 +220,40 @@ qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	s_load_dword s72, s[34:35], s54
 	s_add_u32 s54, s54, 0x100
 	s_load_dword s73, s[34:35], s54
-.L_dbuf_primed:
+	// The loop head waits only for the eight older B loads.  Six newer A
+	// loads remain in flight while the second B half starts.
 .L_0358:
-	s_cmp_eq_u64 s[66:67], 0
-	s_cbranch_scc1 .L_w13_padwait
-	s_waitcnt vmcnt(6)
-	s_branch .L_w13_waited
-.L_w13_padwait:
-	s_waitcnt vmcnt(0)
-.L_w13_waited:
-	v_add_u32_e32 v96, 0x8000, v92
-	ds_write_b64 v96, v[192:193]
-	ds_write_b64 v96, v[194:195] offset:2048
-	ds_write_b64 v96, v[196:197] offset:4096
-	ds_write_b64 v96, v[198:199] offset:6144
-	ds_write_b64 v96, v[200:201] offset:8192
-	ds_write_b64 v96, v[202:203] offset:10240
-	ds_write_b64 v96, v[204:205] offset:12288
-	ds_write_b64 v96, v[206:207] offset:14336
-	s_waitcnt lgkmcnt(0)
-	s_barrier
+	s_waitcnt vmcnt(6) lgkmcnt(0)
+	global_load_dwordx4 v[16:19], v95, s[46:47]
+	global_load_dwordx4 v[20:23], v95, s[46:47] offset:1024
+	global_load_dwordx4 v[24:27], v95, s[48:49]
+	global_load_dwordx4 v[28:31], v95, s[48:49] offset:1024
+	global_load_dwordx4 v[32:35], v95, s[50:51]
+	global_load_dwordx4 v[36:39], v95, s[50:51] offset:1024
+	global_load_dwordx4 v[40:43], v95, s[52:53]
+	global_load_dwordx4 v[44:47], v95, s[52:53] offset:1024
+	// Drain the six older A loads, leaving the eight newest B loads live.
+	s_waitcnt vmcnt(8)
+	v_mfma_f32_16x16x128_f8f6f4 v[48:51], v[8:15], v[192:199], 0
+	v_mfma_f32_16x16x128_f8f6f4 v[52:55], v[8:15], v[200:207], 0
+	v_mfma_f32_16x16x128_f8f6f4 v[56:59], v[8:15], v[208:215], 0
+	v_mfma_f32_16x16x128_f8f6f4 v[60:63], v[8:15], v[216:223], 0
+	// Immediately start next iteration's first B half.  It overlaps both
+	// accumulation chains and the current second-half MFMA.
 	s_add_u32 s38, s38, 1
 	s_cmp_lt_u32 s38, 16
-	s_cbranch_scc0 .L_dbuf_nopf
+	s_cbranch_scc0 .L_directb_w13_no_half0_prefetch
 	s_lshl_b32 s39, s38, 11
 	v_add_u32_e32 v95, s39, v92
-	global_load_dwordx2 v[192:193], v95, s[36:37]
-	global_load_dwordx2 v[194:195], v95, s[40:41]
-	global_load_dwordx2 v[196:197], v95, s[42:43]
-	global_load_dwordx2 v[198:199], v95, s[44:45]
-	global_load_dwordx2 v[200:201], v95, s[46:47]
-	global_load_dwordx2 v[202:203], v95, s[48:49]
-	global_load_dwordx2 v[204:205], v95, s[50:51]
-	global_load_dwordx2 v[206:207], v95, s[52:53]
-.L_dbuf_nopf:
-	s_cmp_eq_u64 s[66:67], 0
-	s_cbranch_scc1 .L_064c
-	ds_read_b128 v[16:19], v93
-	ds_read_b128 v[20:23], v93 offset:1024
-	ds_read_b128 v[24:27], v93 offset:2048
-	ds_read_b128 v[28:31], v93 offset:3072
-	ds_read_b128 v[32:35], v93 offset:4096
-	ds_read_b128 v[36:39], v93 offset:5120
-	ds_read_b128 v[40:43], v93 offset:6144
-	ds_read_b128 v[44:47], v93 offset:7168
-	s_cmp_lt_u32 s38, 16
-	s_cbranch_scc0 .L_w13_lastwait
-	s_waitcnt vmcnt(8) lgkmcnt(0)
-	s_branch .L_w13_mfma
-.L_w13_lastwait:
-	s_waitcnt vmcnt(0) lgkmcnt(0)
-.L_w13_mfma:
-	v_mfma_f32_16x16x128_f8f6f4 v[48:51], v[8:15], v[16:23], 0
-	v_mfma_f32_16x16x128_f8f6f4 v[52:55], v[8:15], v[24:31], 0
-	v_mfma_f32_16x16x128_f8f6f4 v[56:59], v[8:15], v[32:39], 0
-	v_mfma_f32_16x16x128_f8f6f4 v[60:63], v[8:15], v[40:47], 0
+	global_load_dwordx4 v[192:195], v95, s[36:37]
+	global_load_dwordx4 v[196:199], v95, s[36:37] offset:1024
+	global_load_dwordx4 v[200:203], v95, s[40:41]
+	global_load_dwordx4 v[204:207], v95, s[40:41] offset:1024
+	global_load_dwordx4 v[208:211], v95, s[42:43]
+	global_load_dwordx4 v[212:215], v95, s[42:43] offset:1024
+	global_load_dwordx4 v[216:219], v95, s[44:45]
+	global_load_dwordx4 v[220:223], v95, s[44:45] offset:1024
+.L_directb_w13_no_half0_prefetch:
 	s_nop 12
 	v_mul_f32_e32 v48, s72, v48
 	v_fmac_f32_e32 v64, v80, v48
@@ -304,15 +287,15 @@ qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	v_fmac_f32_e32 v78, v82, v62
 	v_mul_f32_e32 v63, s72, v63
 	v_fmac_f32_e32 v79, v83, v63
-	ds_read_b128 v[16:19], v93 offset:8192
-	ds_read_b128 v[20:23], v93 offset:9216
-	ds_read_b128 v[24:27], v93 offset:10240
-	ds_read_b128 v[28:31], v93 offset:11264
-	ds_read_b128 v[32:35], v93 offset:12288
-	ds_read_b128 v[36:39], v93 offset:13312
-	ds_read_b128 v[40:43], v93 offset:14336
-	ds_read_b128 v[44:47], v93 offset:15360
-	s_waitcnt lgkmcnt(0)
+	s_cmp_lt_u32 s38, 16
+	s_cbranch_scc0 .L_directb_w13_lastwait
+	// Current half1 is older than next half0, so newest-N wait semantics
+	// preserve all eight prefetched half0 loads.
+	s_waitcnt vmcnt(8)
+	s_branch .L_directb_w13_half1
+.L_directb_w13_lastwait:
+	s_waitcnt vmcnt(0)
+.L_directb_w13_half1:
 	v_mfma_f32_16x16x128_f8f6f4 v[48:51], v[8:15], v[16:23], 0
 	v_mfma_f32_16x16x128_f8f6f4 v[52:55], v[8:15], v[24:31], 0
 	v_mfma_f32_16x16x128_f8f6f4 v[56:59], v[8:15], v[32:39], 0
@@ -352,6 +335,8 @@ qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	v_fmac_f32_e32 v115, v83, v63
 	s_cmp_lt_u32 s38, 16
 	s_cbranch_scc0 .L_064c
+	// Append the six A/scalar loads behind the eight prefetched B loads.
+	// The next loop-head vmcnt(6) drains B and leaves A in flight.
 	s_lshl_b32 s54, s38, 7
 	v_add_u32_e32 v96, s54, v94
 	global_load_dwordx4 v[8:11], v96, s[4:5]
@@ -373,10 +358,8 @@ qwen36_moe_fused_m64n256_partial_fp8_gfx950:
 	s_load_dword s72, s[34:35], s54
 	s_add_u32 s54, s54, 0x100
 	s_load_dword s73, s[34:35], s54
+	s_branch .L_0358
 .L_064c:
-	s_barrier
-	s_cmp_lt_u32 s38, 16
-	s_cbranch_scc1 .L_0358
 	s_cmp_eq_u64 s[66:67], 0
 	s_cbranch_scc1 .L_09c8
 	v_lshrrev_b32_e32 v32, 6, v0

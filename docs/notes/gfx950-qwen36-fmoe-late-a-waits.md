@@ -56,3 +56,20 @@ which removes ds_write/ds_read/barriers from the K loop entirely and turns
 it into a deep-prefetch global-to-MFMA stream, the organization the AITER
 kernel already uses. Estimated chain after the rewrite: ~110-120 us, total
 near or below the AITER reference.
+
+## 2026-08-08 outcome correction
+
+That estimate and the description of AITER's organization were disproved by
+the follow-up experiment.  The barrier-free direct-B variant was numerically
+identical, but increased the exact full-grid fused time from 267.3 to 347.0 us.
+Matched counters showed that removing 60% of LDS instructions added 8.4% TCC
+read sectors, 7.7% VMEM instructions, and 15.9% `SQ_WAIT_ANY`.  L2 absorbed
+most, but not all, of the four-wave request amplification.
+
+The exact deployed AITER object was then disassembled.  It uses cooperative
+`buffer_load_dwordx4 ... lds`, barriers, and LDS reads; it does not stream a
+private copy of B through each wave's VGPRs.  The retained negative and full
+counter table are in `gfx950-qwen36-fmoe-direct-b-negative.md`.  A successor
+must follow the measured global-to-LDS/deep-accumulation organization or target
+a different hotspot; the per-wave direct-B topology should not be tuned
+further.
