@@ -1,0 +1,110 @@
+{
+  "target": "gfx1151",
+  "timing_output_shared_between_variants": true,
+  "measurement_status": "measured_hip_events",
+  "estimated_values": false,
+  "tokens": 256,
+  "candidate_label": "group2",
+  "page_size": 1,
+  "page_order": "deterministically_shuffled",
+  "indices_contiguous_within_each_page": true,
+  "sample_order": "alternating_ab_ba",
+  "rows": [
+    {
+      "prefix_tokens": 0,
+      "timing_output_shared_between_variants": true,
+      "bit_equal": true,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "baseline_median_ms": 0.09064900130033493,
+      "candidate_median_ms": 0.08780399709939957,
+      "speedup": 1.032401761820873,
+      "baseline_samples_ms": [
+        0.296752005815506,
+        0.09064900130033493,
+        0.09012799710035324,
+        0.09036800265312195,
+        0.09128999710083008
+      ],
+      "candidate_samples_ms": [
+        0.4097230136394501,
+        0.3633959889411926,
+        0.0874829962849617,
+        0.08724299818277359,
+        0.08780399709939957
+      ]
+    },
+    {
+      "prefix_tokens": 64,
+      "timing_output_shared_between_variants": true,
+      "bit_equal": true,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "baseline_median_ms": 0.1104860007762909,
+      "candidate_median_ms": 0.10607700049877167,
+      "speedup": 1.0415641492197951,
+      "baseline_samples_ms": [
+        0.11212900280952454,
+        0.11076699942350388,
+        0.11036600172519684,
+        0.1104860007762909,
+        0.1102060005068779
+      ],
+      "candidate_samples_ms": [
+        0.10579799860715866,
+        0.10719999670982361,
+        0.10575699806213379,
+        0.10619799792766571,
+        0.10607700049877167
+      ]
+    },
+    {
+      "prefix_tokens": 128,
+      "timing_output_shared_between_variants": true,
+      "bit_equal": true,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "baseline_median_ms": 0.1292009949684143,
+      "candidate_median_ms": 0.12439200282096863,
+      "speedup": 1.03865997844224,
+      "baseline_samples_ms": [
+        0.1304430067539215,
+        0.12952099740505219,
+        0.12888099253177643,
+        0.1292009949684143,
+        0.1289609968662262
+      ],
+      "candidate_samples_ms": [
+        0.12415199726819992,
+        0.1244719997048378,
+        0.12439200282096863,
+        0.12515400350093842,
+        0.12427099794149399
+      ]
+    },
+    {
+      "prefix_tokens": 192,
+      "timing_output_shared_between_variants": true,
+      "bit_equal": true,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "baseline_median_ms": 0.1489579975605011,
+      "candidate_median_ms": 0.142985999584198,
+      "speedup": 1.0417663127415944,
+      "baseline_samples_ms": [
+        0.14831599593162537,
+        0.14839699864387512,
+        0.1492380052804947,
+        0.14907899498939514,
+        0.1489579975605011
+      ],
+      "candidate_samples_ms": [
+        0.1444689929485321,
+        0.1427460014820099,
+        0.14314700663089752,
+        0.14254599809646606,
+        0.142985999584198
+      ]
+    }
+  ]
+}

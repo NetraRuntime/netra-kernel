@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "quantization": "FP8 E4M3 checkpoint; BF16 extension; native FP8 E4M3 KV",
+  "shape": {
+    "batch_size": 1,
+    "extend_tokens": 8192,
+    "query_heads": 16,
+    "kv_heads": 2,
+    "head_dim": 256,
+    "prefix_tokens": [
+      0,
+      8192,
+      16384,
+      24576
+    ]
+  },
+  "launch": {
+    "grid": [
+      1,
+      16,
+      64
+    ],
+    "workgroup_size": 512,
+    "dynamic_lds_bytes": 65536
+  },
+  "code_object": {
+    "wavefront_size": 64,
+    "vgpr_count": 256,
+    "sgpr_count": 106,
+    "private_segment_bytes": 96,
+    "bf16_mfma_instructions": 128,
+    "fp8_mfma_instructions": 32,
+    "barriers": 15,
+    "sha256": "0452bdef05b38c4ad3c0bfcd039141aad56efd02199d8ab4d610bc714709252f"
+  },
+  "timing_us": [
+    {
+      "prefix_tokens": 0,
+      "control_median": 1524.857521057129,
+      "candidate_median": 1580.8969736099243,
+      "candidate_slower_percent": 3.67506155682959
+    },
+    {
+      "prefix_tokens": 8192,
+      "control_median": 2849.17151927948,
+      "candidate_median": 2946.6129541397095,
+      "candidate_slower_percent": 3.419991888900782
+    },
+    {
+      "prefix_tokens": 16384,
+      "control_median": 4167.506456375122,
+      "candidate_median": 4287.728548049927,
+      "candidate_slower_percent": 2.8847487804343643
+    },
+    {
+      "prefix_tokens": 24576,
+      "control_median": 5402.640581130981,
+      "candidate_median": 5671.222925186157,
+      "candidate_slower_percent": 4.971316155903736
+    }
+  ],
+  "sum": {
+    "control_median_us": 13944.17607784271,
+    "candidate_median_us": 14486.461400985718,
+    "candidate_slower_percent": 3.889
+  },
+  "correctness": {
+    "unwritten_elements": 0,
+    "deterministic_two_launches": true,
+    "max_abs_by_prefix": [
+      0.000244140625,
+      3.0517578125e-05,
+      1.52587890625e-05,
+      1.52587890625e-05
+    ],
+    "minimum_cosine": 0.9999960064888,
+    "gate": "pass"
+  },
+  "promotion_gate": "fail_performance",
+  "harness_fix": "poison output before independent launches and reject unwritten elements",
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260806T185310Z-prefill-m128-raw-gpu1"
+}

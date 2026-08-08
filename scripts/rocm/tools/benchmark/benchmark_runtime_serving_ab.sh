@@ -16,10 +16,21 @@ repo=/root/netra-mxfp4-gfx1151
 old_lib=${NETRA_RUNTIME_OLD_LIB:-${repo}/results/runtime/gfx1151/runtime-refactor-c421a85-old/libnetra_mxfp4_sgl.old.so}
 new_lib=${NETRA_RUNTIME_NEW_LIB:-${repo}/build/runtime-refactor/full-new/libnetra_mxfp4_sgl.so}
 live_lib=${repo}/build/sglang/libnetra_mxfp4_sgl.so
+old_hsaco=${NETRA_KERNEL_OLD_HSACO:-}
+new_hsaco=${NETRA_KERNEL_NEW_HSACO:-}
+live_hsaco=${NETRA_KERNEL_LIVE_HSACO:-}
+kernel_ab=0
+if [[ -n $old_hsaco || -n $new_hsaco || -n $live_hsaco ]]; then
+  [[ -n $old_hsaco && -n $new_hsaco && -n $live_hsaco ]] || {
+    echo "NETRA_KERNEL_OLD_HSACO, NETRA_KERNEL_NEW_HSACO, and NETRA_KERNEL_LIVE_HSACO must be set together" >&2
+    exit 2
+  }
+  kernel_ab=1
+fi
 out_dir=${repo}/results/runtime/gfx1151/runtime-refactor-working-new/serving-ab/${label}
 port=${SGLANG_PORT:-30000}
 python=/root/sglvenv1151/bin/python
-request=${repo}/tools/profiling/request_scenario.py
+request=${repo}/scripts/rocm/tools/profiling/request_scenario.py
 graph_mode=${NETRA_RUNTIME_GRAPH_MODE:-disabled}
 launch_args=()
 case "$graph_mode" in
@@ -45,6 +56,10 @@ done
   echo "missing old, new, or live runtime library" >&2
   exit 1
 }
+if (( kernel_ab )); then
+  [[ -f $old_hsaco && -f $new_hsaco && -f $live_hsaco ]] || {
+    echo "missing old, new, or live kernel HSACO" >&2; exit 1; }
+fi
 [[ ! -e $out_dir ]] || { echo "refusing to overwrite $out_dir" >&2; exit 1; }
 if pgrep -f '^sglang::scheduler$' >/dev/null || pgrep -f 'sglang.launch_server' >/dev/null; then
   echo "refusing A/B benchmark while SGLang is already active" >&2
@@ -62,6 +77,9 @@ restore_new() {
     wait "$server_pid" 2>/dev/null || true
   fi
   install -m 755 "$new_lib" "$live_lib"
+  if (( kernel_ab )); then
+    install -m 644 "$new_hsaco" "$live_hsaco"
+  fi
 }
 trap restore_new EXIT INT TERM
 
@@ -79,6 +97,11 @@ new_sha=$(sha256sum "$new_lib" | awk '{print $1}')
   echo samples_per_server="$samples"
   echo rounds="$rounds"
   echo context_len="$context_len"
+  if (( kernel_ab )); then
+    echo kernel_live_hsaco="$live_hsaco"
+    echo kernel_old_sha256="$(sha256sum "$old_hsaco" | awk '{print $1}')"
+    echo kernel_new_sha256="$(sha256sum "$new_hsaco" | awk '{print $1}')"
+  fi
 } > "$out_dir/manifest.txt"
 
 run_variant() {
@@ -88,6 +111,17 @@ run_variant() {
   local run_dir=${out_dir}/round-${round}-${variant}
   mkdir -p "$run_dir"
   install -m 755 "$source_lib" "$live_lib"
+  local active_hsaco_sha=disabled
+  if (( kernel_ab )); then
+    local source_hsaco
+    if [[ $variant == old ]]; then
+      source_hsaco=$old_hsaco
+    else
+      source_hsaco=$new_hsaco
+    fi
+    install -m 644 "$source_hsaco" "$live_hsaco"
+    active_hsaco_sha=$(sha256sum "$live_hsaco" | awk '{print $1}')
+  fi
   local active_sha
   active_sha=$(sha256sum "$live_lib" | awk '{print $1}')
   [[ $active_sha == $(sha256sum "$source_lib" | awk '{print $1}') ]] || {
@@ -133,7 +167,7 @@ run_variant() {
     sample_id=$(printf '%03d' "$sample")
     "$python" "$request" \
       --url "http://127.0.0.1:${port}/generate" \
-      --input-len "$input_len" --output-len "$output_len" \
+      --input-len "$input_len" --output-len "$output_len" --stream \
       --seed "${label}-round-${round}-sample-${sample_id}" \
       --label "${label}-round-${round}-${variant}-sample-${sample_id}" \
       --graph-mode "$graph_mode" --dflash-mode disabled \
@@ -155,6 +189,7 @@ run_variant() {
     echo variant="$variant"
     echo round="$round"
     echo library_sha256="$active_sha"
+    echo kernel_hsaco_sha256="$active_hsaco_sha"
     echo launch_to_health_ms=$(( (ready_ns - start_ns) / 1000000 ))
     echo server_status="$server_status"
   } > "${run_dir}/manifest.txt"

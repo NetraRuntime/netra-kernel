@@ -1,0 +1,30 @@
+0d700a1d29739041d9b0e475b7be33edf2c05a22a354a73358747b8f934cdd67  build/sglang/bf16_qkv_decode_wave1_gfx1151.hsaco
+aae22ff0fc0649273ab69a65c36fff2ad7157fd1a89571ebc1da82b6481bcf69  build/sglang/bf16_qkv_decode_wave1_wide128_gfx1151.hsaco
+
+
+Symbol table '.dynsym' contains 3 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000001700   280 FUNC    GLOBAL PROTECTED   7 bf16_qkv_decode_wave1_gfx1151
+     2: 0000000000000640    64 OBJECT  GLOBAL PROTECTED   6 bf16_qkv_decode_wave1_gfx1151.kd
+
+Symbol table '.symtab' contains 4 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000002818     0 NOTYPE  LOCAL  HIDDEN      8 _DYNAMIC
+     2: 0000000000001700   280 FUNC    GLOBAL PROTECTED   7 bf16_qkv_decode_wave1_gfx1151
+     3: 0000000000000640    64 OBJECT  GLOBAL PROTECTED   6 bf16_qkv_decode_wave1_gfx1151.kd
+
+
+Symbol table '.dynsym' contains 3 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000001700   304 FUNC    GLOBAL PROTECTED   7 bf16_qkv_decode_wave1_wide128_gfx1151
+     2: 0000000000000640    64 OBJECT  GLOBAL PROTECTED   6 bf16_qkv_decode_wave1_wide128_gfx1151.kd
+
+Symbol table '.symtab' contains 4 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000002830     0 NOTYPE  LOCAL  HIDDEN      8 _DYNAMIC
+     2: 0000000000001700   304 FUNC    GLOBAL PROTECTED   7 bf16_qkv_decode_wave1_wide128_gfx1151
+     3: 0000000000000640    64 OBJECT  GLOBAL PROTECTED   6 bf16_qkv_decode_wave1_wide128_gfx1151.kd

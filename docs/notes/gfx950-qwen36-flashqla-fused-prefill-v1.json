@@ -1,0 +1,37 @@
+{
+  "date": "2026-08-02",
+  "target": "gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "wavefront_size": 64,
+  "shape": {"B": 1, "T": 8192, "H": 32, "Hg": 16, "K": 128, "V": 128, "BT": 64, "BV": 16},
+  "flashqla_reference_commit": "821fd9d37ede18fdc2a4e707fefe3770bfc32e58",
+  "raw_source_sha256": "da4657a959e89d142c70dc8e1ed92f127f3cb315a4a3c3b25cdb28015af52c71",
+  "gfx950_hsaco_sha256": "bd2ea346d5fe43c4c838191255c50105773b6fe08167de9805f9306fe0f8ded0",
+  "one_chunk": {
+    "state_bit_exact": true,
+    "state_elements": 524288,
+    "output_mismatch_count": 2,
+    "output_elements": 262144,
+    "output_max_abs": 0.0000019073486328125,
+    "output_cosine": 1.0,
+    "tolerance_failures": 0
+  },
+  "full_128_chunks": {
+    "output_cosine": 0.9999992847442627,
+    "output_max_abs": 0.015625,
+    "output_relative_failures": 5,
+    "state_cosine": 0.9999983310699463,
+    "state_max_abs": 0.0625,
+    "state_relative_failures": 35,
+    "baseline_median_us": 560.3460073471069,
+    "fused_median_us": 1079.1314840316772,
+    "speedup": 0.5192564721155503,
+    "accepted": false
+  },
+  "reset_segment_32": {
+    "output_cosine": 0.9869978427886963,
+    "output_max_abs": 2.576171875,
+    "accepted": false
+  },
+  "decision": "retain_as_rejected_raw_reference"
+}

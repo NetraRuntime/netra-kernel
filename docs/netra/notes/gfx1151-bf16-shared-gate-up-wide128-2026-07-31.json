@@ -1,0 +1,139 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "estimated_values": false,
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "model": "Qwen3.6-35B-A3B",
+  "shape": {
+    "m": 1,
+    "n": 1024,
+    "k": 2048,
+    "dtype": "BF16",
+    "operation": "shared expert gate+up+SiLU"
+  },
+  "decision": "accepted",
+  "candidate": {
+    "source": "kernels/gfx1151/dense/shared_expert/bf16_shared_gate_up_silu_decode_wide128_gfx1151.s",
+    "symbol": "bf16_shared_gate_up_silu_decode_wide128_gfx1151",
+    "hsaco_sha256": "b31630c522404a21db024d2784833ee1b90bbe1933dec738e7c027e00ddebfd6",
+    "grid": [
+      32,
+      1,
+      1
+    ],
+    "workgroup": [
+      256,
+      1,
+      1
+    ],
+    "kernarg_bytes": 24,
+    "lds_bytes": 0,
+    "scratch_bytes": 0,
+    "vgpr_allocated": 40,
+    "sgpr_allocated": 128
+  },
+  "baseline": {
+    "symbol": "bf16_shared_gate_up_silu_decode_wave2_gfx1151",
+    "hsaco_sha256": "13424b1036af90fe8cfe991f030c244363ee2ce33e19652054f47d00987fb859"
+  },
+  "correctness": {
+    "model_native_max_abs": 0.0078125,
+    "max_bf16_bit_mismatches_per_layer": 156,
+    "wide128_vs_wave2_max_abs": 0.00006103515625,
+    "numerical_differences_across_40_layer_fixture": 4,
+    "signed_zero_differences": 4,
+    "synthetic_matched_output_hashes_equal": 1,
+    "synthetic_matched_output_hashes_total": 5,
+    "candidate_eager_graph_hashes_equal": 5,
+    "candidate_eager_graph_hashes_total": 5,
+    "natural_prompt_first_128_hash": "be4a789bd20721c8573aded6af1de30c0a118b3ec4e73427f3be4a66300838e2",
+    "natural_prompt_wave2_equal": true,
+    "natural_prompt_candidate_repeats_equal": 3
+  },
+  "hip_event_ms_per_40_layers": {
+    "wave2_median": 3.086074,
+    "wide64_median": 2.385779,
+    "wide128_median": 2.052549,
+    "wide128_speedup_vs_wave2": 1.50353,
+    "production_wide128_median": 1.859712,
+    "production_rocblas_silu_median": 4.364053
+  },
+  "serving": {
+    "scope": {
+      "input_tokens": 1,
+      "output_tokens": 128,
+      "cached_tokens": 0,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled",
+      "samples": 5
+    },
+    "wave2_median": {
+      "decode_ms": 3390.194915,
+      "output_tps": 37.46097294821764,
+      "e2e_ms": 3453.772406
+    },
+    "wide128_median": {
+      "decode_ms": 3253.503578,
+      "output_tps": 39.034842579785845,
+      "e2e_ms": 3314.630753
+    },
+    "tps_improvement_percent": 4.201358127413757,
+    "decode_reduction_percent": 4.031961005994256
+  },
+  "full_graph": {
+    "capture_seconds": 1.37,
+    "memory_gb_reported": 3.05,
+    "samples": 5,
+    "decode_ms_median": 3283.57344,
+    "output_tps_median": 38.6773746105097,
+    "e2e_ms_median": 3331.208806,
+    "tps_vs_eager_percent": -0.9157663913860858,
+    "eager_graph_hashes_equal": 5
+  },
+  "rocprofv3": {
+    "method": "one counter per fresh process; signal handlers disabled",
+    "wave2": {
+      "fetch_kib": 2050.59375,
+      "l2_hit_percent": 2.2088535,
+      "mean_occupancy_per_active_cu": 12.76429,
+      "occupancy_percent": 12.719517,
+      "mem_unit_busy_percent": 66.1899205,
+      "waves": 256,
+      "wave_cycles": 9119944.5,
+      "valu_instructions": 411
+    },
+    "wide128": {
+      "fetch_kib": 2050.65625,
+      "l2_hit_percent": 2.2315525,
+      "mean_occupancy_per_active_cu": 12.49422,
+      "occupancy_percent": 11.496124,
+      "mem_unit_busy_percent": 58.7084035,
+      "waves": 256,
+      "wave_cycles": 6353654,
+      "valu_instructions": 291
+    },
+    "write_size_metric_note": "reported zero despite required stores; not used",
+    "dependency_stall_note": "not exposed by available gfx1151 metric set; not estimated"
+  },
+  "sglang_runtime_interpretation": {
+    "same_checkpoint_llamacpp_ab_available": false,
+    "request_window": {
+      "input_tokens": 1,
+      "output_tokens": 32,
+      "host_wall_ms": 922.962042,
+      "gpu_kernel_ms": 826.261,
+      "positive_launch_gap_ms": 101.371,
+      "kernel_launches": 31421,
+      "gpu_percent": 89.523,
+      "gap_percent": 10.983
+    },
+    "conclusion": "scheduler and dispatch are material but not the dominant measured bottleneck; no llama.cpp speed ratio claimed"
+  },
+  "artifacts": {
+    "counters": "results/profiles/gfx1151/bf16-shared-gate-up-wide128-counters-20260731",
+    "control_serving": "results/serving/gfx1151/shared-gate-wave2-control-eager-1-plus128-20260731",
+    "candidate_serving": "results/serving/gfx1151/shared-gate-wide128-eager-1-plus128-20260731",
+    "graph_serving": "results/serving/gfx1151/shared-gate-wide128-fullgraph-1-plus128-20260731",
+    "disassembly": "docs/netra/notes/gfx1151-bf16-shared-gate-up-wide128-disassembly-2026-07-31"
+  }
+}

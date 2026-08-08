@@ -30,6 +30,15 @@ This directory is the complete serving overlay for SGLang commit
 - `sglang-gfx1151-bf16-qkv.patch` routes exact M=1 N9216 K2048 BF16 QKV
   to the accepted raw gfx1151 assembly kernel; M>1 and prefill remain unchanged.
   `SGLANG_NETRA_ENABLE_BF16_QKV=0` restores rocBLAS.
+- `sglang-gfx1151-bf16-attention-output.patch` routes exact M=1 N2048 K4096
+  BF16 attention output projections to raw gfx1151 assembly with a preallocated,
+  graph-safe output. `SGLANG_NETRA_ENABLE_BF16_ATTN_OUTPUT=0` restores rocBLAS.
+- `sglang-gfx1151-bf16-router.patch` routes exact M=1 N256 K2048 BF16 router
+  projections to raw gfx1151 assembly and retains FP32 logits for routing accuracy.
+  `SGLANG_NETRA_ENABLE_BF16_ROUTER=0` restores rocBLAS.
+- `sglang-gfx1151-qwen36-rmsnorm.patch` routes exact M=1 N2048 BF16
+  Qwen3.6 RMSNorm and fused residual + RMSNorm to graph-safe raw gfx1151
+  assembly. `SGLANG_NETRA_DISABLE_QWEN36_RMSNORM=1` restores the native path.
 - `sglang-gfx1151-bf16-shared-gate-up-silu.patch` fuses the exact M=1
   N512+512 K2048 shared-expert BF16 projections with register-resident SiLU
   and multiplication. `SGLANG_NETRA_ENABLE_BF16_SHARED_GATE_UP_SILU=0`
@@ -40,8 +49,8 @@ This directory is the complete serving overlay for SGLang commit
 - The raw GDN bridge is graph-safe and retains Triton for all other shapes.
 - `netra_gfx1151_sglang.py` is copied into SGLang's quantization package.
 - `netra_mxfp4_sgl_launcher.hip` is launch-only host code for the raw HSACOs.
-- `launch.sh` enables the accepted BF16 LM-head, QKV, and shared-expert
-  gate/up+SiLU kernels by default after all modules have been built and the SGLang overlay applied; the exact C ABI and
+- `launch.sh` enables the accepted BF16 LM-head, QKV, attention-output, router,
+  and shared-expert gate/up+SiLU kernels by default after all modules have been built and the SGLang overlay applied; the exact C ABI and
   caller stream are preserved.
 - Prefill gate/up weights retain MXFP4 and add a load-time raw-ASM dword-layout
   view for coalesced gfx1151 access; decode retains the serialized layout.

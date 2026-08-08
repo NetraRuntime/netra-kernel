@@ -1,0 +1,6 @@
+538865931cac396adb3383dcbe25236c7328de9a88ca5d46294acffe146e5c45  build/sglang/mxfp4_sgl_decode_down_gfx1151.hsaco
+b7d712619a3fa4c50e869136b6c3f105baa20fa8c5123b19637c5e7170931703  build/sglang/mxfp4_decode_down_batch4_wg32_gfx1151.hsaco
+public_netra_symbols=30
+public_symbol_tables_identical=true
+common_hsacos_compared=44
+common_hsaco_differences=0

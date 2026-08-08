@@ -16,7 +16,7 @@ The candidate changes only physical registers and preserves the algorithm, instr
 - all encoded vector registers are below v224;
 - workgroup remains 512 threads and LDS remains 65,536 bytes.
 
-The final raw candidate is `scripts/rocm/kernels/gfx1151/attention/experiments/extend_attention_wmma_n64_group4_qpipe_kvbatch16_lowvgpr_gfx1151.s`. It is retained only as a measured experiment.
+The final raw candidate is `kernels/gfx1151/attention/experiments/extend_attention_wmma_n64_group4_qpipe_kvbatch16_lowvgpr_gfx1151.s`. It is retained only as a measured experiment.
 
 ## Correctness
 

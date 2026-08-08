@@ -1,0 +1,66 @@
+diff --git a/python/sglang/srt/models/qwen2_moe.py b/python/sglang/srt/models/qwen2_moe.py
+--- a/python/sglang/srt/models/qwen2_moe.py
++++ b/python/sglang/srt/models/qwen2_moe.py
+@@ -136,6 +136,17 @@
+     and os.getenv("SGLANG_NETRA_ENABLE_BF16_SHARED_DOWN", "1").lower()
+     in {"1", "true", "yes", "on"}
+ )
++_use_netra_bf16_router = (
++    _is_hip
++    and get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
++    and os.getenv("SGLANG_NETRA_ENABLE_BF16_ROUTER", "1").lower()
++    in {"1", "true", "yes", "on"}
++)
++if _use_netra_bf16_router:
++    from sglang.srt.layers.quantization.netra_gfx1151 import (
++        netra_bf16_router_with_output,
++    )
++
+ if _use_netra_bf16_shared_gate_up_silu:
+     from sglang.srt.layers.quantization.netra_gfx1151 import (
+         netra_bf16_shared_gate_up_silu_with_output,
+@@ -384,6 +395,19 @@
+             quant_config=None,
+             prefix=add_prefix("gate", prefix),
+         )
++        self._netra_router_output = (
++            torch.empty(
++                (1, config.num_experts),
++                dtype=torch.float32,
++                device=self.gate.weight.device,
++            )
++            if (
++                _use_netra_bf16_router
++                and config.hidden_size == 2048
++                and config.num_experts == 256
++            )
++            else None
++        )
+         # When enable_shared_expert_fusion, the shared expert runs inside the MoE kernel
+         # (via _append_shared_to_topk_output); a separate shared_expert MLP would
+         # double-count. If fusion is off (num_fused_shared_experts == 0), keep shared_expert.
+@@ -578,7 +602,23 @@
+ 
+     def _forward_router_experts(self, hidden_states: torch.Tensor):
+         # router_logits: (num_tokens, n_experts)
+-        router_logits, _ = self.gate(hidden_states)
++        gate_weight = getattr(self.gate, "weight", None)
++        if (
++            self._netra_router_output is not None
++            and tuple(hidden_states.shape) == (1, 2048)
++            and hidden_states.dtype == torch.bfloat16
++            and hidden_states.is_contiguous()
++            and gate_weight is not None
++            and tuple(gate_weight.shape) == (256, 2048)
++            and gate_weight.dtype == torch.bfloat16
++            and gate_weight.is_contiguous()
++        ):
++            netra_bf16_router_with_output(
++                gate_weight, hidden_states, self._netra_router_output
++            )
++            router_logits = self._netra_router_output
++        else:
++            router_logits, _ = self.gate(hidden_states)
+         topk_output = self.topk(hidden_states, router_logits)
+         if self.enable_shared_expert_fusion and TopKOutputChecker.format_is_standard(
+             topk_output

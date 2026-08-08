@@ -34,14 +34,14 @@ static constexpr KernelDescriptor kDecodeGate{
     "mxfp4_sgl_decode_gate_gfx1151.hsaco", "mxfp4_decode_gate_gfx1151",
     {1, 16, 1, 128}};
 static constexpr KernelDescriptor kDecodeGateBlock64{
-    "mxfp4_decode_gate_block64_gfx1151.hsaco",
-    "mxfp4_decode_gate_block64_gfx1151", {1, 512, 1, 128}};
+    "mxfp4_decode_gate_chunk4_gfx1151.hsaco",
+    "mxfp4_decode_gate_chunk4_gfx1151", {1, 128, 1, 128}};
 static constexpr KernelDescriptor kDecodeGateBlock64Reduce{
-    "mxfp4_decode_gate_block64_reduce_gfx1151.hsaco",
-    "mxfp4_decode_gate_block64_reduce_gfx1151", {2, 8, 1, 128}};
+    "mxfp4_decode_gate_chunk4_reduce_gfx1151.hsaco",
+    "mxfp4_decode_gate_chunk4_reduce_gfx1151", {2, 8, 1, 128}};
 static constexpr KernelDescriptor kDecodeDown{
-    "mxfp4_sgl_decode_down_gfx1151.hsaco", "mxfp4_decode_down_gfx1151",
-    {2, 8, 1, 256}};
+    "mxfp4_decode_down_batch4_wg32_gfx1151.hsaco",
+    "mxfp4_decode_down_pipeline_gfx1151", {16, 8, 1, 32}};
 static constexpr KernelDescriptor kSiluMul{
     "silu_mul_bf16_gfx1151.hsaco", "silu_mul_bf16_gfx1151",
     {16, 1, 1, 256}};
@@ -78,14 +78,20 @@ static constexpr KernelDescriptor kLinearDecodeN12800Block64Reduce{
     "mxfp4_linear_decode_n12800_block64_reduce_gfx1151.hsaco",
     "mxfp4_linear_decode_n12800_block64_reduce_gfx1151", {50, 1, 1, 256}};
 static constexpr KernelDescriptor kBf16LmHead{
-    "bf16_lm_head_decode_wave4_gfx1151.hsaco",
-    "bf16_lm_head_decode_wave4_gfx1151", {7760, 1, 1, 256}};
+    "bf16_lm_head_decode_wave1_wg64_gfx1151.hsaco",
+    "bf16_lm_head_decode_wave1_wg64_gfx1151", {124160, 1, 1, 64}};
 static constexpr KernelDescriptor kBf16Qkv{
-    "bf16_qkv_decode_wave4_gfx1151.hsaco",
-    "bf16_qkv_decode_wave4_gfx1151", {288, 1, 1, 256}};
+    "bf16_qkv_decode_wave1_wide128_gfx1151.hsaco",
+    "bf16_qkv_decode_wave1_wide128_gfx1151", {1152, 1, 1, 256}};
+static constexpr KernelDescriptor kBf16AttentionOutput{
+    "bf16_attn_oproj_decode_wave1_wide128_gfx1151.hsaco",
+    "bf16_attn_oproj_decode_wave1_wide128_gfx1151", {256, 1, 1, 256}};
+static constexpr KernelDescriptor kBf16Router{
+    "bf16_router_decode_wave2_fp32_gfx1151.hsaco",
+    "bf16_router_decode_wave2_fp32_gfx1151", {16, 1, 1, 256}};
 static constexpr KernelDescriptor kBf16SharedGateUpSilu{
-    "bf16_shared_gate_up_silu_decode_wave2_gfx1151.hsaco",
-    "bf16_shared_gate_up_silu_decode_wave2_gfx1151", {32, 1, 1, 256}};
+    "bf16_shared_gate_up_silu_decode_wide128_gfx1151.hsaco",
+    "bf16_shared_gate_up_silu_decode_wide128_gfx1151", {32, 1, 1, 256}};
 static constexpr KernelDescriptor kBf16SharedDown{
     "bf16_shared_down_decode_wave4_gfx1151.hsaco",
     "bf16_shared_down_decode_wave4_gfx1151", {64, 1, 1, 256}};
@@ -114,6 +120,12 @@ static constexpr KernelDescriptor kExtendAttention{
 static constexpr KernelDescriptor kQkNormMropeKv{
     "qk_norm_mrope_gate_kv_store_gfx1151.hsaco",
     "qk_norm_mrope_gate_kv_store_gfx1151", {0, 1, 1, 128}};
+static constexpr KernelDescriptor kQwen36Norm{
+    "qwen36_rmsnorm_decode_gfx1151.hsaco", "qwen36_rmsnorm_decode_gfx1151",
+    {1, 1, 1, 256}};
+static constexpr KernelDescriptor kQwen36FusedAddNorm{
+    "qwen36_rmsnorm_decode_gfx1151.hsaco",
+    "qwen36_fused_add_rmsnorm_decode_gfx1151", {1, 1, 1, 256}};
 static constexpr KernelDescriptor kGdnChunkO{
     "gdn_chunk_o_bv32_gfx1151.hsaco", "gdn_chunk_o_bv32_gfx1151",
     {4, 256, 32, 64}};
@@ -155,6 +167,8 @@ struct ModuleRegistry {
   LoadedKernel linear_decode_n12800_block64_reduce{
       {}, {}, &kLinearDecodeN12800Block64Reduce};
   LoadedKernel bf16_qkv{{}, {}, &kBf16Qkv};
+  LoadedKernel bf16_attention_output{{}, {}, &kBf16AttentionOutput};
+  LoadedKernel bf16_router{{}, {}, &kBf16Router};
   LoadedKernel bf16_shared_gate_up_silu{{}, {}, &kBf16SharedGateUpSilu};
   LoadedKernel bf16_shared_down{{}, {}, &kBf16SharedDown};
   LoadedKernel m12_group_gate_up_silu{{}, {}, &kM12GateUpSilu};
@@ -165,6 +179,8 @@ struct ModuleRegistry {
   LoadedKernel qkvzba_split{{}, {}, &kQkvzbaSplit};
   LoadedKernel extend_attention{{}, {}, &kExtendAttention};
   LoadedKernel qk_norm_mrope_kv{{}, {}, &kQkNormMropeKv};
+  LoadedKernel qwen36_norm{{}, {}, &kQwen36Norm};
+  LoadedKernel qwen36_fused_add_norm{{}, {}, &kQwen36FusedAddNorm};
   LoadedKernel gdn_chunk_o{{}, {}, &kGdnChunkO};
   LoadedKernel recompute_w_u{{}, {}, &kRecomputeWU};
   LoadedKernel causal_conv{{}, {}, &kCausalConv};
@@ -250,6 +266,8 @@ struct ModuleRegistry {
     load(linear_decode_n12800_block64_reduce);
     load(bf16_lm_head);
     load(bf16_qkv);
+    load(bf16_attention_output);
+    load(bf16_router);
     load(bf16_shared_gate_up_silu);
     load(bf16_shared_down);
     load(m12_group_gate_up_silu);
@@ -261,6 +279,8 @@ struct ModuleRegistry {
     load(extend_attention);
     load(qk_norm_mrope_kv);
     load(gdn_chunk_o);
+    load(qwen36_norm);
+    load(qwen36_fused_add_norm);
     load(recompute_w_u);
     load(causal_conv);
     load(causal_state);

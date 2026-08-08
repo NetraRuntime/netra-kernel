@@ -12,8 +12,8 @@ The prior gfx1151 kernel loaded and swizzled the same four RHS B fragments indep
 
 The shipping source is now canonical under `scripts/rocm/`:
 
-- `scripts/rocm/kernels/gfx1151/gdn/recompute_w_u_ordered_gfx1151.s`
-- retained baseline and differently named candidate in `scripts/rocm/kernels/gfx1151/gdn/experiments/`
+- `kernels/gfx1151/gdn/recompute_w_u_ordered_gfx1151.s`
+- retained baseline and differently named candidate in `kernels/gfx1151/gdn/experiments/`
 - HIP launch/timing-only harnesses and build/profile/benchmark tools under `scripts/rocm/`
 
 The existing SGLang build bridge now assembles the canonical source. Findings and evidence are under `docs/netra/notes/` as required by the current repository structure.

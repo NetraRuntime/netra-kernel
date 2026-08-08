@@ -3,6 +3,17 @@
 
 #include <cstddef>
 
+#ifndef NETRA_BF16_QKV_KERNEL
+#define NETRA_BF16_QKV_KERNEL bf16_qkv_decode_wave4_gfx1151
+#endif
+
+#ifndef NETRA_BF16_QKV_GRID_X
+#define NETRA_BF16_QKV_GRID_X 288
+#endif
+
+#define NETRA_STRINGIFY_IMPL(x) #x
+#define NETRA_STRINGIFY(x) NETRA_STRINGIFY_IMPL(x)
+
 namespace {
 hipModule_t module_handle{};
 hipFunction_t function_handle{};
@@ -22,7 +33,8 @@ hipError_t launch(const void* weights, const void* activation, void* output,
       HIP_LAUNCH_PARAM_BUFFER_POINTER, &args,
       HIP_LAUNCH_PARAM_BUFFER_SIZE, &size,
       HIP_LAUNCH_PARAM_END};
-  return hipModuleLaunchKernel(function_handle, 288, 1, 1, 256, 1, 1, 0,
+  return hipModuleLaunchKernel(function_handle, NETRA_BF16_QKV_GRID_X,
+                               1, 1, 256, 1, 1, 0,
                                stream, nullptr, config);
 }
 }  // namespace
@@ -31,8 +43,9 @@ extern "C" int netra_bf16_qkv_load(const char* hsaco) {
   if (function_handle) return 0;
   hipError_t status = hipModuleLoad(&module_handle, hsaco);
   if (status != hipSuccess) return static_cast<int>(status);
-  status = hipModuleGetFunction(&function_handle, module_handle,
-                                "bf16_qkv_decode_wave4_gfx1151");
+  status = hipModuleGetFunction(
+      &function_handle, module_handle,
+      NETRA_STRINGIFY(NETRA_BF16_QKV_KERNEL));
   return static_cast<int>(status);
 }
 

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "gpu": "AMD Instinct MI350X",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "wavefront_size": 64,
+  "quantization": {
+    "weights": "FP8 E4M3 128x128 blocks",
+    "kv_cache": "FP8 E4M3",
+    "extension_kv": "BF16 current M16 tail"
+  },
+  "shape": {
+    "extend_tokens": 8192,
+    "query_heads": 16,
+    "kv_heads": 2,
+    "head_dim": 256,
+    "prefix_tokens": [
+      0,
+      8192,
+      16384,
+      24576
+    ]
+  },
+  "code_object": {
+    "vgpr_count": 148,
+    "sgpr_count": 80,
+    "scratch_bytes": 0,
+    "dynamic_lds_bytes": 32768,
+    "workgroup_size": 512,
+    "grid": [
+      512,
+      2,
+      2
+    ]
+  },
+  "timing_method": {
+    "clock": "HIP events",
+    "warmup": 3,
+    "repeats": 10
+  },
+  "results": [
+    {
+      "prefix_tokens": 0,
+      "control_median_us": 1501.265525817871,
+      "candidate_median_us": 1842.3470258712769,
+      "regression_percent": 22.72,
+      "max_abs": 0.00374603271484375,
+      "cosine": 0.9996657967567444
+    },
+    {
+      "prefix_tokens": 8192,
+      "control_median_us": 3142.7719593048096,
+      "candidate_median_us": 5171.0405349731445,
+      "regression_percent": 64.54,
+      "max_abs": 0.0001010894775390625,
+      "cosine": 0.9998615384101868
+    },
+    {
+      "prefix_tokens": 16384,
+      "control_median_us": 4710.799217224121,
+      "candidate_median_us": 8386.834144592285,
+      "regression_percent": 78.03,
+      "max_abs": 0.00006103515625,
+      "cosine": 0.9999123811721802
+    },
+    {
+      "prefix_tokens": 24576,
+      "control_median_us": 6353.385448455811,
+      "candidate_median_us": 11751.387119293213,
+      "regression_percent": 84.97,
+      "max_abs": 0.0000476837158203125,
+      "cosine": 0.9999428987503052
+    }
+  ],
+  "deterministic_two_launches": true,
+  "serving_gate": "not run; isolated performance gate failed",
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260806T173242Z-prefill-segment16-gpu3"
+}

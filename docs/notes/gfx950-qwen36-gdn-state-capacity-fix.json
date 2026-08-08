@@ -1,0 +1,47 @@
+{
+  "accelerator": "AMD Instinct MI350X",
+  "architecture": "gfx950",
+  "date": "2026-08-03",
+  "decision": "accepted",
+  "model": "Qwen3.6-35B-A3B-FP8",
+  "quantization": {
+    "kv_cache": "FP8 E4M3",
+    "weights": "FP8 E4M3 128x128 blocks"
+  },
+  "root_cause": "Raw M12 verifier/replay assembly clamped all recurrent-state indices to slot 64 instead of the runtime state-pool capacity.",
+  "invalidated_output_throughput_tok_s": 15906.24828527345,
+    "isolated_high_slot_gate": {
+    "bit_exact": true,
+    "graph_bit_exact": true,
+    "index_range": [65, 128],
+    "patterns": ["zero", "one", "ramp", "twelve"],
+    "waves_per_workgroup": [1, 4, 8],
+        "mismatch_count": 0
+    },
+    "target_verifier_high_slot_gate": {
+        "artifact": "capacity-fix/target-verify-real-b64-high-indices.json",
+        "bit_exact": true,
+        "element_count": 3145728,
+        "index_range": [
+            65,
+            128
+        ],
+        "median_speedup": 1.7019398892162498,
+        "mismatch_count": 0,
+        "raw_median_us": 120.78100070357323,
+        "triton_median_us": 205.56200295686722
+    },
+    "serving_repeats": [
+    {"accept_length": 3.96, "gzip_bytes": 82926, "output_throughput_tok_s": 6088.41},
+    {"accept_length": 3.96, "gzip_bytes": 81473, "output_throughput_tok_s": 6222.79},
+    {"accept_length": 3.95, "gzip_bytes": 79425, "output_throughput_tok_s": 5623.37}
+  ],
+  "gsm8k": {
+    "correct": 1250,
+    "examples": 1314,
+    "latency_s": 75.91484298801515,
+    "output_throughput_tok_s": 2668.542698981569,
+    "score": 0.9512937595129376
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260803T034000Z-dflash-state-leak-isolation"
+}

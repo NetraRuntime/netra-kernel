@@ -3,6 +3,16 @@
 
 namespace netra::gfx1151 {
 
+struct alignas(8) Qwen36NormArgs {
+  void* input;
+  void* second;
+  void* output_or_weight;
+  float epsilon;
+  unsigned padding;
+};
+static_assert(sizeof(Qwen36NormArgs) == 32);
+static_assert(alignof(Qwen36NormArgs) == 8);
+
 struct alignas(8) TwoPointers {
   void* a;
   void* b;

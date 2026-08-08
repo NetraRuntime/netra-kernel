@@ -1,0 +1,107 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "input_scope": "exact Qwen3.6 B1 T8192 H32 Hg16 K128 V128 BT64 raw ASM",
+  "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
+  "method": "one counter per process launch; identical kernel dispatch shapes",
+  "units": {
+    "FETCH_SIZE": "KiB fetched from video memory per dispatch",
+    "WRITE_SIZE": "KiB written to video memory per dispatch",
+    "OccupancyPercent": "percent of device maximum",
+    "L2CacheHit": "percent",
+    "MemUnitBusy": "percent of GPUTime",
+    "WriteUnitStalled": "percent of GPUTime"
+  },
+  "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+  "kernels": [
+    {
+      "kernel": "gdn_chunk_o_bv32_gskip_pipe8_gfx1151",
+      "grid_size": 2097152,
+      "workgroup_size": 64,
+      "lds_bytes": 25088,
+      "scratch_bytes": 0,
+      "vgpr": 240,
+      "sgpr": 128,
+      "counters": {
+        "FETCH_SIZE": {
+          "samples": 1,
+          "mean": 180728.8125,
+          "min": 180728.8125,
+          "max": 180728.8125
+        },
+        "L2CacheHit": {
+          "samples": 1,
+          "mean": 64.420658,
+          "min": 64.420658,
+          "max": 64.420658
+        },
+        "LDSBankConflict": {
+          "samples": 1,
+          "mean": 52.990497,
+          "min": 52.990497,
+          "max": 52.990497
+        },
+        "MeanOccupancyPerActiveCU": {
+          "samples": 1,
+          "mean": 7.944128,
+          "min": 7.944128,
+          "max": 7.944128
+        },
+        "MemUnitBusy": {
+          "samples": 1,
+          "mean": 91.77981,
+          "min": 91.77981,
+          "max": 91.77981
+        },
+        "OccupancyPercent": {
+          "samples": 1,
+          "mean": 12.452109,
+          "min": 12.452109,
+          "max": 12.452109
+        },
+        "SQ_BUSY_CYCLES": {
+          "samples": 1,
+          "mean": 715083531.0,
+          "min": 715083531.0,
+          "max": 715083531.0
+        },
+        "SQ_INSTS_FLAT": {
+          "samples": 1,
+          "mean": 3473408.0,
+          "min": 3473408.0,
+          "max": 3473408.0
+        },
+        "SQ_INSTS_LDS": {
+          "samples": 1,
+          "mean": 33882112.0,
+          "min": 33882112.0,
+          "max": 33882112.0
+        },
+        "SQ_WAVES": {
+          "samples": 1,
+          "mean": 65536.0,
+          "min": 65536.0,
+          "max": 65536.0
+        },
+        "SQ_WAVE_CYCLES": {
+          "samples": 1,
+          "mean": 5229363880.0,
+          "min": 5229363880.0,
+          "max": 5229363880.0
+        },
+        "VALUInsts": {
+          "samples": 1,
+          "mean": 1364.0,
+          "min": 1364.0,
+          "max": 1364.0
+        },
+        "WRITE_SIZE": {
+          "samples": 1,
+          "mean": 32775.09375,
+          "min": 32775.09375,
+          "max": 32775.09375
+        }
+      }
+    }
+  ]
+}

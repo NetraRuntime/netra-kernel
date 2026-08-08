@@ -16,6 +16,7 @@ std::mutex module_mutex;
 hipModule_t module = nullptr;
 hipFunction_t stage1 = nullptr;
 hipFunction_t stage2 = nullptr;
+hipFunction_t row512 = nullptr;
 std::string loaded_path;
 thread_local std::string last_error;
 
@@ -75,6 +76,15 @@ extern "C" int netra_qwen36_argmax_f32_load(const char* hsaco_path) {
     stage1 = nullptr;
     return fail("hipModuleGetFunction(stage2)", error);
   }
+  error = hipModuleGetFunction(
+      &row512, module, "qwen36_argmax_f32_row512_gfx950");
+  if (error != hipSuccess) {
+    (void)hipModuleUnload(module);
+    module = nullptr;
+    stage1 = nullptr;
+    stage2 = nullptr;
+    return fail("hipModuleGetFunction(row512)", error);
+  }
   loaded_path = hsaco_path;
   last_error.clear();
   return 0;
@@ -93,6 +103,18 @@ extern "C" int netra_qwen36_argmax_f32_launch(
     return fail_message("argmax launch pointers must be nonnull");
   if (rows == 0 || rows > 4096)
     return fail_message("argmax rows must be in [1, 4096]");
+
+  if (rows >= 128) {
+    void* output_pointer = output_i64;
+    void* logits_pointer = const_cast<float*>(logits_f32);
+    void* row_arguments[] = {&output_pointer, &logits_pointer};
+    hipError_t error = hipModuleLaunchKernel(
+        row512, 1, rows, 1, 512, 1, 1, 0, stream, row_arguments, nullptr);
+    if (error != hipSuccess)
+      return fail("hipModuleLaunchKernel(row512)", error);
+    last_error.clear();
+    return 0;
+  }
 
   void* partial_pointer = partial_keys_u32;
   void* logits_pointer = const_cast<float*>(logits_f32);
@@ -121,6 +143,7 @@ extern "C" int netra_qwen36_argmax_f32_unload(void) {
   module = nullptr;
   stage1 = nullptr;
   stage2 = nullptr;
+  row512 = nullptr;
   loaded_path.clear();
   last_error.clear();
   return 0;

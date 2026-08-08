@@ -1,0 +1,491 @@
+--- build/experiments/attention-kv-preload-normalized-disassembly/baseline.txt	2026-07-31 13:19:25.487775634 +0000
++++ build/experiments/attention-kv-preload-normalized-disassembly/pv-pipeline.txt	2026-07-31 13:19:25.495775702 +0000
+@@ -1,9 +1,9 @@
+ 
+-build/experiments/attention-group2-kpreload/extend_attention_wmma_n64_gfx1151.hsaco:	file format elf64-amdgpu
++build/experiments/attention-group2-kpipeline/extend_attention_wmma_n64_group2_kpipeline_gfx1151.hsaco:	file format elf64-amdgpu
+ 
+ Disassembly of section .text:
+ 
+-0000000000001900 <extend_attention_wmma_n64_gfx1151>:
++0000000000001a00 <extend_attention_wmma_n64_group2_kpipeline_gfx1151>:
+ 	s_clause 0x3                                               // ADDR: BF850003
+ 	s_load_b128 s[4:7], s[0:1], null                           // ADDR: F4080100 F8000000
+ 	s_load_b128 s[8:11], s[0:1], 0x10                          // ADDR: F4080200 F8000010
+@@ -18,7 +18,7 @@
+ 	s_mov_b32 s20, s21                                         // ADDR: BE940015
+ 	s_lshl_b32 s21, s2, 6                                      // ADDR: 84158602
+ 	s_cmp_ge_u32 s21, s18                                      // ADDR: BF091215
+-	s_cbranch_scc1 9472                                        // ADDR: BFA22500 <extend_attention_wmma_n64_gfx1151+0x9454>
++	s_cbranch_scc1 9934                                        // ADDR: BFA226CE <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x9b8c>
+ 	s_lshr_b32 s23, s3, 2                                      // ADDR: 85178203
+ 	s_lshl_b32 s25, s23, 9                                     // ADDR: 84198917
+ 	s_add_u32 s26, s21, 64                                     // ADDR: 801AC015
+@@ -133,9 +133,11 @@
+ 	v_dual_mov_b32 v190, 0 :: v_dual_mov_b32 v191, 0           // ADDR: CA100080 BEBE0080
+ 	s_barrier                                                  // ADDR: BFBD0000
+ 	s_cmp_eq_u32 s43, 0                                        // ADDR: BF06802B
+-	s_cbranch_scc0 633                                         // ADDR: BFA10279 <extend_attention_wmma_n64_gfx1151+0xd30>
++	s_cbranch_scc0 813                                         // ADDR: BFA1032D <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x1000>
++	s_cmp_eq_u32 s28, 0                                        // ADDR: BF06801C
++	s_cbranch_scc0 634                                         // ADDR: BFA1027A <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0xd3c>
+ 	s_cmp_lt_u32 s28, s19                                      // ADDR: BF0A131C
+-	s_cbranch_scc0 310                                         // ADDR: BFA10136 <extend_attention_wmma_n64_gfx1151+0x82c>
++	s_cbranch_scc0 310                                         // ADDR: BFA10136 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x834>
+ 	s_add_u32 s30, s28, s29                                    // ADDR: 801E1D1C
+ 	s_add_u32 s30, s30, 0                                      // ADDR: 801E801E
+ 	s_lshl_b32 s30, s30, 3                                     // ADDR: 841E831E
+@@ -381,7 +383,7 @@
+ 	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
+ 	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
+ 	ds_store_b128 v230, v[243:246]                             // ADDR: DB7C0000 0000F3E6
+-	s_branch 321                                               // ADDR: BFA00141 <extend_attention_wmma_n64_gfx1151+0xd30>
++	s_branch 499                                               // ADDR: BFA001F3 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x1000>
+ 	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
+ 	s_add_u32 s38, s38, 0                                      // ADDR: 80268026
+ 	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
+@@ -655,6 +657,152 @@
+ 	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
+ 	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
+ 	ds_store_b128 v230, v[243:246]                             // ADDR: DB7C0000 0000F3E6
++	s_branch 177                                               // ADDR: BFA000B1 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x1000>
++	s_waitcnt vmcnt(0)                                         // ADDR: BF8903F7
++	s_add_u32 s39, s29, 0                                      // ADDR: 8027801D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[24:27]                               // ADDR: DB7C0000 000018E6
++	s_add_u32 s39, s29, 4                                      // ADDR: 8027841D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[28:31]                               // ADDR: DB7C0000 00001CE6
++	s_add_u32 s39, s29, 8                                      // ADDR: 8027881D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[48:51]                               // ADDR: DB7C0000 000030E6
++	s_add_u32 s39, s29, 12                                     // ADDR: 80278C1D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[52:55]                               // ADDR: DB7C0000 000034E6
++	s_add_u32 s39, s29, 16                                     // ADDR: 8027901D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[56:59]                               // ADDR: DB7C0000 000038E6
++	s_add_u32 s39, s29, 20                                     // ADDR: 8027941D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[60:63]                               // ADDR: DB7C0000 00003CE6
++	s_add_u32 s39, s29, 24                                     // ADDR: 8027981D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[192:195]                             // ADDR: DB7C0000 0000C0E6
++	s_add_u32 s39, s29, 28                                     // ADDR: 80279C1D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[196:199]                             // ADDR: DB7C0000 0000C4E6
++	s_add_u32 s39, s29, 32                                     // ADDR: 8027A01D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[200:203]                             // ADDR: DB7C0000 0000C8E6
++	s_add_u32 s39, s29, 36                                     // ADDR: 8027A41D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[204:207]                             // ADDR: DB7C0000 0000CCE6
++	s_add_u32 s39, s29, 40                                     // ADDR: 8027A81D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[208:211]                             // ADDR: DB7C0000 0000D0E6
++	s_add_u32 s39, s29, 44                                     // ADDR: 8027AC1D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[212:215]                             // ADDR: DB7C0000 0000D4E6
++	s_add_u32 s39, s29, 48                                     // ADDR: 8027B01D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[216:219]                             // ADDR: DB7C0000 0000D8E6
++	s_add_u32 s39, s29, 52                                     // ADDR: 8027B41D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[220:223]                             // ADDR: DB7C0000 0000DCE6
++	s_add_u32 s39, s29, 56                                     // ADDR: 8027B81D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[239:242]                             // ADDR: DB7C0000 0000EFE6
++	s_add_u32 s39, s29, 60                                     // ADDR: 8027BC1D
++	s_lshl_b32 s39, s39, 9                                     // ADDR: 84278927
++	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
++	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
++	s_lshr_b32 s41, s39, 9                                     // ADDR: 85298927
++	s_and_b32 s41, s41, 7                                      // ADDR: 8B298729
++	s_lshl_b32 s41, s41, 4                                     // ADDR: 84298429
++	v_xor_b32_e32 v230, s41, v230                              // ADDR: 3BCDCC29
++	ds_store_b128 v230, v[243:246]                             // ADDR: DB7C0000 0000F3E6
+ 	v_lshlrev_b32_e32 v231, 4, v2                              // ADDR: 31CE0484
+ 	v_add_nc_u32_e32 v231, s21, v231                           // ADDR: 4BCFCE15
+ 	v_add_nc_u32_e32 v231, v231, v3                            // ADDR: 4BCE07E7
+@@ -1711,7 +1859,7 @@
+ 	v_lshl_add_u32 v233, v4, 4, v233                           // ADDR: D64600E9 07A50904
+ 	s_add_u32 s40, s19, s21                                    // ADDR: 80281513
+ 	s_cmp_eq_u32 s28, s40                                      // ADDR: BF06281C
+-	s_cbranch_scc1 33                                          // ADDR: BFA20021 <extend_attention_wmma_n64_gfx1151+0x27e8>
++	s_cbranch_scc1 33                                          // ADDR: BFA20021 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x2ab8>
+ 	v_mul_f32_e32 v24, s20, v24                                // ADDR: 10303014
+ 	v_mul_f32_e32 v25, s20, v25                                // ADDR: 10323214
+ 	v_mul_f32_e32 v26, s20, v26                                // ADDR: 10343414
+@@ -1744,7 +1892,7 @@
+ 	v_mul_f32_e32 v213, s20, v213                              // ADDR: 11ABAA14
+ 	v_mul_f32_e32 v214, s20, v214                              // ADDR: 11ADAC14
+ 	v_mul_f32_e32 v215, s20, v215                              // ADDR: 11AFAE14
+-	s_branch 288                                               // ADDR: BFA00120 <extend_attention_wmma_n64_gfx1151+0x2c68>
++	s_branch 288                                               // ADDR: BFA00120 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x2f38>
+ 	v_mul_f32_e32 v24, s20, v24                                // ADDR: 10303014
+ 	v_add_nc_u32_e32 v235, 0, v3                               // ADDR: 4BD60680
+ 	v_add_nc_u32_e32 v235, s28, v235                           // ADDR: 4BD7D61C
+@@ -3356,9 +3504,9 @@
+ 	s_waitcnt lgkmcnt(0)                                       // ADDR: BF89FC07
+ 	s_barrier                                                  // ADDR: BFBD0000
+ 	s_cmp_eq_u32 s43, 0                                        // ADDR: BF06802B
+-	s_cbranch_scc0 505                                         // ADDR: BFA101F9 <extend_attention_wmma_n64_gfx1151+0x511c>
++	s_cbranch_scc0 505                                         // ADDR: BFA101F9 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x53ec>
+ 	s_cmp_lt_u32 s28, s19                                      // ADDR: BF0A131C
+-	s_cbranch_scc0 246                                         // ADDR: BFA100F6 <extend_attention_wmma_n64_gfx1151+0x4d18>
++	s_cbranch_scc0 246                                         // ADDR: BFA100F6 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x4fe8>
+ 	s_add_u32 s30, s28, s29                                    // ADDR: 801E1D1C
+ 	s_add_u32 s30, s30, 0                                      // ADDR: 801E801E
+ 	s_lshl_b32 s30, s30, 3                                     // ADDR: 841E831E
+@@ -3540,7 +3688,7 @@
+ 	v_add_nc_u32_e32 v230, s39, v229                           // ADDR: 4BCDCA27
+ 	v_add_nc_u32_e32 v230, 0x8000, v230                        // ADDR: 4BCDCCFF 00008000
+ 	ds_store_b128 v230, v[243:246]                             // ADDR: DB7C0000 0000F3E6
+-	s_branch 257                                               // ADDR: BFA00101 <extend_attention_wmma_n64_gfx1151+0x511c>
++	s_branch 257                                               // ADDR: BFA00101 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x53ec>
+ 	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
+ 	s_add_u32 s38, s38, 0                                      // ADDR: 80268026
+ 	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
+@@ -3766,6 +3914,241 @@
+ 	v_lshl_add_u32 v233, v4, 4, v233                           // ADDR: D64600E9 07A50904
+ 	s_waitcnt lgkmcnt(0)                                       // ADDR: BF89FC07
+ 	s_barrier                                                  // ADDR: BFBD0000
++	s_add_u32 s28, s28, 64                                     // ADDR: 801CC01C
++	s_cmp_lt_u32 s28, s27                                      // ADDR: BF0A1B1C
++	s_cbranch_scc0 280                                         // ADDR: BFA10118 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x58b0>
++	s_cmp_eq_u32 s43, 0                                        // ADDR: BF06802B
++	s_cbranch_scc0 278                                         // ADDR: BFA10116 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x58b0>
++	s_cmp_lt_u32 s28, s19                                      // ADDR: BF0A131C
++	s_cbranch_scc0 132                                         // ADDR: BFA10084 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x5670>
++	s_add_u32 s30, s28, s29                                    // ADDR: 801E1D1C
++	s_lshl_b32 s30, s30, 3                                     // ADDR: 841E831E
++	s_load_b64 s[44:45], s[16:17], s30                         // ADDR: F4040B08 3C000000
++	s_load_b64 s[46:47], s[16:17], s30 offset:0x20             // ADDR: F4040B88 3C000020
++	s_load_b64 s[48:49], s[16:17], s30 offset:0x40             // ADDR: F4040C08 3C000040
++	s_load_b64 s[50:51], s[16:17], s30 offset:0x60             // ADDR: F4040C88 3C000060
++	s_load_b64 s[52:53], s[16:17], s30 offset:0x80             // ADDR: F4040D08 3C000080
++	s_load_b64 s[54:55], s[16:17], s30 offset:0xa0             // ADDR: F4040D88 3C0000A0
++	s_load_b64 s[56:57], s[16:17], s30 offset:0xc0             // ADDR: F4040E08 3C0000C0
++	s_load_b64 s[58:59], s[16:17], s30 offset:0xe0             // ADDR: F4040E88 3C0000E0
++	s_load_b64 s[60:61], s[16:17], s30 offset:0x100            // ADDR: F4040F08 3C000100
++	s_load_b64 s[62:63], s[16:17], s30 offset:0x120            // ADDR: F4040F88 3C000120
++	s_load_b64 s[64:65], s[16:17], s30 offset:0x140            // ADDR: F4041008 3C000140
++	s_load_b64 s[66:67], s[16:17], s30 offset:0x160            // ADDR: F4041088 3C000160
++	s_load_b64 s[68:69], s[16:17], s30 offset:0x180            // ADDR: F4041108 3C000180
++	s_load_b64 s[70:71], s[16:17], s30 offset:0x1a0            // ADDR: F4041188 3C0001A0
++	s_load_b64 s[72:73], s[16:17], s30 offset:0x1c0            // ADDR: F4041208 3C0001C0
++	s_load_b64 s[74:75], s[16:17], s30 offset:0x1e0            // ADDR: F4041288 3C0001E0
++	s_waitcnt lgkmcnt(0)                                       // ADDR: BF89FC07
++	s_lshl_b32 s38, s44, 10                                    // ADDR: 84268A2C
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[24:27], v229, s[32:33]                  // ADDR: DC5E0000 182000E5
++	s_lshl_b32 s38, s46, 10                                    // ADDR: 84268A2E
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[28:31], v229, s[32:33]                  // ADDR: DC5E0000 1C2000E5
++	s_lshl_b32 s38, s48, 10                                    // ADDR: 84268A30
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[48:51], v229, s[32:33]                  // ADDR: DC5E0000 302000E5
++	s_lshl_b32 s38, s50, 10                                    // ADDR: 84268A32
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[52:55], v229, s[32:33]                  // ADDR: DC5E0000 342000E5
++	s_lshl_b32 s38, s52, 10                                    // ADDR: 84268A34
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[56:59], v229, s[32:33]                  // ADDR: DC5E0000 382000E5
++	s_lshl_b32 s38, s54, 10                                    // ADDR: 84268A36
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[60:63], v229, s[32:33]                  // ADDR: DC5E0000 3C2000E5
++	s_lshl_b32 s38, s56, 10                                    // ADDR: 84268A38
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[192:195], v229, s[32:33]                // ADDR: DC5E0000 C02000E5
++	s_lshl_b32 s38, s58, 10                                    // ADDR: 84268A3A
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[196:199], v229, s[32:33]                // ADDR: DC5E0000 C42000E5
++	s_lshl_b32 s38, s60, 10                                    // ADDR: 84268A3C
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[200:203], v229, s[32:33]                // ADDR: DC5E0000 C82000E5
++	s_lshl_b32 s38, s62, 10                                    // ADDR: 84268A3E
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[204:207], v229, s[32:33]                // ADDR: DC5E0000 CC2000E5
++	s_lshl_b32 s38, s64, 10                                    // ADDR: 84268A40
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[208:211], v229, s[32:33]                // ADDR: DC5E0000 D02000E5
++	s_lshl_b32 s38, s66, 10                                    // ADDR: 84268A42
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[212:215], v229, s[32:33]                // ADDR: DC5E0000 D42000E5
++	s_lshl_b32 s38, s68, 10                                    // ADDR: 84268A44
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[216:219], v229, s[32:33]                // ADDR: DC5E0000 D82000E5
++	s_lshl_b32 s38, s70, 10                                    // ADDR: 84268A46
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[220:223], v229, s[32:33]                // ADDR: DC5E0000 DC2000E5
++	s_lshl_b32 s38, s72, 10                                    // ADDR: 84268A48
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[239:242], v229, s[32:33]                // ADDR: DC5E0000 EF2000E5
++	s_lshl_b32 s38, s74, 10                                    // ADDR: 84268A4A
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s12, s38                                    // ADDR: 8020260C
++	s_addc_u32 s33, s13, 0                                     // ADDR: 8221800D
++	global_load_b128 v[243:246], v229, s[32:33]                // ADDR: DC5E0000 F32000E5
++	s_branch 144                                               // ADDR: BFA00090 <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x58b0>
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 0                                      // ADDR: 80268026
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[24:27], v229, s[32:33]                  // ADDR: DC5E0000 182000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 4                                      // ADDR: 80268426
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[28:31], v229, s[32:33]                  // ADDR: DC5E0000 1C2000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 8                                      // ADDR: 80268826
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[48:51], v229, s[32:33]                  // ADDR: DC5E0000 302000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 12                                     // ADDR: 80268C26
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[52:55], v229, s[32:33]                  // ADDR: DC5E0000 342000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 16                                     // ADDR: 80269026
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[56:59], v229, s[32:33]                  // ADDR: DC5E0000 382000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 20                                     // ADDR: 80269426
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[60:63], v229, s[32:33]                  // ADDR: DC5E0000 3C2000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 24                                     // ADDR: 80269826
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[192:195], v229, s[32:33]                // ADDR: DC5E0000 C02000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 28                                     // ADDR: 80269C26
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[196:199], v229, s[32:33]                // ADDR: DC5E0000 C42000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 32                                     // ADDR: 8026A026
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[200:203], v229, s[32:33]                // ADDR: DC5E0000 C82000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 36                                     // ADDR: 8026A426
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[204:207], v229, s[32:33]                // ADDR: DC5E0000 CC2000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 40                                     // ADDR: 8026A826
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[208:211], v229, s[32:33]                // ADDR: DC5E0000 D02000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 44                                     // ADDR: 8026AC26
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[212:215], v229, s[32:33]                // ADDR: DC5E0000 D42000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 48                                     // ADDR: 8026B026
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[216:219], v229, s[32:33]                // ADDR: DC5E0000 D82000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 52                                     // ADDR: 8026B426
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[220:223], v229, s[32:33]                // ADDR: DC5E0000 DC2000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 56                                     // ADDR: 8026B826
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[239:242], v229, s[32:33]                // ADDR: DC5E0000 EF2000E5
++	s_add_u32 s38, s28, s29                                    // ADDR: 80261D1C
++	s_add_u32 s38, s38, 60                                     // ADDR: 8026BC26
++	s_sub_u32 s38, s38, s19                                    // ADDR: 80A61326
++	s_lshl_b32 s38, s38, 10                                    // ADDR: 84268A26
++	s_add_u32 s38, s38, s25                                    // ADDR: 80261926
++	s_add_u32 s32, s6, s38                                     // ADDR: 80202606
++	s_addc_u32 s33, s7, 0                                      // ADDR: 82218007
++	global_load_b128 v[243:246], v229, s[32:33]                // ADDR: DC5E0000 F32000E5
+ 	ds_load_b128 v[8:11], v233                                 // ADDR: DBFC0000 080000E9
+ 	s_waitcnt lgkmcnt(0)                                       // ADDR: BF89FC07
+ 	ds_swizzle_b32 v12, v8 offset:swizzle(SWAP,16)             // ADDR: D8D4401F 0C000008
+@@ -4767,9 +5150,8 @@
+ 	s_waitcnt lgkmcnt(0)                                       // ADDR: BF89FC07
+ 	v_wmma_f32_16x16x16_bf16 v[184:191], v[8:15], v[225:232], v[184:191]// ADDR: CC4140B8 1EE3C308
+ 	v_lshlrev_b32_e32 v229, 4, v1                              // ADDR: 31CA0284
+-	s_add_u32 s28, s28, 64                                     // ADDR: 801CC01C
+ 	s_cmp_lt_u32 s28, s27                                      // ADDR: BF0A1B1C
+-	s_cbranch_scc1 58667                                       // ADDR: BFA2E52B <extend_attention_wmma_n64_gfx1151+0x340>
++	s_cbranch_scc1 58205                                       // ADDR: BFA2E35D <extend_attention_wmma_n64_group2_kpipeline_gfx1151+0x340>
+ 	v_rcp_f32_e32 v56, v40                                     // ADDR: 7E705528
+ 	v_rcp_f32_e32 v57, v41                                     // ADDR: 7E725529
+ 	v_rcp_f32_e32 v58, v42                                     // ADDR: 7E74552A

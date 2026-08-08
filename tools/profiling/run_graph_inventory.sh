@@ -13,7 +13,7 @@ for attempt in $(seq 1 360); do
 done
 run_case() {
   local name=$1 input_len=$2 output_len=$3
-  python "${repo_dir}/tools/profiling/request_scenario.py" \
+  python "${repo_dir}/scripts/rocm/tools/profiling/request_scenario.py" \
     --url "${url}/generate" --input-len "${input_len}" --output-len "${output_len}" \
     --seed "gfx1151-graph-correctness-${name}" --label "${name}-${graph_mode}" \
     --graph-mode "${graph_mode}" --dflash-mode disabled --stream \
@@ -21,7 +21,7 @@ run_case() {
     2>"${out_dir}/${name}.stderr"
 }
 # Unique warmup input prevents any measured request from becoming cached.
-python "${repo_dir}/tools/profiling/request_scenario.py" \
+python "${repo_dir}/scripts/rocm/tools/profiling/request_scenario.py" \
   --url "${url}/generate" --input-len 7 --output-len 4 \
   --seed gfx1151-graph-warmup --label graph-warmup \
   --graph-mode "${graph_mode}" --dflash-mode disabled --stream \

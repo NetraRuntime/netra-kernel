@@ -65,21 +65,46 @@ mxfp4_linear_decode_n2048_block128_reduce_gfx1151:
 	v_add_nc_u32_e32 v1, s14, v0
 	v_lshlrev_b32_e32 v7, 2, v1
 	v_mov_b32_e32 v2, 0
-	s_mov_b32 s16, 128
-.Lreduce_block:
-	global_load_b32 v3, v7, s[4:5]
-	global_load_ubyte v4, v1, s[6:7]
-	s_waitcnt vmcnt(0)
-	v_lshlrev_b32_e32 v4, 23, v4
-	v_fmac_f32_e32 v2, v3, v4
-	s_add_u32 s4, s4, 8192
-	s_addc_u32 s5, s5, 0
-	s_add_u32 s6, s6, 2048
-	s_addc_u32 s7, s7, 0
-	s_sub_u32 s16, s16, 1
-	s_waitcnt_depctr 0
-	s_cmp_lg_u32 s16, 0
-	s_cbranch_scc1 .Lreduce_block
+// Double-buffer adjacent block loads while preserving 128-FMA order.
+global_load_b32 v3, v7, s[4:5]
+global_load_ubyte v4, v1, s[6:7]
+s_add_u32 s4, s4, 8192
+s_addc_u32 s5, s5, 0
+s_add_u32 s6, s6, 2048
+s_addc_u32 s7, s7, 0
+s_mov_b32 s16, 63
+.Lreduce_pair:
+global_load_b32 v8, v7, s[4:5]
+global_load_ubyte v9, v1, s[6:7]
+s_add_u32 s4, s4, 8192
+s_addc_u32 s5, s5, 0
+s_add_u32 s6, s6, 2048
+s_addc_u32 s7, s7, 0
+s_waitcnt vmcnt(2)
+v_lshlrev_b32_e32 v4, 23, v4
+v_fmac_f32_e32 v2, v3, v4
+
+global_load_b32 v3, v7, s[4:5]
+global_load_ubyte v4, v1, s[6:7]
+s_add_u32 s4, s4, 8192
+s_addc_u32 s5, s5, 0
+s_add_u32 s6, s6, 2048
+s_addc_u32 s7, s7, 0
+s_waitcnt vmcnt(2)
+v_lshlrev_b32_e32 v9, 23, v9
+v_fmac_f32_e32 v2, v8, v9
+s_sub_u32 s16, s16, 1
+s_cmp_lg_u32 s16, 0
+s_cbranch_scc1 .Lreduce_pair
+
+global_load_b32 v8, v7, s[4:5]
+global_load_ubyte v9, v1, s[6:7]
+s_waitcnt vmcnt(2)
+v_lshlrev_b32_e32 v4, 23, v4
+v_fmac_f32_e32 v2, v3, v4
+s_waitcnt vmcnt(0)
+v_lshlrev_b32_e32 v9, 23, v9
+v_fmac_f32_e32 v2, v8, v9
 
 	// Round-to-nearest-even FP32 to BF16.
 	v_lshrrev_b32_e32 v6, 16, v2

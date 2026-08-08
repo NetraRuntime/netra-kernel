@@ -1,0 +1,74 @@
+{
+  "status": "real_checkpoint_validated_negative_not_integrated",
+  "target": "gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "wavefront_size": 64,
+  "weight_quantization": "FP8_E4M3_block_128x128",
+  "capture": {
+    "rows": 1024,
+    "valid_sorted_ids": 18624,
+    "m64_blocks": 291,
+    "hidden": 2048,
+    "intermediate": 512
+  },
+  "variants": {
+    "one_wg_n128_per_wave_agpr_accumulation": {
+      "w13_silu_quant_median_us": 306.704,
+      "complete_pipeline_median_us": 404.385,
+      "activation_fp8_mismatches": 101625,
+      "activation_fp8_elements": 4718592,
+      "activation_scale_max_abs": 0.0000348776,
+      "full_structural_max_abs": 0.000849761,
+      "full_structural_cosine": 0.999973,
+      "full_aiter_max_abs": 0.000976562,
+      "full_aiter_cosine": 0.999965,
+      "lds_bytes": 65536,
+      "combined_vgpr_agpr_count": 448,
+      "sgpr_count": 68,
+      "scratch_bytes": 0
+    },
+    "two_wg_n64_per_wave_packed_vgpr_accumulation": {
+      "w13_silu_quant_median_us": 231.083,
+      "complete_pipeline_median_us": 326.683,
+      "activation_fp8_mismatches": 101630,
+      "activation_fp8_elements": 4718592,
+      "activation_scale_max_abs": 0.0000348776,
+      "full_structural_max_abs": 0.000849761,
+      "full_structural_cosine": 0.999973,
+      "full_aiter_max_abs": 0.000976562,
+      "full_aiter_cosine": 0.999965,
+      "lds_bytes": 32768,
+      "combined_vgpr_agpr_count": 416,
+      "sgpr_count": 68,
+      "scratch_bytes": 0
+    },
+    "one_wg_persistent_two_n256_phases": {
+      "w13_silu_quant_median_us": 303.023,
+      "complete_pipeline_median_us": 398.884,
+      "activation_fp8_mismatches": 101630,
+      "activation_fp8_elements": 4718592,
+      "full_structural_cosine": 0.999973,
+      "full_aiter_cosine": 0.999965
+    },
+    "retained_hybrid_raw_producer": {
+      "w13_silu_quant_median_us": 148.9,
+      "complete_pipeline_median_us": 250.061,
+      "activation_fp8_mismatches": 101625
+    },
+    "packaged_aiter_complete_oracle": {
+      "complete_median_us": 223.323
+    }
+  },
+  "debug_validation": {
+    "gate_projection_sample_bf16_mismatches": 149,
+    "gate_projection_sample_bf16_elements": 27136,
+    "gate_projection_sample_cosine": 0.999999972,
+    "fixed_defect": "up LDS consumer used cooperative lane*8 coordinate instead of native wave*8192 + lane*16 coordinate"
+  },
+  "decision": {
+    "integrated": false,
+    "reason": "Complete-layer correct, but slower than the retained raw producer and packaged AITER oracle; two variants also miss the frozen activation-byte gate by three bytes.",
+    "next_requirement": "Fuse W13 activation production, W2, route weighting, and reduction without global activation traffic or per-accumulator AGPR transfers."
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T000500Z-gateup-waven-highreg-r1-gpu6"
+}

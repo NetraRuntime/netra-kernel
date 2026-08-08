@@ -8,7 +8,9 @@ profiler=${rocm}/bin/rocprofv3
 build_dir=${repo_dir}/build/experiments/bf16-qkv
 raw_binary=${build_dir}/raw-counter-driver
 rocblas_binary=${build_dir}/rocblas-counter-driver
-raw_hsaco=${repo_dir}/build/sglang/bf16_qkv_decode_wave4_gfx1151.hsaco
+raw_stem=${NETRA_QKV_STEM:-bf16_qkv_decode_wave1_gfx1151}
+raw_hsaco=${repo_dir}/build/sglang/${raw_stem}.hsaco
+raw_symbol=${NETRA_QKV_SYMBOL:-${raw_stem}}
 
 [[ $(hostname) == Netra ]] || { echo "must run in Netra" >&2; exit 1; }
 [[ ! -e $out_dir ]] || { echo "refusing to overwrite $out_dir" >&2; exit 1; }
@@ -25,6 +27,8 @@ mkdir -p "$out_dir" "$build_dir"
   "${repo_dir}/scripts/rocm/harness/gfx1151/dense/bf16_qkv_rocblas_counter_driver.hip" \
   -L"${rocm}/lib" -lrocblas -o "$rocblas_binary"
 
+raw_grid=${NETRA_QKV_GRID:-1152}
+raw_block=${NETRA_QKV_BLOCK:-256}
 {
   echo target=gfx1151
   echo measurement_status=measured
@@ -33,6 +37,10 @@ mkdir -p "$out_dir" "$build_dir"
   echo profiler="$profiler"
   echo signal_handlers=disabled
   echo collection=one_counter_per_fresh_process
+  echo raw_stem="$raw_stem"
+  echo raw_symbol="$raw_symbol"
+  echo raw_grid="$raw_grid"
+  echo raw_block="$raw_block"
   sha256sum "$raw_hsaco"
   "$profiler" --version
 } > "$out_dir/manifest.txt"
@@ -57,13 +65,13 @@ profile_variant() {
   done
 }
 
-profile_variant raw "$raw_binary" "$raw_hsaco" 1
+profile_variant raw "$raw_binary" "$raw_hsaco" "$raw_symbol" "$raw_grid" "$raw_block" 1
 profile_variant rocblas "$rocblas_binary" 1
 
 python=/root/sglvenv1151/bin/python
 summarizer=${repo_dir}/tools/profiling/summarize_rocprof_counters.py
 "$python" "$summarizer" "$out_dir/raw" \
-  --kernel-prefix bf16_qkv_decode_wave4_gfx1151 \
+  --kernel-prefix "$raw_symbol" \
   --input-scope "exact Qwen3.6 M1 N9216 K2048 BF16 raw ASM on gfx1151" \
   --method "one counter per fresh process; one warmup and one measured dispatch" \
   --out "$out_dir/raw-summary.json" > "$out_dir/raw-summary.stdout"

@@ -45,7 +45,7 @@ Reject this page-16 specialization and remove its temporary production dispatch.
 
 ## Reproduction
 
-- `scripts/rocm/kernels/gfx1151/attention/experiments/extend_attention_wmma_n64_page16_gfx1151.s`
+- `kernels/gfx1151/attention/experiments/extend_attention_wmma_n64_page16_gfx1151.s`
 - `scripts/rocm/tools/build/build_extend_attention_page16_experiment.sh`
 - `scripts/rocm/tools/benchmark/benchmark_extend_attention_variants_shared_output.py`
 - `scripts/rocm/tools/profiling/profile_extend_attention_page16_counters.sh`

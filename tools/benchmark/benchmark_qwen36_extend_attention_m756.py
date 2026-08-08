@@ -19,7 +19,10 @@ import torch
 import triton
 import triton.language as tl
 
-from sglang.srt.layers.attention.triton_ops.extend_attention import _fwd_kernel
+from sglang.srt.layers.attention.triton_ops.extend_attention import (
+    _fwd_kernel,
+    extend_attention_fwd,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,6 +45,18 @@ def parse_args() -> argparse.Namespace:
         help="kernel symbol in --raw-hsaco",
     )
     parser.add_argument(
+        "--raw-m128-hsaco",
+        type=Path,
+        help="replay the exact one-sequence M8192/N128/W8 Triton ABI",
+    )
+    parser.add_argument(
+        "--raw-m128-symbol",
+        default=(
+            "qwen36_prefill_attention_m8192_m128n128_w8_exact_"
+            "gqa8_fp8kv_gfx950"
+        ),
+    )
+    parser.add_argument(
         "--grouped-gqa4",
         action="store_true",
         help="screen one 4-wave workgroup per sequence/KV head",
@@ -50,6 +65,26 @@ def parse_args() -> argparse.Namespace:
         "--grouped-gqa8",
         action="store_true",
         help="screen grouped target-attention GQA8 tiles with native FP8 KV",
+    )
+    parser.add_argument(
+        "--grouped-prefill-gqa8",
+        action="store_true",
+        help="screen exact M8192 grouped-head GQA8 prefill tiles",
+    )
+    parser.add_argument(
+        "--grouped-prefill-gqa8-sizes",
+        default="2,4,8",
+        help="comma-separated query-head group sizes dividing the GQA8 group",
+    )
+    parser.add_argument(
+        "--grouped-gqa4-fp8kv",
+        action="store_true",
+        help="screen grouped draft-attention GQA4 tiles with native FP8 KV",
+    )
+    parser.add_argument(
+        "--grouped-gqa4-fp8kv-sizes",
+        default="1,2,4",
+        help="comma-separated query-head group sizes dividing the GQA4 group",
     )
     parser.add_argument(
         "--grouped-gqa8-sizes",
@@ -81,9 +116,23 @@ def parse_args() -> argparse.Namespace:
         default="qwen36_extend_attention_m16_gqa8_fp8kv_gfx950",
     )
     parser.add_argument(
+        "--grouped-gqa8-raw-grid-x",
+        type=int,
+        help="override raw grouped GQA8 grid.x for segmented prefill experiments",
+    )
+    parser.add_argument(
         "--grouped-qo-indptr-int64",
         action="store_true",
         help="replay the live piecewise-graph int64 qo_indptr ABI",
+    )
+    parser.add_argument(
+        "--quantize-cache-fp8",
+        action="store_true",
+        help=(
+            "convert the retained compact BF16 cache tensors to E4M3 and "
+            "recompute the deployed Triton oracle; checkpoint tensors are "
+            "not modified"
+        ),
     )
     parser.add_argument(
         "--variants",
@@ -183,7 +232,7 @@ def _grouped_gqa4_fwd_kernel(
                 mask=mask_n[None, :],
                 other=0.0,
             )
-            qk = tl.dot(q, k, out_dtype=tl.float32) * sm_scale
+            qk = tl.dot(q.to(k.dtype), k, out_dtype=tl.float32) * sm_scale
             qk = tl.where(final_mask, qk, float("-inf"))
             row_max = tl.max(qk, axis=1)
             row_max = tl.where(row_max == float("-inf"), -1.0e20, row_max)
@@ -276,10 +325,17 @@ def _grouped_gqa8_fp8kv_fwd_kernel(
     HEAD_DIM: tl.constexpr,
     KV_GROUP_NUM: tl.constexpr,
     SLIDING_WINDOW_SIZE: tl.constexpr,
+    TOKENS_PER_HEAD: tl.constexpr,
+    PREFILL_SEGMENTED: tl.constexpr,
 ):
     """Qwen target GQA8 attention with native E4M3 prefix K/V."""
 
-    cur_seq = tl.program_id(0)
+    if PREFILL_SEGMENTED:
+        cur_seq = 0
+        segment_start = tl.program_id(0) * TOKENS_PER_HEAD
+    else:
+        cur_seq = tl.program_id(0)
+        segment_start = 0
     cur_kv_head = tl.program_id(1)
     cur_q_head_group = tl.program_id(2)
     q_start = tl.load(qo_indptr + cur_seq)
@@ -288,8 +344,8 @@ def _grouped_gqa8_fp8kv_fwd_kernel(
     prefix_len = tl.load(kv_indptr + cur_seq + 1) - kv_start
 
     offs_flat_m = tl.arange(0, GROUPED_M)
-    offs_token = offs_flat_m & 15
-    offs_group_head = offs_flat_m >> 4
+    offs_token = segment_start + (offs_flat_m % TOKENS_PER_HEAD)
+    offs_group_head = offs_flat_m // TOKENS_PER_HEAD
     offs_d = tl.arange(0, HEAD_DIM)
     offs_n = tl.arange(0, 64)
     mask_m = offs_token < q_len
@@ -351,33 +407,37 @@ def _grouped_gqa8_fp8kv_fwd_kernel(
             )
             e_max = next_max
 
-    mask_n = offs_n < q_len
-    final_mask = mask_m[:, None] & mask_n[None, :]
-    final_mask &= offs_token[:, None] >= offs_n[None, :]
-    k_offsets = (
-        (q_start + offs_n[None, :]) * stride_kbs
-        + cur_kv_head * stride_kh
-        + offs_d[:, None]
-    )
-    k = tl.load(k_extend + k_offsets, mask=mask_n[None, :], other=0.0)
-    qk = tl.dot(q.to(k.dtype), k, out_dtype=tl.float32) * sm_scale
-    qk = tl.where(final_mask, qk, float("-inf"))
-    row_max = tl.max(qk, axis=1)
-    row_max = tl.where(row_max == float("-inf"), -1.0e20, row_max)
-    next_max = tl.maximum(row_max, e_max)
-    rescale = tl.exp(e_max - next_max)
-    probabilities = tl.exp(qk - next_max[:, None])
-    deno = deno * rescale + tl.sum(probabilities, axis=1)
+    extension_end = tl.minimum(q_len, segment_start + TOKENS_PER_HEAD)
+    for start_n in range(0, extension_end, 64):
+        start_n = tl.multiple_of(start_n, 64)
+        mask_n = start_n + offs_n < extension_end
+        final_mask = mask_m[:, None] & mask_n[None, :]
+        final_mask &= offs_token[:, None] >= start_n + offs_n[None, :]
+        k_offsets = (
+            (q_start + start_n + offs_n[None, :]) * stride_kbs
+            + cur_kv_head * stride_kh
+            + offs_d[:, None]
+        )
+        k = tl.load(k_extend + k_offsets, mask=mask_n[None, :], other=0.0)
+        qk = tl.dot(q.to(k.dtype), k, out_dtype=tl.float32) * sm_scale
+        qk = tl.where(final_mask, qk, float("-inf"))
+        row_max = tl.max(qk, axis=1)
+        row_max = tl.where(row_max == float("-inf"), -1.0e20, row_max)
+        next_max = tl.maximum(row_max, e_max)
+        rescale = tl.exp(e_max - next_max)
+        probabilities = tl.exp(qk - next_max[:, None])
+        deno = deno * rescale + tl.sum(probabilities, axis=1)
 
-    v_offsets = (
-        (q_start + offs_n[:, None]) * stride_vbs
-        + cur_kv_head * stride_vh
-        + offs_d[None, :]
-    )
-    v = tl.load(v_extend + v_offsets, mask=mask_n[:, None], other=0.0)
-    acc = acc * rescale[:, None] + tl.dot(
-        probabilities.to(v.dtype), v, out_dtype=tl.float32
-    )
+        v_offsets = (
+            (q_start + start_n + offs_n[:, None]) * stride_vbs
+            + cur_kv_head * stride_vh
+            + offs_d[None, :]
+        )
+        v = tl.load(v_extend + v_offsets, mask=mask_n[:, None], other=0.0)
+        acc = acc * rescale[:, None] + tl.dot(
+            probabilities.to(v.dtype), v, out_dtype=tl.float32
+        )
+        e_max = next_max
 
     output_offsets = (
         (q_start + offs_token[:, None]) * stride_obs
@@ -522,6 +582,78 @@ class RawHipModule:
             "hipModuleLaunchKernel",
         )
 
+    def launch_exact_m128(
+        self,
+        *,
+        q: torch.Tensor,
+        k_extend: torch.Tensor,
+        v_extend: torch.Tensor,
+        output: torch.Tensor,
+        k_buffer: torch.Tensor,
+        v_buffer: torch.Tensor,
+        qo_indptr: torch.Tensor,
+        kv_indptr: torch.Tensor,
+        kv_indices: torch.Tensor,
+        sm_scale: float,
+        kv_group_num: int,
+        heads: int,
+        blocks_m: int,
+    ) -> None:
+        """Launch the exact deployed M128/N128/W8 ABI.
+
+        The final two null pointers are Triton's hidden profile-scratch
+        arguments. All model tensors and scalar strides retain their deployed
+        BF16/native-E4M3 contract.
+        """
+        values: list[ctypes._SimpleCData] = [
+            self._device_pointer(q),
+            self._device_pointer(k_extend),
+            self._device_pointer(v_extend),
+            self._device_pointer(output),
+            self._device_pointer(k_buffer),
+            self._device_pointer(v_buffer),
+            self._device_pointer(qo_indptr),
+            self._device_pointer(kv_indptr),
+            self._device_pointer(kv_indices),
+            ctypes.c_float(sm_scale),
+            ctypes.c_float(1.0),
+            ctypes.c_float(1.0),
+            ctypes.c_int32(kv_group_num),
+            ctypes.c_int32(q.stride(0)),
+            ctypes.c_int32(q.stride(1)),
+            ctypes.c_int32(k_extend.stride(0)),
+            ctypes.c_int32(k_extend.stride(1)),
+            ctypes.c_int32(v_extend.stride(0)),
+            ctypes.c_int32(v_extend.stride(1)),
+            ctypes.c_int32(output.stride(0)),
+            ctypes.c_int32(output.stride(1)),
+            ctypes.c_int32(k_buffer.stride(0)),
+            ctypes.c_int32(k_buffer.stride(1)),
+            ctypes.c_int32(v_buffer.stride(0)),
+            ctypes.c_int32(v_buffer.stride(1)),
+            ctypes.c_void_p(),
+            ctypes.c_void_p(),
+        ]
+        arguments = (ctypes.c_void_p * len(values))(
+            *(ctypes.cast(ctypes.byref(value), ctypes.c_void_p) for value in values)
+        )
+        self._check(
+            self._hip.hipModuleLaunchKernel(
+                self._function,
+                1,
+                heads,
+                blocks_m,
+                512,
+                1,
+                1,
+                65536,
+                ctypes.c_void_p(torch.cuda.current_stream().cuda_stream),
+                arguments,
+                None,
+            ),
+            "hipModuleLaunchKernel(exact_m128)",
+        )
+
     def launch_grouped_gqa4(
         self,
         *,
@@ -588,6 +720,7 @@ class RawHipModule:
         batch_size: int,
         kv_heads: int,
         q_head_groups: int,
+        grid_x: int | None = None,
     ) -> None:
         values: list[ctypes._SimpleCData] = [
             self._device_pointer(q),
@@ -600,6 +733,7 @@ class RawHipModule:
             self._device_pointer(kv_indptr),
             self._device_pointer(kv_indices),
             ctypes.c_float(sm_scale),
+            ctypes.c_uint32(qo_indptr.element_size()),
             ctypes.c_void_p(),
             ctypes.c_void_p(),
         ]
@@ -609,7 +743,7 @@ class RawHipModule:
         self._check(
             self._hip.hipModuleLaunchKernel(
                 self._function,
-                batch_size,
+                batch_size if grid_x is None else grid_x,
                 kv_heads,
                 q_head_groups,
                 512,
@@ -634,15 +768,26 @@ def evaluate_launch(
     for _ in range(warmup):
         launch()
     torch.cuda.synchronize()
-    first = output.clone()
+
+    # Poison between independent launches so a no-op or partial raw kernel
+    # cannot inherit a prior variant's output and falsely pass correctness.
+    output.fill_(float("nan"))
     launch()
     torch.cuda.synchronize()
-    deterministic = bool(torch.equal(first, output))
+    unwritten_elements = int(torch.isnan(output).sum().item())
+    first = output.clone()
+
+    output.fill_(float("nan"))
+    launch()
+    torch.cuda.synchronize()
+    deterministic = unwritten_elements == 0 and bool(torch.equal(first, output))
 
     actual_f32 = output.float()
     expected_f32 = expected.float()
     delta = actual_f32 - expected_f32
     absolute_delta = delta.abs()
+    finite_pair = torch.isfinite(actual_f32) & torch.isfinite(expected_f32)
+    finite_absolute_delta = absolute_delta[finite_pair]
     worst_flat_index = int(absolute_delta.reshape(-1).argmax().item())
     relative_delta = absolute_delta / expected_f32.abs().clamp_min(1.0e-6)
     applicable_relative = ~(
@@ -663,12 +808,24 @@ def evaluate_launch(
         "worst_flat_index": worst_flat_index,
         "nan_count": int(torch.isnan(actual_f32).sum().item()),
         "inf_count": int(torch.isinf(actual_f32).sum().item()),
+        "finite_pair_count": int(finite_pair.sum().item()),
+        "finite_max_abs": (
+            float(finite_absolute_delta.max().item())
+            if bool(finite_pair.any().item())
+            else None
+        ),
+        "finite_mean_abs": (
+            float(finite_absolute_delta.mean().item())
+            if bool(finite_pair.any().item())
+            else None
+        ),
         "cosine": float(
             torch.nn.functional.cosine_similarity(
                 actual_f32.reshape(1, -1), expected_f32.reshape(1, -1)
             ).item()
         ),
         "deterministic_two_launches": deterministic,
+        "unwritten_elements": unwritten_elements,
     }
 
     timings: list[float] = []
@@ -704,6 +861,9 @@ def main() -> None:
     v_extend = tensors["v_extend"]
     k_buffer = tensors["k_buffer"]
     v_buffer = tensors["v_buffer"]
+    if args.quantize_cache_fp8:
+        k_buffer = k_buffer.to(torch.float8_e4m3fn)
+        v_buffer = v_buffer.to(torch.float8_e4m3fn)
     qo_indptr = tensors["qo_indptr"]
     if args.grouped_qo_indptr_int64:
         qo_indptr = qo_indptr.to(torch.int64)
@@ -721,7 +881,36 @@ def main() -> None:
     head_dim = q.shape[-1]
     sm_scale = 1.0 / math.sqrt(q.shape[-1])
     output = torch.empty_like(q)
-    expected_device = expected.cuda()
+    if args.quantize_cache_fp8:
+        expected_device = torch.empty_like(q)
+        extend_attention_fwd(
+            q,
+            k_extend,
+            v_extend,
+            expected_device,
+            k_buffer,
+            v_buffer,
+            qo_indptr,
+            kv_indptr,
+            kv_indices,
+            custom_mask,
+            True,
+            mask_indptr,
+            max_len_extend,
+            1.0,
+            1.0,
+            sm_scale=sm_scale,
+            logit_cap=0.0,
+            skip_prefix_custom_mask=True,
+            sliding_window_size=args.sliding_window_size,
+            sinks=sinks,
+            window_kv_offsets=window_kv_offsets,
+            xai_temperature_len=-1,
+        )
+        torch.cuda.synchronize()
+        expected_device = expected_device.clone()
+    else:
+        expected_device = expected.cuda()
 
     results: list[dict[str, object]] = []
     for encoded in (value for value in args.variants.split(",") if value):
@@ -811,6 +1000,139 @@ def main() -> None:
         results.append(item)
         print(json.dumps(item, sort_keys=True), flush=True)
 
+    if args.raw_m128_hsaco is not None:
+        if (
+            batch_size != 1
+            or max_len_extend != 8192
+            or kv_group_num != 8
+            or head_dim != 256
+        ):
+            raise ValueError(
+                "--raw-m128-hsaco requires one M8192 sequence and GQA8/D256"
+            )
+        raw_qo_indptr = (
+            qo_indptr
+            if qo_indptr.dtype == torch.int64
+            else qo_indptr.to(torch.int64)
+        )
+        raw_m128 = RawHipModule(
+            args.raw_m128_hsaco,
+            args.raw_m128_symbol,
+        )
+        try:
+
+            def launch_raw_m128() -> None:
+                raw_m128.launch_exact_m128(
+                    q=q,
+                    k_extend=k_extend,
+                    v_extend=v_extend,
+                    output=output,
+                    k_buffer=k_buffer,
+                    v_buffer=v_buffer,
+                    qo_indptr=raw_qo_indptr,
+                    kv_indptr=kv_indptr,
+                    kv_indices=kv_indices,
+                    sm_scale=sm_scale,
+                    kv_group_num=kv_group_num,
+                    heads=heads,
+                    blocks_m=triton.cdiv(max_len_extend, 128),
+                )
+
+            correctness, timing = evaluate_launch(
+                launch_raw_m128,
+                output,
+                expected_device,
+                args.warmup,
+                args.repeats,
+            )
+            item = {
+                "variant": "raw_m128n128_w8_exact_hsaco",
+                "hsaco": str(args.raw_m128_hsaco),
+                "symbol": args.raw_m128_symbol,
+                "grid": [1, heads, triton.cdiv(max_len_extend, 128)],
+                "block": [512, 1, 1],
+                "dynamic_shared_bytes": 65536,
+                "correctness": correctness,
+                "timing": timing,
+            }
+            results.append(item)
+            print(json.dumps(item, sort_keys=True), flush=True)
+        finally:
+            raw_m128.close()
+
+    if args.grouped_gqa4_fp8kv:
+        if kv_group_num != 4 or head_dim != 128:
+            raise ValueError(
+                "--grouped-gqa4-fp8kv requires draft GQA4 with head_dim=128"
+            )
+        for grouped_q_heads in (
+            int(value)
+            for value in args.grouped_gqa4_fp8kv_sizes.split(",")
+            if value
+        ):
+            if grouped_q_heads not in (1, 2, 4):
+                raise ValueError("grouped GQA4 size must be one of 1,2,4")
+            grouped_m = grouped_q_heads * 16
+            grouped_grid = (
+                batch_size,
+                k_buffer.shape[1],
+                kv_group_num // grouped_q_heads,
+            )
+
+            def launch_grouped_gqa4_fp8kv() -> None:
+                _grouped_gqa8_fp8kv_fwd_kernel[grouped_grid](
+                    q,
+                    k_extend,
+                    v_extend,
+                    output,
+                    k_buffer,
+                    v_buffer,
+                    qo_indptr,
+                    kv_indptr,
+                    kv_indices,
+                    sm_scale,
+                    stride_qbs=q.stride(0),
+                    stride_qh=q.stride(1),
+                    stride_kbs=k_extend.stride(0),
+                    stride_kh=k_extend.stride(1),
+                    stride_vbs=v_extend.stride(0),
+                    stride_vh=v_extend.stride(1),
+                    stride_obs=output.stride(0),
+                    stride_oh=output.stride(1),
+                    stride_buf_kbs=k_buffer.stride(0),
+                    stride_buf_kh=k_buffer.stride(1),
+                    stride_buf_vbs=v_buffer.stride(0),
+                    stride_buf_vh=v_buffer.stride(1),
+                    GROUPED_Q_HEADS=grouped_q_heads,
+                    GROUPED_M=grouped_m,
+                    HEAD_DIM=head_dim,
+                    KV_GROUP_NUM=kv_group_num,
+                    SLIDING_WINDOW_SIZE=args.sliding_window_size,
+                    TOKENS_PER_HEAD=16,
+                    PREFILL_SEGMENTED=False,
+                    num_warps=grouped_q_heads,
+                    num_stages=1,
+                    waves_per_eu=1,
+                    matrix_instr_nonkdim=16,
+                    kpack=1,
+                )
+
+            correctness, timing = evaluate_launch(
+                launch_grouped_gqa4_fp8kv,
+                output,
+                expected_device,
+                args.warmup,
+                args.repeats,
+            )
+            item = {
+                "variant": f"grouped_gqa4_fp8kv_h{grouped_q_heads}",
+                "grid": list(grouped_grid),
+                "correctness": correctness,
+                "timing": timing,
+            }
+            results.append(item)
+            print(json.dumps(item, sort_keys=True), flush=True)
+
     if args.grouped_gqa8:
         if kv_group_num != 8 or head_dim != 256:
             raise ValueError(
@@ -857,6 +1179,8 @@ def main() -> None:
                     HEAD_DIM=head_dim,
                     KV_GROUP_NUM=kv_group_num,
                     SLIDING_WINDOW_SIZE=args.sliding_window_size,
+                    TOKENS_PER_HEAD=16,
+                    PREFILL_SEGMENTED=False,
                     num_warps=8,
                     num_stages=1,
                     waves_per_eu=1,
@@ -873,6 +1197,87 @@ def main() -> None:
             )
             item = {
                 "variant": f"grouped_gqa8_fp8kv_h{grouped_q_heads}",
+                "grid": list(grouped_grid),
+                "correctness": correctness,
+                "timing": timing,
+            }
+            results.append(item)
+            print(json.dumps(item, sort_keys=True), flush=True)
+
+    if args.grouped_prefill_gqa8:
+        if (
+            batch_size != 1
+            or max_len_extend != 8192
+            or kv_group_num != 8
+            or head_dim != 256
+        ):
+            raise ValueError(
+                "--grouped-prefill-gqa8 requires one M8192 GQA8/D256 capture"
+            )
+        for grouped_q_heads in (
+            int(value)
+            for value in args.grouped_prefill_gqa8_sizes.split(",")
+            if value
+        ):
+            if grouped_q_heads not in (2, 4, 8):
+                raise ValueError("grouped prefill GQA8 size must be 2,4,8")
+            tokens_per_head = 128 // grouped_q_heads
+            grouped_grid = (
+                triton.cdiv(max_len_extend, tokens_per_head),
+                k_buffer.shape[1],
+                kv_group_num // grouped_q_heads,
+            )
+
+            def launch_grouped_prefill_gqa8() -> None:
+                _grouped_gqa8_fp8kv_fwd_kernel[grouped_grid](
+                    q,
+                    k_extend,
+                    v_extend,
+                    output,
+                    k_buffer,
+                    v_buffer,
+                    qo_indptr,
+                    kv_indptr,
+                    kv_indices,
+                    sm_scale,
+                    stride_qbs=q.stride(0),
+                    stride_qh=q.stride(1),
+                    stride_kbs=k_extend.stride(0),
+                    stride_kh=k_extend.stride(1),
+                    stride_vbs=v_extend.stride(0),
+                    stride_vh=v_extend.stride(1),
+                    stride_obs=output.stride(0),
+                    stride_oh=output.stride(1),
+                    stride_buf_kbs=k_buffer.stride(0),
+                    stride_buf_kh=k_buffer.stride(1),
+                    stride_buf_vbs=v_buffer.stride(0),
+                    stride_buf_vh=v_buffer.stride(1),
+                    GROUPED_Q_HEADS=grouped_q_heads,
+                    GROUPED_M=128,
+                    HEAD_DIM=head_dim,
+                    KV_GROUP_NUM=kv_group_num,
+                    SLIDING_WINDOW_SIZE=args.sliding_window_size,
+                    TOKENS_PER_HEAD=tokens_per_head,
+                    PREFILL_SEGMENTED=True,
+                    num_warps=8,
+                    num_stages=1,
+                    waves_per_eu=1,
+                    matrix_instr_nonkdim=16,
+                    kpack=1,
+                )
+
+            correctness, timing = evaluate_launch(
+                launch_grouped_prefill_gqa8,
+                output,
+                expected_device,
+                args.warmup,
+                args.repeats,
+            )
+            item = {
+                "variant": (
+                    f"grouped_prefill_gqa8_h{grouped_q_heads}_"
+                    f"t{tokens_per_head}"
+                ),
                 "grid": list(grouped_grid),
                 "correctness": correctness,
                 "timing": timing,
@@ -906,6 +1311,7 @@ def main() -> None:
                     batch_size=batch_size,
                     kv_heads=k_buffer.shape[1],
                     q_head_groups=2,
+                    grid_x=args.grouped_gqa8_raw_grid_x,
                 )
 
             correctness, timing = evaluate_launch(
@@ -919,7 +1325,7 @@ def main() -> None:
                 "variant": "grouped_gqa8_fp8kv_h4_raw_hsaco",
                 "hsaco": str(args.grouped_gqa8_raw_hsaco),
                 "symbol": args.grouped_gqa8_raw_symbol,
-                "grid": [batch_size, k_buffer.shape[1], 2],
+                "grid": [args.grouped_gqa8_raw_grid_x or batch_size, k_buffer.shape[1], 2],
                 "block": [512, 1, 1],
                 "dynamic_shared_bytes": 32768,
                 "correctness": correctness,

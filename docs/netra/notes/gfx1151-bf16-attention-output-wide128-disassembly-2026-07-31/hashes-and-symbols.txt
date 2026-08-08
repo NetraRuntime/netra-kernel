@@ -1,0 +1,30 @@
+9bc3a951ebefff8e403c79e84c6ddaa6731bbf09375aed4107efb5ae1dc0da19  build/sglang/bf16_attn_oproj_decode_wave1_gfx1151.hsaco
+0988ba3eb7bb00b4eebe74577f8286538a9036400406d0692217cab9e670ff4e  build/sglang/bf16_attn_oproj_decode_wave1_wide128_gfx1151.hsaco
+
+
+Symbol table '.dynsym' contains 3 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000001700   280 FUNC    GLOBAL PROTECTED   7 bf16_attn_oproj_decode_wave1_gfx1151
+     2: 0000000000000640    64 OBJECT  GLOBAL PROTECTED   6 bf16_attn_oproj_decode_wave1_gfx1151.kd
+
+Symbol table '.symtab' contains 4 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000002818     0 NOTYPE  LOCAL  HIDDEN      8 _DYNAMIC
+     2: 0000000000001700   280 FUNC    GLOBAL PROTECTED   7 bf16_attn_oproj_decode_wave1_gfx1151
+     3: 0000000000000640    64 OBJECT  GLOBAL PROTECTED   6 bf16_attn_oproj_decode_wave1_gfx1151.kd
+
+
+Symbol table '.dynsym' contains 3 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000001700   304 FUNC    GLOBAL PROTECTED   7 bf16_attn_oproj_decode_wave1_wide128_gfx1151
+     2: 0000000000000680    64 OBJECT  GLOBAL PROTECTED   6 bf16_attn_oproj_decode_wave1_wide128_gfx1151.kd
+
+Symbol table '.symtab' contains 4 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000002830     0 NOTYPE  LOCAL  HIDDEN      8 _DYNAMIC
+     2: 0000000000001700   304 FUNC    GLOBAL PROTECTED   7 bf16_attn_oproj_decode_wave1_wide128_gfx1151
+     3: 0000000000000680    64 OBJECT  GLOBAL PROTECTED   6 bf16_attn_oproj_decode_wave1_wide128_gfx1151.kd

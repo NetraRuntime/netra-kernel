@@ -1,0 +1,103 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "estimated_values": false,
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "model": "Qwen3.6-35B-A3B",
+  "shape": {"m": 1, "n": 2048, "k": 4096, "dtype": "BF16", "operation": "full-attention output projection", "layers": 10},
+  "decision": "accepted",
+  "abi": {
+    "baseline_commit": "dcccd15072769aeac101d5347aeb7434bd78b30a",
+    "baseline_public_netra_symbols": 30,
+    "candidate_public_netra_symbols": 30,
+    "exported_symbol_tables_identical": true
+  },
+  "candidate": {
+    "source": "kernels/gfx1151/dense/attention/bf16_attn_oproj_decode_wave1_wide128_gfx1151.s",
+    "symbol": "bf16_attn_oproj_decode_wave1_wide128_gfx1151",
+    "hsaco_sha256": "0988ba3eb7bb00b4eebe74577f8286538a9036400406d0692217cab9e670ff4e",
+    "grid": [256, 1, 1], "workgroup": [256, 1, 1],
+    "kernarg_bytes": 24, "kernarg_alignment": 8,
+    "lds_bytes": 0, "scratch_bytes": 0,
+    "metadata_vgpr": 22, "metadata_sgpr": 16,
+    "rocprof_allocated_vgpr": 24, "rocprof_allocated_sgpr": 128
+  },
+  "baseline": {
+    "symbol": "bf16_attn_oproj_decode_wave1_gfx1151",
+    "hsaco_sha256": "9bc3a951ebefff8e403c79e84c6ddaa6731bbf09375aed4107efb5ae1dc0da19"
+  },
+  "correctness": {
+    "real_checkpoint_layers": 10,
+    "candidate_vs_rocblas_max_abs": 0.015625,
+    "candidate_vs_rocblas_max_bf16_bit_mismatches_per_layer": 9,
+    "candidate_vs_baseline_max_abs": 0.015625,
+    "candidate_vs_baseline_max_bf16_bit_mismatches_per_layer": 2,
+    "fp64_layers": [3, 27, 39],
+    "fp64_candidate_closer_elements": [6, 6, 6],
+    "fp64_rocblas_closer_elements": [0, 0, 0],
+    "graph_layer_outputs_valid": true,
+    "exact_210_serving_hash_matches": 4,
+    "exact_210_serving_hash_total": 5,
+    "serving_bit_exact": false,
+    "note": "legal BF16 accumulation order differs; real-layer/model-native/FP64 correctness gates passed"
+  },
+  "hip_event_ten_layer_pass": {
+    "eager": {
+      "baseline_median_ms": 1.774982989, "baseline_p90_ms": 1.802510440,
+      "candidate_median_ms": 1.503371477, "candidate_p90_ms": 1.538922095,
+      "speedup": 1.180668262
+    },
+    "graph_replay": {
+      "baseline_median_ms": 1.770493984, "baseline_p90_ms": 1.797757566,
+      "candidate_median_ms": 1.496858537, "candidate_p90_ms": 1.532234216,
+      "speedup": 1.182806485
+    }
+  },
+  "rocprofv3": {
+    "method": "one counter per fresh process; signal handlers disabled",
+    "signal_6": false,
+    "baseline": {"fetch_kib": 8200.40625, "write_kib": 1.5, "l2_hit_percent": 1.87944, "mean_occupancy_per_active_cu": 59.1012, "occupancy_percent": 73.1702, "mem_unit_busy_percent": 86.8571, "waves": 2048, "wave_cycles": 102609548, "valu_instructions": 221},
+    "candidate": {"fetch_kib": 8200.3125, "write_kib": 1.671875, "l2_hit_percent": 1.81682, "mean_occupancy_per_active_cu": 60.1739, "occupancy_percent": 73.5629, "mem_unit_busy_percent": 83.0663, "waves": 2048, "wave_cycles": 88604462, "valu_instructions": 125},
+    "wave_cycle_reduction_percent": 13.648911,
+    "valu_instruction_reduction_percent": 43.438914,
+    "dependency_stall_note": "not exposed by available gfx1151 metric set; not estimated"
+  },
+  "complete_trace": {
+    "scope": {"input_tokens": 1, "output_tokens": 32, "cached_tokens": 0, "graph_mode": "disabled", "dflash_mode": "disabled"},
+    "baseline_kernel": {"invocations": 321, "total_gpu_ms": 56.724767, "mean_gpu_us": 176.712670, "median_gpu_us": 176.330},
+    "candidate_kernel": {"invocations": 321, "total_gpu_ms": 47.362723, "mean_gpu_us": 147.547424, "median_gpu_us": 147.438},
+    "kernel_total_reduction_percent": 16.504332,
+    "kernel_gpu_ms_saved": 9.362044,
+    "candidate_request": {"host_wall_ms": 860.873222, "total_kernel_gpu_ms": 767.885207, "positive_launch_gap_ms": 95.741820, "kernel_launches": 31444, "unique_kernels": 72, "kernel_wall_percent": 89.198408, "gap_wall_percent": 11.121477, "profiler_status": 137, "request_status": 0, "signal_6": false}
+  },
+  "serving_exact_210_plus_128": {
+    "scope": {"input_tokens": 210, "output_tokens": 128, "cached_tokens": 0, "graph_mode": "disabled", "dflash_mode": "disabled", "samples": 5},
+    "baseline": {"ttft_ms_median": 414.486344, "input_tps_median": 506.651191, "decode_ms_median": 3230.117303, "output_tps_median": 39.317458, "e2e_ms_median": 3645.461186, "peak_vram_bytes_max": 78026743808},
+    "candidate": {"ttft_ms_median": 414.669099, "input_tps_median": 506.427898, "decode_ms_median": 3191.732087, "output_tps_median": 39.790307, "e2e_ms_median": 3609.017821, "peak_vram_bytes_max": 78026899456},
+    "change": {"ttft_percent": 0.044092, "input_tps_percent": -0.044072, "decode_ms_percent": -1.188354, "output_tps_percent": 1.202645, "e2e_ms_percent": -0.999691}
+  },
+  "serving_exact_1_plus_128": {
+    "scope": {"input_tokens": 1, "output_tokens": 128, "cached_tokens": 0, "graph_mode": "disabled", "dflash_mode": "disabled", "samples": 5},
+    "baseline": {"decode_ms_median": 3208.769268, "output_tps_median": 39.579037753, "e2e_ms_median": 3266.016927},
+    "candidate": {"decode_ms_median": 3169.603517, "output_tps_median": 40.068102941, "e2e_ms_median": 3227.875693},
+    "change": {"decode_ms_percent": -1.220585, "output_tps_percent": 1.235667, "e2e_ms_percent": -1.167821}
+  },
+  "full_graph": {
+    "scope": {"input_tokens": 1, "output_tokens": 128, "cached_tokens": 0, "samples": 5},
+    "capture_seconds": 1.37, "memory_gb_reported": 0.07,
+    "decode_ms_median": 3172.564895, "output_tps_median": 40.030702035, "e2e_ms_median": 3220.826921,
+    "tps_vs_candidate_eager_percent": -0.093337,
+    "eager_graph_hashes_equal": 5
+  },
+  "newest_non_speculative_decode_tps": {"value": 40.068102941, "status": "measured", "scope": "exact 1 input + 128 output, uncached, eager, batch 1"},
+  "artifacts": {
+    "dual_ab": "docs/netra/notes/gfx1151-bf16-attention-output-wide128-dual-ab-2026-07-31.json",
+    "production_validation": "docs/netra/notes/gfx1151-bf16-attention-output-wide128-production-validation-2026-07-31.json",
+    "baseline_counters": "results/profiles/gfx1151/bf16-attention-output-wave1-counters-20260731",
+    "candidate_counters": "results/profiles/gfx1151/bf16-attention-output-wide128-counters-20260731",
+    "candidate_trace": "results/profiles/gfx1151/attn-oproj-wide128-qkv-wide128-shared-wide128-complete-eager-b1-1-plus32-20260731",
+    "baseline_210_serving": "results/serving/gfx1151/attn-oproj-wave1-qkv-wide128-shared-wide128-eager-210-plus128-20260731",
+    "candidate_210_serving": "results/serving/gfx1151/attn-oproj-wide128-qkv-wide128-shared-wide128-eager-210-plus128-20260731",
+    "disassembly": "docs/netra/notes/gfx1151-bf16-attention-output-wide128-disassembly-2026-07-31"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "correctness_failures": 0,
+  "eager_correctness_failures": 0,
+  "eager_failure_details": [],
+  "eager_repeats": 30,
+  "finite_all": true,
+  "graph_correctness_failures": 0,
+  "graph_failure_details": [],
+  "graph_repeats": 30,
+  "graph_replay_median_hip_event_ms": 11.808279037475586,
+  "max_abs_error": 9.5367431640625e-07,
+  "max_mean_abs_error": 1.5847063244978088e-12,
+  "measurement_status": "measured",
+  "raw_median_hip_event_ms": 11.817015647888184,
+  "raw_speedup_vs_tuned_triton": 1.2728795381888476,
+  "samples": 31,
+  "shape": "B1_T8192_H32_Hg16_K128_V128_BT64",
+  "target": "gfx1151",
+  "tolerance": 3.814697265625e-06,
+  "triton_median_hip_event_ms": 15.041637420654297
+}

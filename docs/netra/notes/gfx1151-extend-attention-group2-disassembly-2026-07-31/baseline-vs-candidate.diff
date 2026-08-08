@@ -1,0 +1,27 @@
+--- docs/netra/notes/gfx1151-extend-attention-group2-disassembly-2026-07-31/baseline-group4.dis	2026-07-31 10:56:13.873726758 +0000
++++ docs/netra/notes/gfx1151-extend-attention-group2-disassembly-2026-07-31/candidate-group2.dis	2026-07-31 10:56:13.891726551 +0000
+@@ -1,5 +1,5 @@
+ 
+-/tmp/extend_attention_wmma_n64_group4_pre_group2_gfx1151.hsaco:	file format elf64-amdgpu
++/tmp/extend_attention_wmma_n64_group2_candidate_gfx1151.hsaco:	file format elf64-amdgpu
+ 
+ Disassembly of section .text:
+ 
+@@ -19,7 +19,7 @@
+ 	s_lshl_b32 s21, s2, 6                                      // 000000001948: 84158602
+ 	s_cmp_ge_u32 s21, s18                                      // 00000000194C: BF091215
+ 	s_cbranch_scc1 9472                                        // 000000001950: BFA22500 <extend_attention_wmma_n64_gfx1151+0x9454>
+-	s_lshr_b32 s23, s3, 1                                      // 000000001954: 85178103
++	s_lshr_b32 s23, s3, 2                                      // 000000001954: 85178203
+ 	s_lshl_b32 s25, s23, 9                                     // 000000001958: 84198917
+ 	s_add_u32 s26, s21, 64                                     // 00000000195C: 801AC015
+ 	s_min_u32 s26, s26, s18                                    // 000000001960: 899A121A
+@@ -34,7 +34,7 @@
+ 	s_lshr_b32 s43, s43, 2                                     // 000000001984: 852B822B
+ 	v_and_b32_e32 v2, 3, v2                                    // 000000001988: 36040483
+ 	v_readfirstlane_b32 s29, v2                                // 00000000198C: 7E3A0502
+-	s_lshl_b32 s24, s3, 2                                      // 000000001990: 84188203
++	s_lshl_b32 s24, s3, 1                                      // 000000001990: 84188103
+ 	s_add_u32 s24, s24, s43                                    // 000000001994: 80182B18
+ 	s_lshl_b32 s24, s24, 9                                     // 000000001998: 84188918
+ 	v_lshlrev_b32_e32 v229, 4, v1                              // 00000000199C: 31CA0284

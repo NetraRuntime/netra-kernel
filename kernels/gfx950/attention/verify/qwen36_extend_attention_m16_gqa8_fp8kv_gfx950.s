@@ -20,6 +20,7 @@ qwen36_extend_attention_m16_gqa8_fp8kv_gfx950:         ; @qwen36_extend_attentio
 	s_load_dwordx2 s[2:3], s[0:1], 0x0
 	s_load_dwordx8 s[4:11], s[0:1], 0x8
 	s_load_dwordx4 s[12:15], s[0:1], 0x28
+	s_load_dword s22, s[0:1], 0x4c
 	s_waitcnt lgkmcnt(0)
 	s_branch .LBB0_0
 	.loc	1 0 0 is_stmt 0                 ; :0:0
@@ -42,14 +43,26 @@ qwen36_extend_attention_m16_gqa8_fp8kv_gfx950:         ; @qwen36_extend_attentio
 	.loc	1 378 38                        ; benchmark_qwen36_extend_attention_m756.py:378:38
 	s_and_b32 s10, s11, 0x1c0
 	.loc	1 276 22                        ; benchmark_qwen36_extend_attention_m756.py:276:22
-	; Piecewise graphs supply int64 qo_indptr. The supported token capacity is
-	; below 2^32, so consume the low dword of adjacent 64-bit offsets directly.
+	; SGLang supplies either int32 eager qo_indptr or int64 piecewise-graph
+	; qo_indptr. The bridge passes its element size through the ABI gap at 0x4c.
+	; Supported token capacity is below 2^32, so only the low dword is consumed.
+	s_cmp_eq_u32 s22, 4
+	s_cbranch_scc1 .Lnetra_qo_i32
 	s_lshl_b64 s[6:7], s[20:21], 3
 	s_add_u32 s14, s14, s6
 	s_addc_u32 s15, s15, s7
 	v_mov_b32_e32 v4, 0
 	global_load_dword v2, v4, s[14:15]
 	global_load_dword v3, v4, s[14:15] offset:8
+	s_branch .Lnetra_qo_ready
+.Lnetra_qo_i32:
+	s_lshl_b64 s[6:7], s[20:21], 2
+	s_add_u32 s14, s14, s6
+	s_addc_u32 s15, s15, s7
+	v_mov_b32_e32 v4, 0
+	global_load_dword v2, v4, s[14:15]
+	global_load_dword v3, v4, s[14:15] offset:4
+.Lnetra_qo_ready:
 	.loc	1 281 31                        ; benchmark_qwen36_extend_attention_m756.py:281:31
 	v_and_b32_e32 v64, 63, v0
 	v_or_b32_e32 v57, s10, v64
@@ -86,9 +99,8 @@ qwen36_extend_attention_m16_gqa8_fp8kv_gfx950:         ; @qwen36_extend_attentio
 	s_sub_i32 s57, s14, s63
 	.loc	1 278 23                        ; benchmark_qwen36_extend_attention_m756.py:278:23
 	s_waitcnt lgkmcnt(0)
-	; kv_indptr remains int32, so restore the shared sequence byte offset from
-	; the int64 qo_indptr scale before addressing the KV range.
-	s_lshr_b64 s[6:7], s[6:7], 1
+	; kv_indptr is always int32, independent of the qo_indptr representation.
+	s_lshl_b64 s[6:7], s[20:21], 2
 	s_add_u32 s2, s2, s6
 	s_addc_u32 s3, s3, s7
 	.loc	1 289 29                        ; benchmark_qwen36_extend_attention_m756.py:289:29
@@ -2660,6 +2672,9 @@ amdhsa.kernels:
         .size:           8
         .value_kind:     global_buffer
       - .offset:         72
+        .size:           4
+        .value_kind:     by_value
+      - .offset:         76
         .size:           4
         .value_kind:     by_value
       - .address_space:  global

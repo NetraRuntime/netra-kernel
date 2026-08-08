@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "status": "rejected_before_raw_extraction",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "quantization": "FP8 E4M3 checkpoint and KV cache; BF16 extension",
+  "shape": {
+    "batch_size": 1,
+    "extend_tokens": 8192,
+    "prefix_tokens": 24576,
+    "query_heads": 16,
+    "kv_heads": 2,
+    "head_dim": 256,
+    "sliding_window_size": -1
+  },
+  "timing_us": [
+    {
+      "variant": "deployed_m128n128_w8",
+      "median": 5389.214992523193,
+      "relative_percent": 0
+    },
+    {
+      "variant": "grouped_h2_t64",
+      "median": 8089.783668518066,
+      "relative_percent": 50.11
+    },
+    {
+      "variant": "grouped_h4_t32",
+      "median": 7559.098482131958,
+      "relative_percent": 40.26
+    },
+    {
+      "variant": "grouped_h8_t16",
+      "median": 6865.350961685181,
+      "relative_percent": 27.39
+    }
+  ],
+  "correctness": {
+    "candidate": "grouped_h8_t16",
+    "max_abs": 0.00000762939453125,
+    "cosine": 0.9999999403953552,
+    "unwritten_elements": 0,
+    "deterministic_two_launches": true,
+    "gate": "pass"
+  },
+  "invalid_method": {
+    "sliding_window_size": 4095,
+    "apparent_candidate_median_us": 3565.675973892212,
+    "control_median_us": 4795.288562774658,
+    "cosine": 0.9238618016242981,
+    "status": "rejected_contract_mismatch"
+  },
+  "compiler_finding": "gfx950 Triton overwrites kpack 2 and 4 to 1",
+  "promotion_gate": "fail_performance",
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260807T004800Z-prefill-grouped-gqa8-gpu1"
+}

@@ -32,6 +32,9 @@ def main() -> None:
     parser.add_argument("--build-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--prefix-length", type=int, default=257)
+    parser.add_argument(
+        "--verify-tokens", type=int, default=16, choices=range(1, 17)
+    )
     parser.add_argument("--num-splits", type=int, default=4)
     parser.add_argument("--max-splits", type=int, default=129)
     parser.add_argument(
@@ -39,11 +42,17 @@ def main() -> None:
         choices=("sequence-lengths", "indptr"),
         default="sequence-lengths",
     )
+    parser.add_argument(
+        "--permuted-kv-indices",
+        action="store_true",
+    )
+    parser.add_argument("--warmup-iterations", type=int, default=10)
+    parser.add_argument("--timed-iterations", type=int, default=100)
     args = parser.parse_args()
 
     torch.manual_seed(20260731)
     device = torch.device("cuda")
-    verify_tokens = 16
+    verify_tokens = args.verify_tokens
     q_heads = 16
     kv_heads = 2
     head_dim = 256
@@ -77,7 +86,10 @@ def main() -> None:
         .mul_(0.25)
         .to(torch.float8_e4m3fn)
     )
-    kv_indices = torch.arange(max_length, device=device, dtype=torch.int64)
+    if args.permuted_kv_indices:
+        kv_indices = torch.randperm(max_length, device=device).to(torch.int64)
+    else:
+        kv_indices = torch.arange(max_length, device=device, dtype=torch.int64)
     sequence_lengths = torch.arange(
         args.prefix_length + 1,
         max_length + 1,
@@ -97,13 +109,22 @@ def main() -> None:
         )
         raw_kv_indices = torch.cat(
             [
-                torch.arange(length, device=device, dtype=torch.int64)
+                kv_indices[:length]
                 for length in raw_lengths
             ]
         )
     else:
-        raw_length_argument = sequence_lengths
-        raw_kv_indices = kv_indices
+        raw_length_argument = torch.empty_like(sequence_lengths)
+        raw_kv_indices = torch.empty_like(kv_indices)
+        raw_kv_indices[: args.prefix_length].copy_(
+            kv_indices[: args.prefix_length]
+        )
+        prefix_length_device = torch.tensor(
+            [args.prefix_length], device=device, dtype=torch.int32
+        )
+        req_to_token = torch.zeros((3, max_length), device=device, dtype=torch.int32)
+        req_pool_index = torch.tensor([2], device=device, dtype=torch.int64)
+        req_to_token[2].copy_(kv_indices.to(torch.int32))
 
     oracle = torch.empty_like(query)
     oracle_mid = torch.empty(
@@ -150,6 +171,38 @@ def main() -> None:
         oracle_mid_all[step].copy_(oracle_mid[0])
         oracle_lse_all[step].copy_(oracle_lse[0])
 
+    oracle_indptrs = [
+        torch.tensor(
+            [0, args.prefix_length + step + 1],
+            device=device,
+            dtype=torch.int32,
+        )
+        for step in range(verify_tokens)
+    ]
+
+    def launch_oracle() -> None:
+        for step in range(verify_tokens):
+            decode_attention_fwd(
+                query[step : step + 1],
+                key,
+                value,
+                oracle[step : step + 1],
+                oracle_indptrs[step],
+                kv_indices,
+                oracle_mid,
+                oracle_lse,
+                num_splits[step : step + 1],
+                max_splits,
+                1.0 / math.sqrt(head_dim),
+                1.0,
+                1.0,
+                logit_cap=0.0,
+                sinks=None,
+                xai_temperature_len=-1,
+                has_mla=False,
+                use_pdl=False,
+            )
+
     candidate = torch.empty_like(query)
     candidate_mid = torch.empty(
         (verify_tokens, q_heads, max_splits, head_dim),
@@ -168,13 +221,19 @@ def main() -> None:
     library.netra_qwen36_full_attention_verify_m16_load.argtypes = [
         ctypes.c_char_p,
         ctypes.c_char_p,
+        ctypes.c_char_p,
     ]
     library.netra_qwen36_full_attention_verify_m16_load.restype = ctypes.c_int
+    library.netra_qwen36_full_attention_verify_m16_prepare.argtypes = [
+        *([ctypes.c_void_p] * 5), *([ctypes.c_uint32] * 2), ctypes.c_void_p
+    ]
+    library.netra_qwen36_full_attention_verify_m16_prepare.restype = ctypes.c_int
+
     library.netra_qwen36_full_attention_verify_m16_launch.argtypes = [
         *([ctypes.c_void_p] * 9),
         ctypes.c_float,
         ctypes.c_float,
-        *([ctypes.c_uint32] * 11),
+        *([ctypes.c_uint32] * 12),
         ctypes.c_void_p,
     ]
     library.netra_qwen36_full_attention_verify_m16_launch.restype = ctypes.c_int
@@ -183,9 +242,10 @@ def main() -> None:
     )
 
     stage1 = args.build_dir / "qwen36_full_attention_verify_m16_stage1_gfx950.hsaco"
+    prepare = args.build_dir / "qwen36_full_attention_verify_prepare_m16_gfx950.hsaco"
     stage2 = args.build_dir / "qwen36_full_attention_verify_m16_stage2_gfx950.hsaco"
     rc = library.netra_qwen36_full_attention_verify_m16_load(
-        str(stage1).encode(), str(stage2).encode()
+        str(prepare).encode(), str(stage1).encode(), str(stage2).encode()
     )
     if rc:
         raise RuntimeError(
@@ -193,7 +253,28 @@ def main() -> None:
         )
 
     stream = torch.cuda.current_stream()
-    rc = library.netra_qwen36_full_attention_verify_m16_launch(
+    if args.raw_abi == "sequence-lengths":
+        rc = library.netra_qwen36_full_attention_verify_m16_prepare(
+            raw_kv_indices.data_ptr(),
+            raw_length_argument.data_ptr(),
+            prefix_length_device.data_ptr(),
+            req_to_token.data_ptr(),
+            req_pool_index.data_ptr(),
+            req_to_token.stride(0),
+            verify_tokens,
+            stream.cuda_stream,
+        )
+        if rc:
+            raise RuntimeError(
+                library.netra_qwen36_full_attention_verify_m16_last_error().decode()
+            )
+        torch.cuda.synchronize()
+        if not torch.equal(raw_length_argument, sequence_lengths):
+            raise RuntimeError("raw prepare emitted incorrect sequence lengths")
+        if not torch.equal(raw_kv_indices, kv_indices):
+            raise RuntimeError("raw prepare emitted incorrect unified KV indices")
+
+    launch_args = (
         candidate.data_ptr(),
         query.data_ptr(),
         key.data_ptr(),
@@ -216,13 +297,47 @@ def main() -> None:
         candidate_mid.stride(2),
         candidate.stride(0),
         candidate.stride(1),
+        verify_tokens,
         stream.cuda_stream,
     )
+    rc = library.netra_qwen36_full_attention_verify_m16_launch(*launch_args)
     if rc:
         raise RuntimeError(
             library.netra_qwen36_full_attention_verify_m16_last_error().decode()
         )
     torch.cuda.synchronize()
+
+    for _ in range(args.warmup_iterations):
+        launch_oracle()
+    torch.cuda.synchronize()
+    oracle_start = torch.cuda.Event(enable_timing=True)
+    oracle_end = torch.cuda.Event(enable_timing=True)
+    oracle_start.record()
+    for _ in range(args.timed_iterations):
+        launch_oracle()
+    oracle_end.record()
+    oracle_end.synchronize()
+    oracle_ms = oracle_start.elapsed_time(oracle_end) / args.timed_iterations
+
+    for _ in range(args.warmup_iterations):
+        rc = library.netra_qwen36_full_attention_verify_m16_launch(*launch_args)
+        if rc:
+            raise RuntimeError(
+                library.netra_qwen36_full_attention_verify_m16_last_error().decode()
+            )
+    torch.cuda.synchronize()
+    candidate_start = torch.cuda.Event(enable_timing=True)
+    candidate_end = torch.cuda.Event(enable_timing=True)
+    candidate_start.record()
+    for _ in range(args.timed_iterations):
+        rc = library.netra_qwen36_full_attention_verify_m16_launch(*launch_args)
+        if rc:
+            raise RuntimeError(
+                library.netra_qwen36_full_attention_verify_m16_last_error().decode()
+            )
+    candidate_end.record()
+    candidate_end.synchronize()
+    candidate_ms = candidate_start.elapsed_time(candidate_end) / args.timed_iterations
 
     oracle_f32 = oracle.float()
     candidate_f32 = candidate.float()
@@ -281,10 +396,21 @@ def main() -> None:
             "num_kv_splits": args.num_splits,
             "max_kv_splits": max_splits,
             "raw_abi": args.raw_abi,
+            "permuted_kv_indices": args.permuted_kv_indices,
             "valid_splits_per_token": valid_splits_per_token,
         },
-        "oracle": "16 sequential deployed SGLang decode_attention_fwd calls",
+        "oracle": (
+            f"{verify_tokens} sequential deployed SGLang decode_attention_fwd calls"
+        ),
         "candidate": "raw gfx950 stage1+stage2 shared-index M16 launches",
+        "timing": {
+            "method": "HIP events on the current stream",
+            "warmup_iterations": args.warmup_iterations,
+            "timed_iterations": args.timed_iterations,
+            "oracle_ms": oracle_ms,
+            "candidate_ms": candidate_ms,
+            "speedup": oracle_ms / candidate_ms,
+        },
         "elements": oracle.numel(),
         "mismatches": mismatches,
         "per_token_mismatches": per_token_mismatches,

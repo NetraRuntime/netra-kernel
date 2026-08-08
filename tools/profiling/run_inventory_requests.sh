@@ -24,7 +24,7 @@ run_case() {
     extra_args+=(--stream)
   fi
   printf '%s start_epoch_ns=%s\n' "$name" "$(date +%s%N)" >> "$out_dir/timeline.txt"
-  /root/sglvenv1151/bin/python "$repo/tools/profiling/request_scenario.py" \
+  /root/sglvenv1151/bin/python "$repo/scripts/rocm/tools/profiling/request_scenario.py" \
     --input-len "$input_len" \
     --output-len "$output_len" \
     --label "$label" \

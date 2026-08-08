@@ -10,10 +10,24 @@
 #include "runtime/gfx1151/mxfp4/moe/runtime.h"
 #include "runtime/gfx1151/mxfp4/prefill/runtime.h"
 #include "runtime/gfx1151/mxfp4/verify/runtime.h"
+#include "runtime/gfx1151/mxfp4/norm/runtime.h"
 
 extern "C" int netra_mxfp4_sgl_init() {
   netra::gfx1151::ensure_initialized();
   return static_cast<int>(netra::gfx1151::runtime().status);
+}
+
+extern "C" int netra_qwen36_rmsnorm_decode(
+    void* input, void* weight, void* output, float epsilon, void* stream_ptr) {
+  return netra::gfx1151::norm::qwen36_decode(
+      input, weight, output, epsilon, stream_ptr);
+}
+
+extern "C" int netra_qwen36_fused_add_rmsnorm_decode(
+    void* input, void* residual, void* weight, float epsilon,
+    void* stream_ptr) {
+  return netra::gfx1151::norm::qwen36_fused_add_decode(
+      input, residual, weight, epsilon, stream_ptr);
 }
 
 extern "C" const char* netra_mxfp4_sgl_error() {
@@ -112,6 +126,18 @@ extern "C" int netra_mxfp4_linear_n12800_k2048_block64(
 extern "C" int netra_bf16_qkv_decode(
     void* weight, void* activation, void* output, void* stream_ptr) {
   return netra::gfx1151::attention::bf16_qkv_decode(
+      weight, activation, output, stream_ptr);
+}
+
+extern "C" int netra_bf16_attention_output_decode(
+    void* weight, void* activation, void* output, void* stream_ptr) {
+  return netra::gfx1151::attention::bf16_output_decode(
+      weight, activation, output, stream_ptr);
+}
+
+extern "C" int netra_bf16_router_decode(
+    void* weight, void* activation, void* output, void* stream_ptr) {
+  return netra::gfx1151::moe::bf16_router_decode(
       weight, activation, output, stream_ptr);
 }
 

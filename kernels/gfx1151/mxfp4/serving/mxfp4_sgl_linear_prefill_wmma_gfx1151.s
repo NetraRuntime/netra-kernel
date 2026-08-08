@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Raw gfx1151 MXFP4 dense-linear prefill with persistent dword-layout weights with runtime N and K.
+// Raw gfx1151 MXFP4 dense-linear prefill with pair-prefetched pipelined activation loads with persistent dword-layout weights with runtime N and K.
 // packed=[K32,fragment2,subgroup2,N,4 bytes], scales=[K/32,N], activation=[groups,64,K] BF16,
 // output=[groups,64,N] FP32. N and K must be multiples of 16 and 32.
 // grid=(N/16,group_count,1), block=(32,1,1).
@@ -13,6 +13,65 @@
 	.text
 
 	.include "mxfp4_prefill_wmma_gfx1151.inc"
+	// Pair two A-tile VMEM issue groups before each dependency wait.
+
+	.macro PREFILL_ACC_TILE_PAIR AOFF0 C0 C1 C2 C3 C4 C5 C6 C7 AOFF1 D0 D1 D2 D3 D4 D5 D6 D7
+	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
+	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0
+	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0
+	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0
+	v_add_nc_u32_e32 v13, \AOFF0, v8
+	global_load_b128 v[72:75], v13, s[8:9]
+	global_load_b128 v[80:83], v13, s[8:9] offset:32
+	v_add_nc_u32_e32 v14, \AOFF1, v8
+	global_load_b128 v[88:91], v14, s[8:9]
+	global_load_b128 v[96:99], v14, s[8:9] offset:32
+	s_waitcnt vmcnt(2)
+	ds_swizzle_b32 v76, v72 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v77, v73 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v78, v74 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v79, v75 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v84, v80 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v85, v81 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v86, v82 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v87, v83 offset:swizzle(SWAP,16)
+	s_waitcnt lgkmcnt(0)
+	v_wmma_f32_16x16x16_bf16 v[64:71], v[72:79], v[16:23], v[64:71]
+	v_wmma_f32_16x16x16_bf16 v[64:71], v[80:87], v[24:31], v[64:71]
+	v_fmac_f32_e32 \C0, v64, v104
+	v_fmac_f32_e32 \C1, v65, v104
+	v_fmac_f32_e32 \C2, v66, v104
+	v_fmac_f32_e32 \C3, v67, v104
+	v_fmac_f32_e32 \C4, v68, v104
+	v_fmac_f32_e32 \C5, v69, v104
+	v_fmac_f32_e32 \C6, v70, v104
+	v_fmac_f32_e32 \C7, v71, v104
+	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
+	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0
+	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0
+	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0
+	s_waitcnt vmcnt(0)
+	ds_swizzle_b32 v92, v88 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v93, v89 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v94, v90 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v95, v91 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v100, v96 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v101, v97 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v102, v98 offset:swizzle(SWAP,16)
+	ds_swizzle_b32 v103, v99 offset:swizzle(SWAP,16)
+	s_waitcnt lgkmcnt(0)
+	v_wmma_f32_16x16x16_bf16 v[64:71], v[88:95], v[16:23], v[64:71]
+	v_wmma_f32_16x16x16_bf16 v[64:71], v[96:103], v[24:31], v[64:71]
+	v_fmac_f32_e32 \D0, v64, v104
+	v_fmac_f32_e32 \D1, v65, v104
+	v_fmac_f32_e32 \D2, v66, v104
+	v_fmac_f32_e32 \D3, v67, v104
+	v_fmac_f32_e32 \D4, v68, v104
+	v_fmac_f32_e32 \D5, v69, v104
+	v_fmac_f32_e32 \D6, v70, v104
+	v_fmac_f32_e32 \D7, v71, v104
+	.endm
+
 
 	.protected mxfp4_sgl_linear_prefill_wmma_gfx1151
 	.globl mxfp4_sgl_linear_prefill_wmma_gfx1151
@@ -96,10 +155,8 @@ mxfp4_sgl_linear_prefill_wmma_gfx1151:
 	s_waitcnt lgkmcnt(0)
 	v_lshlrev_b32_e32 v104, 23, v104
 
-	PREFILL_ACC_TILE 0   v32 v33 v34 v35 v36 v37 v38 v39
-	PREFILL_ACC_TILE s22 v40 v41 v42 v43 v44 v45 v46 v47
-	PREFILL_ACC_TILE s25 v48 v49 v50 v51 v52 v53 v54 v55
-	PREFILL_ACC_TILE s26 v56 v57 v58 v59 v60 v61 v62 v63
+	PREFILL_ACC_TILE_PAIR 0 v32 v33 v34 v35 v36 v37 v38 v39 s22 v40 v41 v42 v43 v44 v45 v46 v47
+	PREFILL_ACC_TILE_PAIR s25 v48 v49 v50 v51 v52 v53 v54 v55 s26 v56 v57 v58 v59 v60 v61 v62 v63
 
 	s_add_u32 s4, s4, s20
 	s_addc_u32 s5, s5, 0

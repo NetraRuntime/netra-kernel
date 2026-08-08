@@ -1,0 +1,62 @@
+
+Symbol table '.dynsym' contains 3 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000001700   428 FUNC    GLOBAL PROTECTED   7 bf16_router_decode_wave2_fp32_gfx1151
+     2: 0000000000000640    64 OBJECT  GLOBAL PROTECTED   6 bf16_router_decode_wave2_fp32_gfx1151.kd
+
+Symbol table '.symtab' contains 4 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 00000000000028b0     0 NOTYPE  LOCAL  HIDDEN      8 _DYNAMIC
+     2: 0000000000001700   428 FUNC    GLOBAL PROTECTED   7 bf16_router_decode_wave2_fp32_gfx1151
+     3: 0000000000000640    64 OBJECT  GLOBAL PROTECTED   6 bf16_router_decode_wave2_fp32_gfx1151.kd
+Displaying notes found in: .note
+  Owner                Data size        Description
+  AMDGPU               0x00000336       NT_AMDGPU_METADATA (AMDGPU Metadata)
+    AMDGPU Metadata:
+        ---
+amdhsa.kernels:
+  - .args:
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           weights
+        .offset:         0
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           activation
+        .offset:         8
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  write_only
+        .address_space:  global
+        .name:           output
+        .offset:         16
+        .size:           8
+        .value_kind:     global_buffer
+    .group_segment_fixed_size: 0
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 24
+    .language:       OpenCL C
+    .language_version:
+      - 2
+      - 0
+    .max_flat_workgroup_size: 256
+    .name:           bf16_router_decode_wave2_fp32_gfx1151
+    .private_segment_fixed_size: 0
+    .sgpr_count:     16
+    .sgpr_spill_count: 0
+    .symbol:         bf16_router_decode_wave2_fp32_gfx1151.kd
+    .uniform_work_group_size: 1
+    .uses_dynamic_stack: false
+    .vgpr_count:     18
+    .vgpr_spill_count: 0
+    .wavefront_size: 32
+    .workgroup_processor_mode: 1
+amdhsa.target:   amdgcn-amd-amdhsa--gfx1151
+amdhsa.version:
+  - 1
+  - 2
+...

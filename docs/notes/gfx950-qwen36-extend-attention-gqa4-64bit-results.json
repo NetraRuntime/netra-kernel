@@ -1,0 +1,56 @@
+{
+  "architecture": "gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "kernel": "qwen36_extend_attention_m16_gqa4_gfx950",
+  "quantization": "Qwen FP8 E4M3 128x128 weights; BF16 draft KV for this path",
+  "root_cause": {
+    "buffer_descriptor_num_records": 2147483646,
+    "bytes_per_kv_slot": 2048,
+    "first_invalid_slot": 1048576,
+    "effect": "cached K/V loads returned zero and sustained dFlash acceptance collapsed"
+  },
+  "isolated_high_slot": {
+    "kv_slot_offset": 1100000,
+    "elements": 3096576,
+    "bf16_mismatches": 206,
+    "max_abs": 0.015625,
+    "cosine": 0.9999999403953552,
+    "nan_count": 0,
+    "inf_count": 0,
+    "raw_median_us": 153.86199951171875,
+    "triton_median_us": 190.3420016169548,
+    "raw_latency_reduction_percent": 19.17
+  },
+  "resources": {
+    "wavefront_size": 64,
+    "workgroup_threads": 256,
+    "dynamic_lds_bytes": 16384,
+    "vgpr_count": 156,
+    "sgpr_count": 106,
+    "scratch_bytes": 0
+  },
+  "sustained_c64": {
+    "input_tokens_per_request": 1024,
+    "output_tokens_per_request": 256,
+    "warmup_requests_per_cycle": 128,
+    "measured_requests_per_cycle": 192,
+    "concurrency": 64,
+    "fixed_output_tokens_per_second": [6039.8326632241005, 6000.838658234833, 6142.821521199403],
+    "fixed_accept_length": [4.643210186814107, 4.6253469010175765, 4.632057482382202],
+    "defective_output_tokens_per_second": [5768.976630846781, 5788.626720276954, 2663.365761913298],
+    "defective_accept_length": [4.6099009900990096, 4.640800066395552, 3.031656169221247]
+  },
+  "correctness": {
+    "exact_case": "210 input + 128 output",
+    "post_stress_repetitions": 5,
+    "stable_hash": "8cf5682c0ab5307cb04b6d7292da155ddf14c7936f39fe10e849595e5967ea57",
+    "gsm8k_examples": 200,
+    "gsm8k_score": 0.96,
+    "gsm8k_output_tokens_per_second": 5324.247093601993
+  },
+  "artifacts": [
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T003500Z-gqa4-64bit-isolated-gpu1",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T002000Z-dflash-draft-gqa4-only-stability-gpu1",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T005000Z-dflash-gqa4-64bit-sustained-gpu1"
+  ]
+}

@@ -36,18 +36,18 @@ hipError_t launch(hipFunction_t function, const Args& args,
 }  // namespace
 
 int main(int argc, char** argv) {
-  if (argc < 2 || argc > 3) {
-    std::cerr << "usage: " << argv[0] << " HSACO [ITERATIONS]\n";
+  if (argc < 3 || argc > 4) {
+    std::cerr << "usage: " << argv[0] << " HSACO SYMBOL [ITERATIONS]\n";
     return 2;
   }
-  const int iterations = argc == 3 ? std::atoi(argv[2]) : 1;
+  const int iterations = argc == 4 ? std::atoi(argv[3]) : 1;
   if (iterations < 1) return 2;
 
   hipModule_t module{};
   hipFunction_t function{};
   if (int rc = fail(hipModuleLoad(&module, argv[1]), "hipModuleLoad")) return rc;
   if (int rc = fail(hipModuleGetFunction(
-          &function, module, "bf16_shared_gate_up_silu_decode_wave2_gfx1151"),
+          &function, module, argv[2]),
           "hipModuleGetFunction")) return rc;
 
   void* weights{};

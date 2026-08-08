@@ -1,0 +1,50 @@
+{
+  "target": "gfx1151",
+  "date": "2026-07-31",
+  "model": "Qwen3.6-35B-A3B",
+  "checkpoint_quantization": "MXFP4",
+  "projection_dtype": "BF16",
+  "measurement_status": "measured",
+  "estimated_values": false,
+  "status": "rejected",
+  "production_changed": false,
+  "shape": {"m": 1, "n": 9216, "k": 2048, "layers": 10},
+  "correctness": {
+    "bf16_outputs_compared": 92160,
+    "bit_mismatches": 0,
+    "max_abs": 0.0,
+    "eager_graph_replay_bit_exact": true
+  },
+  "hip_events_101_samples": {
+    "sample_order": "alternating_ab_ba",
+    "baseline_median_ms": 2.6471669673919678,
+    "baseline_p90_ms": 2.703310966491699,
+    "candidate_median_ms": 2.647968053817749,
+    "candidate_p90_ms": 2.6965789794921875,
+    "speedup": 0.9996974712649473,
+    "candidate_graph_median_ms": 2.6489310264587402
+  },
+  "rocprofv3": {
+    "signal_handlers_disabled": true,
+    "waves": {"baseline": 9216, "candidate": 9216},
+    "vgpr": {"baseline": 24, "candidate": 32},
+    "sgpr": {"baseline": 128, "candidate": 128},
+    "lds_bytes": {"baseline": 0, "candidate": 0},
+    "scratch_bytes": {"baseline": 0, "candidate": 0},
+    "fetched_kib": {"baseline": 18438.78125, "candidate": 18439.96875},
+    "l2_hit_percent": {"baseline": 3.3548655, "candidate": 3.3700415},
+    "memory_unit_busy_percent": {"baseline": 98.2476285, "candidate": 98.3303695},
+    "valu_instructions": {"baseline": 77, "candidate": 77}
+  },
+  "static_disassembly": {
+    "global_load_b128_sites": {"baseline": 2, "candidate": 6},
+    "dot2_sites": {"baseline": 4, "candidate": 12},
+    "vmcnt_wait_sites": {"baseline": 1, "candidate": 3},
+    "instruction_lines": {"baseline": 59, "candidate": 78}
+  },
+  "hsaco_sha256": {
+    "production": "aae22ff0fc0649273ab69a65c36fff2ad7157fd1a89571ebc1da82b6481bcf69",
+    "candidate": "35502259b25364a333d2138f5ae236a7b9568c289e775173bddaa20e2ef78e06"
+  },
+  "serving_ab": "not_run_candidate_failed_isolated_gate"
+}

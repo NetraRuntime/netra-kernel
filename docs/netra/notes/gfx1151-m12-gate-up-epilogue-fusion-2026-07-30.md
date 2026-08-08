@@ -31,7 +31,7 @@ Two less structural candidates were rejected before the epilogue fusion:
 - `mxfp4_m12_group_gate_up_wait4_wmma_gfx1151` changes the broad load wait into `vmcnt(4)` for gate computation and `vmcnt(0)` before up. It is bit-exact, but separate-process normalization against the same two-launch oracle showed about a 1.27% regression. Static waits increase from fifteen to sixteen.
 - `mxfp4_m12_group_gate_up_kprefetch_wmma_gfx1151` prefetches the next block's scales, activation, gate weights, and up weights without increasing the 87-VGPR metadata count. Batched direct comparison measured 0.0796% slower in one module order and 0.277% faster in the reverse order. The direction reversal is classified as neutral; it is not shipped in production.
 
-Both raw ASM experiments remain under `scripts/rocm/kernels/gfx1151/mxfp4/experiments/` as reproducible negative results.
+Both raw ASM experiments remain under `kernels/gfx1151/mxfp4/verify/experiments/` as reproducible negative results.
 
 ## Real-checkpoint full graph
 

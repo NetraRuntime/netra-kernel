@@ -1,0 +1,247 @@
+{
+  "target": "gfx1151",
+  "measurement_status": "measured",
+  "date": "2026-07-31",
+  "model": "Qwen3.6-35B-A3B",
+  "checkpoint_quantization": "MXFP4",
+  "candidate": {
+    "kernel": "bf16_shared_down_decode_wave4_gfx1151",
+    "shape": {
+      "m": 1,
+      "n": 2048,
+      "k": 512,
+      "layers": 40
+    },
+    "change": "batch four original coalesced b32 K tiles before each full wait",
+    "abi": {
+      "symbol_unchanged": true,
+      "kernarg_bytes": 24,
+      "alignment": 8,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "workgroup": [
+        256,
+        1,
+        1
+      ],
+      "wavefront_size": 32,
+      "lds_bytes": 0,
+      "scratch_bytes": 0
+    },
+    "hsaco_sha256_before": "d62461d65232d67c40b8d9ef114f78ab46f4c8712468b266917c630e5e4af0fe",
+    "hsaco_sha256_after": "81bf7498b51db33354ff653ab7fbe51e773f854ecc6499e035ba2ae8ee6bfcb4"
+  },
+  "correctness": {
+    "old_new_real_layers": 40,
+    "old_new_bf16_values": 81920,
+    "old_new_bit_mismatches": 0,
+    "old_new_max_abs": 0.0,
+    "rocblas_reference_max_abs": 0.001953125,
+    "rocblas_reference_max_bf16_mismatches_per_layer": 2,
+    "eager_tokens_bit_exact": true,
+    "full_graph_tokens_bit_exact": true
+  },
+  "hip_events": {
+    "old_raw_ms_per_40_layers": 0.9948203265666962,
+    "new_raw_ms_per_40_layers": 0.72623011469841,
+    "old_new_speedup": 1.3698417435909094,
+    "production_new_raw_ms_per_40_layers": 0.7312079966068268,
+    "rocblas_ms_per_40_layers": 1.2917364835739136,
+    "new_vs_rocblas_speedup": 1.7665787157255133
+  },
+  "rocprofv3": {
+    "method": "one counter per fresh process; signal handlers disabled",
+    "old": {
+      "allocated_vgpr": 24,
+      "allocated_sgpr": 128,
+      "FETCH_SIZE_KiB": 1025.65625,
+      "L2CacheHit_pct": 3.892122,
+      "MeanOccupancyPerActiveCU": 23.9742015,
+      "OccupancyPercent": 27.132959,
+      "MemUnitBusy_pct": 76.5054855,
+      "SQ_WAVES": 512,
+      "SQ_WAVE_CYCLES": 38869152,
+      "VALUInsts": 168,
+      "WRITE_SIZE_KiB": 0
+    },
+    "new": {
+      "allocated_vgpr": 40,
+      "allocated_sgpr": 128,
+      "FETCH_SIZE_KiB": 1025.65625,
+      "L2CacheHit_pct": 3.9963555,
+      "MeanOccupancyPerActiveCU": 23.350166,
+      "OccupancyPercent": 25.884721,
+      "MemUnitBusy_pct": 69.106341,
+      "SQ_WAVES": 512,
+      "SQ_WAVE_CYCLES": 26490077.5,
+      "VALUInsts": 138,
+      "WRITE_SIZE_KiB": 0
+    },
+    "sq_wave_cycles_delta_pct": -31.84806938931932,
+    "valu_insts_delta_pct": -17.85714285714286
+  },
+  "serving": {
+    "eager_1_input_128_output": {
+      "paired_cases": 4,
+      "cached_tokens": 0,
+      "old_host_e2e_median_ms": 3080.297586,
+      "new_host_e2e_median_ms": 3040.7166375,
+      "delta_pct": -1.2849715781,
+      "old_ttft_median_ms": 62.081544,
+      "new_ttft_median_ms": 61.9257925,
+      "old_decode_median_ms": 3017.471528,
+      "new_decode_median_ms": 2979.1129135,
+      "old_output_tps_median": 42.0884273524,
+      "new_output_tps_median": 42.6303495614,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    },
+    "full_graph_1_input_128_output": {
+      "paired_cases": 4,
+      "cached_tokens": 0,
+      "old_host_e2e_median_ms": 3092.1323485,
+      "new_host_e2e_median_ms": 3061.029376,
+      "delta_pct": -1.005874555,
+      "old_ttft_median_ms": 49.132879,
+      "new_ttft_median_ms": 49.187386,
+      "old_decode_median_ms": 3042.4887045,
+      "new_decode_median_ms": 3012.822113,
+      "old_output_tps_median": 41.7425312491,
+      "new_output_tps_median": 42.1532514184,
+      "graph_mode": "full-decode-tiers-1-2-4-8-12-16",
+      "dflash_mode": "disabled",
+      "capture_seconds_old": [
+        2.94,
+        2.82
+      ],
+      "capture_seconds_new": [
+        2.8,
+        2.8
+      ],
+      "graph_memory_GB": 0.17
+    },
+    "eager_210_input_128_output": {
+      "paired_cases": 4,
+      "cached_tokens": 0,
+      "old_host_e2e_median_ms": 3474.6263055,
+      "new_host_e2e_median_ms": 3438.477864,
+      "delta_pct": -1.0403547985,
+      "old_ttft_median_ms": 424.5414205,
+      "new_ttft_median_ms": 428.845043,
+      "old_input_tps_median": 494.779521453,
+      "new_input_tps_median": 489.962926469,
+      "old_output_tps_median": 41.6361488172,
+      "new_output_tps_median": 42.1970781076,
+      "graph_mode": "disabled",
+      "dflash_mode": "disabled"
+    }
+  },
+  "complete_trace_1_input_32_output_eager": {
+    "wall_ms": 824.270337,
+    "kernel_gpu_ms": 729.61747,
+    "positive_launch_gaps_ms": 101.440969,
+    "kernel_launches": 31662,
+    "shared_down_invocations": 1296,
+    "shared_down_total_ms": 23.575601,
+    "shared_down_mean_us": 18.1910501543,
+    "previous_shared_down_total_ms": 32.903853,
+    "previous_shared_down_mean_us": 25.1558509174,
+    "top_kernels_ms": [
+      [
+        "bf16_lm_head_decode_wave1_wg64_gfx1151",
+        159.888
+      ],
+      [
+        "bf16_qkv_decode_wave1_wide128_gfx1151",
+        97.834
+      ],
+      [
+        "mxfp4_linear_decode_n12800_k2048_block64_gfx1151",
+        67.972
+      ],
+      [
+        "bf16_shared_gate_up_silu_decode_wide128_gfx1151",
+        67.003
+      ],
+      [
+        "mxfp4_decode_gate_chunk4_gfx1151",
+        66.462
+      ]
+    ]
+  },
+  "negative_ledger": [
+    {
+      "candidate": "LM head batch2 b32",
+      "correctness": "10 activations and argmax bit-exact",
+      "old_ms": 4.995805,
+      "new_ms": 5.064186,
+      "decision": "reject 1.35% slower"
+    },
+    {
+      "candidate": "LM head unrolled two-buffer pipeline",
+      "correctness": "bit-exact",
+      "old_ms": 5.001689,
+      "new_ms": 4.995932,
+      "decision": "reject 0.12% within noise"
+    },
+    {
+      "candidate": "QKV batch2 b128",
+      "correctness": "all 10 real layers bit-exact",
+      "old_ms": 2.635416,
+      "new_ms": 2.628994,
+      "decision": "reject 0.24% within noise"
+    },
+    {
+      "candidate": "QKV unrolled two-buffer pipeline",
+      "correctness": "all 10 real layers bit-exact",
+      "old_ms": 2.63019,
+      "new_ms": 2.650888,
+      "decision": "reject 0.79% slower"
+    },
+    {
+      "candidate": "routed gate chunk persistence 2",
+      "correctness": "all 40 layers gate/up bit-exact",
+      "old_ms": 2.315145,
+      "new_ms": 2.426332,
+      "decision": "reject 4.80% slower"
+    },
+    {
+      "candidate": "routed gate chunk persistence 4",
+      "correctness": "all 40 layers gate/up bit-exact",
+      "old_ms": 2.320074,
+      "new_ms": 2.537421,
+      "decision": "reject 9.37% slower"
+    },
+    {
+      "candidate": "shared gate/up split two weight streams",
+      "correctness": "all 40 layers bit-exact",
+      "old_ms": 2.051601,
+      "new_ms": 2.132886,
+      "decision": "reject 3.96% slower"
+    },
+    {
+      "candidate": "shared down b64",
+      "correctness": "8 old/new BF16 mismatches; max abs 0.00048828125",
+      "old_ms": 0.994599,
+      "new_ms": 0.904752,
+      "decision": "reject; slower than exact batch4 and changes tree"
+    },
+    {
+      "candidate": "shared down b128",
+      "correctness": "7 old/new BF16 mismatches; max abs 0.00048828125",
+      "old_ms": 0.994599,
+      "new_ms": 0.685758,
+      "decision": "reject; faster but changes established tree"
+    },
+    {
+      "candidate": "shared down batch2 b32",
+      "correctness": "all 40 layers bit-exact",
+      "old_ms": 0.995927,
+      "new_ms": 0.92473,
+      "decision": "reject; batch4 is faster"
+    }
+  ]
+}

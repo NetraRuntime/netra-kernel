@@ -49,6 +49,10 @@ NETRA_GFX1151_EXPORT int netra_mxfp4_linear_n12800_k2048_block64(
     void* output, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_bf16_qkv_decode(
     void* weight, void* activation, void* output, void* stream_ptr);
+NETRA_GFX1151_EXPORT int netra_bf16_attention_output_decode(
+    void* weight, void* activation, void* output, void* stream_ptr);
+NETRA_GFX1151_EXPORT int netra_bf16_router_decode(
+    void* weight, void* activation, void* output, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_bf16_shared_gate_up_silu_decode(
     void* weight, void* activation, void* output, void* stream_ptr);
 NETRA_GFX1151_EXPORT int netra_bf16_shared_down_decode(
@@ -89,5 +93,11 @@ NETRA_GFX1151_EXPORT int netra_expert_weighted_reduce_fp64(
 NETRA_GFX1151_EXPORT int netra_expert_activation_pack(
     void* hidden, void* pair_tokens, void* position, void* output,
     unsigned pair_count, unsigned total_rows, void* stream_ptr);
+
+NETRA_GFX1151_EXPORT int netra_qwen36_rmsnorm_decode(
+    void* input, void* weight, void* output, float epsilon, void* stream_ptr);
+NETRA_GFX1151_EXPORT int netra_qwen36_fused_add_rmsnorm_decode(
+    void* input, void* residual, void* weight, float epsilon,
+    void* stream_ptr);
 
 }  // extern "C"

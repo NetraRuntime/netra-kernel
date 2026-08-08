@@ -1,0 +1,44 @@
+--- build/experiments/bf16-qkv-wide128-pipe2/baseline.normalized.dis	2026-07-31 13:50:20.259465928 +0000
++++ build/experiments/bf16-qkv-wide128-pipe2/candidate.normalized.dis	2026-07-31 13:50:20.260208011 +0000
+@@ -15,19 +15,38 @@
+ 	v_lshlrev_b32_e32 v2, 12, v10                              // ADDR: 3004148C
+ 	v_add_nc_u32_e32 v2, v1, v2                                // ADDR: 4A040501
+ 	v_mov_b32_e32 v12, 0                                       // ADDR: 7E180280
+-	s_mov_b32 s12, 8                                           // ADDR: BE8C0088
+ 	global_load_b128 v[3:6], v1, s[6:7]                        // ADDR: DC5E0000 03060001
+ 	global_load_b128 v[18:21], v2, s[4:5]                      // ADDR: DC5E0000 12040002
+ 	v_add_nc_u32_e32 v1, 0x200, v1                             // ADDR: 4A0202FF 00000200
+ 	v_add_nc_u32_e32 v2, 0x200, v2                             // ADDR: 4A0404FF 00000200
+ 	s_waitcnt vmcnt(0)                                         // ADDR: BF8903F7
++	s_mov_b32 s12, 4                                           // ADDR: BE8C0084
++	global_load_b128 v[22:25], v1, s[6:7]                      // ADDR: DC5E0000 16060001
++	global_load_b128 v[26:29], v2, s[4:5]                      // ADDR: DC5E0000 1A040002
++	v_add_nc_u32_e32 v1, 0x200, v1                             // ADDR: 4A0202FF 00000200
++	v_add_nc_u32_e32 v2, 0x200, v2                             // ADDR: 4A0404FF 00000200
+ 	v_dot2_f32_bf16 v12, v18, v3, v12                          // ADDR: CC1A400C 1C320712
+ 	v_dot2_f32_bf16 v12, v19, v4, v12                          // ADDR: CC1A400C 1C320913
+ 	v_dot2_f32_bf16 v12, v20, v5, v12                          // ADDR: CC1A400C 1C320B14
+ 	v_dot2_f32_bf16 v12, v21, v6, v12                          // ADDR: CC1A400C 1C320D15
++	s_waitcnt vmcnt(0)                                         // ADDR: BF8903F7
+ 	s_sub_u32 s12, s12, 1                                      // ADDR: 808C810C
+-	s_cmp_lg_u32 s12, 0                                        // ADDR: BF07800C
+-	s_cbranch_scc1 65516                                       // ADDR: BFA2FFEC <SYMBOL+OFFSET>
++	s_cmp_eq_u32 s12, 0                                        // ADDR: BF06800C
++	s_cbranch_scc1 18                                          // ADDR: BFA20012 <SYMBOL+OFFSET>
++	global_load_b128 v[3:6], v1, s[6:7]                        // ADDR: DC5E0000 03060001
++	global_load_b128 v[18:21], v2, s[4:5]                      // ADDR: DC5E0000 12040002
++	v_add_nc_u32_e32 v1, 0x200, v1                             // ADDR: 4A0202FF 00000200
++	v_add_nc_u32_e32 v2, 0x200, v2                             // ADDR: 4A0404FF 00000200
++	v_dot2_f32_bf16 v12, v26, v22, v12                         // ADDR: CC1A400C 1C322D1A
++	v_dot2_f32_bf16 v12, v27, v23, v12                         // ADDR: CC1A400C 1C322F1B
++	v_dot2_f32_bf16 v12, v28, v24, v12                         // ADDR: CC1A400C 1C32311C
++	v_dot2_f32_bf16 v12, v29, v25, v12                         // ADDR: CC1A400C 1C32331D
++	s_waitcnt vmcnt(0)                                         // ADDR: BF8903F7
++	s_branch 65498                                             // ADDR: BFA0FFDA <SYMBOL+OFFSET>
++	v_dot2_f32_bf16 v12, v26, v22, v12                         // ADDR: CC1A400C 1C322D1A
++	v_dot2_f32_bf16 v12, v27, v23, v12                         // ADDR: CC1A400C 1C322F1B
++	v_dot2_f32_bf16 v12, v28, v24, v12                         // ADDR: CC1A400C 1C32311C
++	v_dot2_f32_bf16 v12, v29, v25, v12                         // ADDR: CC1A400C 1C32331D
+ 	v_xor_b32_e32 v17, 16, v11                                 // ADDR: 3A221690
+ 	v_lshlrev_b32_e32 v17, 2, v17                              // ADDR: 30222282
+ 	ds_bpermute_b32 v16, v17, v12                              // ADDR: DACC0000 10000C11

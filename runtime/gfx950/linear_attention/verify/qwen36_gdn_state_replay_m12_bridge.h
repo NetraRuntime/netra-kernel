@@ -11,6 +11,11 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_load(
     const char* core_waves4_hsaco_path,
     const char* core_waves8_hsaco_path);
 
+extern "C" int netra_qwen36_gdn_state_replay_m12_load_dual(
+    const char* core_waves1_hsaco_path,
+    const char* core_waves4_hsaco_path,
+    const char* core_waves8_hsaco_path);
+
 extern "C" int netra_qwen36_gdn_state_replay_m12_launch(
     const void* A_log_f32,
     const void* a_bf16,
@@ -32,6 +37,7 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_launch(
     uint32_t stride_b,
     uint32_t batch_size,
     uint32_t waves_per_workgroup,
+    uint32_t state_capacity,
     hipStream_t stream);
 
 extern "C" int netra_qwen36_gdn_state_replay_m12_launch_precomputed(
@@ -46,6 +52,24 @@ extern "C" int netra_qwen36_gdn_state_replay_m12_launch_precomputed(
     uint32_t stride_v,
     uint32_t batch_size,
     uint32_t waves_per_workgroup,
+    uint32_t state_capacity,
+    hipStream_t stream);
+
+extern "C" int netra_qwen36_gdn_state_replay_m12_launch_dual_precomputed(
+    const void* k_normalized_f32,
+    const void* v_bf16,
+    const void* decay_f32,
+    const void* beta_f32,
+    void* states_bf16,
+    const void* initial_state_indices_i32,
+    const void* main_output_state_indices_i32,
+    const void* main_lengths_i32,
+    const void* tracking_output_state_indices_i32,
+    const void* tracking_lengths_i32,
+    uint32_t stride_v,
+    uint32_t batch_size,
+    uint32_t waves_per_workgroup,
+    uint32_t state_capacity,
     hipStream_t stream);
 
 extern "C" int netra_qwen36_gdn_state_replay_m12_unload(void);

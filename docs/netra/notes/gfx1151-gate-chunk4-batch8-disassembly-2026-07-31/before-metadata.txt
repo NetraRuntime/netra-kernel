@@ -1,0 +1,74 @@
+
+Symbol table '.dynsym' contains 3 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000001800  3988 FUNC    GLOBAL PROTECTED   7 mxfp4_decode_gate_chunk4_gfx1151
+     2: 0000000000000700    64 OBJECT  GLOBAL PROTECTED   6 mxfp4_decode_gate_chunk4_gfx1151.kd
+
+Symbol table '.symtab' contains 4 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND
+     1: 0000000000003798     0 NOTYPE  LOCAL  HIDDEN      8 _DYNAMIC
+     2: 0000000000001800  3988 FUNC    GLOBAL PROTECTED   7 mxfp4_decode_gate_chunk4_gfx1151
+     3: 0000000000000700    64 OBJECT  GLOBAL PROTECTED   6 mxfp4_decode_gate_chunk4_gfx1151.kd
+Displaying notes found in: .note
+  Owner                Data size 	Description
+  AMDGPU               0x000003fc	NT_AMDGPU_METADATA (AMDGPU Metadata)
+    AMDGPU Metadata:
+        ---
+amdhsa.kernels:
+  - .args:
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           packed
+        .offset:         0
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           scales
+        .offset:         8
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           activation
+        .offset:         16
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  write_only
+        .address_space:  global
+        .name:           output
+        .offset:         24
+        .size:           8
+        .value_kind:     global_buffer
+      - .actual_access:  read_only
+        .address_space:  global
+        .name:           expert_ids
+        .offset:         32
+        .size:           8
+        .value_kind:     global_buffer
+    .group_segment_fixed_size: 0
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 40
+    .language:       OpenCL C
+    .language_version:
+      - 2
+      - 0
+    .max_flat_workgroup_size: 128
+    .name:           mxfp4_decode_gate_chunk4_gfx1151
+    .private_segment_fixed_size: 0
+    .sgpr_count:     26
+    .sgpr_spill_count: 0
+    .symbol:         mxfp4_decode_gate_chunk4_gfx1151.kd
+    .uniform_work_group_size: 1
+    .uses_dynamic_stack: false
+    .vgpr_count:     34
+    .vgpr_spill_count: 0
+    .wavefront_size: 32
+    .workgroup_processor_mode: 1
+amdhsa.target:   amdgcn-amd-amdhsa--gfx1151
+amdhsa.version:
+  - 1
+  - 2
+...

@@ -19,6 +19,7 @@ mkdir -p "${out_dir}"
 sources=(
   serving/mxfp4_sgl_decode_gate_gfx1151.s
   serving/mxfp4_sgl_decode_down_gfx1151.s
+  decode/mxfp4_decode_down_batch4_wg32_gfx1151.s
   serving/mxfp4_sgl_reduce_gfx1151.s
   serving/mxfp4_sgl_linear_decode_gfx1151.s
   decode/mxfp4_linear_decode_n2048_k4096_block128_gfx1151.s
@@ -27,6 +28,8 @@ sources=(
   decode/mxfp4_linear_decode_n12800_block64_reduce_gfx1151.s
   decode/mxfp4_decode_gate_block64_gfx1151.s
   decode/mxfp4_decode_gate_block64_reduce_gfx1151.s
+  decode/mxfp4_decode_gate_chunk4_gfx1151.s
+  decode/mxfp4_decode_gate_chunk4_reduce_gfx1151.s
   serving/mxfp4_sgl_linear_prefill_wmma_gfx1151.s
   serving/mxfp4_sgl_linear_prefill_repack_dword_gfx1151.s
   prefill/mxfp4_prefill_gate_wmma_gfx1151.s
@@ -47,20 +50,21 @@ for source_rel in "${sources[@]}"; do
     "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.dis"
 done
 
-script_mxfp4_sources=(
-  mxfp4_prefill_up_silu_wmma_gfx1151.s
-  mxfp4_sgl_linear_prefill_group4_a_gfx1151.s
-  mxfp4_m12_group_gate_wmma_gfx1151.s
-  mxfp4_m12_group_gate_up_wmma_gfx1151.s
-  mxfp4_m12_group_gate_up_silu_wmma_gfx1151.s
-  silu_mul_m12_group_bf16_gfx1151.s
-  mxfp4_m12_group_down_wmma_gfx1151.s
+mxfp4_additional_sources=(
+  prefill/mxfp4_prefill_up_silu_wmma_gfx1151.s
+  prefill/mxfp4_sgl_linear_prefill_group4_a_gfx1151.s
+  verify/mxfp4_m12_group_gate_wmma_gfx1151.s
+  verify/mxfp4_m12_group_gate_up_wmma_gfx1151.s
+  verify/mxfp4_m12_group_gate_up_silu_wmma_gfx1151.s
+  verify/silu_mul_m12_group_bf16_gfx1151.s
+  verify/mxfp4_m12_group_down_wmma_gfx1151.s
 )
-for source_name in "${script_mxfp4_sources[@]}"; do
+for source_rel in "${mxfp4_additional_sources[@]}"; do
+  source_name=${source_rel##*/}
   stem=${source_name%.s}
   "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
     -I "${kernel_dir}/prefill" -x assembler -c \
-    "${repo_dir}/scripts/rocm/kernels/gfx1151/mxfp4/${source_name}" \
+    "${kernel_dir}/${source_rel}" \
     -o "${out_dir}/${stem}.o"
   "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
     "${out_dir}/${stem}.o" -o "${out_dir}/${stem}.hsaco"
@@ -68,7 +72,7 @@ for source_name in "${script_mxfp4_sources[@]}"; do
     "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.dis"
 done
 
-lm_head_stem=bf16_lm_head_decode_wave4_gfx1151
+lm_head_stem=bf16_lm_head_decode_wave1_wg64_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c \
   "${repo_dir}/kernels/gfx1151/dense/lm_head/${lm_head_stem}.s" \
@@ -80,27 +84,64 @@ lm_head_stem=bf16_lm_head_decode_wave4_gfx1151
 
 split_stem=qkvzba_split_copy_gfx1151
 
-qkv_stem=bf16_qkv_decode_wave4_gfx1151
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  -x assembler -c \
-  "${repo_dir}/kernels/gfx1151/dense/qkv/${qkv_stem}.s" \
-  -o "${out_dir}/${qkv_stem}.o"
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  "${out_dir}/${qkv_stem}.o" -o "${out_dir}/${qkv_stem}.hsaco"
-"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
-  "${out_dir}/${qkv_stem}.hsaco" > "${out_dir}/${qkv_stem}.dis"
+qkv_stems=(
+  bf16_qkv_decode_wave1_gfx1151
+  bf16_qkv_decode_wave1_wide128_gfx1151
+)
+for qkv_stem in "${qkv_stems[@]}"; do
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    -x assembler -c \
+    "${repo_dir}/kernels/gfx1151/dense/qkv/${qkv_stem}.s" \
+    -o "${out_dir}/${qkv_stem}.o"
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    "${out_dir}/${qkv_stem}.o" -o "${out_dir}/${qkv_stem}.hsaco"
+  "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+    "${out_dir}/${qkv_stem}.hsaco" > "${out_dir}/${qkv_stem}.dis"
+done
 
-shared_gate_up_stem=bf16_shared_gate_up_silu_decode_wave2_gfx1151
+attention_output_stems=(
+  bf16_attn_oproj_decode_wave1_gfx1151
+  bf16_attn_oproj_decode_wave1_wide128_gfx1151
+)
+for attention_output_stem in "${attention_output_stems[@]}"; do
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    -x assembler -c \
+    "${repo_dir}/kernels/gfx1151/dense/attention/${attention_output_stem}.s" \
+    -o "${out_dir}/${attention_output_stem}.o"
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    "${out_dir}/${attention_output_stem}.o" \
+    -o "${out_dir}/${attention_output_stem}.hsaco"
+  "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+    "${out_dir}/${attention_output_stem}.hsaco" > \
+    "${out_dir}/${attention_output_stem}.dis"
+done
+
+router_stem=bf16_router_decode_wave2_fp32_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   -x assembler -c \
-  "${repo_dir}/kernels/gfx1151/dense/shared_expert/${shared_gate_up_stem}.s" \
-  -o "${out_dir}/${shared_gate_up_stem}.o"
+  "${repo_dir}/kernels/gfx1151/moe/${router_stem}.s" \
+  -o "${out_dir}/${router_stem}.o"
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  "${out_dir}/${shared_gate_up_stem}.o" \
-  -o "${out_dir}/${shared_gate_up_stem}.hsaco"
+  "${out_dir}/${router_stem}.o" -o "${out_dir}/${router_stem}.hsaco"
 "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
-  "${out_dir}/${shared_gate_up_stem}.hsaco" > \
-  "${out_dir}/${shared_gate_up_stem}.dis"
+  "${out_dir}/${router_stem}.hsaco" > "${out_dir}/${router_stem}.dis"
+
+shared_gate_up_stems=(
+  bf16_shared_gate_up_silu_decode_wave2_gfx1151
+  bf16_shared_gate_up_silu_decode_wide128_gfx1151
+)
+for shared_gate_up_stem in "${shared_gate_up_stems[@]}"; do
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    -x assembler -c \
+    "${repo_dir}/kernels/gfx1151/dense/shared_expert/${shared_gate_up_stem}.s" \
+    -o "${out_dir}/${shared_gate_up_stem}.o"
+  "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+    "${out_dir}/${shared_gate_up_stem}.o" \
+    -o "${out_dir}/${shared_gate_up_stem}.hsaco"
+  "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+    "${out_dir}/${shared_gate_up_stem}.hsaco" > \
+    "${out_dir}/${shared_gate_up_stem}.dis"
+done
 
 shared_down_stem=bf16_shared_down_decode_wave4_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
@@ -163,7 +204,7 @@ gdn_stem=gdn_chunk_o_bv32_gfx1151
 
 recompute_stem=recompute_w_u_ordered_gfx1151
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
-  -x assembler -c "${repo_dir}/scripts/rocm/kernels/gfx1151/gdn/${recompute_stem}.s" \
+  -x assembler -c "${repo_dir}/kernels/gfx1151/gdn/${recompute_stem}.s" \
   -o "${out_dir}/${recompute_stem}.o"
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
   "${out_dir}/${recompute_stem}.o" -o "${out_dir}/${recompute_stem}.hsaco"
@@ -188,6 +229,16 @@ reduce_stem=expert_weighted_reduce_top8_fp64_gfx1151
   "${out_dir}/${reduce_stem}.o" -o "${out_dir}/${reduce_stem}.hsaco"
 "${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
   "${out_dir}/${reduce_stem}.hsaco" > "${out_dir}/${reduce_stem}.dis"
+
+norm_stem=qwen36_rmsnorm_decode_gfx1151
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  -x assembler -c \
+  "${repo_dir}/kernels/gfx1151/norm/${norm_stem}.s" \
+  -o "${out_dir}/${norm_stem}.o"
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx1151 \
+  "${out_dir}/${norm_stem}.o" -o "${out_dir}/${norm_stem}.hsaco"
+"${rocm_dir}/llvm/bin/llvm-objdump" -d --mcpu=gfx1151 \
+  "${out_dir}/${norm_stem}.hsaco" > "${out_dir}/${norm_stem}.dis"
 
 "${hipcc_bin}" --offload-arch=gfx1151 -O3 -shared -fPIC \
   -fvisibility=hidden -fvisibility-inlines-hidden -I "${repo_dir}" \

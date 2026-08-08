@@ -1,0 +1,61 @@
+diff --git a/python/sglang/srt/models/qwen3_5.py b/python/sglang/srt/models/qwen3_5.py
+--- a/python/sglang/srt/models/qwen3_5.py
++++ b/python/sglang/srt/models/qwen3_5.py
+@@ -156,6 +156,16 @@
+     from sglang.srt.layers.quantization.netra_gfx1151 import (
+         netra_bf16_qkv_with_output,
+     )
++_use_netra_bf16_attention_output = (
++    _is_hip
++    and get_bool_env_var("SGLANG_USE_NETRA_MXFP4_GFX1151")
++    and os.getenv("SGLANG_NETRA_ENABLE_BF16_ATTN_OUTPUT", "1").lower()
++    in {"1", "true", "yes", "on"}
++)
++if _use_netra_bf16_attention_output:
++    from sglang.srt.layers.quantization.netra_gfx1151 import (
++        netra_bf16_attention_output_with_output,
++    )
+ _use_aiter = get_bool_env_var("SGLANG_USE_AITER") and _is_hip
+ _hip_use_alt_stream = get_bool_env_var("SGLANG_ALT_STREAM") and _is_hip
+ _gdn_use_alt_stream = _is_cuda or (
+@@ -985,6 +995,16 @@
+             prefix=add_prefix("o_proj", prefix),
+         )
+ 
++        self._netra_attention_output_decode_output = (
++            torch.empty(
++                (1, 2048),
++                dtype=torch.bfloat16,
++                device=self.o_proj.weight.device,
++            )
++            if _use_netra_bf16_attention_output
++            else None
++        )
++
+         self.attn = RadixAttention(
+             self.num_heads,
+             self.head_dim,
+@@ -1329,7 +1349,22 @@
+                 gate_val = gate.reshape(gate.shape[0], -1) if gate.ndim == 3 else gate
+                 attn_output.mul_(torch.sigmoid(gate_val))
+ 
+-        output, _ = self.o_proj(attn_output)
++        weight = self.o_proj.weight
++        if (
++            _use_netra_bf16_attention_output
++            and tuple(attn_output.shape) == (1, 4096)
++            and attn_output.dtype == torch.bfloat16
++            and attn_output.is_contiguous()
++            and tuple(weight.shape) == (2048, 4096)
++            and weight.dtype == torch.bfloat16
++            and weight.is_contiguous()
++        ):
++            netra_bf16_attention_output_with_output(
++                weight, attn_output, self._netra_attention_output_decode_output
++            )
++            output = self._netra_attention_output_decode_output
++        else:
++            output, _ = self.o_proj(attn_output)
+         return output
+ 
+     def forward(

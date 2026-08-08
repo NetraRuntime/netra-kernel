@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "shape": {
+    "m": 768,
+    "n": 2048,
+    "k": 6144,
+    "input": "BF16",
+    "weight": "BF16",
+    "output": "BF16"
+  },
+  "candidate": {
+    "tile": "M64xN64xK128",
+    "workgroup_size": 256,
+    "wavefront_size": 64,
+    "lds_pitch_bytes": 320,
+    "lds_bytes": 40960,
+    "vgpr_count": 80,
+    "sgpr_count": 23,
+    "scratch_bytes": 0
+  },
+  "hip_event_timing_us": {
+    "candidate_median": 67.47999787330627,
+    "candidate_p90": 71.91900163888931,
+    "torch_linear_median": 47.919999808073044,
+    "candidate_slower_percent": 40.82
+  },
+  "counters_median_percent": {
+    "candidate_lds_bank_conflict": 12.486028,
+    "candidate_lds_util": 37.458085,
+    "candidate_mfma_util": 12.486028,
+    "deployed_lds_bank_conflict": 0.0,
+    "deployed_lds_util": 32.32765,
+    "deployed_mfma_util": 19.3764
+  },
+  "correctness": {
+    "elements": 1572864,
+    "bf16_mismatches": 521,
+    "max_abs_error": 0.015625,
+    "mean_abs_error": 4.6654372454213444e-07,
+    "graph_replay_exact": true,
+    "gate": "fail"
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T060000Z-dflash-down-m768-gpu6"
+}

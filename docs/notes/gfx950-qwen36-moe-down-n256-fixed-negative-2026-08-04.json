@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "quantization": "FP8 E4M3, 128x128 blocks",
+  "shape": {
+    "rows": 768,
+    "hidden": 2048,
+    "intermediate": 512,
+    "topk": 9,
+    "valid_sorted_ids": 15872,
+    "m64_blocks": 248,
+    "n256_grid_x": 8
+  },
+  "code_objects": {
+    "n256_64k": {
+      "wavefront_size": 64,
+      "workgroup_size": 256,
+      "lds_bytes": 65536,
+      "vgpr_count": 172,
+      "sgpr_count": 60,
+      "scratch_bytes": 0,
+      "mfma_static": 16,
+      "barriers_static": 1
+    },
+    "n256_splitlds_32k": {
+      "wavefront_size": 64,
+      "workgroup_size": 256,
+      "lds_bytes": 32768,
+      "vgpr_count": 172,
+      "sgpr_count": 60,
+      "scratch_bytes": 0,
+      "mfma_static": 16,
+      "barriers_static": 2
+    }
+  },
+  "timing_us": {
+    "raw_n128_control": {
+      "down_median": 61.5405,
+      "down_p90": 65.7329,
+      "complete_median": 187.521
+    },
+    "raw_n256_64k": {
+      "down_median": 63.5605,
+      "down_p90": 66.924,
+      "complete_median": 186.242
+    },
+    "raw_n256_splitlds_32k": {
+      "down_median": 67.72,
+      "down_p90": 71.541,
+      "complete_median": 191.821
+    },
+    "aiter_64x256_retained": {
+      "complete_median": 182.60199576616287
+    }
+  },
+  "relative": {
+    "n256_64k_down_slower_than_n128_percent": 3.28,
+    "n256_splitlds_down_slower_than_n128_percent": 10.04,
+    "n256_64k_complete_slower_than_aiter_percent": 1.99,
+    "n256_splitlds_complete_slower_than_aiter_percent": 5.05
+  },
+  "correctness": {
+    "full_structural_max_abs": 0.00084421,
+    "full_structural_cosine": 0.999973,
+    "full_aiter_max_abs": 0.000976562,
+    "full_aiter_cosine": 0.999965,
+    "gate": "pass"
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260804T060000Z-moe-down-n256-fixed-gpu6"
+}
+

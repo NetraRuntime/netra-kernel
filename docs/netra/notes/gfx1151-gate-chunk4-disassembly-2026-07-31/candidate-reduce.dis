@@ -1,0 +1,43 @@
+
+/root/netra-mxfp4-gfx1151/build/sglang/mxfp4_decode_gate_chunk4_reduce_gfx1151.hsaco:	file format elf64-amdgpu
+
+Disassembly of section .text:
+
+0000000000001800 <mxfp4_decode_gate_chunk4_reduce_gfx1151>:
+	s_clause 0x2                                               // 000000001800: BF850002
+	s_load_b128 s[4:7], s[0:1], null                           // 000000001804: F4080100 F8000000
+	s_load_b128 s[8:11], s[0:1], 0x10                          // 00000000180C: F4080200 F8000010
+	s_waitcnt lgkmcnt(0)                                       // 000000001814: BF89FC07
+	s_lshl_b32 s14, s3, 11                                     // 000000001818: 840E8B03
+	s_add_u32 s4, s4, s14                                      // 00000000181C: 80040E04
+	s_addc_u32 s5, s5, 0                                       // 000000001820: 82058005
+	s_add_u32 s8, s8, s14                                      // 000000001824: 80080E08
+	s_addc_u32 s9, s9, 0                                       // 000000001828: 82098009
+	s_add_u32 s10, s4, 0x20000                                 // 00000000182C: 800AFF04 00020000
+	s_addc_u32 s11, s5, 0                                      // 000000001834: 820B8005
+	s_lshl_b32 s14, s2, 8                                      // 000000001838: 840E8802
+	v_lshlrev_b32_e32 v1, 1, v0                                // 00000000183C: 30020081
+	v_add_nc_u32_e32 v1, s14, v1                               // 000000001840: 4A02020E
+	v_lshlrev_b32_e32 v7, 2, v1                                // 000000001844: 300E0282
+	v_dual_mov_b32 v8, 0 :: v_dual_mov_b32 v9, 0               // 000000001848: CA100080 08080080
+	v_dual_mov_b32 v10, 0 :: v_dual_mov_b32 v11, 0             // 000000001850: CA100080 0A0A0080
+	s_mov_b32 s16, 8                                           // 000000001858: BE900088
+	global_load_b64 v[2:3], v7, s[4:5]                         // 00000000185C: DC560000 02040007
+	global_load_b64 v[4:5], v7, s[10:11]                       // 000000001864: DC560000 040A0007
+	s_waitcnt vmcnt(0)                                         // 00000000186C: BF8903F7
+	v_add_f32_e32 v8, v8, v2                                   // 000000001870: 06100508
+	v_add_f32_e32 v9, v9, v3                                   // 000000001874: 06120709
+	v_add_f32_e32 v10, v10, v4                                 // 000000001878: 0614090A
+	v_add_f32_e32 v11, v11, v5                                 // 00000000187C: 06160B0B
+	s_add_u32 s4, s4, 0x4000                                   // 000000001880: 8004FF04 00004000
+	s_addc_u32 s5, s5, 0                                       // 000000001888: 82058005
+	s_add_u32 s10, s10, 0x4000                                 // 00000000188C: 800AFF0A 00004000
+	s_addc_u32 s11, s11, 0                                     // 000000001894: 820B800B
+	s_sub_u32 s16, s16, 1                                      // 000000001898: 80908110
+	s_waitcnt_depctr depctr_hold_cnt(0) depctr_sa_sdst(0) depctr_va_vdst(0) depctr_va_sdst(0) depctr_va_ssrc(0) depctr_va_vcc(0) depctr_vm_vsrc(0)// 00000000189C: BF880000
+	s_cmp_lg_u32 s16, 0                                        // 0000000018A0: BF078010
+	s_cbranch_scc1 65517                                       // 0000000018A4: BFA2FFED <mxfp4_decode_gate_chunk4_reduce_gfx1151+0x5c>
+	v_add_f32_e32 v8, v8, v10                                  // 0000000018A8: 06101508
+	v_add_f32_e32 v9, v9, v11                                  // 0000000018AC: 06121709
+	global_store_b64 v7, v[8:9], s[8:9]                        // 0000000018B0: DC6E0000 00080807
+	s_endpgm                                                   // 0000000018B8: BFB00000

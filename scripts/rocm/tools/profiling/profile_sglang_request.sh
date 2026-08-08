@@ -85,7 +85,7 @@ fi
 
 request_seed=${NETRA_PROFILE_SEED:-${label}-seed}
 set +e
-/root/sglvenv1151/bin/python "${repo}/tools/profiling/request_scenario.py" \
+/root/sglvenv1151/bin/python "${repo}/scripts/rocm/tools/profiling/request_scenario.py" \
   --input-len "$input_len" --output-len "$output_len" \
   --seed "$request_seed" --label "$label" \
   --graph-mode "${NETRA_GRAPH_MODE:-disabled}" \
@@ -114,6 +114,6 @@ kernel_csv=$(find "$out_dir" -type f -name '*kernel*trace*.csv' -print -quit)
   echo "profiler emitted no non-empty kernel trace (status $profiler_status)" >&2
   exit 1
 }
-/root/sglvenv1151/bin/python "${repo}/tools/profiling/summarize_fullstack.py" \
+/root/sglvenv1151/bin/python "${repo}/scripts/rocm/tools/profiling/summarize_fullstack.py" \
   "$out_dir" --out "${out_dir}/summary.json"
 echo "$out_dir"

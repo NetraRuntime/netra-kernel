@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "shape": {
+    "m": 768,
+    "n": 12288,
+    "k": 2048,
+    "input_dtype": "BF16",
+    "weight_dtype": "BF16",
+    "output_dtype": "BF16"
+  },
+  "aiter_assembly_screen": {
+    "median_us": 100.8022,
+    "kernel": "_ZN5aiter24bf16gemm_bf16_tn_256x256E"
+  },
+  "m64n64": {
+    "raw_median_us": 137.62249797582626,
+    "raw_minimum_us": 106.40200227499008,
+    "control_median_us": 95.58200091123581,
+    "control_minimum_us": 68.08099895715714,
+    "bf16_mismatches": 0,
+    "graph_exact": true
+  },
+  "m64n128": {
+    "raw_median_us": 162.12299466133118,
+    "raw_minimum_us": 106.52200132608414,
+    "control_median_us": 95.2414982020855,
+    "control_minimum_us": 67.20100343227386,
+    "bf16_mismatches": 0,
+    "graph_exact": true
+  },
+  "output_sha256": "d58213406b3d9ed69478bc63030bfba3b1697a52e454c84bb3c00ec09e5e32ba",
+  "integration": "rejected"
+}

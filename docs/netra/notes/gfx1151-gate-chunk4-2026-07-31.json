@@ -1,0 +1,305 @@
+{
+  "target": "gfx1151",
+  "device": "AMD Ryzen AI Max+ PRO 395 / Radeon 8060S",
+  "date": "2026-07-31",
+  "scope": "Qwen3.6-35B-A3B MXFP4 routed gate/up M=1 decode, selected experts=8, N=512, K=2048",
+  "decision": "accepted",
+  "implementation": {
+    "measurement_status": "measured",
+    "compute_source": "kernels/gfx1151/mxfp4/decode/mxfp4_decode_gate_chunk4_gfx1151.s",
+    "reduce_source": "kernels/gfx1151/mxfp4/decode/mxfp4_decode_gate_chunk4_reduce_gfx1151.s",
+    "compute_hsaco_sha256": "7ebefa5aa26bc14d8148fe7661ecb13a90b164c8792a1d58ef70018baeabad14",
+    "reduce_hsaco_sha256": "7a4478e57d2a7d0dafc10c08c032947be4db0075475055b8957600802dc62622",
+    "compute_launch": {
+      "grid": [
+        1,
+        128,
+        1
+      ],
+      "block": [
+        128,
+        1,
+        1
+      ]
+    },
+    "reduce_launch": {
+      "grid": [
+        2,
+        8,
+        1
+      ],
+      "block": [
+        128,
+        1,
+        1
+      ]
+    },
+    "kernarg_size_bytes": 40,
+    "kernarg_alignment_bytes": 8,
+    "wavefront_size": 32,
+    "source_metadata": {
+      "vgpr": 34,
+      "sgpr": 26,
+      "lds_bytes": 0,
+      "scratch_bytes": 0,
+      "vgpr_spills": 0,
+      "sgpr_spills": 0
+    },
+    "rocprof_allocation_granule": {
+      "vgpr": 40,
+      "sgpr": 128,
+      "lds_bytes": 0,
+      "scratch_bytes": 0
+    }
+  },
+  "workspace": {
+    "measurement_status": "derived from exact tensor shapes",
+    "baseline_shape_fp32": [
+      64,
+      8,
+      512
+    ],
+    "candidate_shape_fp32": [
+      16,
+      8,
+      512
+    ],
+    "baseline_bytes_per_layer": 1048576,
+    "candidate_bytes_per_layer": 262144,
+    "reduction_factor": 4.0,
+    "allocation_behavior": "stable per-layer workspace allocated before hot-path launches"
+  },
+  "correctness": {
+    "measurement_status": "measured on gfx1151",
+    "reference": "FP64 evaluation of real checkpoint MXFP4 weights and BF16 activations",
+    "bit_exact_to_block64": false,
+    "reason": "FP32 summation order changes from 64 one-block partials to 16 four-block partials",
+    "fixtures": [
+      {
+        "name": "synthetic",
+        "mismatches_of_4096": 1705,
+        "max_abs_candidate_vs_block64": 1.525878906e-05,
+        "baseline_max_abs_fp64": 1.192092896e-05,
+        "candidate_max_abs_fp64": 9.596347809e-06,
+        "baseline_mean_abs_fp64": 1.567670552e-06,
+        "candidate_mean_abs_fp64": 1.458880433e-06
+      },
+      {
+        "name": "real_layer0_gate",
+        "mismatches_of_4096": 893,
+        "max_abs_candidate_vs_block64": 1.192092896e-07,
+        "baseline_max_abs_fp64": 1.098960638e-07,
+        "candidate_max_abs_fp64": 1.098960638e-07,
+        "baseline_mean_abs_fp64": 1.050352694e-08,
+        "candidate_mean_abs_fp64": 1.017974682e-08
+      },
+      {
+        "name": "real_layer10_up",
+        "mismatches_of_4096": 1013,
+        "max_abs_candidate_vs_block64": 1.192092896e-07,
+        "baseline_max_abs_fp64": 1.192092896e-07,
+        "candidate_max_abs_fp64": 1.192092896e-07,
+        "baseline_mean_abs_fp64": 1.25456836e-08,
+        "candidate_mean_abs_fp64": 1.244961823e-08
+      },
+      {
+        "name": "real_layer20_gate",
+        "mismatches_of_4096": 1349,
+        "max_abs_candidate_vs_block64": 1.192092896e-07,
+        "baseline_max_abs_fp64": 1.564621925e-07,
+        "candidate_max_abs_fp64": 1.490116119e-07,
+        "baseline_mean_abs_fp64": 1.941361916e-08,
+        "candidate_mean_abs_fp64": 1.870034794e-08
+      },
+      {
+        "name": "real_layer30_up",
+        "mismatches_of_4096": 1284,
+        "max_abs_candidate_vs_block64": 2.384185791e-07,
+        "baseline_max_abs_fp64": 1.341104507e-07,
+        "candidate_max_abs_fp64": 1.564621925e-07,
+        "baseline_mean_abs_fp64": 1.701437213e-08,
+        "candidate_mean_abs_fp64": 1.62312972e-08
+      }
+    ],
+    "candidate_mean_abs_error_lower_on_all_real_fixtures": true,
+    "candidate_max_abs_error_equal_or_lower_on_real_fixtures": "3 of 4",
+    "matched_seed_output_text_hashes_equal": "1 of 5; expected token-boundary sensitivity from model-native FP32 accumulation change",
+    "candidate_repeated_output_text_sha256": "76fbdc361f6a7e326a95220f2f14700b9481062fb80d3d2e59a683a7250414bf",
+    "eager_repetitions_identical": 3,
+    "full_graph_repetitions_identical": 3,
+    "eager_vs_full_graph_identical": true,
+    "coherence_prompt_output_text_sha256": "f3ded92cae52bc4c2100be2b670cd26da94d2c6c4a3869d7654fd1dae459b4ab",
+    "coherence_finish_reason": "stop",
+    "coherence_judgment": "complete and coherent"
+  },
+  "hip_event_pair": {
+    "measurement_status": "measured on gfx1151",
+    "synthetic_baseline_median_us": 17.06644249,
+    "synthetic_candidate_median_us": 13.60576344,
+    "synthetic_speedup": 1.254353905,
+    "real_fixture_speedups": [
+      1.252753381,
+      1.252231616,
+      1.2511397,
+      1.251926949
+    ]
+  },
+  "matched_seed_serving": {
+    "measurement_status": "measured host streaming E2E on gfx1151",
+    "input_tokens": 1,
+    "output_tokens": 128,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "samples": 5,
+    "baseline_median_decode_ms": 3545.526461,
+    "candidate_median_decode_ms": 3385.450553,
+    "decode_latency_reduction_percent": 4.5148,
+    "baseline_median_output_tokens_per_s": 35.8197862566,
+    "candidate_median_output_tokens_per_s": 37.5134706627,
+    "throughput_gain_percent": 4.7287,
+    "baseline_median_e2e_ms": 3605.629884,
+    "candidate_median_e2e_ms": 3448.317752,
+    "e2e_reduction_percent": 4.363
+  },
+  "final_eager_serving": {
+    "measurement_status": "measured host streaming E2E on gfx1151",
+    "input_tokens": 1,
+    "output_tokens": 128,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "samples": 3,
+    "median_ttft_ms": 59.245655,
+    "median_decode_ms": 3375.677889,
+    "median_e2e_ms": 3434.923544,
+    "median_output_tokens_per_s": 37.6220730105,
+    "peak_vram_bytes": 77294452736
+  },
+  "full_graph_serving": {
+    "measurement_status": "measured host streaming E2E on gfx1151",
+    "input_tokens": 1,
+    "output_tokens": 128,
+    "cached_tokens": 0,
+    "graph_mode": "full decode tiers 1,2,4,8,12,16",
+    "dflash_mode": "disabled",
+    "samples": 3,
+    "median_ttft_ms": 49.620317,
+    "median_decode_ms": 3416.315281,
+    "median_e2e_ms": 3466.235228,
+    "median_output_tokens_per_s": 37.174554909,
+    "peak_vram_bytes": 78408773632,
+    "capture_time_s": 3.05,
+    "capture_memory_gb": 0.17,
+    "decode_regression_vs_eager_percent": 1.2039,
+    "decision": "correctness-safe but performance-negative for batch-1; prefer eager"
+  },
+  "complete_request_trace": {
+    "measurement_status": "measured with rocprofv3 on gfx1151",
+    "input_tokens": 1,
+    "output_tokens": 32,
+    "cached_tokens": 0,
+    "graph_mode": "disabled",
+    "dflash_mode": "disabled",
+    "host_wall_ms": 922.962042,
+    "kernel_gpu_ms": 826.260662,
+    "positive_launch_gap_ms": 101.370905,
+    "kernel_launches": 31421,
+    "unique_kernels": 72,
+    "kernel_wall_percent": 89.5227132212,
+    "gap_wall_percent": 10.9832149522,
+    "candidate_compute": {
+      "invocations": 2572,
+      "mean_us": 32.6661096423,
+      "total_ms": 84.017234
+    },
+    "candidate_reduce": {
+      "invocations": 2572,
+      "mean_us": 1.6400622084,
+      "total_ms": 4.21824
+    },
+    "baseline_compute": {
+      "invocations": 2568,
+      "mean_us": 36.1907122274,
+      "total_ms": 92.937749
+    },
+    "baseline_reduce": {
+      "invocations": 2568,
+      "mean_us": 11.5426292835,
+      "total_ms": 29.641472
+    },
+    "pair_total_baseline_ms": 122.579221,
+    "pair_total_candidate_ms": 88.235474,
+    "pair_total_reduction_ms": 34.343747,
+    "pair_total_reduction_percent": 28.0176
+  },
+  "rocprof_counters": {
+    "measurement_status": "measured on gfx1151, one counter per fresh process",
+    "direct_dependency_stall_counter": "unavailable in the gfx1151 rocprofv3 metric set",
+    "baseline_compute": {
+      "fetch_kib": 2054.3125,
+      "l2_hit_percent": 17.936933,
+      "mean_occupancy_per_active_cu": 57.043203,
+      "mem_unit_busy_percent": 61.416535,
+      "occupancy_percent": 61.331808,
+      "waves": 2048,
+      "wave_cycles": 35260128,
+      "valu_insts": 394,
+      "write_kib": 306.5
+    },
+    "candidate_compute": {
+      "fetch_kib": 2180.5,
+      "l2_hit_percent": 6.979906,
+      "mean_occupancy_per_active_cu": 24.789521,
+      "mem_unit_busy_percent": 66.507489,
+      "occupancy_percent": 28.565145,
+      "waves": 512,
+      "wave_cycles": 18026164,
+      "valu_insts": 1600,
+      "write_kib": 0.0
+    },
+    "baseline_reduce": {
+      "fetch_kib": 640.8125,
+      "l2_hit_percent": 2.443609,
+      "mean_occupancy_per_active_cu": 3.957095,
+      "mem_unit_busy_percent": 44.437715,
+      "occupancy_percent": 2.98734,
+      "waves": 64,
+      "wave_cycles": 1200644,
+      "valu_insts": 391,
+      "write_kib": 0.0
+    },
+    "candidate_reduce": {
+      "fetch_kib": 128.5625,
+      "l2_hit_percent": 9.294606,
+      "mean_occupancy_per_active_cu": 3.883286,
+      "mem_unit_busy_percent": 22.779195,
+      "occupancy_percent": 1.565974,
+      "waves": 64,
+      "wave_cycles": 356287,
+      "valu_insts": 39,
+      "write_kib": 0.0
+    },
+    "write_counter_note": "WRITE_SIZE returned zero for candidate dispatches despite architecturally required global stores; do not use that counter as a byte-accounting oracle"
+  },
+  "artifacts": {
+    "validation": "results/profiles/gfx1151/gate-chunk4-validation-20260731",
+    "baseline_counters": "results/profiles/gfx1151/gate-block64-counters-20260731",
+    "candidate_counters": "results/profiles/gfx1151/gate-chunk4-counters-20260731",
+    "complete_trace": "results/profiles/gfx1151/current-gate-chunk4-complete-eager-b1-1-plus32-20260731",
+    "matched_baseline_serving": "results/serving/gfx1151/gate-block64-control-eager-1-plus128-20260731",
+    "matched_candidate_serving": "results/serving/gfx1151/gate-chunk4-eager-1-plus128-20260731",
+    "final_eager_serving": "results/serving/gfx1151/gate-chunk4-final-eager-20260731",
+    "final_full_graph_serving": "results/serving/gfx1151/gate-chunk4-final-fullgraph-20260731",
+    "disassembly": "docs/netra/notes/gfx1151-gate-chunk4-disassembly-2026-07-31"
+  },
+  "target_output_tokens_per_s": 50,
+  "target_achieved": false,
+  "remaining_latency_to_50tps": {
+    "measurement_status": "estimated from measured 37.622073 tok/s median",
+    "current_ms_per_token": 26.58014,
+    "target_ms_per_token": 20.0,
+    "additional_reduction_ms_per_token": 6.58014,
+    "additional_reduction_percent": 24.756
+  }
+}

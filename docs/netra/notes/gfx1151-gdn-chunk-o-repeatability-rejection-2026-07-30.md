@@ -30,7 +30,7 @@ The old 21,544.885 ms exact-32K host-E2E result is reclassified as invalid. One 
 - A qh-only low-VGPR diagnostic passed 50/50, which narrows the causal interaction, but the complete qh+qk+Av kernel still failed.
 - The first two-wave/32-row redesign did not reproduce model-native math and is retained only as a clearly marked rejected experiment.
 
-These negative sources live under `scripts/rocm/kernels/gfx1151/gdn/experiments/`; they are not production targets.
+These negative sources live under `kernels/gfx1151/gdn/experiments/`; they are not production targets.
 
 ## Safe integration policy
 
