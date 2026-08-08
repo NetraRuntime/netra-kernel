@@ -1,0 +1,58 @@
+[
+  {
+    "tokens": 12,
+    "eager_equal": true,
+    "graph_equal": true,
+    "mismatches": 0,
+    "baseline": {
+      "median_us": 14.000000432133675,
+      "p90_us": 14.120000414550304
+    },
+    "direct_qkvz": {
+      "median_us": 13.96000012755394,
+      "p90_us": 14.120000414550304
+    }
+  },
+  {
+    "tokens": 96,
+    "eager_equal": true,
+    "graph_equal": true,
+    "mismatches": 0,
+    "baseline": {
+      "median_us": 14.000000432133675,
+      "p90_us": 14.159999787807465
+    },
+    "direct_qkvz": {
+      "median_us": 14.000000432133675,
+      "p90_us": 14.159999787807465
+    }
+  },
+  {
+    "tokens": 384,
+    "eager_equal": true,
+    "graph_equal": true,
+    "mismatches": 0,
+    "baseline": {
+      "median_us": 14.240000396966934,
+      "p90_us": 14.440000057220459
+    },
+    "direct_qkvz": {
+      "median_us": 14.201000332832336,
+      "p90_us": 14.399999752640724
+    }
+  },
+  {
+    "tokens": 768,
+    "eager_equal": true,
+    "graph_equal": true,
+    "mismatches": 0,
+    "baseline": {
+      "median_us": 15.599999576807022,
+      "p90_us": 15.799999237060547
+    },
+    "direct_qkvz": {
+      "median_us": 15.599999576807022,
+      "p90_us": 15.760999172925949
+    }
+  }
+]

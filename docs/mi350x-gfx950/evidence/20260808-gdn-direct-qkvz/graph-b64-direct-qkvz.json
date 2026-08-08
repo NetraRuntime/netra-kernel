@@ -1,0 +1,115 @@
+{
+  "architecture": "gfx950:sramecc+:xnack-",
+  "state_pass": "/benchmarks/20260801T013304Z-gdn-m12-real-capture-gpu0/state-dump/target/DP0_TP0_PP0_pid239/StatePass00002.pt",
+  "weight_shard": "/models/Qwen3.6-35B-A3B-FP8/layers-0.safetensors",
+  "shape": {
+    "batch": 64,
+    "tokens": 12,
+    "qkvz": 12288
+  },
+  "correctness": {
+    "baseline_qkv": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 6291456,
+      "max_abs": 0.0
+    },
+    "baseline_z": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 3145728,
+      "max_abs": 0.0
+    },
+    "baseline_b": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 24576,
+      "max_abs": 0.0
+    },
+    "baseline_a": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 24576,
+      "max_abs": 0.0
+    },
+    "raw_qkv": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 6291456,
+      "max_abs": 0.0
+    },
+    "qkvz_z_view": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 3145728,
+      "max_abs": 0.0
+    },
+    "ba_b_view": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 24576,
+      "max_abs": 0.0
+    },
+    "ba_a_view": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 24576,
+      "max_abs": 0.0
+    },
+    "raw_state": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 1572864,
+      "max_abs": 0.0
+    },
+    "raw_window": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 18874368,
+      "max_abs": 0.0
+    }
+  },
+  "graph_correctness": {
+    "raw_qkv": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 6291456,
+      "max_abs": 0.0
+    },
+    "qkvz_z_view": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 3145728,
+      "max_abs": 0.0
+    },
+    "ba_b_view": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 24576,
+      "max_abs": 0.0
+    },
+    "ba_a_view": {
+      "bit_exact": true,
+      "mismatch_count": 0,
+      "element_count": 24576,
+      "max_abs": 0.0
+    }
+  },
+  "graph_hip_event": {
+    "triton_split_plus_conv": {
+      "count": 200,
+      "mean_us": 38.35633497685194,
+      "median_us": 38.20100054144859,
+      "p90_us": 38.96100074052811,
+      "maximum_us": 40.8799983561039
+    },
+    "raw_fused": {
+      "count": 200,
+      "mean_us": 26.861970061436296,
+      "median_us": 26.00100077688694,
+      "p90_us": 28.599999845027924,
+      "maximum_us": 32.20000118017197
+    }
+  },
+  "graph_speedup": 1.4692126995129586
+}
