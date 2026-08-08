@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "status": "rejected",
+  "date_utc": "2026-08-08",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "quantization": "FP8 E4M3, 128x128 blocks",
+  "shape": {
+    "rows": 1024,
+    "hidden": 2048,
+    "intermediate": 512,
+    "topk": 9,
+    "valid_sorted_ids": 18624,
+    "m64_blocks": 291
+  },
+  "code_object": {
+    "wavefront_size": 64,
+    "workgroup_size": 256,
+    "lds_bytes": 65536,
+    "vgpr_count": 224,
+    "sgpr_count": 94,
+    "scratch_bytes": 0,
+    "buffer_load_dwordx4_lds_sites": 16
+  },
+  "timing_us": {
+    "fused_median": 301.022,
+    "reducer_median": 15.001,
+    "total_median": 315.962
+  },
+  "correctness": {
+    "gate": "fail",
+    "structural_bf16_mismatches": 2095323,
+    "elements": 2097152,
+    "structural_max_abs": 0.139749,
+    "structural_cosine": 0.529619,
+    "aiter_cosine": 0.529605,
+    "nondeterministic_iterations": 99,
+    "iterations": 100
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260808T205000Z-fmoe-g2lds-w13-gpu1"
+}

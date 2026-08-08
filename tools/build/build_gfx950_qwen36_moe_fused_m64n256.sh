@@ -9,6 +9,7 @@ mkdir -p "$out_dir"
 sources=(
   "$repo_root/kernels/gfx950/fp8/moe/verify/experiments/qwen36_moe_fused_m64n256_partial_fp8_gfx950.s"
   "$repo_root/kernels/gfx950/fp8/moe/verify/experiments/qwen36_moe_fused_m64n256_partial_pipelined_fp8_gfx950.s"
+  "$repo_root/kernels/gfx950/fp8/moe/verify/experiments/qwen36_moe_fused_m64n256_g2lds_fp8_gfx950.s"
   "$repo_root/kernels/gfx950/fp8/moe/verify/qwen36_moe_route_reduce_f32_gfx950.s"
 )
 for source in "${sources[@]}"; do
