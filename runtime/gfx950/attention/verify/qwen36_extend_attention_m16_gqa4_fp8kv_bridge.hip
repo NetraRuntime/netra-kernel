@@ -16,7 +16,7 @@ namespace {
 constexpr unsigned kKvHeads = 8;
 constexpr unsigned kThreads = 256;
 constexpr unsigned kDynamicLdsBytes = 16384;
-constexpr unsigned kMaximumBatch = 256;
+constexpr unsigned kMaximumBatch = 512;
 
 std::mutex module_mutex;
 hipModule_t module = nullptr;
@@ -111,7 +111,7 @@ extern "C" int netra_qwen36_extend_attention_m16_gqa4_fp8kv_launch(
       return fail_message("grouped attention pointers must be nonnull");
   }
   if (batch_size == 0 || batch_size > kMaximumBatch)
-    return fail_message("grouped attention batch must be in [1,256]");
+    return fail_message("grouped attention batch must be in [1,512]");
 
   void* query_pointer = const_cast<void*>(query_bf16);
   void* key_extend_pointer = const_cast<void*>(key_extend_bf16);

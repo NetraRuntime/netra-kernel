@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the raw Qwen3.6 target-attention ABI through serving batch 512.
+"""Validate the raw Qwen3.6 draft-attention ABI through serving batch 512.
 
 The reference and candidate use the production ``extend_attention_fwd`` call.
 Only the raw-dispatch environment gate changes between them.  Every BF16 output
@@ -17,7 +17,7 @@ from pathlib import Path
 import torch
 
 
-ENABLE_ENV = "SGLANG_NETRA_QWEN36_GFX950_EXTEND_ATTENTION_GQA8_FP8KV"
+ENABLE_ENV = "SGLANG_NETRA_QWEN36_GFX950_EXTEND_ATTENTION_GQA4_FP8KV"
 HSACO_ENV = f"{ENABLE_ENV}_HSACO"
 BRIDGE_ENV = f"{ENABLE_ENV}_BRIDGE"
 
@@ -55,10 +55,10 @@ def launch_case(tensors: dict[str, torch.Tensor]) -> None:
         12,
         1.0,
         1.0,
-        sm_scale=1.0 / 16.0,
+        sm_scale=1.0 / (128.0**0.5),
         logit_cap=0.0,
         skip_prefix_custom_mask=True,
-        sliding_window_size=-1,
+        sliding_window_size=4095,
         sinks=None,
         xai_temperature_len=-1,
     )
@@ -91,18 +91,18 @@ def make_tensors(batch: int, prefix_len: int) -> dict[str, torch.Tensor]:
     device = torch.device("cuda")
     tokens = batch * 12
     cache_tokens = batch * prefix_len
-    q = torch.randn((tokens, 16, 256), device=device, dtype=torch.bfloat16)
-    k_extend = torch.randn((tokens, 2, 256), device=device, dtype=torch.bfloat16)
-    v_extend = torch.randn((tokens, 2, 256), device=device, dtype=torch.bfloat16)
+    q = torch.randn((tokens, 32, 128), device=device, dtype=torch.bfloat16)
+    k_extend = torch.randn((tokens, 8, 128), device=device, dtype=torch.bfloat16)
+    v_extend = torch.randn((tokens, 8, 128), device=device, dtype=torch.bfloat16)
     # Keep values modest to avoid FP8 saturation while exercising native E4M3
     # loads in both implementations.
     k_buffer = (
-        torch.randn((cache_tokens, 2, 256), device=device, dtype=torch.bfloat16)
+        torch.randn((cache_tokens, 8, 128), device=device, dtype=torch.bfloat16)
         .mul_(0.25)
         .to(torch.float8_e4m3fn)
     )
     v_buffer = (
-        torch.randn((cache_tokens, 2, 256), device=device, dtype=torch.bfloat16)
+        torch.randn((cache_tokens, 8, 128), device=device, dtype=torch.bfloat16)
         .mul_(0.25)
         .to(torch.float8_e4m3fn)
     )
@@ -149,11 +149,11 @@ def main() -> None:
     os.environ[HSACO_ENV] = str(args.hsaco)
     os.environ[BRIDGE_ENV] = str(args.bridge)
     os.environ[ENABLE_ENV] = "1"
-    from sglang.srt.layers.attention.netra_gfx950_qwen36_target_attention import (
-        maybe_load_netra_qwen36_target_attention_gqa8_fp8kv,
+    from sglang.srt.layers.attention.netra_gfx950_qwen36_extend_attention_fp8kv import (
+        maybe_load_netra_qwen36_extend_attention_gqa4_fp8kv,
     )
 
-    assert maybe_load_netra_qwen36_target_attention_gqa8_fp8kv()
+    assert maybe_load_netra_qwen36_extend_attention_gqa4_fp8kv()
     torch.manual_seed(20260809)
     results = []
     for batch in (int(x) for x in args.batches.split(",")):

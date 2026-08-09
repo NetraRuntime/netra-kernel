@@ -22,7 +22,7 @@ constexpr unsigned kDynamicLdsBytes = 32768;
 // even though the raw ABI and launch geometry are naturally unbounded.  Keep a
 // conservative production ceiling matching the highest serving graph bucket
 // validated on MI350X.
-constexpr unsigned kMaximumBatch = 128;
+constexpr unsigned kMaximumBatch = 512;
 
 std::mutex module_mutex;
 hipModule_t module = nullptr;
@@ -129,7 +129,7 @@ extern "C" int netra_qwen36_extend_attention_m16_gqa8_fp8kv_launch(
     return fail_message(
         "target grouped attention query indptr entries must be 4 or 8 bytes");
   if (batch_size == 0 || batch_size > kMaximumBatch)
-    return fail_message("target grouped attention batch must be in [1,128]");
+    return fail_message("target grouped attention batch must be in [1,512]");
 
   void* query_pointer = const_cast<void*>(query_bf16);
   void* key_extend_pointer = const_cast<void*>(key_extend_bf16);
