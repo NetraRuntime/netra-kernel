@@ -40,7 +40,7 @@ sha256sum "$source_file" "$bridge" "$bridge_header" \
 {
   printf 'target=gfx950\n'
   printf 'wavefront_size=64\n'
-  printf 'shape=B1_totalT8192_varlenN1to64_H32_Hg16_K128_V128_BT64_BV16\n'
+  printf 'shape=B1_totalT8192_varlenN1to512_H32_Hg16_K128_V128_BT64_BV16\n'
   printf 'grid=8x(32*N)x1\nblock=256x1x1\ndynamic_lds_bytes=103296\n'
   printf 'source=%s\n' "$source_file"
   printf 'kernel_name=%s\n' "$kernel_name"

@@ -17,6 +17,7 @@ constexpr uint32_t kHeads = 32;
 constexpr uint32_t kBlockX = 256;
 constexpr uint32_t kDynamicLdsBytes = 103296;
 constexpr uint32_t kTokens = 8192;
+constexpr uint32_t kMaximumSequenceCount = 512;
 
 std::mutex module_mutex;
 hipModule_t module = nullptr;
@@ -110,8 +111,11 @@ extern "C" int netra_qwen36_gdn_h_m8192_bv16_launch(
     if (pointer == nullptr)
       return fail_message("GDN M8192 launch pointers must be nonnull");
   }
-  if (sequence_count == 0 || sequence_count > 64)
-    return fail_message("GDN M8192 sequence count must be in [1, 64]");
+  // The raw kernel derives the sequence index solely from blockIdx.y / H and
+  // has no batch-shaped workspace.  Keep a conservative launch bound well
+  // below HIP's grid-y limit (32 * 512 = 16384 workgroups).
+  if (sequence_count == 0 || sequence_count > kMaximumSequenceCount)
+    return fail_message("GDN M8192 sequence count must be in [1, 512]");
 
 
   void* k_pointer = const_cast<void*>(k_bf16);
