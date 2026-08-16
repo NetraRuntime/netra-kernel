@@ -12,6 +12,17 @@ COMPONENT_REGISTRY = BUILD_DIR / "components" / "gfx950"
 GDN_VERIFY_COMPONENT = (
     COMPONENT_REGISTRY / "gdn-verify-b64-t12-h16-hv32-k128-v128-k0.sh"
 )
+GDN_REPLAY_COMPONENT = (
+    COMPONENT_REGISTRY / "gdn-replay-b64-t12-h16-hv32-k128-v128.sh"
+)
+GDN_REPLAY_KERNEL = (
+    REPO_ROOT
+    / "kernels"
+    / "gfx950"
+    / "linear_attention"
+    / "verify"
+    / "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950.s"
+)
 VARIANT_LIBRARY = BUILD_DIR / "lib" / "gdn_variants.sh"
 
 
@@ -51,6 +62,17 @@ def test_production_gdn_contract_pins_promoted_settings() -> None:
         "NETRA_GDN_DYNAMIC_WAVEGROUPS=1",
     ]
     assert all(setting in source for setting in required)
+
+
+def test_production_gdn_replay_contract_pins_unsigned_capacity_clamps() -> None:
+    component = GDN_REPLAY_COMPONENT.read_text()
+    assert "gdn-replay-b64-t12-h16-hv32-k128-v128" in component
+
+    kernel = GDN_REPLAY_KERNEL.read_text()
+    assert kernel.count("s_min_u32 s24, s24, s31") == 1
+    assert kernel.count("s_min_u32 s26, s26, s31") == 1
+    assert "s_min_i32 s24, s24, s31" not in kernel
+    assert "s_min_i32 s26, s26, s31" not in kernel
 
 
 def test_gdn_variant_ids_are_centralized_and_contract_checked() -> None:
