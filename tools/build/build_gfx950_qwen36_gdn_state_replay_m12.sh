@@ -2,6 +2,7 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "${script_dir}/lib/gfx950_assembly.sh"
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
 out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-gdn-state-replay-m12"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
@@ -13,36 +14,18 @@ bridge=${repo_dir}/runtime/gfx950/linear_attention/verify/qwen36_gdn_state_repla
 bridge_header=${repo_dir}/runtime/gfx950/linear_attention/verify/qwen36_gdn_state_replay_m12_bridge.h
 
 mkdir -p "$out_dir"
-rocminfo_text=$(rocminfo 2>/dev/null)
-grep -q 'Name:[[:space:]]*gfx950' <<<"$rocminfo_text"
+netra_gfx950_require_device
 
-build_kernel() {
-  local source_file=$1
-  local stem=$2
-  shift 2
-  "${rocm_dir}/llvm/bin/clang" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-    -mwavefrontsize64 -x assembler "$@" -c "$source_file" \
-    -o "${out_dir}/${stem}.o"
-  "${rocm_dir}/llvm/bin/ld.lld" -shared "${out_dir}/${stem}.o" \
-    -o "${out_dir}/${stem}.hsaco"
-  "${rocm_dir}/llvm/bin/llvm-objdump" --disassemble --mcpu=gfx950 \
-    "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.disassembly.txt"
-  "${rocm_dir}/llvm/bin/llvm-readobj" --notes \
-    "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.metadata.txt"
-  grep -q 'amdgcn-amd-amdhsa--gfx950' "${out_dir}/${stem}.metadata.txt"
-  grep -q 'wavefront_size:[[:space:]]*64' "${out_dir}/${stem}.metadata.txt"
-  grep -q 'private_segment_fixed_size:[[:space:]]*0' \
-    "${out_dir}/${stem}.metadata.txt"
-}
-
-build_kernel "$precompute" "$precompute_stem" \
+netra_gfx950_build_wave64_kernel "$rocm_dir" "$out_dir" \
+  "$precompute" "$precompute_stem" \
   -Wa,-defsym,NETRA_GDN_PRECOMPUTE_VARIANT=7
 
 core_stems=()
 for waves in 1 4 8; do
   stem=qwen36_gdn_state_replay_m12_waves${waves}_gfx950
   core_stems+=("$stem")
-  build_kernel "$core_source" "$stem" \
+  netra_gfx950_build_wave64_kernel "$rocm_dir" "$out_dir" \
+    "$core_source" "$stem" \
     -Wa,-defsym,NETRA_GDN_CORE_VARIANT=13 \
     -Wa,-defsym,NETRA_GDN_K0_NO_INTERMEDIATE=1 \
     -Wa,-defsym,NETRA_GDN_STATE_REPLAY=1 \
@@ -56,7 +39,8 @@ dual_core_stems=()
 for waves in 1 4 8; do
   stem=qwen36_gdn_state_replay_m12_dual_waves${waves}_gfx950
   dual_core_stems+=("$stem")
-  build_kernel "$core_source" "$stem" \
+  netra_gfx950_build_wave64_kernel "$rocm_dir" "$out_dir" \
+    "$core_source" "$stem" \
     -Wa,-defsym,NETRA_GDN_CORE_VARIANT=13 \
     -Wa,-defsym,NETRA_GDN_K0_NO_INTERMEDIATE=1 \
     -Wa,-defsym,NETRA_GDN_STATE_REPLAY=1 \

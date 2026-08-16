@@ -108,7 +108,7 @@ scripts/rocm/
   tools/           Build, benchmark, correctness, and profiling entry points
 
 tools/
-  build/            Reproducible target-specific builds
+  build/            Reproducible target-specific builds and production bundles
   benchmark/        Kernel, graph, and serving benchmarks
   checkpoint/       One-time checkpoint extraction and repacking
   profiling/        rocprofv3 request, trace, and counter analysis
@@ -163,6 +163,9 @@ For gfx950 work, use the MI350X server with:
 
 Most scripts accept output-directory or ROCm-path overrides. Older gfx1151
 scripts intentionally retain the validated LXC paths.
+
+The gfx950 build conventions and canonical MI350X production bundle are
+documented in [`tools/build/README.md`](tools/build/README.md).
 
 ## Build gfx1151
 

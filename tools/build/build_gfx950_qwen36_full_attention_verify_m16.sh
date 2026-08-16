@@ -2,6 +2,7 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "${script_dir}/lib/gfx950_assembly.sh"
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
 out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-full-attention-verify-m16"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
@@ -17,30 +18,11 @@ bridge=${runtime_dir}/qwen36_full_attention_verify_m16_bridge.hip
 bridge_header=${runtime_dir}/qwen36_full_attention_verify_m16_bridge.h
 
 mkdir -p "$out_dir"
-rocminfo_text=$(rocminfo 2>/dev/null)
-grep -q 'Name:[[:space:]]*gfx950' <<<"$rocminfo_text"
+netra_gfx950_require_device
 
-build_kernel() {
-  local source_file=$1
-  local stem=$2
-  "${rocm_dir}/llvm/bin/clang" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-    -mwavefrontsize64 -x assembler -c "$source_file" \
-    -o "${out_dir}/${stem}.o"
-  "${rocm_dir}/llvm/bin/ld.lld" -shared "${out_dir}/${stem}.o" \
-    -o "${out_dir}/${stem}.hsaco"
-  "${rocm_dir}/llvm/bin/llvm-objdump" --disassemble --mcpu=gfx950 \
-    "${out_dir}/${stem}.hsaco" >"${out_dir}/${stem}.disassembly.txt"
-  "${rocm_dir}/llvm/bin/llvm-readobj" --notes \
-    "${out_dir}/${stem}.hsaco" >"${out_dir}/${stem}.metadata.txt"
-  grep -q 'amdgcn-amd-amdhsa--gfx950' "${out_dir}/${stem}.metadata.txt"
-  grep -q 'wavefront_size:[[:space:]]*64' "${out_dir}/${stem}.metadata.txt"
-  grep -q 'private_segment_fixed_size:[[:space:]]*0' \
-    "${out_dir}/${stem}.metadata.txt"
-}
-
-build_kernel "$prepare" "$prepare_stem"
-build_kernel "$stage1" "$stage1_stem"
-build_kernel "$stage2" "$stage2_stem"
+netra_gfx950_build_wave64_kernel "$rocm_dir" "$out_dir" "$prepare" "$prepare_stem"
+netra_gfx950_build_wave64_kernel "$rocm_dir" "$out_dir" "$stage1" "$stage1_stem"
+netra_gfx950_build_wave64_kernel "$rocm_dir" "$out_dir" "$stage2" "$stage2_stem"
 grep -q 'v_mfma_f32_16x16x32_fp8_fp8' \
   "${out_dir}/${stage1_stem}.disassembly.txt"
 grep -q "$prepare_stem" "${out_dir}/${prepare_stem}.metadata.txt"

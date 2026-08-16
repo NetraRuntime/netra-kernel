@@ -2,6 +2,8 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "${script_dir}/lib/gfx950_assembly.sh"
+source "${script_dir}/lib/qwen36_gdn_variants.sh"
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
 out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-gdn-verify-m12-batched"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
@@ -23,32 +25,7 @@ waves_per_workgroup=${NETRA_GDN_WAVES_PER_WORKGROUP:-1}
 share_qk=${NETRA_GDN_SHARE_QK:-1}
 dynamic_wavegroups=${NETRA_GDN_DYNAMIC_WAVEGROUPS:-0}
 
-case "$core_variant" in
-  original) core_variant_id=0 ;;
-  triton) core_variant_id=1 ;;
-  forward-xor) core_variant_id=2 ;;
-  reverse-scan) core_variant_id=3 ;;
-  balanced-xor) core_variant_id=4 ;;
-  forward-k-forward-q-fma) core_variant_id=5 ;;
-  forward-k-reverse-q-fma) core_variant_id=6 ;;
-  forward-k-reverse-q-add) core_variant_id=7 ;;
-  forward-k-balanced-q-add) core_variant_id=8 ;;
-  fused-exact) core_variant_id=13 ;;
-  forward-k-q-fma-10234567) core_variant_id=9 ;;
-  forward-k-q-fma-10325476) core_variant_id=10 ;;
-  forward-k-q-fma-76452301) core_variant_id=11 ;;
-  forward-k-q-fma-76543210) core_variant_id=12 ;;
-  fused-packed-exact) core_variant_id=13 ;;
-  fused-packed-decode-state) core_variant_id=14 ;;
-  fused-packed-decode-sequence) core_variant_id=15 ;;
-  packed-pair-chains) core_variant_id=16 ;;
-  packed-pair-interleaved) core_variant_id=17 ;;
-  packed-pair-decay-dot-interleaved) core_variant_id=18 ;;
-  *)
-    echo "Unsupported NETRA_GDN_CORE_VARIANT: $core_variant" >&2
-    exit 2
-    ;;
-esac
+core_variant_id=$(netra_qwen36_gdn_core_variant_id "$core_variant" m12)
 
 case "$k0_no_intermediate" in
   0 | 1) ;;
@@ -89,51 +66,18 @@ if [[ "$dynamic_wavegroups" == 1 && "$k0_no_intermediate" != 1 ]]; then
   exit 2
 fi
 
-case "$precompute_variant" in
-  original) precompute_variant_id=0 ;;
-  triton-reduce-rcp) precompute_variant_id=1 ;;
-  triton-div) precompute_variant_id=2 ;;
-  original-reduce-div) precompute_variant_id=3 ;;
-  triton-div-no-fixup) precompute_variant_id=4 ;;
-  triton-contiguous-exact) precompute_variant_id=5 ;;
-  triton-contiguous-exact-gates) precompute_variant_id=6 ;;
-  triton-exact) precompute_variant_id=7 ;;
-  packed-decode-beta) precompute_variant_id=8 ;;
-  *)
-    echo "Unsupported NETRA_GDN_PRECOMPUTE_VARIANT: $precompute_variant" >&2
-    exit 2
-    ;;
-esac
+precompute_variant_id=$(netra_qwen36_gdn_precompute_variant_id "$precompute_variant")
 
 mkdir -p "$out_dir"
-rocminfo_text=$(rocminfo 2>/dev/null)
-grep -q 'Name:[[:space:]]*gfx950' <<<"$rocminfo_text"
+netra_gfx950_require_device
 
-build_kernel() {
-  local source_file=$1
-  local stem=$2
-  shift 2
-  "${rocm_dir}/llvm/bin/clang" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-    -mwavefrontsize64 -x assembler "$@" -c "$source_file" \
-    -o "${out_dir}/${stem}.o"
-  "${rocm_dir}/llvm/bin/ld.lld" -shared "${out_dir}/${stem}.o" \
-    -o "${out_dir}/${stem}.hsaco"
-  "${rocm_dir}/llvm/bin/llvm-objdump" --disassemble --mcpu=gfx950 \
-    "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.disassembly.txt"
-  "${rocm_dir}/llvm/bin/llvm-readobj" --notes \
-    "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.metadata.txt"
-  grep -q 'amdgcn-amd-amdhsa--gfx950' "${out_dir}/${stem}.metadata.txt"
-  grep -q 'wavefront_size:[[:space:]]*64' "${out_dir}/${stem}.metadata.txt"
-  grep -q 'private_segment_fixed_size:[[:space:]]*0' \
-    "${out_dir}/${stem}.metadata.txt"
-}
-
-build_kernel "$precompute" "$precompute_stem" \
+netra_gfx950_build_wave64_kernel "$rocm_dir" "$out_dir" \
+  "$precompute" "$precompute_stem" \
   -Wa,-defsym,NETRA_GDN_PRECOMPUTE_VARIANT="$precompute_variant_id"
 build_core() {
   local stem=$1
   local waves=$2
-  build_kernel "$core" "$stem" \
+  netra_gfx950_build_wave64_kernel "$rocm_dir" "$out_dir" "$core" "$stem" \
     -Wa,-defsym,NETRA_GDN_CORE_VARIANT="$core_variant_id" \
     -Wa,-defsym,NETRA_GDN_K0_NO_INTERMEDIATE="$k0_no_intermediate" \
     -Wa,-defsym,NETRA_GDN_WAVES_PER_WORKGROUP="$waves" \

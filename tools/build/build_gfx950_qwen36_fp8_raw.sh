@@ -2,6 +2,7 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "${script_dir}/lib/gfx950_assembly.sh"
 default_repo=$(cd "${script_dir}/../.." && pwd)
 repo_dir=${1:-"${default_repo}"}
 out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-fp8"}
@@ -44,115 +45,26 @@ down_2wave_k32_rowmajor_stem=qwen36_moe_down_reduce_fp8_mfma_2wave_k32_slotacc_r
 gate_up_k32_rowmajor_stem=qwen36_moe_gate_up_fp8_mfma_k32_rowmajor_gfx950
 mkdir -p "${out_dir}"
 
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-  -x assembler -c "${kernel}" -o "${out_dir}/${stem}.o"
-"${linker_bin}" -shared "${out_dir}/${stem}.o" \
-  -o "${out_dir}/${stem}.hsaco"
-"${objdump_bin}" --disassemble --mcpu=gfx950 \
-  "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.disassembly.txt"
-"${readobj_bin}" --notes "${out_dir}/${stem}.hsaco" \
-  > "${out_dir}/${stem}.metadata.txt"
-grep -q 'amdgcn-amd-amdhsa--gfx950' "${out_dir}/${stem}.metadata.txt"
-grep -q 'wavefront_size:[[:space:]]*64' "${out_dir}/${stem}.metadata.txt"
+kernel_specs=(
+  "$kernel:$stem"
+  "$down_kernel:$down_stem"
+  "$down_2wave_kernel:$down_2wave_stem"
+  "$gate_up_kernel:$gate_up_stem"
+  "$down_2wave_rowmajor_kernel:$down_2wave_rowmajor_stem"
+  "$gate_up_rowmajor_kernel:$gate_up_rowmajor_stem"
+  "$down_2wave_k32_rowmajor_kernel:$down_2wave_k32_rowmajor_stem"
+  "$gate_up_k32_rowmajor_kernel:$gate_up_k32_rowmajor_stem"
+)
+for kernel_spec in "${kernel_specs[@]}"; do
+  source_file=${kernel_spec%%:*}
+  kernel_stem=${kernel_spec##*:}
+  netra_gfx950_build_kernel \
+    "$clang_bin" "$linker_bin" "$objdump_bin" "$readobj_bin" \
+    "$out_dir" "$source_file" "$kernel_stem"
+done
 
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-  -x assembler -c "${down_kernel}" -o "${out_dir}/${down_stem}.o"
-"${linker_bin}" -shared "${out_dir}/${down_stem}.o" \
-  -o "${out_dir}/${down_stem}.hsaco"
-"${objdump_bin}" --disassemble --mcpu=gfx950 \
-  "${out_dir}/${down_stem}.hsaco" > "${out_dir}/${down_stem}.disassembly.txt"
-"${readobj_bin}" --notes "${out_dir}/${down_stem}.hsaco" \
-  > "${out_dir}/${down_stem}.metadata.txt"
-grep -q 'amdgcn-amd-amdhsa--gfx950' "${out_dir}/${down_stem}.metadata.txt"
-grep -q 'wavefront_size:[[:space:]]*64' "${out_dir}/${down_stem}.metadata.txt"
-
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-  -x assembler -c "${down_2wave_kernel}" \
-  -o "${out_dir}/${down_2wave_stem}.o"
-"${linker_bin}" -shared "${out_dir}/${down_2wave_stem}.o" \
-  -o "${out_dir}/${down_2wave_stem}.hsaco"
-"${objdump_bin}" --disassemble --mcpu=gfx950 \
-  "${out_dir}/${down_2wave_stem}.hsaco" \
-  > "${out_dir}/${down_2wave_stem}.disassembly.txt"
-"${readobj_bin}" --notes "${out_dir}/${down_2wave_stem}.hsaco" \
-  > "${out_dir}/${down_2wave_stem}.metadata.txt"
-grep -q 'amdgcn-amd-amdhsa--gfx950' \
-  "${out_dir}/${down_2wave_stem}.metadata.txt"
-grep -q 'wavefront_size:[[:space:]]*64' \
-  "${out_dir}/${down_2wave_stem}.metadata.txt"
-
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-  -x assembler -c "${gate_up_kernel}" -o "${out_dir}/${gate_up_stem}.o"
-"${linker_bin}" -shared "${out_dir}/${gate_up_stem}.o" \
-  -o "${out_dir}/${gate_up_stem}.hsaco"
-"${objdump_bin}" --disassemble --mcpu=gfx950 \
-  "${out_dir}/${gate_up_stem}.hsaco" > "${out_dir}/${gate_up_stem}.disassembly.txt"
-"${readobj_bin}" --notes "${out_dir}/${gate_up_stem}.hsaco" \
-  > "${out_dir}/${gate_up_stem}.metadata.txt"
-grep -q 'amdgcn-amd-amdhsa--gfx950' "${out_dir}/${gate_up_stem}.metadata.txt"
-grep -q 'wavefront_size:[[:space:]]*64' "${out_dir}/${gate_up_stem}.metadata.txt"
-
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-  -x assembler -c "${down_2wave_rowmajor_kernel}" \
-  -o "${out_dir}/${down_2wave_rowmajor_stem}.o"
-"${linker_bin}" -shared "${out_dir}/${down_2wave_rowmajor_stem}.o" \
-  -o "${out_dir}/${down_2wave_rowmajor_stem}.hsaco"
-"${objdump_bin}" --disassemble --mcpu=gfx950 \
-  "${out_dir}/${down_2wave_rowmajor_stem}.hsaco" \
-  > "${out_dir}/${down_2wave_rowmajor_stem}.disassembly.txt"
-"${readobj_bin}" --notes "${out_dir}/${down_2wave_rowmajor_stem}.hsaco" \
-  > "${out_dir}/${down_2wave_rowmajor_stem}.metadata.txt"
-grep -q 'amdgcn-amd-amdhsa--gfx950' \
-  "${out_dir}/${down_2wave_rowmajor_stem}.metadata.txt"
-grep -q 'wavefront_size:[[:space:]]*64' \
-  "${out_dir}/${down_2wave_rowmajor_stem}.metadata.txt"
-
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-  -x assembler -c "${gate_up_rowmajor_kernel}" \
-  -o "${out_dir}/${gate_up_rowmajor_stem}.o"
-"${linker_bin}" -shared "${out_dir}/${gate_up_rowmajor_stem}.o" \
-  -o "${out_dir}/${gate_up_rowmajor_stem}.hsaco"
-"${objdump_bin}" --disassemble --mcpu=gfx950 \
-  "${out_dir}/${gate_up_rowmajor_stem}.hsaco" \
-  > "${out_dir}/${gate_up_rowmajor_stem}.disassembly.txt"
-"${readobj_bin}" --notes "${out_dir}/${gate_up_rowmajor_stem}.hsaco" \
-  > "${out_dir}/${gate_up_rowmajor_stem}.metadata.txt"
-grep -q 'amdgcn-amd-amdhsa--gfx950' \
-  "${out_dir}/${gate_up_rowmajor_stem}.metadata.txt"
-grep -q 'wavefront_size:[[:space:]]*64' \
-  "${out_dir}/${gate_up_rowmajor_stem}.metadata.txt"
-
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-  -x assembler -c "${down_2wave_k32_rowmajor_kernel}" \
-  -o "${out_dir}/${down_2wave_k32_rowmajor_stem}.o"
-"${linker_bin}" -shared "${out_dir}/${down_2wave_k32_rowmajor_stem}.o" \
-  -o "${out_dir}/${down_2wave_k32_rowmajor_stem}.hsaco"
-"${objdump_bin}" --disassemble --mcpu=gfx950 \
-  "${out_dir}/${down_2wave_k32_rowmajor_stem}.hsaco" \
-  > "${out_dir}/${down_2wave_k32_rowmajor_stem}.disassembly.txt"
-"${readobj_bin}" --notes "${out_dir}/${down_2wave_k32_rowmajor_stem}.hsaco" \
-  > "${out_dir}/${down_2wave_k32_rowmajor_stem}.metadata.txt"
-grep -q 'amdgcn-amd-amdhsa--gfx950' \
-  "${out_dir}/${down_2wave_k32_rowmajor_stem}.metadata.txt"
-grep -q 'wavefront_size:[[:space:]]*64' \
-  "${out_dir}/${down_2wave_k32_rowmajor_stem}.metadata.txt"
 grep -q 'v_mfma_f32_16x16x32_fp8_fp8' \
   "${out_dir}/${down_2wave_k32_rowmajor_stem}.disassembly.txt"
-
-"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-  -x assembler -c "${gate_up_k32_rowmajor_kernel}" \
-  -o "${out_dir}/${gate_up_k32_rowmajor_stem}.o"
-"${linker_bin}" -shared "${out_dir}/${gate_up_k32_rowmajor_stem}.o" \
-  -o "${out_dir}/${gate_up_k32_rowmajor_stem}.hsaco"
-"${objdump_bin}" --disassemble --mcpu=gfx950 \
-  "${out_dir}/${gate_up_k32_rowmajor_stem}.hsaco" \
-  > "${out_dir}/${gate_up_k32_rowmajor_stem}.disassembly.txt"
-"${readobj_bin}" --notes "${out_dir}/${gate_up_k32_rowmajor_stem}.hsaco" \
-  > "${out_dir}/${gate_up_k32_rowmajor_stem}.metadata.txt"
-grep -q 'amdgcn-amd-amdhsa--gfx950' \
-  "${out_dir}/${gate_up_k32_rowmajor_stem}.metadata.txt"
-grep -q 'wavefront_size:[[:space:]]*64' \
-  "${out_dir}/${gate_up_k32_rowmajor_stem}.metadata.txt"
 grep -q 'v_mfma_f32_16x16x32_fp8_fp8' \
   "${out_dir}/${gate_up_k32_rowmajor_stem}.disassembly.txt"
 

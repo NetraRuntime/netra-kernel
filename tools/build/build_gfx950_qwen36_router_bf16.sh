@@ -2,6 +2,7 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "${script_dir}/lib/gfx950_assembly.sh"
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
 out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-router-bf16"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
@@ -12,19 +13,14 @@ bridge=${repo_dir}/runtime/gfx950/routing/verify/qwen36_router_bf16_bridge.hip
 bridge_header=${repo_dir}/runtime/gfx950/routing/verify/qwen36_router_bf16_bridge.h
 
 mkdir -p "$out_dir"
-rocminfo_text=$(rocminfo 2>/dev/null)
-grep -q 'Name:[[:space:]]*gfx950' <<<"$rocminfo_text"
+netra_gfx950_require_device
 
-"${rocm_dir}/llvm/bin/clang" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
-  -x assembler -c "$kernel" -o "${out_dir}/${stem}.o"
-"${rocm_dir}/llvm/bin/ld.lld" -shared "${out_dir}/${stem}.o" \
-  -o "${out_dir}/${stem}.hsaco"
-"${rocm_dir}/llvm/bin/llvm-objdump" --disassemble --mcpu=gfx950 \
-  "${out_dir}/${stem}.hsaco" > "${out_dir}/${stem}.disassembly.txt"
-"${rocm_dir}/llvm/bin/llvm-readobj" --notes "${out_dir}/${stem}.hsaco" \
-  > "${out_dir}/${stem}.metadata.txt"
-grep -q 'amdgcn-amd-amdhsa--gfx950' "${out_dir}/${stem}.metadata.txt"
-grep -q 'wavefront_size:[[:space:]]*64' "${out_dir}/${stem}.metadata.txt"
+netra_gfx950_build_kernel \
+  "${rocm_dir}/llvm/bin/clang" \
+  "${rocm_dir}/llvm/bin/ld.lld" \
+  "${rocm_dir}/llvm/bin/llvm-objdump" \
+  "${rocm_dir}/llvm/bin/llvm-readobj" \
+  "$out_dir" "$kernel" "$stem"
 grep -q 'v_pk_mul_f32' "${out_dir}/${stem}.disassembly.txt"
 grep -q 'v_pk_fma_f32' "${out_dir}/${stem}.disassembly.txt"
 grep -q 'row_bcast:31' "${out_dir}/${stem}.disassembly.txt"

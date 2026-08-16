@@ -3,3 +3,6 @@
 *.orig
 __pycache__/
 .rocprofv3/
+/libqwen36_argmax_f32_bridge.so
+/qwen36_argmax_f32_gfx950*
+/sha256sums.txt
