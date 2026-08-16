@@ -5,6 +5,7 @@ repo_dir=$(cd "${script_dir}/../.." && pwd)
 build_dir=${BUILD_DIR:-"${repo_dir}/build/gfx950-qwen36-moe-gate-up-mfma"}
 capture_dir=${CAPTURE_DIR:-/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_moe_stage1_fp8_gfx950_20260730T020100Z/capture}
 iterations=${ITERATIONS:-20}
+rows=${ROWS:-1}
 stem=qwen36_moe_gate_up_fp8_mfma_gfx950
 test -f "${capture_dir}/manifest.json"
 if docker ps --format '{{.Names}}' | grep -q '^netra-qwen36-'; then
@@ -17,7 +18,7 @@ start_ns=$(date +%s%N)
 build_ns=$(date +%s%N)
 HIP_VISIBLE_DEVICES=${HIP_VISIBLE_DEVICES:-0} \
   "${build_dir}/${stem}_harness" "${build_dir}/${stem}.hsaco" \
-  "${capture_dir}" "${iterations}"
+  "${capture_dir}" "${iterations}" "${rows}"
 done_ns=$(date +%s%N)
 python3 - "${start_ns}" "${build_ns}" "${done_ns}" <<'PY'
 import sys

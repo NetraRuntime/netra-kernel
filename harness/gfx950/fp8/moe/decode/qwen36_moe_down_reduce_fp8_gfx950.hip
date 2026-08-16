@@ -73,14 +73,16 @@ int main(int argc, char** argv) {
     const std::string symbol =
         argc >= 5 ? argv[4] : "qwen36_moe_down_reduce_fp8_gfx950";
     const bool two_wave = symbol.find("_2wave_") != std::string::npos;
+    const bool nine_wave = symbol.find("_9wave_") != std::string::npos;
     const unsigned grid_x = argc >= 6 ? std::stoul(argv[5]) : 128;
     const unsigned block_x =
-        argc >= 7 ? std::stoul(argv[6]) : (two_wave ? 128 : 64);
+        argc >= 7 ? std::stoul(argv[6]) : (nine_wave ? 576 : (two_wave ? 128 : 64));
     const int rows = argc >= 8 ? std::stoi(argv[7]) : 1;
     if (iterations <= 0) throw std::runtime_error("iterations must be positive");
     if (rows <= 0) throw std::runtime_error("rows must be positive");
-    if (block_x != 64 && block_x != 128) {
-      throw std::runtime_error("block_x must be 64 or 128");
+    if (block_x < 64 || block_x > 576 || block_x % 64 != 0) {
+      throw std::runtime_error(
+          "block_x must be a wave64 multiple between 64 and 576");
     }
 
     int device = 0;
