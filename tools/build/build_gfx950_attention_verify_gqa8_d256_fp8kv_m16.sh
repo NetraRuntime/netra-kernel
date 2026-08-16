@@ -8,7 +8,7 @@ ld_lld=${LD_LLD:-$rocm_root/llvm/bin/ld.lld}
 objdump=${LLVM_OBJDUMP:-$rocm_root/llvm/bin/llvm-objdump}
 readobj=${LLVM_READOBJ:-$rocm_root/llvm/bin/llvm-readobj}
 hipcc=${HIPCC:-$rocm_root/bin/hipcc}
-output_dir=${OUTPUT_DIR:-$repo_root/build/gfx950-qwen36-extend-attention-gqa8-fp8kv}
+output_dir=${OUTPUT_DIR:-$repo_root/build/gfx950-attention-verify-gqa8-d256-fp8kv-m16}
 
 assembly=$repo_root/kernels/gfx950/attention/verify/qwen36_extend_attention_m16_gqa8_fp8kv_gfx950.s
 object_i32=$output_dir/qwen36_extend_attention_m16_gqa8_fp8kv_i32_gfx950.o

@@ -278,7 +278,7 @@ All gfx950 builds and measurements must run on a visible MI350X:
 
 ```bash
 cd /path/to/netra-kernel
-bash tools/build/build_gfx950_qwen36_fp8_raw.sh
+bash tools/build/build_production.sh gfx950-qwen36-dflash all
 
 cd build/gfx950-qwen36-fp8
 ./qwen36_moe_silu_mul_quant_fp8_gfx950_harness \
@@ -289,9 +289,10 @@ The build refuses to create a target-specific object if `gfx950` is not
 visible. It also emits disassembly and metadata, checks the architecture and
 wave64 declarations, and records SHA-256 hashes.
 
-Each promoted or experimental gfx950 family has a focused build script under
-`tools/build/` and, where needed, an edit-to-result loop under
-`tools/benchmark/`. For example:
+Promoted gfx950 kernels are reusable operation contracts under
+`tools/build/components/gfx950/`; model profiles compose those contracts.
+Experimental families retain focused build scripts and, where needed, an
+edit-to-result loop under `tools/benchmark/`. For example:
 
 ```bash
 tools/benchmark/iterate_gfx950_qwen36_moe_silu_mul_quant.sh

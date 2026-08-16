@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "${script_dir}/lib/gfx950_assembly.sh"
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
-out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-router-bf16"}
+out_dir=${2:-"${repo_dir}/build/gfx950-router-bf16-k2048-n256"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
 stem=qwen36_router_bf16_gemv_gfx950
 kernel=${repo_dir}/kernels/gfx950/routing/verify/${stem}.s

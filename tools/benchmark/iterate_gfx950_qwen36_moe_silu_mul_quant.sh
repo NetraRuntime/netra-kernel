@@ -24,7 +24,7 @@ test -f "$quant_capture"
 test -f "$netra_server/scripts/rocm/mi350x/validate_qwen36_moe_silu_mul_quant_capture.py"
 
 build_start_ns=$(date +%s%N)
-"$repo_dir/tools/build/build_gfx950_qwen36_fp8_raw.sh" \
+"$repo_dir/tools/build/build_gfx950_moe_decode_fp8_e4m3_h2048_i512_top9_block128_aiter.sh" \
   "$repo_dir" "$build_dir" >/dev/null
 build_end_ns=$(date +%s%N)
 

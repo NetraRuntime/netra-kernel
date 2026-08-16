@@ -3,7 +3,7 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "${script_dir}/lib/gfx950_assembly.sh"
-source "${script_dir}/lib/qwen36_gdn_variants.sh"
+source "${script_dir}/lib/gdn_variants.sh"
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
 out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-gdn-verify-m16"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
@@ -19,8 +19,8 @@ bridge_header=${repo_dir}/runtime/gfx950/linear_attention/verify/qwen36_gdn_veri
 core_variant=${NETRA_GDN_CORE_VARIANT:-fused-packed-decode-sequence}
 precompute_variant=${NETRA_GDN_PRECOMPUTE_VARIANT:-packed-decode-beta}
 
-core_variant_id=$(netra_qwen36_gdn_core_variant_id "$core_variant" m16)
-precompute_variant_id=$(netra_qwen36_gdn_precompute_variant_id "$precompute_variant")
+core_variant_id=$(netra_gdn_core_variant_id "$core_variant" m16)
+precompute_variant_id=$(netra_gdn_precompute_variant_id "$precompute_variant")
 
 mkdir -p "$out_dir"
 netra_gfx950_require_device

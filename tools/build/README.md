@@ -5,29 +5,42 @@ this directory must not change assembler definitions, compiler/linker flags,
 or generated HSACO and bridge-library bytes without a new correctness and
 performance qualification.
 
-## Production MI350X bundle
+## Production profiles
 
-`build_gfx950_qwen36_production.sh` is the canonical bundle entrypoint for the
-Qwen3.6 DFlash serving stack. It pins the promoted GDN variant 17, lossless K0,
-dynamic wavegroups, target GQA8 FP8-KV attention, router, and raw FP8 decode
-components.
+`build_production.sh` is the model-neutral entrypoint. Data-only profiles
+compose reusable shape/dtype/layout contracts from an architecture component
+registry. The current MI350X Qwen3.6 profile pins the promoted GDN variant 17,
+lossless K0, dynamic wavegroups, target GQA8 FP8-KV attention, router, and raw
+FP8 decode components.
+
+```text
+build_production.sh
+  -> profiles/<architecture>_<model>_<mode>.sh   (composition only)
+  -> components/<architecture>/<contract>.sh     (loadable adapters)
+  -> build_<architecture>_<contract>.sh          (compiler flags/assertions)
+  -> kernels/ + runtime/ + harness/               (implementation)
+```
 
 ```bash
-tools/build/build_gfx950_qwen36_production.sh list
-tools/build/build_gfx950_qwen36_production.sh all
-tools/build/build_gfx950_qwen36_production.sh gdn-verify-m12-k0
+tools/build/build_production.sh list-profiles
+tools/build/build_production.sh gfx950-qwen36-dflash contracts
+tools/build/build_production.sh gfx950-qwen36-dflash all
 ```
 
 Set `NETRA_BUILD_ROOT` to build into an isolated comparison directory. The
-individual component builders remain the development entrypoints; do not add a
-second production bundle for a new experiment.
+individual component builders remain implementation entrypoints. Add another
+model as a composition profile; do not copy the runner or an entire build
+stack. See [`profiles/README.md`](profiles/README.md) and
+[`components/README.md`](components/README.md).
 
 ## Shared primitives
 
 - `lib/gfx950_assembly.sh` owns the repeated gfx950/wave64 assemble, link,
   disassemble, and metadata-validation sequences.
-- `lib/qwen36_gdn_variants.sh` is the single source for human-readable GDN
+- `lib/gdn_variants.sh` is the single source for human-readable GDN
   variant names and assembler IDs.
+- `lib/component_registry.sh` discovers independent contract adapters and
+  rejects invalid or duplicate registrations.
 
 Kernel-specific builders retain all flags and disassembly assertions in plain
 view. A shared helper must never infer or silently add optimization flags.

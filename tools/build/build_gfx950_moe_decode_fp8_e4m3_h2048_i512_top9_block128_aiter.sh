@@ -5,7 +5,7 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "${script_dir}/lib/gfx950_assembly.sh"
 default_repo=$(cd "${script_dir}/../.." && pwd)
 repo_dir=${1:-"${default_repo}"}
-out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-fp8"}
+out_dir=${2:-"${repo_dir}/build/gfx950-moe-decode-fp8-e4m3-h2048-i512-top9-block128-aiter"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
 clang_bin=${CLANG_BIN:-"${rocm_dir}/llvm/bin/clang"}
 linker_bin=${LINKER_BIN:-"${rocm_dir}/llvm/bin/ld.lld"}

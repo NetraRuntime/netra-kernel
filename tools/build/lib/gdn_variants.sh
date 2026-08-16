@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# Canonical assembler IDs for the Qwen3.6 GDN verification kernels. These IDs
-# are part of the generated-code contract and must stay aligned with the
-# `.if NETRA_GDN_*_VARIANT` blocks in the gfx950 assembly sources.
+# Canonical assembler IDs for gfx950 GDN verification kernels. These IDs are
+# part of the generated-code contract and must stay aligned with the
+# `.if NETRA_GDN_*_VARIANT` blocks in the assembly sources.
 
-netra_qwen36_gdn_core_variant_id() {
+netra_gdn_core_variant_id() {
   local variant=$1
   local contract=$2
   local variant_id
@@ -52,7 +52,7 @@ netra_qwen36_gdn_core_variant_id() {
   printf '%s\n' "$variant_id"
 }
 
-netra_qwen36_gdn_precompute_variant_id() {
+netra_gdn_precompute_variant_id() {
   local variant=$1
 
   case "$variant" in

@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "${script_dir}/lib/gfx950_assembly.sh"
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
-out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-gdn-state-replay-m12"}
+out_dir=${2:-"${repo_dir}/build/gfx950-gdn-replay-b64-t12-h16-hv32-k128-v128"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
 kernel_dir=${repo_dir}/kernels/gfx950/linear_attention/verify
 precompute_stem=qwen36_gdn_verify_m12_batched_precompute_gfx950

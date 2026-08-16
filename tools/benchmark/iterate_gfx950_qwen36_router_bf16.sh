@@ -16,7 +16,7 @@ if docker ps --format '{{.Names}}' | grep -q '^netra-qwen36-'; then
 fi
 
 start_ns=$(date +%s%N)
-"${repo_dir}/tools/build/build_gfx950_qwen36_router_bf16.sh" \
+"${repo_dir}/tools/build/build_gfx950_router_bf16_k2048_n256.sh" \
   "$repo_dir" "$build_dir"
 build_ns=$(date +%s%N)
 set +e

@@ -3,9 +3,9 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "${script_dir}/lib/gfx950_assembly.sh"
-source "${script_dir}/lib/qwen36_gdn_variants.sh"
+source "${script_dir}/lib/gdn_variants.sh"
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
-out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-gdn-verify-m12-batched"}
+out_dir=${2:-"${repo_dir}/build/gfx950-gdn-verify-b64-t12-h16-hv32-k128-v128-k0"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
 kernel_dir=${repo_dir}/kernels/gfx950/linear_attention/verify
 precompute_stem=qwen36_gdn_verify_m12_batched_precompute_gfx950
@@ -25,7 +25,7 @@ waves_per_workgroup=${NETRA_GDN_WAVES_PER_WORKGROUP:-1}
 share_qk=${NETRA_GDN_SHARE_QK:-1}
 dynamic_wavegroups=${NETRA_GDN_DYNAMIC_WAVEGROUPS:-0}
 
-core_variant_id=$(netra_qwen36_gdn_core_variant_id "$core_variant" m12)
+core_variant_id=$(netra_gdn_core_variant_id "$core_variant" m12)
 
 case "$k0_no_intermediate" in
   0 | 1) ;;
@@ -66,7 +66,7 @@ if [[ "$dynamic_wavegroups" == 1 && "$k0_no_intermediate" != 1 ]]; then
   exit 2
 fi
 
-precompute_variant_id=$(netra_qwen36_gdn_precompute_variant_id "$precompute_variant")
+precompute_variant_id=$(netra_gdn_precompute_variant_id "$precompute_variant")
 
 mkdir -p "$out_dir"
 netra_gfx950_require_device
