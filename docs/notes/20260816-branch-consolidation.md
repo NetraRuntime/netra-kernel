@@ -89,5 +89,12 @@ patch-ID.
 rejecting its shared GQA4 reciprocal epilogue. Its results remain documented on
 `main`, but its experimental source was not promoted.
 
+## Local-only refs
+
+The local-only heads `codex/gdn-causal-conv-m12-ship-local` (`d97c305f9000`)
+and `gfx950-qwen36` (`6a98a96abcf7`) were ancestors of `main`. The remaining
+local refs either matched the audited remote heads above or pointed at commits
+already contained by `main`; none held an additional production kernel.
+
 After this audit, every remote branch listed above was removed; `origin/main`
 is the sole retained remote branch.
