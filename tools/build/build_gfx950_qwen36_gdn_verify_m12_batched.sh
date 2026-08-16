@@ -12,10 +12,11 @@ precompute=${kernel_dir}/${precompute_stem}.s
 core=${kernel_dir}/${core_stem}.s
 bridge=${repo_dir}/runtime/gfx950/linear_attention/verify/qwen36_gdn_verify_m12_batched_bridge.hip
 bridge_header=${repo_dir}/runtime/gfx950/linear_attention/verify/qwen36_gdn_verify_m12_batched_bridge.h
-# M=12 general target verification keeps FP32 live state across positions,
-# uses the ordinary FP32 sigmoid boundary, and retains the packed per-V Q dot
-# order emitted by the deployed gfx950 Triton kernel.
-core_variant=${NETRA_GDN_CORE_VARIANT:-fused-packed-exact}
+# M=12 general target verification keeps FP32 live state across positions and
+# uses the ordinary FP32 sigmoid boundary. Variant 17 is the production serving
+# default after the 2026-08-16 five-run 1K/1K DFlash gate. Select
+# NETRA_GDN_CORE_VARIANT=fused-packed-exact for the bit-exact rollback.
+core_variant=${NETRA_GDN_CORE_VARIANT:-packed-pair-interleaved}
 precompute_variant=${NETRA_GDN_PRECOMPUTE_VARIANT:-triton-exact}
 k0_no_intermediate=${NETRA_GDN_K0_NO_INTERMEDIATE:-0}
 waves_per_workgroup=${NETRA_GDN_WAVES_PER_WORKGROUP:-1}

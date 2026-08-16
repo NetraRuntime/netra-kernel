@@ -26,12 +26,25 @@ The five-shot, thinking-disabled, temperature-zero GSM8K-200 gate scored
 189/200 (94.5%) with the interleaved kernel. The retained control range is
 95.5--96.0%; the candidate was explicitly accepted despite that sample delta.
 
+On 2026-08-16, a higher-load five-run gate promoted this variant from optional
+to the build default. At 384 requests, concurrency 128, and exactly 1,024 input
+plus 1,024 forced output tokens, interleaved averaged 9,083.34 output tok/s and
+exact averaged 8,830.10 tok/s (+2.868%). The respective medians were 9,095.11
+and 8,874.47 tok/s (+2.486%). Exact remains available with
+`NETRA_GDN_CORE_VARIANT=fused-packed-exact`.
+
+The interleaved runs averaged 6.506 accepted tokens versus 4.413 for exact.
+Because the one-BF16-ULP tolerance changes the greedy generation trajectory,
+that acceptance shift is part of the measured end-to-end gain and is not a
+claim that the raw kernel alone improved by 2.868%.
+
 Artifacts are retained under:
 
 ```text
 /data/netra/benchmarks/gfx950_qwen36_optimization/
   20260804T002406Z-qwen36-best-gpu6/
   20260804T002854Z-qwen36-best-gpu6/
+  best-single-gpu-1k1k-gdn-v17-20260816/
 ```
 
 The original experiment is commit `f61f3ff88c79fe8726d1be5b37f21c202d1e1857`

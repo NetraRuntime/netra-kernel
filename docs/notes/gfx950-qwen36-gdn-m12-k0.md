@@ -16,10 +16,12 @@ The production code consists of:
   recurrent computation and writes only BF16 outputs in K0 mode;
 - a HIP module-loading and launch bridge. HIP does not implement the compute.
 
-Build with `NETRA_GDN_K0_NO_INTERMEDIATE=1`. The accepted core is variant 13
-(`fused-exact`). Its disassembly contains no `global_store_dwordx4` and four
-`global_store_short` instructions, eliminating the rejected full-state
-intermediate writes.
+Build with `NETRA_GDN_K0_NO_INTERMEDIATE=1`. The production serving default is
+variant 17 (`packed-pair-interleaved`); variant 13 (`fused-packed-exact`) is the
+explicit bit-exact rollback via
+`NETRA_GDN_CORE_VARIANT=fused-packed-exact`. Both disassemblies contain no
+`global_store_dwordx4` and four `global_store_short` instructions, eliminating
+the rejected full-state intermediate writes.
 
 ## Correctness and timing
 
@@ -74,3 +76,21 @@ The earlier full-state raw variant was rejected: it wrote roughly 805 MiB of
 intermediate snapshots per B=64/M=12 invocation and slowed serving despite a
 microbenchmark win. K0 is accepted because it removes those stores and improves
 the complete request path without a correctness loss.
+
+## 2026-08-16 serving-default promotion
+
+A matched five-run single-MI350X A/B used 384 random requests, exactly 1,024
+input and 1,024 forced output tokens per request, concurrency 128, DFlash block
+12, temperature zero, and seed 20260809. Variant 17 averaged 9,083.34 output
+tok/s versus 8,830.10 for variant 13: +2.868%. Medians were 9,095.11 and
+8,874.47 tok/s respectively (+2.486%).
+
+Variant 17 changes FP32 association and raises mean acceptance on this greedy
+workload from 4.413 to 6.506, so the end-to-end gain is not claimed as raw
+kernel latency alone. Its established tolerance remains 163 of 3,145,728 BF16
+outputs differing from Triton, with maximum absolute error 0.0009765625. The
+previous GSM8K-200 gate scored 94.5% versus a retained exact-control range of
+95.5--96.0%; this tradeoff is explicitly accepted for the serving default.
+
+Artifact:
+`/data/netra/benchmarks/gfx950_qwen36_optimization/best-single-gpu-1k1k-gdn-v17-20260816/`.

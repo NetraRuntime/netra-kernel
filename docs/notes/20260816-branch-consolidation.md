@@ -48,6 +48,12 @@ The variant-17 result exactly reproduces the tolerance profile documented when
 that optional schedule was accepted. Variant 13 remains the default because it
 is bit-exact. No rejected schedule was enabled.
 
+Post-audit update: a subsequent five-run 1K/1K DFlash serving gate measured a
+2.868% mean end-to-end uplift for variant 17 at concurrency 128. Variant 17 was
+therefore promoted to the build default later on 2026-08-16; variant 13 remains
+the explicit bit-exact rollback. See
+`gfx950-qwen36-gdn-interleaved-packed-verify.md` for the promotion evidence.
+
 ## Heads already contained by main
 
 | Branch | Audited head |
