@@ -77,9 +77,12 @@ int main(int argc, char** argv) {
     const std::string base = argv[2];
     const std::string sort = argv[3];
     const int iterations = argc >= 5 ? std::stoi(argv[4]) : 50;
-    const bool fused_quant = std::getenv("NETRA_KERNEL_FUSED_QUANT") != nullptr;
-    const bool run_quant = !fused_quant;
-    const bool run_down = true;
+    const bool atomic_fused =
+        std::getenv("NETRA_KERNEL_ATOMIC_FUSED") != nullptr;
+    const bool fused_quant =
+        !atomic_fused && std::getenv("NETRA_KERNEL_FUSED_QUANT") != nullptr;
+    const bool run_quant = !fused_quant && !atomic_fused;
+    const bool run_down = !atomic_fused;
     const std::string quant_co_path = argv[5];
     if (iterations < 2) throw std::runtime_error("iterations must be >= 2");
 
@@ -87,6 +90,9 @@ int main(int argc, char** argv) {
     HIP_CHECK(hipGetDeviceProperties(&props, 0));
     if (std::string(props.gcnArchName).rfind("gfx950", 0) != 0)
       throw std::runtime_error("refusing non-gfx950 device");
+    hipStream_t benchmark_stream = nullptr;
+    HIP_CHECK(hipStreamCreateWithFlags(
+        &benchmark_stream, hipStreamNonBlocking));
 
     const auto hidden = read_file(base + "/hidden_fp8.bin");
     const auto hidden_scale = read_file(base + "/hidden_scale_f32.bin");
@@ -133,7 +139,8 @@ int main(int argc, char** argv) {
         (static_cast<size_t>(routes) + valid) * n * sizeof(uint16_t));
     Buffer d_activation(static_cast<size_t>(routes) * n);
     Buffer d_activation_scale(
-        static_cast<size_t>(rows) * topk * 4 * sizeof(float));
+        std::max(static_cast<size_t>(routes), sorted_capacity) * 4 *
+        sizeof(float));
     Buffer d_w2(w2.size()), d_w2_scale(w2_scale.size());
     Buffer d_sorted_weights(sorted_weights.size());
     Buffer d_topk_weights(topk_weights.size());
@@ -150,14 +157,27 @@ int main(int argc, char** argv) {
         (static_cast<size_t>(routes) + valid) * n * sizeof(uint16_t)));
     HIP_CHECK(hipMemset(d_activation.ptr, 0, rows * topk * 512));
     HIP_CHECK(hipMemset(
-        d_activation_scale.ptr, 0, rows * topk * 4 * sizeof(float)));
+        d_activation_scale.ptr, 0,
+        std::max(static_cast<size_t>(routes), sorted_capacity) * 4 *
+            sizeof(float)));
 
     hipModule_t module = nullptr;
     hipFunction_t function = nullptr;
+    hipModule_t ab_gateup_module = nullptr;
+    hipFunction_t ab_gateup_function = nullptr;
     HIP_CHECK(hipModuleLoad(&module, co_path.c_str()));
     const char* symbol = std::getenv("NETRA_KERNEL_SYMBOL");
     if (!symbol) symbol = "qwen36_moe_gateup_silu_m64n64_fp8_gfx950";
     HIP_CHECK(hipModuleGetFunction(&function, module, symbol));
+    if (const char* ab_path = std::getenv("NETRA_GATEUP_AB_HSACO")) {
+      const char* ab_symbol = std::getenv("NETRA_GATEUP_AB_SYMBOL");
+      if (!ab_symbol)
+        throw std::runtime_error(
+            "NETRA_GATEUP_AB_SYMBOL is required with NETRA_GATEUP_AB_HSACO");
+      HIP_CHECK(hipModuleLoad(&ab_gateup_module, ab_path));
+      HIP_CHECK(hipModuleGetFunction(
+          &ab_gateup_function, ab_gateup_module, ab_symbol));
+    }
     hipModule_t quant_module = nullptr;
     hipFunction_t quant_function = nullptr;
     if (run_quant) {
@@ -167,7 +187,9 @@ int main(int argc, char** argv) {
           "qwen36_moe_quant_bf16_m64_fp8_gfx950"));
     }
     hipModule_t down_module = nullptr, reduce_module = nullptr;
+    hipModule_t ab_down_module = nullptr;
     hipFunction_t down_function = nullptr, reduce_function = nullptr;
+    hipFunction_t ab_down_function = nullptr;
     if (run_down) {
       HIP_CHECK(hipModuleLoad(&down_module, argv[6]));
       HIP_CHECK(hipModuleLoad(&reduce_module, argv[7]));
@@ -181,8 +203,20 @@ int main(int argc, char** argv) {
           &down_function, down_module, down_symbol));
       HIP_CHECK(hipModuleGetFunction(
           &reduce_function, reduce_module, reduce_symbol));
+      if (const char* ab_path = std::getenv("NETRA_DOWN_AB_HSACO")) {
+        const char* ab_symbol = std::getenv("NETRA_DOWN_AB_SYMBOL");
+        if (!ab_symbol)
+          throw std::runtime_error(
+              "NETRA_DOWN_AB_SYMBOL is required with NETRA_DOWN_AB_HSACO");
+        HIP_CHECK(hipModuleLoad(&ab_down_module, ab_path));
+        HIP_CHECK(hipModuleGetFunction(
+            &ab_down_function, ab_down_module, ab_symbol));
+      }
     }
     int token_rows = rows;
+    int atomic_debug_stage = 0;
+    if (const char* value = std::getenv("NETRA_ATOMIC_DEBUG_STAGE"))
+      atomic_debug_stage = std::stoi(value);
     void* output_pointer = d_activation_bf16.ptr;
     void* args[] = {&d_hidden.ptr, &d_hidden_scale.ptr, &d_w13.ptr,
                     &d_w13_scale.ptr, &d_sorted.ptr, &d_experts.ptr,
@@ -191,6 +225,11 @@ int main(int argc, char** argv) {
         &d_hidden.ptr, &d_hidden_scale.ptr, &d_w13.ptr, &d_w13_scale.ptr,
         &d_sorted.ptr, &d_experts.ptr, &d_valid.ptr, &d_activation.ptr,
         &d_activation_scale.ptr, &token_rows};
+    void* atomic_args[] = {
+        &d_hidden.ptr, &d_hidden_scale.ptr, &d_w13.ptr, &d_w13_scale.ptr,
+        &d_w2.ptr, &d_w2_scale.ptr, &d_sorted.ptr, &d_sorted_weights.ptr,
+        &d_experts.ptr, &d_valid.ptr, &d_final.ptr, &token_rows,
+        &d_activation_scale.ptr, &atomic_debug_stage};
     unsigned grid_x = fused_quant ? 4 : 8;
     unsigned grid_y = static_cast<unsigned>(valid / 64);
     if (const char* value = std::getenv("NETRA_GRID_X")) grid_x = std::stoul(value);
@@ -198,16 +237,33 @@ int main(int argc, char** argv) {
     if (grid_x < 1 || grid_x > 64 || grid_y < 1 || grid_y > static_cast<unsigned>(valid / 64))
       throw std::runtime_error("debug grid is out of range");
     auto launch = [&] {
+      if (atomic_fused) {
+        HIP_CHECK(hipMemsetAsync(
+            d_final.ptr, 0,
+            static_cast<size_t>(rows) * 2048 * sizeof(uint16_t),
+            benchmark_stream));
+      }
       HIP_CHECK(hipModuleLaunchKernel(function, grid_x, grid_y, 1,
-                                      256, 1, 1, 0, nullptr,
-                                      fused_quant ? fused_args : args, nullptr));
+                                      256, 1, 1, 0, benchmark_stream,
+                                      atomic_fused ? atomic_args
+                                                   : (fused_quant ? fused_args
+                                                                  : args),
+                                      nullptr));
+    };
+    auto launch_ab_gateup = [&] {
+      if (!ab_gateup_function)
+        throw std::runtime_error("paired gate/up function is not loaded");
+      HIP_CHECK(hipModuleLaunchKernel(
+          ab_gateup_function, grid_x, grid_y, 1, 256, 1, 1, 0,
+          benchmark_stream, fused_quant ? fused_args : args, nullptr));
     };
     int route_count = routes;
     void* quant_args[] = {&d_activation_bf16.ptr, &d_activation.ptr,
                           &d_activation_scale.ptr, &route_count};
     auto launch_quant = [&] {
       HIP_CHECK(hipModuleLaunchKernel(
-          quant_function, (routes + 3) / 4, 1, 1, 256, 1, 1, 0, nullptr,
+          quant_function, (routes + 3) / 4, 1, 1, 256, 1, 1, 0,
+          benchmark_stream,
           quant_args, nullptr));
     };
     void* down_args[] = {
@@ -233,13 +289,21 @@ int main(int argc, char** argv) {
       throw std::runtime_error("invalid reduction launch geometry");
     auto launch_down_kernel = [&] {
       HIP_CHECK(hipModuleLaunchKernel(
-          down_function, down_grid_x, valid / 64, 1, 256, 1, 1, 0, nullptr,
+          down_function, down_grid_x, valid / 64, 1, 256, 1, 1, 0,
+          benchmark_stream,
           down_args, nullptr));
+    };
+    auto launch_ab_down_kernel = [&] {
+      if (!ab_down_function)
+        throw std::runtime_error("paired down function is not loaded");
+      HIP_CHECK(hipModuleLaunchKernel(
+          ab_down_function, down_grid_x, valid / 64, 1, 256, 1, 1, 0,
+          benchmark_stream, down_args, nullptr));
     };
     auto launch_reduce = [&] {
       HIP_CHECK(hipModuleLaunchKernel(
           reduce_function, reduce_grid_x, rows, 1, reduce_wg_size, 1, 1, 0,
-          nullptr,
+          benchmark_stream,
           reduce_args, nullptr));
     };
     auto launch_down = [&] {
@@ -251,13 +315,29 @@ int main(int argc, char** argv) {
       if (run_quant) launch_quant();
       if (run_down) launch_down();
     }
-    HIP_CHECK(hipDeviceSynchronize());
+    HIP_CHECK(hipStreamSynchronize(benchmark_stream));
+
+    hipGraph_t complete_graph = nullptr;
+    hipGraphExec_t complete_graph_exec = nullptr;
+    HIP_CHECK(hipStreamBeginCapture(
+        benchmark_stream, hipStreamCaptureModeThreadLocal));
+    launch();
+    if (run_quant) launch_quant();
+    if (run_down) launch_down();
+    HIP_CHECK(hipStreamEndCapture(benchmark_stream, &complete_graph));
+    HIP_CHECK(hipGraphInstantiate(
+        &complete_graph_exec, complete_graph, nullptr, nullptr, 0));
+    for (int i = 0; i < 5; ++i)
+      HIP_CHECK(hipGraphLaunch(complete_graph_exec, benchmark_stream));
+    HIP_CHECK(hipStreamSynchronize(benchmark_stream));
 
     hipEvent_t start = nullptr, stop = nullptr;
     HIP_CHECK(hipEventCreate(&start)); HIP_CHECK(hipEventCreate(&stop));
     std::vector<float> samples;
     for (int i = 0; i < iterations; ++i) {
-      HIP_CHECK(hipEventRecord(start)); launch(); HIP_CHECK(hipEventRecord(stop));
+      HIP_CHECK(hipEventRecord(start, benchmark_stream));
+      launch();
+      HIP_CHECK(hipEventRecord(stop, benchmark_stream));
       HIP_CHECK(hipEventSynchronize(stop));
       float milliseconds = 0;
       HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
@@ -268,14 +348,26 @@ int main(int argc, char** argv) {
     std::vector<float> down_kernel_samples;
     std::vector<float> reduce_samples;
     std::vector<float> complete_samples;
+    std::vector<float> graph_complete_samples;
+    std::vector<float> ab_control_down_samples;
+    std::vector<float> ab_candidate_down_samples;
+    std::vector<float> ab_control_complete_samples;
+    std::vector<float> ab_candidate_complete_samples;
+    size_t ab_output_mismatches = 0;
+    std::vector<float> ab_control_gateup_samples;
+    std::vector<float> ab_candidate_gateup_samples;
+    std::vector<float> ab_control_gateup_complete_samples;
+    std::vector<float> ab_candidate_gateup_complete_samples;
+    size_t ab_gateup_activation_mismatches = 0;
+    size_t ab_gateup_output_mismatches = 0;
     if (run_quant || fused_quant) {
       launch();
       if (run_quant) {
-        HIP_CHECK(hipDeviceSynchronize());
+        HIP_CHECK(hipStreamSynchronize(benchmark_stream));
         for (int i = 0; i < iterations; ++i) {
-          HIP_CHECK(hipEventRecord(start));
+          HIP_CHECK(hipEventRecord(start, benchmark_stream));
           launch_quant();
-          HIP_CHECK(hipEventRecord(stop));
+          HIP_CHECK(hipEventRecord(stop, benchmark_stream));
           HIP_CHECK(hipEventSynchronize(stop));
           float milliseconds = 0;
           HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
@@ -283,10 +375,10 @@ int main(int argc, char** argv) {
         }
       }
       for (int i = 0; i < iterations; ++i) {
-        HIP_CHECK(hipEventRecord(start));
+        HIP_CHECK(hipEventRecord(start, benchmark_stream));
         launch();
         if (run_quant) launch_quant();
-        HIP_CHECK(hipEventRecord(stop));
+        HIP_CHECK(hipEventRecord(stop, benchmark_stream));
         HIP_CHECK(hipEventSynchronize(stop));
         float milliseconds = 0;
         HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
@@ -295,37 +387,191 @@ int main(int argc, char** argv) {
       if (run_down) {
         launch();
         if (run_quant) launch_quant();
-        HIP_CHECK(hipDeviceSynchronize());
+        HIP_CHECK(hipStreamSynchronize(benchmark_stream));
         for (int i = 0; i < iterations; ++i) {
-          HIP_CHECK(hipEventRecord(start));
+          HIP_CHECK(hipEventRecord(start, benchmark_stream));
           launch_down_kernel();
-          HIP_CHECK(hipEventRecord(stop));
+          HIP_CHECK(hipEventRecord(stop, benchmark_stream));
           HIP_CHECK(hipEventSynchronize(stop));
           float milliseconds = 0;
           HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
           down_kernel_samples.push_back(milliseconds * 1000.0f);
         }
         launch_down_kernel();
-        HIP_CHECK(hipDeviceSynchronize());
+        HIP_CHECK(hipStreamSynchronize(benchmark_stream));
         for (int i = 0; i < iterations; ++i) {
-          HIP_CHECK(hipEventRecord(start));
+          HIP_CHECK(hipEventRecord(start, benchmark_stream));
           launch_reduce();
-          HIP_CHECK(hipEventRecord(stop));
+          HIP_CHECK(hipEventRecord(stop, benchmark_stream));
           HIP_CHECK(hipEventSynchronize(stop));
           float milliseconds = 0;
           HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
           reduce_samples.push_back(milliseconds * 1000.0f);
         }
         for (int i = 0; i < iterations; ++i) {
-          HIP_CHECK(hipEventRecord(start));
+          HIP_CHECK(hipEventRecord(start, benchmark_stream));
           launch();
           if (run_quant) launch_quant();
           launch_down();
-          HIP_CHECK(hipEventRecord(stop));
+          HIP_CHECK(hipEventRecord(stop, benchmark_stream));
           HIP_CHECK(hipEventSynchronize(stop));
           float milliseconds = 0;
           HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
           complete_samples.push_back(milliseconds * 1000.0f);
+        }
+        for (int i = 0; i < iterations; ++i) {
+          HIP_CHECK(hipEventRecord(start, benchmark_stream));
+          HIP_CHECK(hipGraphLaunch(complete_graph_exec, benchmark_stream));
+          HIP_CHECK(hipEventRecord(stop, benchmark_stream));
+          HIP_CHECK(hipEventSynchronize(stop));
+          float milliseconds = 0;
+          HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
+          graph_complete_samples.push_back(milliseconds * 1000.0f);
+        }
+        if (ab_down_function) {
+          auto time_down = [&](bool candidate) {
+            HIP_CHECK(hipEventRecord(start, benchmark_stream));
+            if (candidate)
+              launch_ab_down_kernel();
+            else
+              launch_down_kernel();
+            HIP_CHECK(hipEventRecord(stop, benchmark_stream));
+            HIP_CHECK(hipEventSynchronize(stop));
+            float milliseconds = 0;
+            HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
+            return milliseconds * 1000.0f;
+          };
+          auto time_complete = [&](bool candidate) {
+            HIP_CHECK(hipEventRecord(start, benchmark_stream));
+            launch();
+            if (run_quant) launch_quant();
+            if (candidate)
+              launch_ab_down_kernel();
+            else
+              launch_down_kernel();
+            launch_reduce();
+            HIP_CHECK(hipEventRecord(stop, benchmark_stream));
+            HIP_CHECK(hipEventSynchronize(stop));
+            float milliseconds = 0;
+            HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
+            return milliseconds * 1000.0f;
+          };
+          for (int i = 0; i < iterations; ++i) {
+            if ((i & 1) == 0) {
+              ab_control_down_samples.push_back(time_down(false));
+              ab_candidate_down_samples.push_back(time_down(true));
+              ab_control_complete_samples.push_back(time_complete(false));
+              ab_candidate_complete_samples.push_back(time_complete(true));
+            } else {
+              ab_candidate_down_samples.push_back(time_down(true));
+              ab_control_down_samples.push_back(time_down(false));
+              ab_candidate_complete_samples.push_back(time_complete(true));
+              ab_control_complete_samples.push_back(time_complete(false));
+            }
+          }
+
+          const size_t final_bytes =
+              static_cast<size_t>(rows) * 2048 * sizeof(uint16_t);
+          std::vector<uint16_t> ab_control(final_bytes / sizeof(uint16_t));
+          std::vector<uint16_t> ab_candidate(final_bytes / sizeof(uint16_t));
+          launch_down_kernel();
+          launch_reduce();
+          HIP_CHECK(hipStreamSynchronize(benchmark_stream));
+          HIP_CHECK(hipMemcpy(ab_control.data(), d_final.ptr, final_bytes,
+                              hipMemcpyDeviceToHost));
+          launch_ab_down_kernel();
+          launch_reduce();
+          HIP_CHECK(hipStreamSynchronize(benchmark_stream));
+          HIP_CHECK(hipMemcpy(ab_candidate.data(), d_final.ptr, final_bytes,
+                              hipMemcpyDeviceToHost));
+          for (size_t i = 0; i < ab_control.size(); ++i)
+            ab_output_mismatches += ab_control[i] != ab_candidate[i];
+        }
+        if (ab_gateup_function) {
+          auto time_gateup = [&](bool candidate) {
+            HIP_CHECK(hipEventRecord(start, benchmark_stream));
+            if (candidate)
+              launch_ab_gateup();
+            else
+              launch();
+            HIP_CHECK(hipEventRecord(stop, benchmark_stream));
+            HIP_CHECK(hipEventSynchronize(stop));
+            float milliseconds = 0;
+            HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
+            return milliseconds * 1000.0f;
+          };
+          auto time_gateup_complete = [&](bool candidate) {
+            HIP_CHECK(hipEventRecord(start, benchmark_stream));
+            if (candidate)
+              launch_ab_gateup();
+            else
+              launch();
+            if (run_quant) launch_quant();
+            launch_down();
+            HIP_CHECK(hipEventRecord(stop, benchmark_stream));
+            HIP_CHECK(hipEventSynchronize(stop));
+            float milliseconds = 0;
+            HIP_CHECK(hipEventElapsedTime(&milliseconds, start, stop));
+            return milliseconds * 1000.0f;
+          };
+          for (int i = 0; i < iterations; ++i) {
+            if ((i & 1) == 0) {
+              ab_control_gateup_samples.push_back(time_gateup(false));
+              ab_candidate_gateup_samples.push_back(time_gateup(true));
+              ab_control_gateup_complete_samples.push_back(
+                  time_gateup_complete(false));
+              ab_candidate_gateup_complete_samples.push_back(
+                  time_gateup_complete(true));
+            } else {
+              ab_candidate_gateup_samples.push_back(time_gateup(true));
+              ab_control_gateup_samples.push_back(time_gateup(false));
+              ab_candidate_gateup_complete_samples.push_back(
+                  time_gateup_complete(true));
+              ab_control_gateup_complete_samples.push_back(
+                  time_gateup_complete(false));
+            }
+          }
+
+          const size_t activation_bytes =
+              static_cast<size_t>(routes) * n * sizeof(uint16_t);
+          const size_t final_bytes =
+              static_cast<size_t>(rows) * 2048 * sizeof(uint16_t);
+          std::vector<uint16_t> control_activation(
+              activation_bytes / sizeof(uint16_t));
+          std::vector<uint16_t> candidate_activation(
+              activation_bytes / sizeof(uint16_t));
+          std::vector<uint16_t> control_final(
+              final_bytes / sizeof(uint16_t));
+          std::vector<uint16_t> candidate_final(
+              final_bytes / sizeof(uint16_t));
+          launch();
+          HIP_CHECK(hipStreamSynchronize(benchmark_stream));
+          HIP_CHECK(hipMemcpy(
+              control_activation.data(), d_activation_bf16.ptr,
+              activation_bytes, hipMemcpyDeviceToHost));
+          if (run_quant) launch_quant();
+          launch_down();
+          HIP_CHECK(hipStreamSynchronize(benchmark_stream));
+          HIP_CHECK(hipMemcpy(
+              control_final.data(), d_final.ptr, final_bytes,
+              hipMemcpyDeviceToHost));
+          launch_ab_gateup();
+          HIP_CHECK(hipStreamSynchronize(benchmark_stream));
+          HIP_CHECK(hipMemcpy(
+              candidate_activation.data(), d_activation_bf16.ptr,
+              activation_bytes, hipMemcpyDeviceToHost));
+          if (run_quant) launch_quant();
+          launch_down();
+          HIP_CHECK(hipStreamSynchronize(benchmark_stream));
+          HIP_CHECK(hipMemcpy(
+              candidate_final.data(), d_final.ptr, final_bytes,
+              hipMemcpyDeviceToHost));
+          for (size_t i = 0; i < control_activation.size(); ++i)
+            ab_gateup_activation_mismatches +=
+                control_activation[i] != candidate_activation[i];
+          for (size_t i = 0; i < control_final.size(); ++i)
+            ab_gateup_output_mismatches +=
+                control_final[i] != candidate_final[i];
         }
       }
     }
@@ -407,12 +653,15 @@ int main(int argc, char** argv) {
     float full_structural_max_abs = 0.0f, full_aiter_max_abs = 0.0f;
     double full_structural_cosine = 1.0, full_aiter_cosine = 1.0;
     bool full_correct = true;
-    if (run_down) {
+    if (run_down || atomic_fused) {
       const size_t elements = static_cast<size_t>(rows) * 2048;
       std::vector<uint16_t> final_output(elements);
       HIP_CHECK(hipMemcpy(
           final_output.data(), d_final.ptr, elements * sizeof(uint16_t),
           hipMemcpyDeviceToHost));
+      if (const char* output_path = std::getenv("NETRA_EXPORT_FINAL_PATH"))
+        write_file(output_path, final_output.data(),
+                   final_output.size() * sizeof(uint16_t));
       const float* structural_f32 =
           reinterpret_cast<const float*>(reference_output_f32.data());
       const uint16_t* structural_bf16 =
@@ -446,6 +695,7 @@ int main(int argc, char** argv) {
     }
     std::cout << "architecture=" << props.gcnArchName << "\n"
               << "block_m=64\nfused_quant=" << fused_quant
+              << "\natomic_fused=" << atomic_fused
               << "\nvalid_sorted_ids=" << valid << "\n"
               << "valid_blocks=" << valid / 64 << "\n"
               << "launched_grid=" << grid_x << "x" << grid_y << "\n"
@@ -479,7 +729,20 @@ int main(int argc, char** argv) {
                 << "paired_quant_p90_us="
                 << percentile(pipeline_samples, 0.9) << "\n";
     }
-    if (run_down) {
+    if (atomic_fused) {
+      std::cout << "full_structural_bf16_mismatches=" << full_mismatches
+                << "/" << static_cast<size_t>(rows) * 2048 << "\n"
+                << "full_structural_max_abs=" << full_structural_max_abs << "\n"
+                << "full_structural_cosine=" << full_structural_cosine << "\n"
+                << "full_aiter_max_abs=" << full_aiter_max_abs << "\n"
+                << "full_aiter_cosine=" << full_aiter_cosine << "\n"
+                << "full_correctness_gate="
+                << (full_correct ? "pass" : "fail") << "\n"
+                << "atomic_complete_median_us="
+                << percentile(samples, 0.5) << "\n"
+                << "atomic_complete_p90_us="
+                << percentile(samples, 0.9) << "\n";
+    } else if (run_down) {
       std::cout << "full_structural_bf16_mismatches=" << full_mismatches
                 << "/" << static_cast<size_t>(rows) * 2048 << "\n"
                 << "full_structural_max_abs=" << full_structural_max_abs << "\n"
@@ -499,14 +762,58 @@ int main(int argc, char** argv) {
                 << "complete_pipeline_median_us="
                 << percentile(complete_samples, 0.5) << "\n"
                 << "complete_pipeline_p90_us="
-                << percentile(complete_samples, 0.9) << "\n";
+                << percentile(complete_samples, 0.9) << "\n"
+                << "graph_complete_pipeline_median_us="
+                << percentile(graph_complete_samples, 0.5) << "\n"
+                << "graph_complete_pipeline_p90_us="
+                << percentile(graph_complete_samples, 0.9) << "\n";
+      if (ab_down_function) {
+        std::cout << "ab_output_bf16_mismatches=" << ab_output_mismatches
+                  << "/" << static_cast<size_t>(rows) * 2048 << "\n"
+                  << "ab_control_down_median_us="
+                  << percentile(ab_control_down_samples, 0.5) << "\n"
+                  << "ab_candidate_down_median_us="
+                  << percentile(ab_candidate_down_samples, 0.5) << "\n"
+                  << "ab_control_complete_median_us="
+                  << percentile(ab_control_complete_samples, 0.5) << "\n"
+                  << "ab_candidate_complete_median_us="
+                  << percentile(ab_candidate_complete_samples, 0.5) << "\n";
+      }
+      if (ab_gateup_function) {
+        std::cout << "ab_gateup_activation_bf16_mismatches="
+                  << ab_gateup_activation_mismatches << "/"
+                  << static_cast<size_t>(routes) * n << "\n"
+                  << "ab_gateup_output_bf16_mismatches="
+                  << ab_gateup_output_mismatches << "/"
+                  << static_cast<size_t>(rows) * 2048 << "\n"
+                  << "ab_control_gateup_median_us="
+                  << percentile(ab_control_gateup_samples, 0.5) << "\n"
+                  << "ab_candidate_gateup_median_us="
+                  << percentile(ab_candidate_gateup_samples, 0.5) << "\n"
+                  << "ab_control_gateup_complete_median_us="
+                  << percentile(ab_control_gateup_complete_samples, 0.5)
+                  << "\n"
+                  << "ab_candidate_gateup_complete_median_us="
+                  << percentile(ab_candidate_gateup_complete_samples, 0.5)
+                  << "\n";
+      }
     }
     HIP_CHECK(hipEventDestroy(start)); HIP_CHECK(hipEventDestroy(stop));
+    HIP_CHECK(hipGraphExecDestroy(complete_graph_exec));
+    HIP_CHECK(hipGraphDestroy(complete_graph));
     HIP_CHECK(hipModuleUnload(module));
+    if (ab_gateup_module) HIP_CHECK(hipModuleUnload(ab_gateup_module));
     if (quant_module) HIP_CHECK(hipModuleUnload(quant_module));
     if (down_module) HIP_CHECK(hipModuleUnload(down_module));
+    if (ab_down_module) HIP_CHECK(hipModuleUnload(ab_down_module));
     if (reduce_module) HIP_CHECK(hipModuleUnload(reduce_module));
-    return correct && quant_correct && full_correct ? 0 : 1;
+    HIP_CHECK(hipStreamDestroy(benchmark_stream));
+    return correct && quant_correct && full_correct &&
+                   ab_output_mismatches == 0 &&
+                   ab_gateup_activation_mismatches == 0 &&
+                   ab_gateup_output_mismatches == 0
+               ? 0
+               : 1;
   } catch (const std::exception& error) {
     std::cerr << "error: " << error.what() << "\n";
     return 2;

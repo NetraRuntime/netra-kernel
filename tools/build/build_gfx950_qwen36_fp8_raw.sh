@@ -27,6 +27,10 @@ kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/qwen36_moe_silu_mul_quant_fp8_g
 down_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_mfma_gfx950.s
 down_2wave_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.s
 gate_up_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/qwen36_moe_gate_up_fp8_mfma_gfx950.s
+down_2wave_rowmajor_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/qwen36_moe_down_reduce_fp8_mfma_2wave_rowmajor_gfx950.s
+gate_up_rowmajor_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/qwen36_moe_gate_up_fp8_mfma_rowmajor_gfx950.s
+down_2wave_k32_rowmajor_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_down_reduce_fp8_mfma_2wave_k32_slotacc_rowmajor_gfx950.s
+gate_up_k32_rowmajor_kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/qwen36_moe_gate_up_fp8_mfma_k32_rowmajor_gfx950.s
 harness=${repo_dir}/harness/gfx950/fp8/moe/decode/qwen36_moe_silu_mul_quant_fp8_gfx950.hip
 bridge=${repo_dir}/runtime/gfx950/fp8/moe/qwen36_moe_silu_mul_quant_bridge.hip
 bridge_header=${repo_dir}/runtime/gfx950/fp8/moe/qwen36_moe_silu_mul_quant_bridge.h
@@ -34,6 +38,10 @@ stem=qwen36_moe_silu_mul_quant_fp8_gfx950
 down_stem=qwen36_moe_down_reduce_fp8_mfma_gfx950
 down_2wave_stem=qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950
 gate_up_stem=qwen36_moe_gate_up_fp8_mfma_gfx950
+down_2wave_rowmajor_stem=qwen36_moe_down_reduce_fp8_mfma_2wave_rowmajor_gfx950
+gate_up_rowmajor_stem=qwen36_moe_gate_up_fp8_mfma_rowmajor_gfx950
+down_2wave_k32_rowmajor_stem=qwen36_moe_down_reduce_fp8_mfma_2wave_k32_slotacc_rowmajor_gfx950
+gate_up_k32_rowmajor_stem=qwen36_moe_gate_up_fp8_mfma_k32_rowmajor_gfx950
 mkdir -p "${out_dir}"
 
 "${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
@@ -84,6 +92,70 @@ grep -q 'wavefront_size:[[:space:]]*64' \
 grep -q 'amdgcn-amd-amdhsa--gfx950' "${out_dir}/${gate_up_stem}.metadata.txt"
 grep -q 'wavefront_size:[[:space:]]*64' "${out_dir}/${gate_up_stem}.metadata.txt"
 
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
+  -x assembler -c "${down_2wave_rowmajor_kernel}" \
+  -o "${out_dir}/${down_2wave_rowmajor_stem}.o"
+"${linker_bin}" -shared "${out_dir}/${down_2wave_rowmajor_stem}.o" \
+  -o "${out_dir}/${down_2wave_rowmajor_stem}.hsaco"
+"${objdump_bin}" --disassemble --mcpu=gfx950 \
+  "${out_dir}/${down_2wave_rowmajor_stem}.hsaco" \
+  > "${out_dir}/${down_2wave_rowmajor_stem}.disassembly.txt"
+"${readobj_bin}" --notes "${out_dir}/${down_2wave_rowmajor_stem}.hsaco" \
+  > "${out_dir}/${down_2wave_rowmajor_stem}.metadata.txt"
+grep -q 'amdgcn-amd-amdhsa--gfx950' \
+  "${out_dir}/${down_2wave_rowmajor_stem}.metadata.txt"
+grep -q 'wavefront_size:[[:space:]]*64' \
+  "${out_dir}/${down_2wave_rowmajor_stem}.metadata.txt"
+
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
+  -x assembler -c "${gate_up_rowmajor_kernel}" \
+  -o "${out_dir}/${gate_up_rowmajor_stem}.o"
+"${linker_bin}" -shared "${out_dir}/${gate_up_rowmajor_stem}.o" \
+  -o "${out_dir}/${gate_up_rowmajor_stem}.hsaco"
+"${objdump_bin}" --disassemble --mcpu=gfx950 \
+  "${out_dir}/${gate_up_rowmajor_stem}.hsaco" \
+  > "${out_dir}/${gate_up_rowmajor_stem}.disassembly.txt"
+"${readobj_bin}" --notes "${out_dir}/${gate_up_rowmajor_stem}.hsaco" \
+  > "${out_dir}/${gate_up_rowmajor_stem}.metadata.txt"
+grep -q 'amdgcn-amd-amdhsa--gfx950' \
+  "${out_dir}/${gate_up_rowmajor_stem}.metadata.txt"
+grep -q 'wavefront_size:[[:space:]]*64' \
+  "${out_dir}/${gate_up_rowmajor_stem}.metadata.txt"
+
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
+  -x assembler -c "${down_2wave_k32_rowmajor_kernel}" \
+  -o "${out_dir}/${down_2wave_k32_rowmajor_stem}.o"
+"${linker_bin}" -shared "${out_dir}/${down_2wave_k32_rowmajor_stem}.o" \
+  -o "${out_dir}/${down_2wave_k32_rowmajor_stem}.hsaco"
+"${objdump_bin}" --disassemble --mcpu=gfx950 \
+  "${out_dir}/${down_2wave_k32_rowmajor_stem}.hsaco" \
+  > "${out_dir}/${down_2wave_k32_rowmajor_stem}.disassembly.txt"
+"${readobj_bin}" --notes "${out_dir}/${down_2wave_k32_rowmajor_stem}.hsaco" \
+  > "${out_dir}/${down_2wave_k32_rowmajor_stem}.metadata.txt"
+grep -q 'amdgcn-amd-amdhsa--gfx950' \
+  "${out_dir}/${down_2wave_k32_rowmajor_stem}.metadata.txt"
+grep -q 'wavefront_size:[[:space:]]*64' \
+  "${out_dir}/${down_2wave_k32_rowmajor_stem}.metadata.txt"
+grep -q 'v_mfma_f32_16x16x32_fp8_fp8' \
+  "${out_dir}/${down_2wave_k32_rowmajor_stem}.disassembly.txt"
+
+"${clang_bin}" -target amdgcn-amd-amdhsa -mcpu=gfx950 \
+  -x assembler -c "${gate_up_k32_rowmajor_kernel}" \
+  -o "${out_dir}/${gate_up_k32_rowmajor_stem}.o"
+"${linker_bin}" -shared "${out_dir}/${gate_up_k32_rowmajor_stem}.o" \
+  -o "${out_dir}/${gate_up_k32_rowmajor_stem}.hsaco"
+"${objdump_bin}" --disassemble --mcpu=gfx950 \
+  "${out_dir}/${gate_up_k32_rowmajor_stem}.hsaco" \
+  > "${out_dir}/${gate_up_k32_rowmajor_stem}.disassembly.txt"
+"${readobj_bin}" --notes "${out_dir}/${gate_up_k32_rowmajor_stem}.hsaco" \
+  > "${out_dir}/${gate_up_k32_rowmajor_stem}.metadata.txt"
+grep -q 'amdgcn-amd-amdhsa--gfx950' \
+  "${out_dir}/${gate_up_k32_rowmajor_stem}.metadata.txt"
+grep -q 'wavefront_size:[[:space:]]*64' \
+  "${out_dir}/${gate_up_k32_rowmajor_stem}.metadata.txt"
+grep -q 'v_mfma_f32_16x16x32_fp8_fp8' \
+  "${out_dir}/${gate_up_k32_rowmajor_stem}.disassembly.txt"
+
 harness_binary=${out_dir}/${stem}_harness
 bridge_library=${out_dir}/lib${stem}_bridge.so
 if [[ ! -x "$harness_binary" || "$harness" -nt "$harness_binary" ]]; then
@@ -111,6 +183,18 @@ fi
     "${gate_up_stem}.hsaco" \
     "${gate_up_stem}.disassembly.txt" \
     "${gate_up_stem}.metadata.txt" \
+    "${down_2wave_rowmajor_stem}.hsaco" \
+    "${down_2wave_rowmajor_stem}.disassembly.txt" \
+    "${down_2wave_rowmajor_stem}.metadata.txt" \
+    "${gate_up_rowmajor_stem}.hsaco" \
+    "${gate_up_rowmajor_stem}.disassembly.txt" \
+    "${gate_up_rowmajor_stem}.metadata.txt" \
+    "${down_2wave_k32_rowmajor_stem}.hsaco" \
+    "${down_2wave_k32_rowmajor_stem}.disassembly.txt" \
+    "${down_2wave_k32_rowmajor_stem}.metadata.txt" \
+    "${gate_up_k32_rowmajor_stem}.hsaco" \
+    "${gate_up_k32_rowmajor_stem}.disassembly.txt" \
+    "${gate_up_k32_rowmajor_stem}.metadata.txt" \
     "$(basename "$harness_binary")" \
     "$(basename "$bridge_library")" > SHA256SUMS
 )

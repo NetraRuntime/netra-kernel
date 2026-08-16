@@ -52,6 +52,14 @@ def parse_args() -> argparse.Namespace:
         help="screen grouped target-attention GQA8 tiles with native FP8 KV",
     )
     parser.add_argument(
+        "--grouped-gqa8-prefill",
+        action="store_true",
+        help=(
+            "screen the batch-1, prefix-free target prefill design: one "
+            "16-token x 4-query-head workgroup sharing each K/V tile"
+        ),
+    )
+    parser.add_argument(
         "--grouped-gqa8-sizes",
         default="2,4",
         help="comma-separated query-head group sizes dividing the GQA8 group",
@@ -378,6 +386,105 @@ def _grouped_gqa8_fp8kv_fwd_kernel(
     acc = acc * rescale[:, None] + tl.dot(
         probabilities.to(v.dtype), v, out_dtype=tl.float32
     )
+
+    output_offsets = (
+        (q_start + offs_token[:, None]) * stride_obs
+        + q_head[:, None] * stride_oh
+        + offs_d[None, :]
+    )
+    tl.store(output + output_offsets, acc / deno[:, None], mask=mask_m[:, None])
+
+
+@triton.jit
+def _grouped_gqa8_prefill_fwd_kernel(
+    q_extend,
+    k_extend,
+    v_extend,
+    output,
+    qo_indptr,
+    sm_scale,
+    stride_qbs: tl.constexpr,
+    stride_qh: tl.constexpr,
+    stride_kbs: tl.constexpr,
+    stride_kh: tl.constexpr,
+    stride_vbs: tl.constexpr,
+    stride_vh: tl.constexpr,
+    stride_obs: tl.constexpr,
+    stride_oh: tl.constexpr,
+    HEAD_DIM: tl.constexpr,
+    KV_GROUP_NUM: tl.constexpr,
+):
+    """Prefix-free causal GQA8 prefill grouped by shared K/V head.
+
+    Each workgroup evaluates 16 query tokens for four query heads.  The mapping
+    intentionally matches the proposed gfx950 assembly kernel: 64 logical rows,
+    an N=64 online-softmax loop, and two query-head groups per KV head.
+    """
+
+    query_tile = tl.program_id(0)
+    cur_kv_head = tl.program_id(1)
+    cur_q_head_group = tl.program_id(2)
+    q_start = tl.load(qo_indptr)
+    q_len = tl.load(qo_indptr + 1) - q_start
+    token_base = query_tile * 16
+
+    offs_flat_m = tl.arange(0, 64)
+    offs_token_in_tile = offs_flat_m & 15
+    offs_group_head = offs_flat_m >> 4
+    offs_token = token_base + offs_token_in_tile
+    offs_d = tl.arange(0, HEAD_DIM)
+    offs_n = tl.arange(0, 64)
+    mask_m = offs_token < q_len
+    q_head = (
+        cur_kv_head * KV_GROUP_NUM
+        + cur_q_head_group * 4
+        + offs_group_head
+    )
+
+    q_offsets = (
+        (q_start + offs_token[:, None]) * stride_qbs
+        + q_head[:, None] * stride_qh
+        + offs_d[None, :]
+    )
+    q = tl.load(q_extend + q_offsets, mask=mask_m[:, None], other=0.0)
+
+    acc = tl.zeros([64, HEAD_DIM], tl.float32)
+    deno = tl.zeros([64], tl.float32)
+    e_max = tl.full([64], float("-inf"), tl.float32)
+    tile_end = tl.minimum(q_len, token_base + 16)
+
+    for start_n in range(0, tile_end, 64):
+        start_n = tl.multiple_of(start_n, 64)
+        key_token = start_n + offs_n
+        mask_n = key_token < q_len
+        final_mask = mask_m[:, None] & mask_n[None, :]
+        final_mask &= offs_token[:, None] >= key_token[None, :]
+
+        k_offsets = (
+            (q_start + key_token[None, :]) * stride_kbs
+            + cur_kv_head * stride_kh
+            + offs_d[:, None]
+        )
+        k = tl.load(k_extend + k_offsets, mask=mask_n[None, :], other=0.0)
+        qk = tl.dot(q.to(k.dtype), k, out_dtype=tl.float32) * sm_scale
+        qk = tl.where(final_mask, qk, float("-inf"))
+        row_max = tl.max(qk, axis=1)
+        row_max = tl.where(row_max == float("-inf"), -1.0e20, row_max)
+        next_max = tl.maximum(row_max, e_max)
+        rescale = tl.exp(e_max - next_max)
+        probabilities = tl.exp(qk - next_max[:, None])
+        deno = deno * rescale + tl.sum(probabilities, axis=1)
+
+        v_offsets = (
+            (q_start + key_token[:, None]) * stride_vbs
+            + cur_kv_head * stride_vh
+            + offs_d[None, :]
+        )
+        v = tl.load(v_extend + v_offsets, mask=mask_n[:, None], other=0.0)
+        acc = acc * rescale[:, None] + tl.dot(
+            probabilities.to(v.dtype), v, out_dtype=tl.float32
+        )
+        e_max = next_max
 
     output_offsets = (
         (q_start + offs_token[:, None]) * stride_obs
@@ -879,6 +986,64 @@ def main() -> None:
             }
             results.append(item)
             print(json.dumps(item, sort_keys=True), flush=True)
+
+    if args.grouped_gqa8_prefill:
+        if kv_group_num != 8 or head_dim != 256:
+            raise ValueError(
+                "--grouped-gqa8-prefill requires target GQA8, head_dim=256"
+            )
+        if batch_size != 1:
+            raise ValueError("--grouped-gqa8-prefill currently requires batch size 1")
+        if bool(torch.any(kv_indptr != 0).item()):
+            raise ValueError(
+                "--grouped-gqa8-prefill is intentionally prefix-free"
+            )
+        grouped_prefill_grid = (
+            triton.cdiv(max_len_extend, 16),
+            k_buffer.shape[1],
+            2,
+        )
+
+        def launch_grouped_gqa8_prefill() -> None:
+            _grouped_gqa8_prefill_fwd_kernel[grouped_prefill_grid](
+                q,
+                k_extend,
+                v_extend,
+                output,
+                qo_indptr,
+                sm_scale,
+                stride_qbs=q.stride(0),
+                stride_qh=q.stride(1),
+                stride_kbs=k_extend.stride(0),
+                stride_kh=k_extend.stride(1),
+                stride_vbs=v_extend.stride(0),
+                stride_vh=v_extend.stride(1),
+                stride_obs=output.stride(0),
+                stride_oh=output.stride(1),
+                HEAD_DIM=head_dim,
+                KV_GROUP_NUM=kv_group_num,
+                num_warps=8,
+                num_stages=1,
+                waves_per_eu=1,
+                matrix_instr_nonkdim=16,
+                kpack=2,
+            )
+
+        correctness, timing = evaluate_launch(
+            launch_grouped_gqa8_prefill,
+            output,
+            expected_device,
+            args.warmup,
+            args.repeats,
+        )
+        item = {
+            "variant": "grouped_gqa8_prefill_t16_h4_n64_w8",
+            "grid": list(grouped_prefill_grid),
+            "correctness": correctness,
+            "timing": timing,
+        }
+        results.append(item)
+        print(json.dumps(item, sort_keys=True), flush=True)
 
     if args.grouped_gqa8_raw_hsaco is not None:
         if kv_group_num != 8 or head_dim != 256:

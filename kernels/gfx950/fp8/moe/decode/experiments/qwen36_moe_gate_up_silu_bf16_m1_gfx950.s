@@ -1,0 +1,258 @@
+// SPDX-License-Identifier: MIT
+//
+// Experimental native-CDNA4 Qwen3.6 M=1 routed gate/up projection fused with
+// SiLU(gate)*up and BF16 rounding. Two wave64s compute corresponding 16-column
+// gate/up tiles, exchange their FP32 results through LDS, and write a compact
+// BF16 [9,512] intermediate for the following exact group-quant kernel.
+
+	.amdgcn_target "amdgcn-amd-amdhsa--gfx950"
+	.amdhsa_code_object_version 6
+	.ifndef NETRA_PIPELINE_NOP
+		.set NETRA_PIPELINE_NOP, 0
+	.endif
+	.ifndef NETRA_LAST_NOP
+		.set NETRA_LAST_NOP, 11
+	.endif
+	.ifndef NETRA_SILU_SFU_NOP
+		.set NETRA_SILU_SFU_NOP, 0
+	.endif
+	.ifndef NETRA_SILU_MUL_NOP
+		.set NETRA_SILU_MUL_NOP, 0
+	.endif
+	.text
+	.protected qwen36_moe_gate_up_silu_bf16_m1_gfx950
+	.globl qwen36_moe_gate_up_silu_bf16_m1_gfx950
+	.p2align 8
+	.type qwen36_moe_gate_up_silu_bf16_m1_gfx950,@function
+qwen36_moe_gate_up_silu_bf16_m1_gfx950:
+	// hidden FP8, hidden scale FP32, w13 FP8, w13 scale FP32,
+	// topk IDs int32, compact BF16 workspace.
+	s_load_dwordx2 s[4:5], s[0:1], 0
+	s_load_dwordx2 s[6:7], s[0:1], 8
+	s_load_dwordx2 s[8:9], s[0:1], 16
+	s_load_dwordx2 s[10:11], s[0:1], 24
+	s_load_dwordx2 s[12:13], s[0:1], 32
+	s_load_dwordx2 s[14:15], s[0:1], 40
+	s_waitcnt lgkmcnt(0)
+
+	// Token-local hidden/scales. Each token owns 2048 FP8 bytes and 16 f32
+	// activation scales.
+	s_lshl_b32 s36, s3, 11
+	s_add_u32 s4, s4, s36
+	s_addc_u32 s5, s5, 0
+	s_lshl_b32 s36, s3, 6
+	s_add_u32 s6, s6, s36
+	s_addc_u32 s7, s7, 0
+
+	// slot = workgroup/32 and logical tile = workgroup%32. Wave 0 selects
+	// the gate tile; wave 1 selects the corresponding up tile at +32.
+	// route = token*9 + slot indexes routing and the compact output row.
+	s_and_b32 s19, s2, 31
+	v_lshrrev_b32_e32 v31, 6, v0
+	v_and_b32_e32 v30, 63, v0
+	v_readfirstlane_b32 s38, v31
+	s_lshl_b32 s18, s38, 5
+	s_add_u32 s18, s19, s18
+	s_mul_i32 s35, s3, 9
+	s_lshr_b32 s36, s2, 5
+	s_add_u32 s35, s35, s36
+	s_lshl_b32 s20, s35, 2
+	s_load_dword s21, s[12:13], s20
+	v_and_b32_e32 v1, 15, v0
+	v_and_b32_e32 v2, 48, v0
+	// AITER physically shuffles each logical [N,K] expert weight as
+	// [N/16,K/32,K-half,N-lane,K16].  Preserve logical N in v3 for the
+	// output while v4 addresses the shuffled N16 tile, lane, and the
+	// wave's 16-wide K fragment:
+	//   physical_tile*32768 + (lane%16)*16 + (lane/16)*256.
+	s_lshl_b32 s22, s19, 4
+	v_add_u32_e32 v3, s22, v1
+	s_lshl_b32 s22, s18, 15
+	v_lshlrev_b32_e32 v4, 4, v1
+	v_lshlrev_b32_e32 v5, 4, v2
+	v_add_u32_e32 v4, v4, v5
+	v_add_u32_e32 v4, s22, v4
+	v_mov_b32_e32 v6, 0
+	s_waitcnt lgkmcnt(0)
+
+	// Expert weight and scale bases.
+	s_lshl_b32 s23, s21, 21
+	s_add_u32 s24, s8, s23
+	s_addc_u32 s25, s9, 0
+	s_lshl_b32 s23, s21, 9
+	s_lshr_b32 s34, s18, 3
+	s_lshl_b32 s34, s34, 6
+	s_add_u32 s23, s23, s34
+	s_add_u32 s26, s10, s23
+	s_addc_u32 s27, s11, 0
+
+	// Prime K block zero. s32:s33 retain the scales for the MFMA whose
+	// result is live; s16:s17 receive the following block's scales.
+	s_mov_b32 s29, 0
+	s_mov_b32 s30, 0
+	s_mov_b32 s31, 0
+	s_load_dword s32, s[6:7], s31
+	s_load_dword s33, s[26:27], s31
+	v_add_u32_e32 v5, s30, v2
+	global_load_dwordx4 v[10:13], v5, s[4:5]
+	global_load_dwordx4 v[14:17], v5, s[4:5] offset:64
+	v_add_u32_e32 v7, s30, v4
+	global_load_dwordx4 v[18:21], v7, s[24:25]
+	global_load_dwordx4 v[22:25], v7, s[24:25] offset:1024
+	s_waitcnt vmcnt(0) & lgkmcnt(0)
+
+.Lkblock:
+	v_mov_b32_e32 v26, 0
+	v_mov_b32_e32 v27, 0
+	v_mov_b32_e32 v28, 0
+	v_mov_b32_e32 v29, 0
+	v_mfma_f32_16x16x128_f8f6f4 v[26:29], v[10:17], v[18:25], 0
+
+	s_add_u32 s29, s29, 1
+	s_cmp_lt_u32 s29, 16
+	s_cbranch_scc0 .Llast_block
+
+	// Submit the next activation, shuffled-weight, and scale transactions
+	// while the current MFMA result is unavailable. The wait protects the
+	// new operands; NETRA_PIPELINE_NOP is swept independently for gfx950.
+	s_lshl_b32 s30, s29, 7
+	s_lshl_b32 s34, s29, 11
+	s_lshl_b32 s31, s29, 2
+	s_load_dword s16, s[6:7], s31
+	s_load_dword s17, s[26:27], s31
+	v_add_u32_e32 v5, s30, v2
+	global_load_dwordx4 v[10:13], v5, s[4:5]
+	global_load_dwordx4 v[14:17], v5, s[4:5] offset:64
+	v_add_u32_e32 v7, s34, v4
+	global_load_dwordx4 v[18:21], v7, s[24:25]
+	global_load_dwordx4 v[22:25], v7, s[24:25] offset:1024
+	s_nop NETRA_PIPELINE_NOP
+
+	// Consume the previous MFMA result in the production arithmetic order
+	// while the newly submitted HBM transactions are still outstanding.
+	v_mul_f32_e32 v7, s32, v26
+	v_mul_f32_e32 v7, s33, v7
+	v_add_f32_e32 v6, v6, v7
+	s_waitcnt vmcnt(0) & lgkmcnt(0)
+	// Rotate the now-ready scalar scales into the live pair.
+	s_mov_b32 s32, s16
+	s_mov_b32 s33, s17
+	s_branch .Lkblock
+
+.Llast_block:
+	s_nop NETRA_LAST_NOP
+	v_mul_f32_e32 v7, s32, v26
+	v_mul_f32_e32 v7, s33, v7
+	v_add_f32_e32 v6, v6, v7
+
+	// Each wave publishes its first 16 MFMA row-zero results. Wave 0 owns
+	// gate values at LDS 0..63; wave 1 owns up values at LDS 64..127.
+	v_lshlrev_b32_e32 v8, 2, v30
+	v_lshlrev_b32_e32 v9, 6, v31
+	v_add_u32_e32 v8, v9, v8
+	v_cmp_gt_u32_e32 vcc, 16, v30
+	s_and_saveexec_b64 s[36:37], vcc
+	ds_write_b32 v8, v6
+	s_or_b64 exec, exec, s[36:37]
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+
+	// Wave 0 consumes corresponding gate/up values and exactly reproduces
+	// the deployed raw epilogue's SiLU and BF16 rounding sequence.
+	s_cmp_eq_u32 s38, 0
+	s_cbranch_scc0 .Lend
+	v_cmp_gt_u32_e32 vcc, 16, v30
+	s_and_saveexec_b64 s[36:37], vcc
+	v_lshlrev_b32_e32 v8, 2, v30
+	ds_read_b32 v9, v8
+	ds_read_b32 v10, v8 offset:64
+	s_waitcnt lgkmcnt(0)
+	s_mov_b32 s32, 0xbfb8aa3b	// -log2(e)
+	v_mul_f32_e32 v11, s32, v9
+	s_nop NETRA_SILU_SFU_NOP
+	v_exp_f32_e32 v11, v11
+	s_nop NETRA_SILU_SFU_NOP
+	v_add_f32_e32 v11, 1.0, v11
+	s_nop NETRA_SILU_SFU_NOP
+	v_rcp_f32_e32 v11, v11
+	s_nop NETRA_SILU_SFU_NOP
+	v_mul_f32_e32 v9, v11, v9
+	s_nop NETRA_SILU_MUL_NOP
+	v_mul_f32_e32 v9, v9, v10
+	s_nop NETRA_SILU_MUL_NOP
+	v_cvt_pk_bf16_f32 v11, v9, v9
+
+	// Compact BF16 workspace index: route*512 + tile*16 + lane.
+	s_lshl_b32 s34, s35, 10
+	s_lshl_b32 s33, s19, 5
+	s_add_u32 s34, s34, s33
+	v_lshlrev_b32_e32 v8, 1, v30
+	v_add_u32_e32 v8, s34, v8
+	global_store_short v8, v11, s[14:15]
+	s_or_b64 exec, exec, s[36:37]
+.Lend:
+	s_endpgm
+
+	.section .rodata,"a",@progbits
+	.p2align 6, 0
+	.amdhsa_kernel qwen36_moe_gate_up_silu_bf16_m1_gfx950
+		.amdhsa_group_segment_fixed_size 128
+		.amdhsa_private_segment_fixed_size 0
+		.amdhsa_kernarg_size 48
+		.amdhsa_user_sgpr_count 2
+		.amdhsa_user_sgpr_kernarg_segment_ptr 1
+		.amdhsa_enable_private_segment 0
+		.amdhsa_system_sgpr_workgroup_id_x 1
+		.amdhsa_system_sgpr_workgroup_id_y 1
+		.amdhsa_system_sgpr_workgroup_id_z 0
+		.amdhsa_system_vgpr_workitem_id 0
+		.amdhsa_next_free_vgpr 32
+		.amdhsa_accum_offset 32
+		.amdhsa_next_free_sgpr 39
+		.amdhsa_reserve_vcc 1
+		.amdhsa_float_denorm_mode_32 3
+		.amdhsa_float_denorm_mode_16_64 3
+		.amdhsa_dx10_clamp 1
+		.amdhsa_ieee_mode 1
+		.amdhsa_tg_split 0
+	.end_amdhsa_kernel
+	.text
+.Lfunc_end0:
+	.size qwen36_moe_gate_up_silu_bf16_m1_gfx950, .Lfunc_end0-qwen36_moe_gate_up_silu_bf16_m1_gfx950
+
+	.amdgpu_metadata
+---
+amdhsa.kernels:
+  - .args:
+      - { .name: hidden_fp8, .offset: 0, .size: 8, .value_kind: global_buffer,
+          .address_space: global, .actual_access: read_only }
+      - { .name: hidden_scale_f32, .offset: 8, .size: 8, .value_kind: global_buffer,
+          .address_space: global, .actual_access: read_only }
+      - { .name: w13_fp8, .offset: 16, .size: 8, .value_kind: global_buffer,
+          .address_space: global, .actual_access: read_only }
+      - { .name: w13_scale_f32, .offset: 24, .size: 8, .value_kind: global_buffer,
+          .address_space: global, .actual_access: read_only }
+      - { .name: topk_ids_i32, .offset: 32, .size: 8, .value_kind: global_buffer,
+          .address_space: global, .actual_access: read_only }
+      - { .name: workspace_bf16, .offset: 40, .size: 8, .value_kind: global_buffer,
+          .address_space: global, .actual_access: write_only }
+    .group_segment_fixed_size: 128
+    .kernarg_segment_align: 8
+    .kernarg_segment_size: 48
+    .language: OpenCL C
+    .language_version: [2, 0]
+    .max_flat_workgroup_size: 128
+    .name: qwen36_moe_gate_up_silu_bf16_m1_gfx950
+    .private_segment_fixed_size: 0
+    .sgpr_count: 40
+    .sgpr_spill_count: 0
+    .symbol: qwen36_moe_gate_up_silu_bf16_m1_gfx950.kd
+    .uniform_work_group_size: 1
+    .uses_dynamic_stack: false
+    .vgpr_count: 32
+    .vgpr_spill_count: 0
+    .wavefront_size: 64
+amdhsa.target: amdgcn-amd-amdhsa--gfx950
+amdhsa.version: [1, 2]
+...
+	.end_amdgpu_metadata

@@ -5,8 +5,9 @@ repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
 out_dir=${2:-"${repo_dir}/build/gfx950-qwen36-moe-gate-up-mfma"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
 stem=qwen36_moe_gate_up_fp8_mfma_gfx950
-kernel=${repo_dir}/kernels/gfx950/fp8/moe/decode/experiments/${stem}.s
+kernel=${KERNEL_SOURCE:-${repo_dir}/kernels/gfx950/fp8/moe/decode/${stem}.s}
 harness=${repo_dir}/harness/gfx950/fp8/moe/decode/${stem}.hip
+test -f "${kernel}"
 mkdir -p "${out_dir}"
 rocminfo_output=$(rocminfo 2>/dev/null)
 grep -q 'Name:[[:space:]]*gfx950' <<<"${rocminfo_output}"

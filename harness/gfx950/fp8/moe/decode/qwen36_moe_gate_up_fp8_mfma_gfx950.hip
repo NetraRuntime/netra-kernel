@@ -49,15 +49,17 @@ struct DeviceBuffer {
 
 int main(int argc, char** argv) {
   try {
-    if (argc < 3 || argc > 5) {
+    if (argc < 3 || argc > 6) {
       std::cerr << "usage: " << argv[0]
-                << " KERNEL.hsaco CAPTURE_DIR [iterations] [rows]\n";
+                << " KERNEL.hsaco CAPTURE_DIR [iterations] [rows] [symbol]\n";
       return 2;
     }
     const std::string hsaco = argv[1];
     const std::string capture = argv[2];
     const int iterations = argc >= 4 ? std::stoi(argv[3]) : 100;
-    const int rows = argc == 5 ? std::stoi(argv[4]) : 1;
+    const int rows = argc >= 5 ? std::stoi(argv[4]) : 1;
+    const std::string symbol =
+        argc >= 6 ? argv[5] : "qwen36_moe_gate_up_fp8_mfma_gfx950";
     if (iterations <= 0 || rows <= 0)
       throw std::runtime_error("iterations and rows must be positive");
 
@@ -109,8 +111,7 @@ int main(int argc, char** argv) {
     hipModule_t module{};
     hipFunction_t function{};
     HIP_CHECK(hipModuleLoad(&module, hsaco.c_str()));
-    HIP_CHECK(hipModuleGetFunction(
-        &function, module, "qwen36_moe_gate_up_fp8_mfma_gfx950"));
+    HIP_CHECK(hipModuleGetFunction(&function, module, symbol.c_str()));
     void* output_pointer = d_output.pointer;
     void* kernel_args[] = {
         &d_hidden.pointer,       &d_hidden_scale.pointer,
