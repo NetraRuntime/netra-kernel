@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "date": "2026-08-17",
+  "status": "validated_and_promoted",
+  "contract_commit": "acbc30127245f9d8716fdf312136f496f52b4bf1",
+  "server_profile_commit": "c131cc0a1044ddf3a30b2e5096d56000e629993d",
+  "bridge_sha256": "3e2848632304fa906381525448e26cce960a7d6d539d84ac22cd0129d0d500b2",
+  "device_code_byte_identical_to_capacity_fix": true,
+  "single_gpu_mean_output_tok_s": 10004.950748929123,
+  "routed_dp8_mean_output_tok_s": 78748.14957276912,
+  "routed_dp8_min_output_tok_s": 76374.31675742145,
+  "routed_dp8_max_output_tok_s": 81331.51233385253,
+  "routed_dp8_repetitions": 5,
+  "all_exactness_checks_passed": true,
+  "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260817T042500Z-generic-deterministic-promote-dp8"
+}
