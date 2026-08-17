@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "${script_dir}/lib/gfx950_assembly.sh"
 repo_dir=${1:-$(cd "${script_dir}/../.." && pwd)}
-out_dir=${2:-"${repo_dir}/build/gfx950-gdn-replay-b64-t12-h16-hv32-k128-v128"}
+out_dir=${2:-"${repo_dir}/build/gfx950-gdn-replay-b128-t12-h16-hv32-k128-v128-bf16-f32state-strided-qnone-abi1"}
 rocm_dir=${ROCM_DIR:-/opt/rocm}
 kernel_dir=${repo_dir}/kernels/gfx950/linear_attention/verify
 precompute_stem=qwen36_gdn_verify_m12_batched_precompute_gfx950
@@ -54,8 +54,10 @@ for waves in 1 4 8; do
 done
 
 bridge_library=${out_dir}/libqwen36_gdn_state_replay_m12_bridge.so
-"${rocm_dir}/bin/hipcc" --offload-arch=gfx950 -O3 -std=c++17 -fPIC \
-  -shared "$bridge" -o "$bridge_library"
+"${rocm_dir}/llvm/bin/clang++" -x c++ -D__HIP_PLATFORM_AMD__=1 \
+  -O3 -std=c++17 -fPIC -shared -I"${rocm_dir}/include" \
+  "$bridge" -L"${rocm_dir}/lib" -lamdhip64 -Wl,--build-id=sha1 \
+  -o "$bridge_library"
 
 hash_inputs=(
   "$precompute"
@@ -80,6 +82,12 @@ sha256sum "${hash_inputs[@]}" > "${out_dir}/sha256sums.txt"
   printf 'state_replay=1\nk0_no_intermediate=1\n'
   printf 'waves_per_workgroup=1 4 8\nshare_k=1\n'
   printf 'dual_destination_state_replay=1\n'
+  printf 'max_batch=128\ndraft_tokens=12\nqk_heads=16\nvalue_heads=32\n'
+  printf 'qk_head_dim=128\nvalue_head_dim=128\n'
+  printf 'input_dtype=bf16\nstate_dtype=f32\ninput_layout=strided\n'
+  printf 'quantization=none\nruntime_abi=1\n'
+  printf 'capacity_clamp_encoding=signed-after-nonnegative-clamp\n'
+  printf 'bridge_link=host-only-deterministic\n'
 } > "${out_dir}/build-variant.txt"
 
 echo "gfx950 Qwen GDN M12 state-replay build complete: ${out_dir}"

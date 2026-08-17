@@ -10,5 +10,5 @@ NETRA_PROFILE_COMPONENTS=(
   router-bf16-k2048-n256
   attention-verify-gqa8-d256-fp8kv-m16
   gdn-verify-b64-t12-h16-hv32-k128-v128-k0
-  gdn-replay-b64-t12-h16-hv32-k128-v128
+  gdn-replay-b128-t12-h16-hv32-k128-v128-bf16-f32state-strided-qnone-abi1
 )

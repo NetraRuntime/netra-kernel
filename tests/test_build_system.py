@@ -13,7 +13,8 @@ GDN_VERIFY_COMPONENT = (
     COMPONENT_REGISTRY / "gdn-verify-b64-t12-h16-hv32-k128-v128-k0.sh"
 )
 GDN_REPLAY_COMPONENT = (
-    COMPONENT_REGISTRY / "gdn-replay-b64-t12-h16-hv32-k128-v128.sh"
+    COMPONENT_REGISTRY
+    / "gdn-replay-b128-t12-h16-hv32-k128-v128-bf16-f32state-strided-qnone-abi1.sh"
 )
 GDN_REPLAY_KERNEL = (
     REPO_ROOT
@@ -47,7 +48,7 @@ def test_production_bundle_has_one_ordered_component_list() -> None:
         "router-bf16-k2048-n256",
         "attention-verify-gqa8-d256-fp8kv-m16",
         "gdn-verify-b64-t12-h16-hv32-k128-v128-k0",
-        "gdn-replay-b64-t12-h16-hv32-k128-v128",
+        "gdn-replay-b128-t12-h16-hv32-k128-v128-bf16-f32state-strided-qnone-abi1",
     ]
 
 
@@ -64,15 +65,31 @@ def test_production_gdn_contract_pins_promoted_settings() -> None:
     assert all(setting in source for setting in required)
 
 
-def test_production_gdn_replay_contract_pins_unsigned_capacity_clamps() -> None:
+def test_production_gdn_replay_contract_pins_promoted_capacity_clamps() -> None:
     component = GDN_REPLAY_COMPONENT.read_text()
-    assert "gdn-replay-b64-t12-h16-hv32-k128-v128" in component
+    required_contract_fields = [
+        "gdn-replay-b128",
+        "t12-h16-hv32-k128-v128",
+        "bf16-f32state",
+        "strided",
+        "qnone",
+        "abi1",
+    ]
+    assert all(field in component for field in required_contract_fields)
+
+    builder = (
+        BUILD_DIR
+        / "build_gfx950_gdn_replay_b128_t12_h16_hv32_k128_v128_bf16_f32state_strided_qnone_abi1.sh"
+    ).read_text()
+    assert 'llvm/bin/clang++" -x c++' in builder
+    assert "-Wl,--build-id=sha1" in builder
 
     kernel = GDN_REPLAY_KERNEL.read_text()
+    assert "NETRA_GDN_STATE_REPLAY == 1" in kernel
     assert kernel.count("s_min_u32 s24, s24, s31") == 1
     assert kernel.count("s_min_u32 s26, s26, s31") == 1
-    assert "s_min_i32 s24, s24, s31" not in kernel
-    assert "s_min_i32 s26, s26, s31" not in kernel
+    assert kernel.count("s_min_i32 s24, s24, s31") == 1
+    assert kernel.count("s_min_i32 s26, s26, s31") == 1
 
 
 def test_gdn_variant_ids_are_centralized_and_contract_checked() -> None:
@@ -151,7 +168,7 @@ def test_gfx950_build_boilerplate_uses_shared_implementations() -> None:
         "build_gfx950_moe_decode_fp8_e4m3_h2048_i512_top9_block128_aiter.sh",
         "build_gfx950_router_bf16_k2048_n256.sh",
         "build_gfx950_gdn_verify_b64_t12_h16_hv32_k128_v128_k0.sh",
-        "build_gfx950_gdn_replay_b64_t12_h16_hv32_k128_v128.sh",
+        "build_gfx950_gdn_replay_b128_t12_h16_hv32_k128_v128_bf16_f32state_strided_qnone_abi1.sh",
         "build_gfx950_qwen36_gdn_verify_m16.sh",
         "build_gfx950_qwen36_full_attention_verify_m16.sh",
     ]

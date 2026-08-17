@@ -15,7 +15,7 @@ The current `gfx950` contracts are:
 | `router-bf16-k2048-n256` | BF16 row-wise router projection, K=2048 and N=256 |
 | `attention-verify-gqa8-d256-fp8kv-m16` | verification M<=16, GQA8, D=256, native E4M3 paged prefix KV |
 | `gdn-verify-b64-t12-h16-hv32-k128-v128-k0` | B<=64, T=12, H=16, HV=32, K=V=128, lossless K0 replay contract |
-| `gdn-replay-b64-t12-h16-hv32-k128-v128` | accepted-tail state replay for the matching GDN contract |
+| `gdn-replay-b128-t12-h16-hv32-k128-v128-bf16-f32state-strided-qnone-abi1` | B<=128 accepted-tail replay; BF16 token inputs, FP32 recurrent state, strided input, no quantization, runtime ABI v1 |
 
 List contracts through the generic runner:
 
