@@ -1,0 +1,47 @@
+name: Kernel or tactic proposal
+description: Propose one bounded fixed-contract kernel or schedule.
+title: "kernel: "
+labels: [kernel-proposal]
+body:
+  - type: input
+    id: target
+    attributes:
+      label: Target and wave size
+      placeholder: gfx950 / wave64
+    validations:
+      required: true
+  - type: textarea
+    id: identity
+    attributes:
+      label: Computational contract
+      description: Operation, exact shapes/profiles, dtypes, quantization, scale blocks, layouts, and epilogue.
+    validations:
+      required: true
+  - type: textarea
+    id: numerical
+    attributes:
+      label: Numerical contract
+      description: Accumulation, reduction order, rounding points, NaN/tie behavior, and determinism.
+    validations:
+      required: true
+  - type: textarea
+    id: launch
+    attributes:
+      label: Proposed schedule and launch
+      description: Tiles, waves, workgroup, grid, LDS, kernarg ABI, and workspace.
+    validations:
+      required: true
+  - type: textarea
+    id: reuse
+    attributes:
+      label: Reuse and specialization
+      description: Existing lower-level templates to reuse and fields resolved by the compiler.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Validation plan and fallback
+      description: Oracle, graph/determinism gates, serving A/B, and exact fallback.
+    validations:
+      required: true

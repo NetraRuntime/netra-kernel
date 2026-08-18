@@ -6,8 +6,27 @@ build-backend = "setuptools.build_meta"
 name = "netra-compiler"
 version = "0.2.0"
 description = "Deterministic ahead-of-time compiler for specialized Netra engines"
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+license = "MIT"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: GPU",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/NetraRuntime/netra-kernel"
+Documentation = "https://github.com/NetraRuntime/netra-kernel/tree/main/docs"
+Issues = "https://github.com/NetraRuntime/netra-kernel/issues"
+Repository = "https://github.com/NetraRuntime/netra-kernel.git"
 
 [project.scripts]
 netra-compile = "netra_compiler.cli:main"
@@ -15,3 +34,6 @@ netra-compile = "netra_compiler.cli:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["netra_compiler*"]
+
+[tool.setuptools.package-data]
+netra_compiler = ["py.typed"]

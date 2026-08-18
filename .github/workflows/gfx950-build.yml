@@ -1,0 +1,41 @@
+name: gfx950 protected build
+
+on:
+  workflow_dispatch:
+    inputs:
+      rocm_dir:
+        description: ROCm installation root
+        required: true
+        default: /opt/rocm
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gfx950-protected-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Configure this environment with required reviewers. This workflow never
+    # runs for pull_request, so untrusted fork code is not sent to the runner.
+    environment: gfx950-validation
+    runs-on: [self-hosted, linux, x64, gfx950]
+    timeout-minutes: 30
+    steps:
+      - name: Check out reviewed source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: CPU/static gate
+        run: make check
+      - name: Build locked tactic catalog
+        env:
+          ROCM_DIR: ${{ inputs.rocm_dir }}
+        run: bash tools/compiler/build_gfx950_tactic_catalog.sh build/gfx950-tactic-catalog
+      - name: Build engine runtime
+        env:
+          ROCM_DIR: ${{ inputs.rocm_dir }}
+        run: bash tools/compiler/build_netra_engine_runtime_gfx950.sh build/gfx950-engine-runtime

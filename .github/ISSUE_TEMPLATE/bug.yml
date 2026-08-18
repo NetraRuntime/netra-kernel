@@ -1,0 +1,56 @@
+name: Bug report
+description: Report a reproducible compiler, runtime, build, or correctness defect.
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include credentials, private checkpoints, or proprietary captures.
+  - type: input
+    id: revision
+    attributes:
+      label: Revision
+      description: Full Git commit hash.
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Target and ROCm
+      description: For example, gfx950/wave64 and ROCm version; write CPU-only if applicable.
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: Contract or profile
+      description: Shape, dtype, quantization, layout, tactic, and profile guards.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Minimal commands and sanitized inputs needed to reproduce.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs or evidence
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and retained negative-result documentation.
+          required: true
+        - label: This report contains no credentials or private model data.
+          required: true

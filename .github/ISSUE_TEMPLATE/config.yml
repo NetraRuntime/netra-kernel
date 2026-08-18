@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/NetraRuntime/netra-kernel/security/advisories/new
+    about: Report security-sensitive issues privately.
+  - name: Support policy
+    url: https://github.com/NetraRuntime/netra-kernel/blob/main/SUPPORT.md
+    about: Read the information required for support requests.

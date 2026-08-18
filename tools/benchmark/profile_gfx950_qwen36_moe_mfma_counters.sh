@@ -22,8 +22,8 @@ gate_build=${repo_dir}/build/gfx950-qwen36-moe-gate-up-mfma
 gate_stem=qwen36_moe_gate_up_fp8_mfma_gfx950
 gate_capture=${GATE_CAPTURE:-"${campaign_root}/kernel_experiments/qwen36_moe_stage1_fp8_gfx950_20260730T020100Z/capture"}
 down_build=${DOWN_BUILD:-${repo_dir}/build/gfx950-qwen36-moe-down-reduce-mfma}
-down_stem=${DOWN_STEM:-qwen36_moe_down_reduce_fp8_mfma_gfx950}
-down_block_x=${DOWN_BLOCK_X:-64}
+down_stem=${DOWN_STEM:-qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950}
+down_block_x=${DOWN_BLOCK_X:-128}
 down_capture=${DOWN_CAPTURE:-"${campaign_root}/kernel_experiments/qwen36_moe_down_reduce_fp8_gfx950_20260730T010200Z/capture"}
 
 counters=(
