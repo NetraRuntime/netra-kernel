@@ -1,0 +1,534 @@
+{
+  "format": "netra-fixed-tactic-catalog-1",
+  "catalog_version": 1,
+  "target": "gfx950",
+  "wave_size": 64,
+  "default_rank": 100,
+  "default_evidence_set": "gfx950_dp8_accepted_20260817",
+  "evidence_sets": {
+    "gfx950_dp8_accepted_20260817": {
+      "lock_name": "CURRENT_BEST.json",
+      "lock_sha256": "2823d64410ba4a87223ede5429c90677cc76aea628244dd3c4a1c810af76557a",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260817T042500Z-generic-deterministic-promote-dp8"
+    }
+  },
+  "policy": {
+    "templates_are_byte_exact_golden_sources": false,
+    "instances_generated_into_build_only": true,
+    "runtime_specialization": false,
+    "unused_raw_assembly_removed": true,
+    "maturity_change": "none",
+    "golden_source_revisions_pinned": true,
+    "model_names_in_computational_identity": false,
+    "specialization_time": "assembler"
+  },
+  "tactics": [
+    {
+      "id": "moe_silu_quant_decode_m1",
+      "operation": "moe_silu_quant",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/moe/decode/silu_quant.inc",
+      "golden_source": "kernels/gfx950/fp8/moe/decode/qwen36_moe_silu_mul_quant_fp8_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "cf2a1ff972d3166e1e6d9ace46d980dca731095c06f40ccdff8dcc7bafca7627",
+      "symbols": [
+        "qwen36_moe_silu_mul_quant_fp8_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 32,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "moe.routed_silu_quant.ptr3_u32.v1",
+        "dtypes": "f32_to_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128.v1",
+        "layouts": "routed_topk_rows_intermediate.v1",
+        "numerical": "silu_mul_fp32_amax_rne_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.moe_silu_quant",
+      "locked_hsaco_sha256": [
+        "6d87114b3bcc5028d9bad3e219c584be7e34bd79baa9010b76a1466c38fecd91"
+      ],
+      "instantiation_macro": "NETRA_MOE_SILU_QUANT",
+      "template_sha256": "4b1be4cf242f7b3bae198129180aaa988c0d19fa82f21218e52b90b5d16fef7f",
+      "source_closure_sha256": "79e8a0e0cc391b4edf0cfba65a2a2df3db7ce1b389a2fb7c9031f78d7993e9bd",
+      "family": "moe.fp8_block128.silu_quant"
+    },
+    {
+      "id": "moe_gate_up_decode_m1",
+      "operation": "moe_gate_up",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/moe/decode/gate_up_mfma.inc",
+      "golden_source": "kernels/gfx950/fp8/moe/decode/qwen36_moe_gate_up_fp8_mfma_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "90143b61413e865277020b041a1da321e6f0604b293d457f2e8c47ce420a8b71",
+      "symbols": [
+        "qwen36_moe_gate_up_fp8_mfma_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 48,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "moe.routed_gate_up.ptr6.v1",
+        "dtypes": "fp8e4m3_f32scale_weights_to_f32.v1",
+        "quantization": "fp8e4m3_block128x128.v1",
+        "layouts": "aiter_expert_n16k16_gate_up.v1",
+        "numerical": "fp32_accum_kblock_ascending.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.moe_gate_up",
+      "locked_hsaco_sha256": [
+        "f7d083273843b0a751f7e16b95f1e6e1d646272a56f1221104c7a1c748e661b7"
+      ],
+      "instantiation_macro": "NETRA_MOE_GATE_UP_MFMA",
+      "template_sha256": "ed54f7c6af0731937116d002accf25f7a6a9cbbe2b278ca256ddf2c1c7f211fc",
+      "source_closure_sha256": "290b345b664255ee854431ee8dfd8658c10b890b535223dcc7fbbf073939b462",
+      "family": "moe.fp8_block128.gate_up"
+    },
+    {
+      "id": "moe_down_reduce_decode_m1",
+      "operation": "moe_down_reduce",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/moe/decode/down_reduce_mfma_2wave.inc",
+      "golden_source": "kernels/gfx950/fp8/moe/decode/qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "63412fd00b45d663af8e68bb51e84c3adfb6d1dc6c181f2f96effb5e8bf63c6b",
+      "symbols": [
+        "qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 56,
+      "launch_block": 128,
+      "semantics": {
+        "abi": "moe.routed_down_reduce.ptr7.v1",
+        "dtypes": "fp8e4m3_f32scale_weights_to_bf16.v1",
+        "quantization": "fp8e4m3_block128x128.v1",
+        "layouts": "aiter_expert_n16k16_down_topk_reduce.v1",
+        "numerical": "fp32_accum_route_weight_reduce_rne_bf16.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.moe_down_reduce",
+      "locked_hsaco_sha256": [
+        "ae8adf9d49d05d40fc396ea11db6bbde95ebc299a82085a335cab040939ccce7"
+      ],
+      "instantiation_macro": "NETRA_MOE_DOWN_REDUCE_MFMA_2WAVE",
+      "template_sha256": "ad52d169f892f721cce2207be0910c623b822caf362f7a986dee0cdfcffd0fee",
+      "source_closure_sha256": "eacfbfb7ec5023138f81470e09398aaa4214327dfee50e9df8740ba460fabbd3",
+      "family": "moe.fp8_block128.down_reduce"
+    },
+    {
+      "id": "router_bf16_verify_m16",
+      "operation": "router_projection",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/routing/bf16_gemv.inc",
+      "golden_source": "kernels/gfx950/routing/verify/qwen36_router_bf16_gemv_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "bd2ee1d45325d17b9678f77adb070b689ebc4f1cfde62809426d0c6296b81919",
+      "symbols": [
+        "qwen36_router_bf16_gemv_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 24,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "routing.gemv.ptr3.v1",
+        "dtypes": "bf16_bf16_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "row_major_router_projection.v1",
+        "numerical": "fp32_dot_wave64_fixed_rne_bf16.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.router_projection",
+      "locked_hsaco_sha256": [
+        "f69299027223f2f2f0f2cb76dfe102c5773ae0eadc6bbad0b4f92987efa991c6"
+      ],
+      "instantiation_macro": "NETRA_ROUTER_BF16_GEMV",
+      "template_sha256": "78a4d95c36fd861e5c1d29263963102dba002eac53a3219ebd67ab1d51e9ed20",
+      "source_closure_sha256": "551f599ae78c935a6a849cf489dab092921b0c37aba97adee0940b7673f7cce6",
+      "family": "routing.bf16_gemv"
+    },
+    {
+      "id": "attention_gqa4_fp8kv",
+      "operation": "attention_extend",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/attention/verify/gqa4_fp8kv.inc",
+      "golden_source": "kernels/gfx950/attention/verify/qwen36_extend_attention_m16_gqa4_fp8kv_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "f167314a825d63f4fef391f668913220335a22fa970f36c25a9d508c55e0c5ea",
+      "symbols": [
+        "qwen36_extend_attention_m16_gqa4_fp8kv_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 96,
+      "launch_block": 256,
+      "semantics": {
+        "abi": "attention.gqa4_fp8kv.ptr9_u32_ptr2.v1",
+        "dtypes": "bf16_query_fp8e4m3_kv_bf16_tail_to_bf16.v1",
+        "quantization": "native_fp8e4m3_kv_per_tensor.v1",
+        "layouts": "paged_kv_gqa4_head128.v1",
+        "numerical": "causal_online_softmax_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_extend",
+      "locked_hsaco_sha256": [
+        "494a9daafdb059b64bf6e95c857c74fdb365bde788af38b45152fbe61fd4e361"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_GQA4_FP8KV",
+      "template_sha256": "9b63093cc8240dcc2712af5fe8546bdeb8f517f76922fb61603ebb3c15576dcc",
+      "source_closure_sha256": "fbecde87f16f385ee821d3ef39e1c8c22ec8f5098fd3ad706853d1ea739c420e",
+      "family": "attention.gqa_fp8kv"
+    },
+    {
+      "id": "attention_gqa8_fp8kv",
+      "operation": "attention_extend",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/attention/verify/gqa8_fp8kv.inc",
+      "golden_source": "kernels/gfx950/attention/verify/qwen36_extend_attention_m16_gqa8_fp8kv_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "826fe0f8b004c0d5ce0070afc9e55ddedfe901c8e73848a25d61a91b70068170",
+      "symbols": [
+        "qwen36_extend_attention_m16_gqa8_fp8kv_i32_gfx950",
+        "qwen36_extend_attention_m16_gqa8_fp8kv_i64_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_QO_INDPTR_BITS": [
+          32,
+          64
+        ]
+      },
+      "kernarg_size": 96,
+      "launch_block": 512,
+      "semantics": {
+        "abi": "attention.gqa8_fp8kv.ptr9_u32x2_ptr2.v1",
+        "dtypes": "bf16_query_fp8e4m3_kv_bf16_tail_to_bf16.v1",
+        "quantization": "native_fp8e4m3_kv_per_tensor.v1",
+        "layouts": "paged_kv_gqa8_head256.v1",
+        "numerical": "causal_online_softmax_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_extend",
+      "locked_hsaco_sha256": [
+        "cb482ce544c27dd4449320c7fe64d3024a75643bdfa1658cefa2e576f4d7bfe6"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_GQA8_FP8KV",
+      "template_sha256": "c06c3401b0e619602771d10a8c61d7a363a0e19eb1f101afc13795a7384ace80",
+      "source_closure_sha256": "9e22f2846a1c4e5b6c4448c80095fc98a550d6e7ac6f4b4a839f13ad54ddc245",
+      "family": "attention.gqa_fp8kv"
+    },
+    {
+      "id": "attention_splitseq_prepare",
+      "operation": "attention_splitseq_prepare",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/attention/verify/splitseq_prepare.inc",
+      "golden_source": "kernels/gfx950/attention/verify/qwen36_full_attention_verify_prepare_m16_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "92c7e49dc0b1680b2171ae768855fd7c050c0f11b696dc2b00b55e39d6579903",
+      "symbols": [
+        "qwen36_full_attention_verify_prepare_m16_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 48,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "attention.splitseq_prepare.ptr5_u32x2.v1",
+        "dtypes": "index_i64_i32.v1",
+        "quantization": "none.v1",
+        "layouts": "paged_request_token_indices.v1",
+        "numerical": "integer_index_exact.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_splitseq_prepare",
+      "locked_hsaco_sha256": [
+        "1e32570eeeb9d845b9820dbf599a03d4e16a490f6b0ee4c5acbdc95646337d55"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_SPLITSEQ_PREPARE",
+      "template_sha256": "6cb5234af3bb1f152bec23bddc603fc406d973e50f5376f8af4a76d88d634553",
+      "source_closure_sha256": "45e264a2e32abb16da8c6f24faa99c2cfca3221c202170bfb37015ba8d7a285d",
+      "family": "attention.splitseq_fp8kv"
+    },
+    {
+      "id": "attention_splitseq_stage1",
+      "operation": "attention_splitseq_stage1",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/attention/verify/splitseq_stage1.inc",
+      "golden_source": "kernels/gfx950/attention/verify/qwen36_full_attention_verify_m16_stage1_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "9d916c2f18b4b055597105ddcad97f6e448f482b92737894c5760d901b4b94fa",
+      "symbols": [
+        "qwen36_full_attention_verify_m16_stage1_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 128,
+      "launch_block": 256,
+      "semantics": {
+        "abi": "attention.splitseq_stage1.ptr3_u32_ptr5_u32x9_ptr2.v1",
+        "dtypes": "bf16_query_fp8e4m3_kv_to_fp32_partials.v1",
+        "quantization": "native_fp8e4m3_kv_per_tensor.v1",
+        "layouts": "splitseq_gqa8_head256_partials.v1",
+        "numerical": "split_online_softmax_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_splitseq_stage1",
+      "locked_hsaco_sha256": [
+        "959dc8c88b50bd19bdd150aceac086adab5c85c3cb2df07a5be52ec8253d24df"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_SPLITSEQ_STAGE1",
+      "template_sha256": "143242ad20021fd7da0bd8a9e4f0e483a8387e2a47033efced04e21b67037d85",
+      "source_closure_sha256": "f2d0336a802ca3cc3679cb6787c952e36d42f9d116d4f7bebb14092a0e071a57",
+      "family": "attention.splitseq_fp8kv"
+    },
+    {
+      "id": "attention_splitseq_stage2",
+      "operation": "attention_splitseq_stage2",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/attention/verify/splitseq_stage2.inc",
+      "golden_source": "kernels/gfx950/attention/verify/qwen36_full_attention_verify_m16_stage2_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "18155aa73f32c1ec9904fea81169117e5b81c2906cdc1b5665ae3e75c419fe12",
+      "symbols": [
+        "qwen36_full_attention_verify_m16_stage2_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 88,
+      "launch_block": 256,
+      "semantics": {
+        "abi": "attention.splitseq_stage2.ptr3_u32_ptr2_u32x5_ptr2.v1",
+        "dtypes": "fp32_partials_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "splitseq_gqa8_head256_partials.v1",
+        "numerical": "split_softmax_merge_fp32_fixed_rne_bf16.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_splitseq_stage2",
+      "locked_hsaco_sha256": [
+        "aa9fdf9ada8cdb754caa5885f728a314c2031378c476ef313386261e3a38333e"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_SPLITSEQ_STAGE2",
+      "template_sha256": "cbaa2767e733a49f1f941aa915570dfc338bf97892bc5a10ca70672ef0f22cce",
+      "source_closure_sha256": "7bd0625a12ce1383cd605cd564979cb3a343f50317080c2924b572741bfd6f0f",
+      "family": "attention.splitseq_fp8kv"
+    },
+    {
+      "id": "gdn_verify_precompute_m12",
+      "operation": "gdn_verify_precompute",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/verify/precompute.inc",
+      "golden_source": "kernels/gfx950/linear_attention/verify/qwen36_gdn_verify_m12_batched_precompute_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "9de8929eede9bdf3f3f371942d6b93eeaa35d6f7edf0d11f0f0cef8948764ac5",
+      "symbols": [
+        "qwen36_gdn_verify_m12_batched_precompute_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_PRECOMPUTE_VARIANT": 7
+      },
+      "kernarg_size": 96,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "gdn.verify_precompute.ptr10_u32x4.v1",
+        "dtypes": "bf16_gates_qk_to_fp32_normalized.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_token_head_qk128.v1",
+        "numerical": "gdn_norm_decay_beta_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify_precompute",
+      "locked_hsaco_sha256": [
+        "b93c9bbc6926a4decc0b342cc77b2567d4bdf87e9000ba29987904906063ac5a"
+      ],
+      "instantiation_macro": "NETRA_GDN_VERIFY_PRECOMPUTE",
+      "template_sha256": "e4c5015541d5a0fd167f134f75900c5493192e0e8d04f9cccf19d8cd67ae3497",
+      "source_closure_sha256": "7c1ccbba78383916b7307903231f034d93047a93f648241c6d9707e50c734925",
+      "family": "gdn.verify_precompute"
+    },
+    {
+      "id": "gdn_verify_core_m12_packed_pair_interleaved",
+      "operation": "gdn_verify",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/verify/recurrent_packed_pair.inc",
+      "golden_source": "kernels/gfx950/linear_attention/verify/qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950.s",
+      "source_revision": "91d154134d0e9fe2816d8a2622fbaed765e0bdca",
+      "source_sha256": "b9c49665c305436e7f447c6791c41600fda51d3c50ea4ee2fd3ddf81bf473f7d",
+      "symbols": [
+        "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 17,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": [
+          1,
+          4,
+          8
+        ]
+      },
+      "kernarg_size": 88,
+      "launch_block": {"constant": "NETRA_GDN_WAVES_PER_WORKGROUP", "multiplier": 64},
+      "semantics": {
+        "abi": "gdn.recurrent_verify.ptr10_u32x2.v1",
+        "dtypes": "fp32_qk_gates_bf16_state_value_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_packed_pair_state.v1",
+        "numerical": "gdn_recurrence_variant17_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify",
+      "locked_hsaco_sha256": [
+        "fdf48bb6482ab2dee4d948ec1dba3b756343e85ac41fa00e1365bc8867c68d6b",
+        "e900f66d428f4d7098a5ec4ad34cccc831f9023fd5efde9dff6326f147bac04d",
+        "139398c28578a08074a04824a937ac5c79283530e412fe073ccfb016e1883333"
+      ],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_PACKED_PAIR",
+      "template_sha256": "8fed170784121fc2c0ddbdf826fcf152b5552efed128a65d3576b4e8d1ae3fa2",
+      "source_closure_sha256": "029cfda042bc273f50c73680383fdc435a11c59a235db3aa2f949921e9dd0e70",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_state_replay_m12_fused_exact",
+      "operation": "gdn_state_replay",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/replay/recurrent_fused.inc",
+      "golden_source": "kernels/gfx950/linear_attention/verify/qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "7e6b2dd84bc0704632fbdb7422db621b8ac08e8c20562c05eac487e45975d970",
+      "symbols": [
+        "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_STATE_REPLAY": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": [
+          1,
+          4,
+          8
+        ]
+      },
+      "kernarg_size": 88,
+      "launch_block": {"constant": "NETRA_GDN_WAVES_PER_WORKGROUP", "multiplier": 64},
+      "semantics": {
+        "abi": "gdn.state_replay.ptr10_u32x2.v1",
+        "dtypes": "fp32_qk_gates_bf16_state_value_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_state_replay.v1",
+        "numerical": "gdn_recurrence_variant13_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_state_replay",
+      "locked_hsaco_sha256": [
+        "cdf7271652bad2d8dc0ec760c0467af973a6923db94e61ed7b4223ceebe1fb53",
+        "b3f34b1f0e2858b29823659b5d8d1d75d34281a10d304a7ee4f330161bc46fb5",
+        "165a045e651837409097d9669df35d799ab2c96f4f6f1df408ac046dad6c9d06"
+      ],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_FUSED_REPLAY",
+      "template_sha256": "a513cd51154934dfc47a3bd23497d8cd46f4f937beb9d58c17049320f9e1bf3c",
+      "source_closure_sha256": "85151958ca36a8d16798ea54a141c0f57a8e75be8814499741631732c8691ae7",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_qkvz_conv_m12",
+      "operation": "gdn_qkvz_conv",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/verify/qkvz_causal_conv.inc",
+      "golden_source": "kernels/gfx950/linear_attention/verify/qwen36_gdn_qkvz_conv_m12_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "641536c23954bbaf83d61c9ab5c9d874c4b7272e4e1bb287ad99ec60eb7a1fd7",
+      "symbols": [
+        "qwen36_gdn_qkvz_conv_m12_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 64,
+      "launch_block": 256,
+      "semantics": {
+        "abi": "gdn.causal_conv.ptr7_u32.v1",
+        "dtypes": "bf16_qkvz_weight_state_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_qkvz_depthwise_conv4.v1",
+        "numerical": "causal_conv_bf16_inputs_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_qkvz_conv",
+      "locked_hsaco_sha256": [
+        "292c4c59c2681fa3161f40dd506304829ee6d1c0a3e80b4ddb6baf08655cf0af"
+      ],
+      "instantiation_macro": "NETRA_GDN_QKVZ_CAUSAL_CONV",
+      "template_sha256": "3dbf73c67dec17862438413bd60a4b61c20787dc1461b496a42b1d10011851aa",
+      "source_closure_sha256": "3cbefbd7e4d85c57576a34cd15529c28d8b5e5ffc3b34f1c4db395a92d009148",
+      "family": "gdn.causal_conv"
+    },
+    {
+      "id": "gdn_h_m8192_bv16_varlen",
+      "operation": "gdn_h_projection",
+      "maturity": "accepted",
+      "acceptance_scope": "locked_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/prefill/recurrent_mfma_bv16.inc",
+      "golden_source": "kernels/gfx950/linear_attention/prefill/qwen36_gdn_h_m8192_bv16_gfx950.s",
+      "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3",
+      "source_sha256": "4b6b2e10237ce9c0e24d5ddace80f065608930b4fa74c326ae8b421220efe3c6",
+      "symbols": [
+        "qwen36_gdn_h_m8192_bv16_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 104,
+      "launch_block": 256,
+      "semantics": {
+        "abi": "gdn.prefill_recurrence.ptr10_u32_ptr2.v1",
+        "dtypes": "bf16_state_fp8e4m3_weights_f32scale_to_bf16.v1",
+        "quantization": "fp8e4m3_block128.v1",
+        "layouts": "gdn_bv16_varlen_state.v1",
+        "numerical": "gdn_prefill_mfma_fp32_fixed_rne_bf16.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_h_projection",
+      "locked_hsaco_sha256": [
+        "24cbcd44e47150c6d3b0e10b5d22229825c2fe5f7d5d18136264785282aa51d7"
+      ],
+      "instantiation_macro": "NETRA_GDN_PREFILL_MFMA_BV16",
+      "template_sha256": "43053c44340a55c32a6c2dca8ccbf92079c8818918324543cd6acbf8dd4930aa",
+      "source_closure_sha256": "ce3b1fc1b5ceca39938563d93f6c32343785ea44f8009d69a8ea7c0da59cd0f6",
+      "family": "gdn.prefill_recurrence_bv16"
+    }
+  ]
+}

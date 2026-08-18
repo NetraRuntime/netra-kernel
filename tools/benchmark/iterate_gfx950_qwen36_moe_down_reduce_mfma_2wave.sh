@@ -6,6 +6,7 @@ repo_dir=$(cd "${script_dir}/../.." && pwd)
 build_dir=${BUILD_DIR:-"${repo_dir}/build/gfx950-qwen36-moe-down-reduce-mfma-2wave"}
 capture_dir=${CAPTURE_DIR:-/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_moe_down_reduce_fp8_gfx950_20260730T010200Z/capture}
 iterations=${ITERATIONS:-20}
+rows=${ROWS:-1}
 stem=qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950
 
 test -f "${capture_dir}/manifest.json"
@@ -27,7 +28,8 @@ HIP_VISIBLE_DEVICES=${HIP_VISIBLE_DEVICES:-0} \
   "${iterations}" \
   "${stem}" \
   128 \
-  128
+  128 \
+  "${rows}"
 validation_done_ns=$(date +%s%N)
 
 python3 - \

@@ -1,0 +1,124 @@
+{
+  "format": "netra-compatibility-build-1",
+  "target": "gfx950",
+  "wave_size": 64,
+  "deployment": "qwen36-35b-dp8-current-best",
+  "evidence": {
+    "lock": "/data/netra/benchmarks/gfx950_qwen36_optimization/CURRENT_BEST.json",
+    "lock_sha256": "2823d64410ba4a87223ede5429c90677cc76aea628244dd3c4a1c810af76557a",
+    "source_revision": "052c539e0794aedb71761bbffe816930817ac5b3"
+  },
+  "artifacts": [
+    {
+      "name": "qwen36_moe_silu_mul_quant_fp8_gfx950",
+      "locked_text_sha256": "a55edbc8aaab4c38519252b9307ad0d7fdc5c10b401b4d8da795d3c822a66622",
+      "locked_hsaco_sha256": "6d87114b3bcc5028d9bad3e219c584be7e34bd79baa9010b76a1466c38fecd91",
+      "members": [{"tactic": "moe_silu_quant_decode_m1", "symbol": "qwen36_moe_silu_mul_quant_fp8_gfx950", "definitions": {}}]
+    },
+    {
+      "name": "qwen36_moe_gate_up_fp8_mfma_gfx950",
+      "locked_text_sha256": "fb461b649b5328a79d47fd5208486f9a90fd24768f05c1a35c467343256ff725",
+      "locked_hsaco_sha256": "f7d083273843b0a751f7e16b95f1e6e1d646272a56f1221104c7a1c748e661b7",
+      "members": [{"tactic": "moe_gate_up_decode_m1", "symbol": "qwen36_moe_gate_up_fp8_mfma_gfx950", "definitions": {}}]
+    },
+    {
+      "name": "qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950",
+      "locked_text_sha256": "afa0b9ddad688ba7ff4c40b7fa3967c4da3d5f540729db48aa46a5121ed935b0",
+      "locked_hsaco_sha256": "ae8adf9d49d05d40fc396ea11db6bbde95ebc299a82085a335cab040939ccce7",
+      "members": [{"tactic": "moe_down_reduce_decode_m1", "symbol": "qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950", "definitions": {}}]
+    },
+    {
+      "name": "qwen36_router_bf16_gemv_gfx950",
+      "locked_text_sha256": "845926d26a27e65b6b0a4bf444be2acd8deebfe0418f3d6a6de99c8f48a78b74",
+      "locked_hsaco_sha256": "f69299027223f2f2f0f2cb76dfe102c5773ae0eadc6bbad0b4f92987efa991c6",
+      "members": [{"tactic": "router_bf16_verify_m16", "symbol": "qwen36_router_bf16_gemv_gfx950", "definitions": {}}]
+    },
+    {
+      "name": "qwen36_extend_attention_m16_gqa4_fp8kv_gfx950",
+      "locked_text_sha256": "659781a6d49333e7b2ec169dada84bf06e4e44da048c0c3c5b71548892264ccd",
+      "locked_hsaco_sha256": "494a9daafdb059b64bf6e95c857c74fdb365bde788af38b45152fbe61fd4e361",
+      "members": [{"tactic": "attention_gqa4_fp8kv", "symbol": "qwen36_extend_attention_m16_gqa4_fp8kv_gfx950", "definitions": {}}]
+    },
+    {
+      "name": "qwen36_extend_attention_m16_gqa8_fp8kv_gfx950",
+      "locked_text_sha256": "0aeecec451163600850583e2badc6813564138273af4fc89c651cf12d7a6df32",
+      "locked_hsaco_sha256": "cb482ce544c27dd4449320c7fe64d3024a75643bdfa1658cefa2e576f4d7bfe6",
+      "members": [
+        {"tactic": "attention_gqa8_fp8kv", "symbol": "qwen36_extend_attention_m16_gqa8_fp8kv_i32_gfx950", "definitions": {"NETRA_QO_INDPTR_BITS": 32}},
+        {"tactic": "attention_gqa8_fp8kv", "symbol": "qwen36_extend_attention_m16_gqa8_fp8kv_i64_gfx950", "definitions": {"NETRA_QO_INDPTR_BITS": 64}}
+      ]
+    },
+    {
+      "name": "qwen36_full_attention_verify_prepare_m16_gfx950",
+      "locked_text_sha256": "877ecdcd9c9cb2f232c98a8240357fd6618aa996527d0c7a3ffd085da0b220b5",
+      "locked_hsaco_sha256": "1e32570eeeb9d845b9820dbf599a03d4e16a490f6b0ee4c5acbdc95646337d55",
+      "members": [{"tactic": "attention_splitseq_prepare", "symbol": "qwen36_full_attention_verify_prepare_m16_gfx950", "definitions": {}}]
+    },
+    {
+      "name": "qwen36_full_attention_verify_m16_stage1_gfx950",
+      "locked_text_sha256": "fa4c704bc985e2ab5b3139d57d59d0a3fabea5b44bfc66fcd4d2a407bd4eb338",
+      "locked_hsaco_sha256": "959dc8c88b50bd19bdd150aceac086adab5c85c3cb2df07a5be52ec8253d24df",
+      "members": [{"tactic": "attention_splitseq_stage1", "symbol": "qwen36_full_attention_verify_m16_stage1_gfx950", "definitions": {}}]
+    },
+    {
+      "name": "qwen36_full_attention_verify_m16_stage2_gfx950",
+      "locked_text_sha256": "5a08b66d2eb66905e5c01acec9ce0c86aa6a8605dd78018fc8502d49c76b6c77",
+      "locked_hsaco_sha256": "aa9fdf9ada8cdb754caa5885f728a314c2031378c476ef313386261e3a38333e",
+      "members": [{"tactic": "attention_splitseq_stage2", "symbol": "qwen36_full_attention_verify_m16_stage2_gfx950", "definitions": {}}]
+    },
+    {
+      "name": "qwen36_gdn_verify_m12_batched_precompute_gfx950",
+      "locked_text_sha256": "127b0a994f30728b7abe171d4a862babb9f45706428c68bb31c4ed5787b1192a",
+      "locked_hsaco_sha256": "b93c9bbc6926a4decc0b342cc77b2567d4bdf87e9000ba29987904906063ac5a",
+      "members": [{"tactic": "gdn_verify_precompute_m12", "symbol": "qwen36_gdn_verify_m12_batched_precompute_gfx950", "definitions": {"NETRA_GDN_PRECOMPUTE_VARIANT": 7}}]
+    },
+    {
+      "name": "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+      "locked_text_sha256": "32212fc856a5a8b9396264c24ad4c03734b4524f3d47a9b32996cdf790418afc",
+      "locked_hsaco_sha256": "fdf48bb6482ab2dee4d948ec1dba3b756343e85ac41fa00e1365bc8867c68d6b",
+      "members": [{"tactic": "gdn_verify_core_m12_packed_pair_interleaved", "symbol": "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950", "macro_symbols": ["qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950", "qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950"], "definitions": {"NETRA_GDN_CORE_VARIANT": 17, "NETRA_GDN_K0_NO_INTERMEDIATE": 1, "NETRA_GDN_SHARE_QK": 1, "NETRA_GDN_WAVES_PER_WORKGROUP": 1}}]
+    },
+    {
+      "name": "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950_waves4",
+      "locked_text_sha256": "ddea9805272d7a70e90b7cb3c4e466aa204aba80360342accd4053f578451625",
+      "locked_hsaco_sha256": "e900f66d428f4d7098a5ec4ad34cccc831f9023fd5efde9dff6326f147bac04d",
+      "members": [{"tactic": "gdn_verify_core_m12_packed_pair_interleaved", "symbol": "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950", "macro_symbols": ["qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950", "qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950"], "definitions": {"NETRA_GDN_CORE_VARIANT": 17, "NETRA_GDN_K0_NO_INTERMEDIATE": 1, "NETRA_GDN_SHARE_QK": 1, "NETRA_GDN_WAVES_PER_WORKGROUP": 4}}]
+    },
+    {
+      "name": "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950_waves8",
+      "locked_text_sha256": "5366bf79c20e5c0497112ccf3511b002eaa94398091fb9a1f6c3faaa8624ab14",
+      "locked_hsaco_sha256": "139398c28578a08074a04824a937ac5c79283530e412fe073ccfb016e1883333",
+      "members": [{"tactic": "gdn_verify_core_m12_packed_pair_interleaved", "symbol": "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950", "macro_symbols": ["qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950", "qwen36_gdn_state_replay_m12_dual_precomputed_bv16_gfx950"], "definitions": {"NETRA_GDN_CORE_VARIANT": 17, "NETRA_GDN_K0_NO_INTERMEDIATE": 1, "NETRA_GDN_SHARE_QK": 1, "NETRA_GDN_WAVES_PER_WORKGROUP": 8}}]
+    },
+    {
+      "name": "qwen36_gdn_state_replay_m12_waves1_gfx950",
+      "locked_text_sha256": "192f772ce7ae046a1ed381fd830a6edea39f4dc1b2007f08c8216a89e54b89dc",
+      "locked_hsaco_sha256": "cdf7271652bad2d8dc0ec760c0467af973a6923db94e61ed7b4223ceebe1fb53",
+      "members": [{"tactic": "gdn_state_replay_m12_fused_exact", "symbol": "qwen36_gdn_state_replay_m12_waves1_gfx950", "macro_symbols": ["qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950", "qwen36_gdn_state_replay_m12_waves1_gfx950"], "definitions": {"NETRA_GDN_CORE_VARIANT": 13, "NETRA_GDN_K0_NO_INTERMEDIATE": 1, "NETRA_GDN_SHARE_QK": 1, "NETRA_GDN_STATE_REPLAY": 1, "NETRA_GDN_WAVES_PER_WORKGROUP": 1}}]
+    },
+    {
+      "name": "qwen36_gdn_state_replay_m12_waves4_gfx950",
+      "locked_text_sha256": "337086187438937f390361e9becc59c4eff7fd74a0ffb0e3e37dec460c556903",
+      "locked_hsaco_sha256": "b3f34b1f0e2858b29823659b5d8d1d75d34281a10d304a7ee4f330161bc46fb5",
+      "members": [{"tactic": "gdn_state_replay_m12_fused_exact", "symbol": "qwen36_gdn_state_replay_m12_waves4_gfx950", "macro_symbols": ["qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950", "qwen36_gdn_state_replay_m12_waves4_gfx950"], "definitions": {"NETRA_GDN_CORE_VARIANT": 13, "NETRA_GDN_K0_NO_INTERMEDIATE": 1, "NETRA_GDN_SHARE_QK": 1, "NETRA_GDN_STATE_REPLAY": 1, "NETRA_GDN_WAVES_PER_WORKGROUP": 4}}]
+    },
+    {
+      "name": "qwen36_gdn_state_replay_m12_waves8_gfx950",
+      "locked_text_sha256": "10a160f5f329524ddeee7f0ffd16cef2634c756ffb3cecb9c20eb12edc2daaef",
+      "locked_hsaco_sha256": "165a045e651837409097d9669df35d799ab2c96f4f6f1df408ac046dad6c9d06",
+      "members": [{"tactic": "gdn_state_replay_m12_fused_exact", "symbol": "qwen36_gdn_state_replay_m12_waves8_gfx950", "macro_symbols": ["qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950", "qwen36_gdn_state_replay_m12_waves8_gfx950"], "definitions": {"NETRA_GDN_CORE_VARIANT": 13, "NETRA_GDN_K0_NO_INTERMEDIATE": 1, "NETRA_GDN_SHARE_QK": 1, "NETRA_GDN_STATE_REPLAY": 1, "NETRA_GDN_WAVES_PER_WORKGROUP": 8}}]
+    },
+    {
+      "name": "qwen36_gdn_qkvz_conv_m12_gfx950",
+      "locked_text_sha256": "e012ff4a34e0d7ff333675c5cdefb2443df0bd329d6749c6f840fa8fb08c9c7c",
+      "locked_hsaco_sha256": "292c4c59c2681fa3161f40dd506304829ee6d1c0a3e80b4ddb6baf08655cf0af",
+      "members": [{"tactic": "gdn_qkvz_conv_m12", "symbol": "qwen36_gdn_qkvz_conv_m12_gfx950", "definitions": {}}]
+    },
+    {
+      "name": "qwen36_gdn_h_m8192_bv16_gfx950",
+      "locked_text_sha256": "00faf4f3314ebee0facd8a0dac8772e143c84f2e5cb6fb9439421fbf6a55c51c",
+      "locked_hsaco_sha256": "24cbcd44e47150c6d3b0e10b5d22229825c2fe5f7d5d18136264785282aa51d7",
+      "members": [{"tactic": "gdn_h_m8192_bv16_varlen", "symbol": "qwen36_gdn_h_m8192_bv16_gfx950", "definitions": {}}]
+    }
+  ]
+}

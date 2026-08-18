@@ -1,0 +1,75 @@
+{
+  "format": "netra-model-1",
+  "name": "generic-gdn-state-replay-exact-contract",
+  "family": "explicit",
+  "synthetic": true,
+  "configuration": {"architecture": "SyntheticRecurrentDecoder", "tensor_parallel": 1},
+  "graph": {
+    "format": "netra-ir-1",
+    "name": "generic-gdn-state-replay",
+    "tensors": [
+      {"name":"q","shape":[1,12,16,128],"dtype":"fp32","layout":"gdn_q_normalized","role":"input"},
+      {"name":"k","shape":[1,12,16,128],"dtype":"fp32","layout":"gdn_k_normalized","role":"input"},
+      {"name":"v","shape":[1,12,32,128],"dtype":"bf16","layout":"gdn_value","role":"input"},
+      {"name":"decay","shape":[1,12,16],"dtype":"fp32","layout":"gdn_decay","role":"input"},
+      {"name":"beta","shape":[1,12,16],"dtype":"fp32","layout":"gdn_beta","role":"input"},
+      {"name":"output_state","shape":[128,16,128,128],"dtype":"bf16","layout":"gdn_bv16_state","role":"state","persistent":true},
+      {"name":"initial_state","shape":[128,16,128,128],"dtype":"bf16","layout":"gdn_bv16_state","role":"state","persistent":true},
+      {"name":"lengths","shape":[1],"dtype":"int32","layout":"row_major","role":"input"},
+      {"name":"initial_indices","shape":[1],"dtype":"int32","layout":"row_major","role":"input"},
+      {"name":"output_indices","shape":[1],"dtype":"int32","layout":"row_major","role":"input"}
+    ],
+    "operations": [{
+      "name": "recurrent.state_replay",
+      "kind": "fixed_kernel",
+      "inputs": ["q","k","v","decay","beta","initial_state","lengths","initial_indices","output_indices"],
+      "outputs": ["output_state"],
+      "attributes": {
+        "family": "gdn.recurrent_bv16",
+        "operation": "gdn_state_replay",
+        "constants": {
+          "NETRA_BATCH_MAX":128,
+          "NETRA_TOKENS":12,
+          "NETRA_QK_HEADS":16,
+          "NETRA_VALUE_HEADS":32,
+          "NETRA_QK_DIM":128,
+          "NETRA_VALUE_DIM":128,
+          "NETRA_GDN_CORE_VARIANT":13,
+          "NETRA_GDN_K0_NO_INTERMEDIATE":1,
+          "NETRA_GDN_SHARE_QK":1,
+          "NETRA_GDN_STATE_REPLAY":1,
+          "NETRA_GDN_WAVES_PER_WORKGROUP":1
+        },
+        "semantics": {
+          "abi":"gdn.state_replay.ptr10_u32x2.v1",
+          "dtypes":"fp32_qk_gates_bf16_state_value_to_bf16.v1",
+          "quantization":"none.v1",
+          "layouts":"gdn_bv16_state_replay.v1",
+          "numerical":"gdn_recurrence_variant13_fixed.v1"
+        },
+        "launch_grid":[256,1,1],
+        "graph_capture":true,
+        "deterministic":true,
+        "fallback":"framework.gdn_state_replay",
+        "arguments": [
+          {"name":"q","kind":"pointer","access":"read","offset":0},
+          {"name":"k","kind":"pointer","access":"read","offset":8},
+          {"name":"v","kind":"pointer","access":"read","offset":16},
+          {"name":"decay","kind":"pointer","access":"read","offset":24},
+          {"name":"beta","kind":"pointer","access":"read","offset":32},
+          {"name":"output_state","kind":"pointer","access":"write","offset":40},
+          {"name":"initial_state","kind":"pointer","access":"read","offset":48},
+          {"name":"lengths","kind":"pointer","access":"read","offset":56},
+          {"name":"initial_indices","kind":"pointer","access":"read","offset":64},
+          {"name":"output_indices","kind":"pointer","access":"read","offset":72},
+          {"name":"stride_v","kind":"u32_constant","access":"value","offset":80,"value":128},
+          {"name":"state_capacity","kind":"u32_constant","access":"value","offset":84,"value":128}
+        ]
+      },
+      "numerical": {"reduction_order":"gdn_recurrence_variant13_fixed","output_rounding":"terminal_rne_bf16"}
+    }],
+    "inputs":["q","k","v","decay","beta","lengths","initial_indices","output_indices"],
+    "outputs":[],
+    "state":["initial_state","output_state"]
+  }
+}

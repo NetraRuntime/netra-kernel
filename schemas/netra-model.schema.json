@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netra.ai/schemas/netra-model.schema.json",
+  "title": "Netra model description",
+  "type": "object",
+  "required": ["format", "name", "family", "configuration"],
+  "properties": {
+    "format": {"const": "netra-model-1"},
+    "name": {"type": "string", "minLength": 1},
+    "family": {"type": "string", "minLength": 1},
+    "synthetic": {"type": "boolean"},
+    "configuration": {"type": "object"},
+    "dense_operations": {"type": "array", "items": {"$ref": "#/$defs/dense"}},
+    "golden_operations": {"type": "array", "items": {"$ref": "#/$defs/golden"}},
+    "fallback_operations": {"type": "array", "items": {"$ref": "#/$defs/fallback"}},
+    "graph": {"$ref": "#/$defs/graph"}
+  },
+  "$defs": {
+    "dense": {
+      "type": "object",
+      "required": ["name", "n", "k"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "n": {"type": "integer", "minimum": 1},
+        "k": {"type": "integer", "minimum": 1},
+        "epilogue": {"enum": ["identity", "bias", "silu", "gelu", "gated_silu"]}
+      }
+    },
+    "golden": {
+      "type": "object",
+      "required": ["name", "golden_artifact"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "golden_artifact": {
+          "type": "object",
+          "required": ["operation", "tactic", "maturity", "symbol", "hsaco_name", "hsaco_sha256", "kernarg_size", "launch", "arguments"],
+          "properties": {
+            "maturity": {"const": "accepted"},
+            "hsaco_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "kernarg_size": {"type": "integer", "minimum": 1},
+            "arguments": {"type": "array", "minItems": 1, "maxItems": 16}
+          }
+        }
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "required": ["name", "operation", "fallback", "external_status"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "operation": {"type": "string", "minLength": 1},
+        "fallback": {"type": "string", "minLength": 1},
+        "external_status": {"enum": ["accepted_external_dispatch", "framework_fallback"]},
+        "profile_constraints": {"type": "object"},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "tensor": {
+      "type": "object",
+      "required": ["name", "shape", "dtype", "layout"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "shape": {"type": "array", "minItems": 1, "items": {"type": ["integer", "string"]}},
+        "dtype": {"enum": ["fp8_e4m3", "bf16", "fp32", "int32"]},
+        "layout": {"type": "string", "minLength": 1},
+        "role": {"enum": ["input", "output", "state", "weight", "temporary"]},
+        "alias_of": {"type": ["string", "null"]},
+        "persistent": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "operation": {
+      "type": "object",
+      "required": ["name", "kind", "inputs", "outputs"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "kind": {"type": "string", "minLength": 1},
+        "inputs": {"type": "array", "items": {"type": "string"}},
+        "outputs": {"type": "array", "items": {"type": "string"}},
+        "attributes": {"type": "object"},
+        "numerical": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "graph": {
+      "type": "object",
+      "required": ["format", "name", "tensors", "operations", "inputs", "outputs"],
+      "properties": {
+        "format": {"const": "netra-ir-1"},
+        "name": {"type": "string", "minLength": 1},
+        "tensors": {"type": "array", "items": {"$ref": "#/$defs/tensor"}},
+        "operations": {"type": "array", "items": {"$ref": "#/$defs/operation"}},
+        "inputs": {"type": "array", "items": {"type": "string"}},
+        "outputs": {"type": "array", "items": {"type": "string"}},
+        "state": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

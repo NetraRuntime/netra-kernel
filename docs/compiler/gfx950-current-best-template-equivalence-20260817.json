@@ -1,0 +1,48 @@
+{
+  "format": "netra-current-best-template-equivalence-evidence-1",
+  "date": "2026-08-17",
+  "target": "gfx950",
+  "wave_size": 64,
+  "current_best_sha256": "2823d64410ba4a87223ede5429c90677cc76aea628244dd3c4a1c810af76557a",
+  "baseline_evidence": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260817T042500Z-generic-deterministic-promote-dp8",
+  "refactor_evidence": "/data/netra/benchmarks/netra-engine-foundation-20260817/current-best-assembly-modular-v5",
+  "manifest": "manifests/gfx950/deployments/qwen36-35b-current-best.json",
+  "template_count": 14,
+  "specialization_count": 18,
+  "model_independent_tactic_identity": true,
+  "model_independent_tactic_families": true,
+  "transitive_include_closure_hashed": true,
+  "all_helpers_namespaced": true,
+  "short_semantic_leaf_names": true,
+  "exact_details_live_in_contracts_and_guards": true,
+  "shared_primitive_umbrella_required": true,
+  "qwen_symbols_are_compatibility_aliases": true,
+  "assembler_time_exact_contract_guards": true,
+  "runtime_shape_or_schedule_branches_added": false,
+  "comparison": {
+    "text_byte_identical": "18/18",
+    "semantic_code_object_metadata_identical": "18/18",
+    "resource_kernarg_and_wave_metadata_identical": "18/18",
+    "full_hsaco_byte_identical": "0/18",
+    "full_hsaco_note": "Macro/template refactoring changes non-text ELF identity. Loaded instructions and semantic AMDHSA metadata are identical; full-file identity is not claimed.",
+    "hashes_tsv_sha256": "531aac88cdf12bb514d5abc08a65cb71b9e8b50b737d1cd8b08ba35b2de5a26f",
+    "metadata_summary_sha256": "b8eef204049c323f5d1eced43a66b17f128646219d4824574a5a2c597d922fb1"
+  },
+  "hardware_execution": {
+    "generated_templates_run": true,
+    "status": "three_operation_moe_smoke_passed",
+    "scope": "Generated gate/up, SiLU+quant, and two-wave-LDS down/reduce HSACOs on one MI350X.",
+    "direct_launches": "3/3",
+    "hip_graph_replays": "20/20",
+    "oracle": "zero-input BF16 output exact",
+    "hardware_smoke_sha256": "94fc8a57cec656d61dd74e66c6920640b166eeacab3b6f9f8ac52fe16fbfda51",
+    "full_checkpoint_correctness": "not_run_after_refactor",
+    "eight_gpu_serving_ab": "not_run_after_refactor",
+    "golden_serving_evidence_remains": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260817T042500Z-generic-deterministic-promote-dp8"
+  },
+  "promotion": {
+    "maturity_change": "none",
+    "scope": "Only exact locked contracts retain accepted status.",
+    "default_server_path_changed": false
+  }
+}

@@ -1,0 +1,149 @@
+{
+  "schema_version": 3,
+  "date": "2026-08-17",
+  "scope": "Qwen3.6-35B current-best compatibility engine plus model-independent compiler/runtime foundation",
+  "target": "gfx950:sramecc+:xnack- wave64",
+  "hardware": "8x AMD Instinct MI350X",
+  "source": {
+    "locked_server_head": "bd86775e8034ab26f51096b3fe64708ebbaf7e1c",
+    "locked_kernel_head": "052c539e0794aedb71761bbffe816930817ac5b3",
+    "current_best_lock": "/data/netra/benchmarks/gfx950_qwen36_optimization/CURRENT_BEST.json",
+    "current_best_sha256": "2823d64410ba4a87223ede5429c90677cc76aea628244dd3c4a1c810af76557a",
+    "audited_server_stage": "/data/netra/benchmarks/netra-engine-foundation-20260817/server-currentbest-engine-ne779",
+    "audited_server_stage_fingerprint_sha256": "e72b4f9431be5d62fe9d8545b5ef59764f75f272f92156ab0fab37a24a8a1b24"
+  },
+  "compiler": {
+    "qwen_engine_id": "ne_779767e0b2f25eeeb9b23cc0",
+    "checkpoint_revision_tree_hash": "474e8741c1920ac064ca7215573d7fb2749e5e612a9553a900ed2fb526cf6186",
+    "kernel_operations": 3,
+    "explicit_fallback_operations": 8,
+    "workspace_bytes": 0,
+    "deterministic_duplicate_compile": true,
+    "gemma_synthetic_compile": "passed; three explicit fallbacks; no numerical or performance acceptance claimed"
+  },
+  "assembly": {
+    "accepted_qwen_moe_refactored": true,
+    "current_best_model_independent_templates": 14,
+    "current_best_build_specializations": 18,
+    "current_best_text_byte_identical": "18/18",
+    "current_best_semantic_metadata_identical": "18/18",
+    "current_best_full_hsaco_byte_identical": "0/18 (not claimed; non-text ELF identity changed)",
+    "current_best_refactor_record": "docs/compiler/gfx950-current-best-template-equivalence-20260817.json",
+    "rejected_dense_m1_templates_refactored": true,
+    "policy": "Locked schedules are model-independent exact-contract templates with Qwen compatibility aliases. Deployed HSCOs remain immutable goldens until generated-template hardware A/B; rejected dense experiments remain rejected.",
+    "accepted_golden_hsaco_sha256": {
+      "gate_up": "f7d083273843b0a751f7e16b95f1e6e1d646272a56f1221104c7a1c748e661b7",
+      "silu_mul_quant": "6d87114b3bcc5028d9bad3e219c584be7e34bd79baa9010b76a1466c38fecd91",
+      "down_reduce_2wave": "ae8adf9d49d05d40fc396ea11db6bbde95ebc299a82085a335cab040939ccce7"
+    },
+    "accepted_artifact_equivalence": "byte-identical HSCOs against the active current-best kernel runtime",
+    "accepted_metadata": {
+      "gate_up": {"kernarg": 48, "threads": 64, "fixed_lds": 0, "dynamic_lds": 0, "vgpr": 30, "sgpr": 40, "private": 0},
+      "silu_mul_quant": {"kernarg": 32, "threads": 64, "fixed_lds": 0, "dynamic_lds": 0, "vgpr": 35, "sgpr": 27, "private": 0},
+      "down_reduce_2wave": {"kernarg": 56, "threads": 128, "fixed_lds": 1024, "dynamic_lds": 0, "vgpr": 32, "sgpr": 42, "private": 0}
+    },
+    "rejected_dense_candidates": {
+      "maturity": "rejected",
+      "one_wave_source_sha256": "fe28071a0394a0dab89cb591343e75aecec6855cd6a9d67a459689bbfc97e880",
+      "four_wave_lds_source_sha256": "cc0b32daf4a9f856ef41bb4d73fee3d8a6c365ecc3671783bbac42efb9060f35",
+      "one_wave_cross_hsaco_sha256": "5c700154397b4986d96d145d9431830b87e63d6d3cf6f7cd72f1a66c8c9937c4",
+      "four_wave_lds_cross_hsaco_sha256": "7cd0e12975ddc4c1b36a5b375c837ecaff04ade3cad711e63748f414ff665056",
+      "duplicate_cross_build_byte_identical": true,
+      "template_engine_id": "ne_a701d551440272cf69be453e",
+      "template_compiler_source_hash": "d86dfc9b603061855736dc2157fe48e82ebd6be44fb5a822daf69e8110faadfd",
+      "template_evidence": "/data/netra/benchmarks/netra-engine-foundation-20260817/assembly-template-refactor-20260817-v5",
+      "one_wave_text_sha256": "a6234d97daf1b2e0be0e693e559bcd02d7ef73310b5db688a4a7f2eee177daea",
+      "four_wave_lds_text_sha256": "c8f4f7f6a380d9976c3e4c13b2a80583235b9a1067a8d8731b8591fc122c7173",
+      "text_byte_identical_to_golden": true,
+      "metadata_resources_kernarg_launch_identical": true,
+      "real_capture_bf16_mismatches": "0/2048 in every run",
+      "determinism": "0/200 mismatches in each of five runs per variant",
+      "graph_replays": "20/20 exact in each run",
+      "one_wave_median_of_medians_us": 10.0,
+      "four_wave_lds_median_of_medians_us": 15.56,
+      "build_result_sha256": "385ff7b938ac0b6c98cae4db183e3e64261f7111878bfa69727cc64d60c7647a",
+      "one_wave_equivalence_sha256": "789079da65d7db4b8dbbd7b9735c7e53f870fefa5451b4cd691775ad3476ed9b",
+      "four_wave_lds_equivalence_sha256": "c13f42530f7cc2bf3d2e69fbddcf1cd663fa3560a1648ce47537b0baa05b22bb",
+      "hardware_summary_sha256": "1a3762784722f21f1eadc855b1ab688ad4d03de80d390f1a188ba60ba06b72aa",
+      "promotion_eligible": false
+    }
+  },
+  "runtime_and_boundary": {
+    "native_loader": "passed on gfx950",
+    "device_ownership_guard": "passed",
+    "unsupported_profile_fallback": "passed",
+    "real_checkpoint_bf16_mismatches": "0/2048",
+    "deterministic_graph_replays": "20/20",
+    "same_pointer_paired_boundary": {
+      "engine_median_us": 21.685269,
+      "golden_median_us": 22.072918,
+      "ratio": 0.98244,
+      "paired_samples": 20,
+      "graph_replays_per_sample": 500,
+      "outputs_exact": true,
+      "evidence": "/data/netra/benchmarks/netra-engine-foundation-20260817/matched-dp8-final-5fed44dd-r7/paired-moe-boundary-fixedlds-same-pointers.json"
+    }
+  },
+  "locked_current_best_engine_gate": {
+    "status": "passed_correctness_and_observed_no_mean_regression; remains_opt_in",
+    "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260817T103000Z-netra-engine-current-best-ne779-audited-5run",
+    "summary_sha256": "42d4ad33fec02e85279602563ce630347808a223a1777fb40174f943b677e69c",
+    "validation_audit_sha256": "99ef82fb36f16237483ef2440812836d3c5c6a1dd459d9baeb20ff21b981454c",
+    "fresh_process_repetitions": 5,
+    "worker_runtime_map_audits": "40/40",
+    "all_exact_request_token_cache_error_checks_passed": true,
+    "engine_output_tok_s": {
+      "samples": [80944.50600220435, 80538.5627698019, 80389.08554349029, 74665.90238629539, 79485.57574591537],
+      "mean": 79204.72648954146,
+      "median": 80389.08554349029,
+      "min": 74665.90238629539,
+      "max": 80944.50600220435
+    },
+    "locked_baseline_output_tok_s": {
+      "mean": 78748.14957276912,
+      "median": 79048.38943801737,
+      "min": 76374.31675742145,
+      "max": 81331.51233385253
+    },
+    "mean_throughput_ratio": 1.0057979383547344,
+    "median_throughput_ratio": 1.016960448087613,
+    "exact_two_sided_mean_permutation_p": 0.7936507936507936,
+    "engine_mean_acceptance_length": 5.532565022102085,
+    "baseline_mean_acceptance_length": 5.541299542328082,
+    "acceptance_ratio": 0.9984237415502848,
+    "mean_latency_ratios": {
+      "e2e": 0.989851800883692,
+      "e2e_median": 0.989117026350117,
+      "e2e_p90": 0.9921915694220491,
+      "ttft": 1.006951525602884,
+      "ttft_median": 0.9897102649246964,
+      "tpot": 0.9882302475323443
+    },
+    "used_vram_mb": {
+      "baseline_overall_mean": 153565.2,
+      "engine_overall_mean": 153585.1,
+      "baseline_max": 153934.0,
+      "engine_max": 153818.0
+    },
+    "caveat": "historical sequential distributions are not a paired interleaved default-promotion gate; one engine sample was below the prior baseline minimum"
+  },
+  "excluded_evidence": {
+    "root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260817T093000Z-netra-engine-current-best-ne779-correct-stage",
+    "reason": "DP8 qwen36_best launcher had not propagated the engine environment or mounts; retained as a baseline replay and excluded from engine claims"
+  },
+  "cpu_static_validation": {
+    "kernel_compiler_tests": "39/39 passed after current-best family/leaf extraction, include-closure hashing, and exact-contract registry",
+    "server_compatibility_and_tools_tests": "19/19 passed after final launcher audit hardening",
+    "serving_container_adapter_tests": "21/21 passed with one MI350X exposed",
+    "corrected_current_best_stage_compatibility_tests": "13 passed, 2 intentionally deselected",
+    "python_parse_compile": "passed",
+    "shell_syntax": "passed",
+    "git_diff_check": "passed in both repositories"
+  },
+  "promotion": {
+    "eligible_for_default": false,
+    "server_default": "disabled/current accepted path",
+    "reason": "full engine run passed locked correctness and observed mean throughput, but default promotion still requires paired/interleaved serving evidence and complete routing/logits/state/dispatch/load-time inventories",
+    "fallback_retained": true
+  }
+}

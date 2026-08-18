@@ -1,0 +1,23 @@
+{
+  "format": "netra-model-1",
+  "name": "gemma-dense-synthetic-architecture-fixture",
+  "family": "gemma",
+  "synthetic": true,
+  "configuration": {
+    "hidden_size": 4096,
+    "intermediate_size": 2048,
+    "tensor_parallel": 1,
+    "input_dtype": "fp8_e4m3",
+    "weight_dtype": "fp8_e4m3",
+    "output_dtype": "bf16",
+    "activation": "gated_silu",
+    "activation_quantization": "e4m3_per_128",
+    "weight_quantization": "e4m3_128x128",
+    "activation_scale_block": 128,
+    "weight_scale_block": [128, 128],
+    "activation_layout": "row_major_fp8_block128",
+    "output_layout": "row_major_bf16",
+    "weight_layout": "checkpoint_row_major_fp8_block128",
+    "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+  }
+}

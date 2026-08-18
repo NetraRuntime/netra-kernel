@@ -1,0 +1,9 @@
+{
+  "format": "netra-tactic-set-1",
+  "target": "gfx950",
+  "tactics": [
+    {"name":"gfx950.aiter_blockscale_dense_m1.compat","maturity":"accepted","artifact_kind":"framework_external","status_note":"Current deployed compatibility baseline; engine dispatch remains framework fallback."},
+    {"name":"gfx950.raw_dense_m1_one_wave","maturity":"rejected","artifact_kind":"raw_assembly","source_template":"kernels/gfx950/templates/dense/dense_fp8_m1_one_wave.inc","status_note":"Template .text is byte-identical to the preserved source; still rejected after 4.51% wall and 4.73% generation regression."},
+    {"name":"gfx950.raw_dense_m1_four_wave_lds","maturity":"rejected","artifact_kind":"raw_assembly","source_template":"kernels/gfx950/templates/dense/dense_fp8_m1_four_wave_lds.inc","status_note":"Template .text is byte-identical to the preserved source; still rejected after 10.02% wall and 10.63% generation regression."}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netra.ai/schemas/netra-engine.schema.json",
+  "title": "Netra engine manifest",
+  "type": "object",
+  "required": ["format_version", "engine_id", "target", "wave_size", "required_rocm", "model_configuration_hash", "deployment_guards", "tensor_parallel", "profiles", "operations", "selected_tactics", "kernel_symbols", "workspace_bytes", "fallbacks", "layout_plan", "graph_recipe", "memory_plan", "validation_status", "compiler"],
+  "properties": {
+    "format_version": {"const": "netra-engine-1"},
+    "engine_id": {"type": "string", "pattern": "^ne_[0-9a-f]{24}$"},
+    "target": {"const": "gfx950"},
+    "wave_size": {"const": 64},
+    "tensor_parallel": {"type": "integer", "minimum": 1},
+    "workspace_bytes": {"type": "integer", "minimum": 0},
+    "profiles": {"type": "array", "minItems": 1},
+    "operations": {"type": "array"},
+    "golden_artifacts": {"type": "array"},
+    "validation_status": {"type": "string"}
+  }
+}
