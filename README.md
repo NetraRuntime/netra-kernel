@@ -163,41 +163,50 @@ List the available gfx950 tactics:
 netra-compile list-tactics --target gfx950 --library-root .
 ```
 
-Compile a Qwen3.6 routed-MoE operation into a specialized gfx950 engine:
+Compile the real Qwen3.6-35B serving compatibility engine used by the validated
+deployment:
 
 ```bash
 netra-compile compile \
-  --model examples/gfx950/qwen36-moe-gate-up.json \
+  --model manifests/gfx950/models/qwen36-moe-m1-golden.json \
   --target gfx950 \
   --profile decode_m1 \
   --library-root . \
-  --output build/netra-engines/qwen36-moe-gate-up
+  --output build/netra-engines/qwen36-35b-current-best
 
 netra-compile explain \
-  --engine build/netra-engines/qwen36-moe-gate-up
+  --engine build/netra-engines/qwen36-35b-current-best
 
 netra-compile validate \
-  --engine build/netra-engines/qwen36-moe-gate-up \
+  --engine build/netra-engines/qwen36-35b-current-best \
   --static \
   --library-root .
 ```
 
-The result includes a deterministic manifest, graph and memory recipes,
-selected contract, stable symbol, and specialized assembly translation unit
-under `build/netra-engines/qwen36-moe-gate-up/`. The example is synthetic and
-does not require checkpoint files; its dimensions and semantics match the
-accepted Qwen3.6 decode tactic exactly.
+This is not a toy model. The manifest records the deployed
+Qwen3.6-35B-A3B-FP8 checkpoint revision, DP8 configuration, piecewise graph
+mode, dFlash block size, three accepted M=1 MoE kernel contracts, and every
+guarded external dispatch or framework fallback still used by the serving
+stack. CPU-only compilation records the locked artifact identities without
+requiring checkpoint weights or a GPU.
 
-## Build for gfx950
+## Build the Qwen3.6-35B current best
 
-Cross-assemble the locked tactic catalog with ROCm Clang and LLVM tools. A
-visible GPU is not required for this step.
+Cross-assemble all 18 gfx950 artifacts and 19 symbol specializations in the
+validated Qwen3.6-35B deployment recipe. A visible GPU is not required for this
+step.
 
 ```bash
 ROCM_DIR=/opt/rocm \
   bash tools/compiler/build_gfx950_tactic_catalog.sh \
-  build/gfx950-tactic-catalog
+  build/qwen36-35b-current-best \
+  manifests/gfx950/deployments/qwen36-35b-current-best.json
 ```
+
+The build checks every emitted `.text` section against the locked current-best
+hash before reporting success. Generated assembly, code objects, disassembly,
+metadata, and `build-result.json` are written under
+`build/qwen36-35b-current-best/`.
 
 Build the reusable HIP engine runtime:
 

@@ -29,13 +29,18 @@ def main() -> int:
     build_root.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="ci-examples-", dir=build_root) as directory:
         root = Path(directory)
-        qwen_model = ROOT / "examples/gfx950/qwen36-moe-gate-up.json"
+        qwen_model = ROOT / "manifests/gfx950/models/qwen36-moe-m1-golden.json"
         first = root / "qwen-first"
         second = root / "qwen-second"
         qwen = compile_one(qwen_model, "decode_m1", first)
         compile_one(qwen_model, "decode_m1", second)
         if semantic_file_hashes(first) != semantic_file_hashes(second):
             raise RuntimeError("repeated Qwen compilation is not deterministic")
+        if qwen["kernel_operations"] != 3 or qwen["fallback_operations"] != 8:
+            raise RuntimeError(
+                "Qwen current-best inventory changed: expected three accepted "
+                "engine kernels and eight explicit server fallback boundaries"
+            )
         gemma = compile_one(
             ROOT / "tests/compiler/fixtures/gemma-dense-synthetic.json",
             "decode_m1",
