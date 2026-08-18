@@ -1,0 +1,230 @@
+from __future__ import annotations
+
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from netra_compiler.engine import compile_engine, semantic_file_hashes
+from netra_compiler.frontends import load_model
+from netra_compiler.frontends.huggingface_config import read_recognized_config
+from netra_compiler.planner import plan_graph
+from netra_compiler.profiles import load_profile_registry, select_profile
+from netra_compiler.types import stable_hash
+from netra_compiler.validation import validate_engine_directory
+
+
+ROOT = Path(__file__).resolve().parents[2]
+MODEL = ROOT / "manifests/gfx950/models/qwen36-27b-fp8.json"
+TREE_HASH = "80fa5ef34e3beec2b0a5ae835ff24a85dedd7b4fb2dba5742bf47d18c63c02f5"
+
+
+class Qwen3627BTest(unittest.TestCase):
+    def test_real_huggingface_config_fields_are_recognized_without_invented_tp(self) -> None:
+        config = {
+            "architectures": ["Qwen3_5ForConditionalGeneration"],
+            "model_type": "qwen3_5",
+            "text_config": {
+                "model_type": "qwen3_5_text",
+                "hidden_size": 5120,
+                "intermediate_size": 17408,
+                "num_hidden_layers": 64,
+                "num_attention_heads": 24,
+                "num_key_value_heads": 4,
+                "head_dim": 256,
+                "linear_num_key_heads": 16,
+                "linear_key_head_dim": 128,
+                "linear_num_value_heads": 48,
+                "linear_value_head_dim": 128,
+                "linear_conv_kernel_dim": 4,
+                "full_attention_interval": 4,
+                "attn_output_gate": True,
+                "vocab_size": 248320,
+                "mtp_num_hidden_layers": 1,
+                "layer_types": [
+                    "full_attention" if layer % 4 == 3 else "linear_attention"
+                    for layer in range(64)
+                ],
+                "max_position_embeddings": 262144,
+            },
+            "quantization_config": {
+                "quant_method": "fp8",
+                "fmt": "e4m3",
+                "activation_scheme": "dynamic",
+                "weight_block_size": [128, 128],
+            },
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory, "config.json")
+            path.write_text(json.dumps(config))
+            recognized = read_recognized_config(path)
+        self.assertEqual(recognized["architecture"], config["architectures"][0])
+        self.assertEqual(recognized["model_type"], "qwen3_5_text")
+        self.assertEqual(recognized["hidden_size"], 5120)
+        self.assertEqual(recognized["linear_num_value_heads"], 48)
+        self.assertTrue(recognized["attention_output_gate"])
+        self.assertEqual(recognized["mtp_layers"], 1)
+        self.assertEqual(recognized["quantization_config"], config["quantization_config"])
+        self.assertNotIn("tensor_parallel", recognized)
+
+    def test_real_manifest_hash_and_frontend_shape_inventory(self) -> None:
+        graph, model = load_model(MODEL)
+        self.assertEqual(
+            stable_hash(model),
+            "25c31796d242732a91f243920bed1616fdd915ec70ad9ed6466602af9e6e1798",
+        )
+        self.assertEqual(
+            stable_hash(graph.to_dict()),
+            "4f7c089a438ffe6e46f9ac2f71185786e93e498fd8493d22d38d91ad203602a3",
+        )
+        dense = [operation for operation in graph.operations if operation.kind == "dense"]
+        self.assertEqual(len(dense), 256)
+        self.assertEqual(
+            {(op.attributes["n"], op.attributes["k"]) for op in dense},
+            {
+                (16384, 5120),
+                (14336, 5120),
+                (34816, 5120),
+                (5120, 6144),
+                (5120, 17408),
+            },
+        )
+        self.assertEqual(
+            [op.name for op in dense[:4]],
+            [
+                "model.layers.0.linear_attn.in_proj_qkvz",
+                "model.layers.0.linear_attn.out_proj",
+                "model.layers.0.mlp.gate_up_proj",
+                "model.layers.0.mlp.down_proj",
+            ],
+        )
+        self.assertEqual(
+            [op.name for op in dense[12:16]],
+            [
+                "model.layers.3.self_attn.qkv_proj",
+                "model.layers.3.self_attn.o_proj",
+                "model.layers.3.mlp.gate_up_proj",
+                "model.layers.3.mlp.down_proj",
+            ],
+        )
+
+    def test_no_35b_tactic_is_relabelled_for_27b(self) -> None:
+        graph, _ = load_model(MODEL)
+        profile = {
+            item.name: item
+            for item in load_profile_registry(ROOT, "gfx950", tensor_parallel=1)
+        }["decode_m1"]
+        plan = plan_graph(graph, profile, "gfx950")
+        dense = [item for item in plan.operations if item.operation.kind == "dense"]
+        self.assertTrue(all(item.tactic is None for item in dense))
+        self.assertTrue(all(item.execution == "fallback" for item in dense))
+        self.assertEqual(
+            sorted({item.contract.stable_id for item in dense}),
+            [
+                "nkf_214c47c754dc581ed47c42d8",
+                "nkf_c1005fa8791524c3766a9ab7",
+                "nkf_c5e33744cae9e5b3b5bd0384",
+                "nkf_d004ef9b79aa9ee63798d2b2",
+                "nkf_eafaa53e98077d793e037be6",
+            ],
+        )
+
+    def test_layout_repack_and_scale_recipe_is_explicit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            compile_engine(
+                MODEL,
+                "gfx950",
+                "decode_m1",
+                output,
+                checkpoint_hash=TREE_HASH,
+            )
+            layout = json.loads((output / "layout_plan.json").read_text())
+            by_tensor = {item["tensor"]: item for item in layout["bindings"]}
+            packed = by_tensor[
+                "model.layers.0.linear_attn.in_proj_qkvz.weight"
+            ]
+            self.assertEqual(
+                [step["transform"] for step in packed["steps"]],
+                ["concatenate_output_shards", "aiter_shuffle_16x16"],
+            )
+            self.assertEqual(
+                packed["scale"]["steps"],
+                ["concatenate_output_scale_shards_axis0", "widen_bf16_to_fp32_exact"],
+            )
+            contract = json.loads((output / "contracts.json").read_text())["contracts"][0]
+            self.assertEqual(
+                contract["scale_layouts"],
+                {
+                    "activation": "transposed_kblock_major_fp32",
+                    "weight": "row_major_nblock_kblock_fp32",
+                },
+            )
+
+    def test_engine_is_byte_deterministic_and_deduplicated(self) -> None:
+        with tempfile.TemporaryDirectory() as first, tempfile.TemporaryDirectory() as second:
+            a, b = Path(first), Path(second)
+            compile_engine(MODEL, "gfx950", "decode_m1", a, checkpoint_hash=TREE_HASH)
+            compile_engine(MODEL, "gfx950", "decode_m1", b, checkpoint_hash=TREE_HASH)
+            self.assertEqual(semantic_file_hashes(a), semantic_file_hashes(b))
+            contracts = json.loads((a / "contracts.json").read_text())["contracts"]
+            engine = json.loads((a / "engine.json").read_text())
+            self.assertEqual(len(contracts), 5)
+            self.assertEqual(len(engine["operations"]), 267)
+            self.assertEqual(engine["kernel_symbols"], [])
+            self.assertEqual(len(engine["fallbacks"]), 267)
+            result = validate_engine_directory(a)
+            self.assertEqual(result["kernel_operations"], 0)
+            self.assertEqual(result["fallback_operations"], 267)
+
+    def test_profiles_reject_unobserved_shapes(self) -> None:
+        profiles = load_profile_registry(ROOT, "gfx950", tensor_parallel=1)
+        by_name = {profile.name: profile for profile in profiles}
+        observed = {
+            "decode_m1": {"m": 1, "batch": 1, "sequence": 0},
+            "decode_m16_b16": {"m": 16, "batch": 16, "sequence": 4752},
+            "prefill_m80_b1": {"m": 80, "batch": 1, "sequence": 80},
+            "prefill_m256_b1": {"m": 256, "batch": 1, "sequence": 256},
+            "prefill_m3840_b15": {"m": 3840, "batch": 15, "sequence": 256},
+            "verify_m4_b1": {"m": 4, "batch": 1, "sequence": 80},
+        }
+        for name, dimensions in observed.items():
+            self.assertTrue(
+                by_name[name].matches(
+                    dimensions,
+                    quantization="fp8_block128",
+                    tensor_parallel=1,
+                ),
+                name,
+            )
+        unsupported = select_profile(
+            profiles,
+            {"m": 2, "batch": 1, "sequence": 0},
+            quantization="fp8_block128",
+            tensor_parallel=1,
+        )
+        self.assertFalse(unsupported.supported)
+        self.assertIn("fallback", unsupported.reason)
+
+    def test_35b_compatibility_inventory_remains_locked(self) -> None:
+        deployment = json.loads(
+            (
+                ROOT
+                / "manifests/gfx950/deployments/qwen36-35b-current-best.json"
+            ).read_text()
+        )
+        self.assertEqual(len(deployment["artifacts"]), 18)
+        self.assertEqual(
+            sum(len(artifact["members"]) for artifact in deployment["artifacts"]),
+            19,
+        )
+        self.assertTrue(
+            all(
+                len(artifact["locked_text_sha256"]) == 64
+                for artifact in deployment["artifacts"]
+            )
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

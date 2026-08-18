@@ -14,6 +14,68 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class EngineManifestTest(unittest.TestCase):
+    def test_qwen_layer_templates_preserve_bindings_and_deduplicate_contracts(self) -> None:
+        manifest = {
+            "format": "netra-model-1",
+            "name": "qwen-layer-template-test",
+            "family": "qwen3.6",
+            "configuration": {
+                "layers": 4,
+                "layer_types": [
+                    "linear_attention",
+                    "linear_attention",
+                    "linear_attention",
+                    "full_attention",
+                ],
+                "tensor_parallel": 1,
+                "checkpoint_layout": "checkpoint_row_major_fp8_block128",
+                "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128",
+            },
+            "layer_dense_operations": [
+                {
+                    "name": "model.layers.{layer}.mlp.down_proj",
+                    "layers": "all",
+                    "n": 5120,
+                    "k": 17408,
+                    "weight_binding": "model.layers.{layer}.mlp.down_proj.weight",
+                    "checkpoint_tensors": [
+                        "model.language_model.layers.{layer}.mlp.down_proj.weight"
+                    ],
+                    "checkpoint_scale_tensors": [
+                        "model.language_model.layers.{layer}.mlp.down_proj.weight_scale_inv"
+                    ],
+                },
+                {
+                    "name": "model.layers.{layer}.linear_attn.out_proj",
+                    "layers": "linear_attention",
+                    "n": 5120,
+                    "k": 6144,
+                },
+            ],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            model = root / "model.json"
+            model.write_text(json.dumps(manifest))
+            output = root / "engine"
+            compile_engine(model, "gfx950", "decode_m1", output)
+            engine = json.loads((output / "engine.json").read_text())
+            self.assertEqual(len(engine["operations"]), 7)
+            contracts = json.loads((output / "contracts.json").read_text())["contracts"]
+            self.assertEqual(len(contracts), 2)
+            layouts = json.loads((output / "layout_plan.json").read_text())["bindings"]
+            down = next(
+                item
+                for item in layouts
+                if item["tensor"] == "model.layers.2.mlp.down_proj.weight"
+            )
+            self.assertEqual(
+                down["checkpoint_tensors"],
+                ["model.language_model.layers.2.mlp.down_proj.weight"],
+            )
+            self.assertEqual(down["scale"]["checkpoint_dtype"], "bf16")
+            self.assertEqual(down["scale"]["kernel_dtype"], "fp32")
+
     def test_qwen_dedup_determinism_and_template_instantiation(self) -> None:
         with tempfile.TemporaryDirectory() as first, tempfile.TemporaryDirectory() as second:
             a, b = Path(first), Path(second)

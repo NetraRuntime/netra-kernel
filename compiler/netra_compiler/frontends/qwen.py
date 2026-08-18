@@ -20,14 +20,57 @@ def _dense_attributes(spec: dict[str, Any], config: dict[str, Any]) -> dict[str,
 
 def qwen_graph(model: dict[str, Any]) -> Graph:
     config = model.get("configuration", {})
-    dense = model.get("dense_operations", [])
+    dense = list(model.get("dense_operations", []))
+    layer_dense = model.get("layer_dense_operations", [])
     golden = model.get("golden_operations", [])
     fallbacks = model.get("fallback_operations", [])
-    if not dense and not golden and not fallbacks:
+    if not dense and not layer_dense and not golden and not fallbacks:
         raise ValidationError(
-            "Qwen manifest must explicitly list dense_operations, golden_operations, "
-            "or fallback_operations"
+            "Qwen manifest must explicitly list dense_operations, "
+            "layer_dense_operations, golden_operations, or fallback_operations"
         )
+    if layer_dense:
+        layer_types = config.get("layer_types")
+        layer_count = config.get("layers", config.get("num_hidden_layers"))
+        if (
+            not isinstance(layer_types, list)
+            or not layer_types
+            or any(
+                layer_type not in {"linear_attention", "full_attention"}
+                for layer_type in layer_types
+            )
+        ):
+            raise ValidationError(
+                "layer_dense_operations require explicit Qwen layer_types"
+            )
+        if (
+            not isinstance(layer_count, int)
+            or isinstance(layer_count, bool)
+            or layer_count != len(layer_types)
+        ):
+            raise ValidationError(
+                "Qwen layer count must exactly match layer_types"
+            )
+        expanded: list[dict[str, Any]] = []
+        for layer, layer_type in enumerate(layer_types):
+            for template in layer_dense:
+                selector = template.get("layers")
+                if selector not in {"all", layer_type}:
+                    continue
+                spec = dict(template)
+                spec.pop("layers", None)
+                for field in ("name", "weight_binding"):
+                    value = spec.get(field)
+                    if value is not None:
+                        spec[field] = str(value).format(layer=layer)
+                for field in ("checkpoint_tensors", "checkpoint_scale_tensors"):
+                    if field in spec:
+                        spec[field] = [
+                            str(value).format(layer=layer)
+                            for value in spec[field]
+                        ]
+                expanded.append(spec)
+        dense.extend(expanded)
     tensors: list[Tensor] = []
     operations: list[Operation] = []
     graph_inputs, graph_outputs = [], []

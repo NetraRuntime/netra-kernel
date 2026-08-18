@@ -11,7 +11,7 @@ from .backends.gfx950.codegen import emit_specialized_candidates
 from .contracts import FixedKernelContract
 from .errors import ValidationError
 from .frontends import load_model
-from .layouts import plan_weight_layout
+from .layouts import plan_scale_layout, plan_weight_layout
 from .library import KernelLibrary
 from .memory import BufferRequest, checked_mul, plan_buffers
 from .planner import Plan, plan_graph
@@ -121,9 +121,15 @@ def _memory_plan(plan: Plan) -> dict[str, object]:
         ))
     for index, op in enumerate(plan.graph.operations):
         planned = plan.operations[index]
-        if planned.contract and planned.contract.workspace.bytes:
-            requests.append(BufferRequest(f"{op.name}.workspace", planned.contract.workspace.bytes,
-                                          planned.contract.workspace.alignment, index, index))
+        workspace = getattr(planned.contract, "workspace", None)
+        if workspace and workspace.bytes:
+            requests.append(BufferRequest(
+                f"{op.name}.workspace",
+                workspace.bytes,
+                workspace.alignment,
+                index,
+                index,
+            ))
     return plan_buffers(tuple(requests))
 
 
@@ -133,9 +139,24 @@ def _layout_plan(plan: Plan) -> dict[str, object]:
         if op.kind != "dense":
             continue
         checkpoint = op.attributes.get("checkpoint_layout", op.attributes["weight_layout"])
-        bindings.append(plan_weight_layout(
-            op.inputs[2], checkpoint, op.attributes["weight_layout"]
-        ).to_dict())
+        binding = plan_weight_layout(
+            op.inputs[2],
+            checkpoint,
+            op.attributes["weight_layout"],
+            checkpoint_tensors=tuple(op.attributes.get("checkpoint_tensors", ())),
+        ).to_dict()
+        checkpoint_scales = tuple(op.attributes.get("checkpoint_scale_tensors", ()))
+        if checkpoint_scales:
+            binding["scale"] = plan_scale_layout(
+                op.inputs[3],
+                checkpoint_scales,
+                checkpoint_dtype=str(
+                    op.attributes.get("checkpoint_scale_dtype", "bf16")
+                ),
+                kernel_dtype=str(op.attributes.get("kernel_scale_dtype", "fp32")),
+                block=tuple(int(value) for value in op.attributes["weight_scale_block"]),
+            ).to_dict()
+        bindings.append(binding)
     return {"format": "netra-layout-plan-1", "bindings": sorted(bindings, key=lambda b: b["tensor"])}
 
 
@@ -182,7 +203,9 @@ def _operation_records(plan: Plan, memory_plan: dict[str, object]) -> list[dict[
         tactic = planned.tactic
         operation_workspace = f"{planned.operation.name}.workspace"
         workspace_offset = None
-        if contract and contract.workspace.bytes:
+        workspace = getattr(contract, "workspace", None)
+        launch = getattr(contract, "launch", None)
+        if workspace and workspace.bytes:
             if operation_workspace not in offsets:
                 raise ValidationError(
                     f"missing planned workspace allocation for {planned.operation.name}"
@@ -200,10 +223,10 @@ def _operation_records(plan: Plan, memory_plan: dict[str, object]) -> list[dict[
                 if contract and planned.execution == "kernel"
                 else None
             ),
-            "launch": ({"grid": list(contract.launch.grid), "block": list(contract.launch.block),
-                        "lds_bytes": contract.launch.lds_bytes,
-                        "dynamic_lds_bytes": contract.launch.dynamic_lds_bytes}
-                       if contract else None),
+            "launch": ({"grid": list(launch.grid), "block": list(launch.block),
+                        "lds_bytes": launch.lds_bytes,
+                        "dynamic_lds_bytes": launch.dynamic_lds_bytes}
+                       if launch else None),
             "workspace_offset": workspace_offset,
             "fallback": planned.fallback,
             "bindings": {"inputs": list(planned.operation.inputs), "outputs": list(planned.operation.outputs)},
@@ -400,14 +423,26 @@ def compile_engine(model_path: Path, target: str, profile_name: str, output: Pat
     }
     model_hash = stable_hash(model)
     configuration = model.get("configuration", {})
+    guard_fields = (
+        "architecture", "model_type", "checkpoint", "checkpoint_repository",
+        "checkpoint_revision", "checkpoint_config_sha256", "hidden_size",
+        "intermediate_size", "layers", "layer_types", "full_attention_interval",
+        "num_attention_heads", "num_key_value_heads", "head_dim",
+        "linear_num_key_heads", "linear_key_head_dim", "linear_num_value_heads",
+        "linear_value_head_dim", "linear_conv_kernel_dim", "vocab_size",
+        "max_position_embeddings", "attention_output_gate", "mtp_layers",
+        "quantization_method", "quantization_format",
+        "activation_quantization", "checkpoint_activation_scheme",
+        "weight_scale_block", "checkpoint_scale_dtype",
+        "kernel_scale_dtype", "tensor_parallel", "data_parallel_workers",
+        "deployment_graph_mode", "cuda_graph_batch_sizes",
+        "piecewise_cuda_graph_tokens", "speculative_algorithm",
+        "speculative_num_steps", "speculative_eagle_topk",
+        "speculative_num_draft_tokens", "dflash_enabled", "dflash_block_size",
+        "required_environment",
+    )
     deployment_guards = {
-        key: configuration[key]
-        for key in ("architecture", "checkpoint", "hidden_size", "layers",
-                    "checkpoint_revision",
-                    "tensor_parallel", "data_parallel_workers",
-                    "deployment_graph_mode", "dflash_block_size",
-                    "required_environment")
-        if key in configuration
+        key: configuration[key] for key in guard_fields if key in configuration
     }
     template_hashes = {
         relative: digest

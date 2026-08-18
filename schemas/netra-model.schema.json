@@ -11,6 +11,10 @@
     "synthetic": {"type": "boolean"},
     "configuration": {"type": "object"},
     "dense_operations": {"type": "array", "items": {"$ref": "#/$defs/dense"}},
+    "layer_dense_operations": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/layer_dense"}
+    },
     "golden_operations": {"type": "array", "items": {"$ref": "#/$defs/golden"}},
     "fallback_operations": {"type": "array", "items": {"$ref": "#/$defs/fallback"}},
     "graph": {"$ref": "#/$defs/graph"}
@@ -23,8 +27,58 @@
         "name": {"type": "string", "minLength": 1},
         "n": {"type": "integer", "minimum": 1},
         "k": {"type": "integer", "minimum": 1},
+        "weight_binding": {"type": "string", "minLength": 1},
+        "checkpoint_tensors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "checkpoint_scale_tensors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "checkpoint_scale_dtype": {"enum": ["bf16", "fp32"]},
+        "kernel_scale_dtype": {"enum": ["bf16", "fp32"]},
+        "checkpoint_layout": {"type": "string", "minLength": 1},
+        "kernel_weight_layout": {"type": "string", "minLength": 1},
+        "activation_scale_layout": {"type": "string", "minLength": 1},
+        "weight_scale_layout": {"type": "string", "minLength": 1},
         "epilogue": {"enum": ["identity", "bias", "silu", "gelu", "gated_silu"]}
       }
+    },
+    "layer_dense": {
+      "type": "object",
+      "required": ["name", "layers", "n", "k"],
+      "properties": {
+        "name": {"type": "string", "pattern": "\\{layer\\}"},
+        "layers": {"enum": ["all", "linear_attention", "full_attention"]},
+        "n": {"type": "integer", "minimum": 1},
+        "k": {"type": "integer", "minimum": 1},
+        "weight_binding": {"type": "string", "pattern": "\\{layer\\}"},
+        "checkpoint_tensors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "pattern": "\\{layer\\}"},
+          "uniqueItems": true
+        },
+        "checkpoint_scale_tensors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "pattern": "\\{layer\\}"},
+          "uniqueItems": true
+        },
+        "checkpoint_scale_dtype": {"enum": ["bf16", "fp32"]},
+        "kernel_scale_dtype": {"enum": ["bf16", "fp32"]},
+        "checkpoint_layout": {"type": "string", "minLength": 1},
+        "kernel_weight_layout": {"type": "string", "minLength": 1},
+        "activation_scale_layout": {"type": "string", "minLength": 1},
+        "weight_scale_layout": {"type": "string", "minLength": 1},
+        "epilogue": {"enum": ["identity", "bias", "silu", "gelu", "gated_silu"]}
+      },
+      "additionalProperties": true
     },
     "golden": {
       "type": "object",

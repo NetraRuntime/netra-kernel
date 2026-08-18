@@ -1,0 +1,1 @@
+{"format":"netra-profile-1","name":"decode_m16_b16","guards":{"m":{"min":16,"max":16},"batch":{"min":16,"max":16},"sequence":{"min":0,"max":32768}},"quantization":"fp8_block128","tensor_parallel":"deployment","priority":31}

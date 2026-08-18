@@ -6,7 +6,12 @@ from pathlib import Path
 from typing import Any
 
 from .backends.gfx950.catalog import FixedAssemblyTactic, load_fixed_tactic_catalog
-from .contracts import FixedKernelContract, GoldenKernelContract, KernelContract
+from .contracts import (
+    FallbackKernelContract,
+    FixedKernelContract,
+    GoldenKernelContract,
+    KernelContract,
+)
 from .errors import ValidationError
 from .ir import Graph, Operation
 from .library import KernelLibrary
@@ -18,7 +23,13 @@ from .types import DType, Epilogue
 @dataclass(frozen=True)
 class PlannedOperation:
     operation: Operation
-    contract: KernelContract | GoldenKernelContract | FixedKernelContract | None
+    contract: (
+        KernelContract
+        | FallbackKernelContract
+        | GoldenKernelContract
+        | FixedKernelContract
+        | None
+    )
     tactic: Tactic | GoldenTactic | FixedAssemblyTactic | None
     execution: str
     fallback: str
@@ -37,7 +48,7 @@ def _request(op: Operation, profile: ShapeProfile, target: str) -> dict[str, Any
     guards = dict(profile.guards)
     if "m" not in guards or guards["m"].minimum != guards["m"].maximum:
         raise ValidationError("dense code generation requires an exact M guard")
-    return {
+    request = {
         "target": target, "wave_size": 64, "m": guards["m"].minimum,
         "n": int(a["n"]), "k": int(a["k"]),
         "input_dtype": DType(a.get("input_dtype", "fp8_e4m3")),
@@ -55,6 +66,37 @@ def _request(op: Operation, profile: ShapeProfile, target: str) -> dict[str, Any
         "deterministic": bool(a.get("deterministic", True)),
         "fallback": a.get("fallback", "framework.aiter"),
     }
+    for name in ("activation_scale_layout", "weight_scale_layout"):
+        if name in a and a[name] != "row_major":
+            request[name] = str(a[name])
+    return request
+
+
+def _fallback_contract(request: Mapping[str, Any]) -> FallbackKernelContract:
+    return FallbackKernelContract(
+        target=str(request["target"]),
+        wave_size=int(request["wave_size"]),
+        operation="dense",
+        m=int(request["m"]),
+        n=int(request["n"]),
+        k=int(request["k"]),
+        input_dtype=request["input_dtype"],
+        weight_dtype=request["weight_dtype"],
+        output_dtype=request["output_dtype"],
+        activation_quantization=str(request["activation_quantization"]),
+        weight_quantization=str(request["weight_quantization"]),
+        activation_scale_block=int(request["activation_scale_block"]),
+        weight_scale_block=tuple(request["weight_scale_block"]),
+        activation_layout=str(request["activation_layout"]),
+        weight_layout=str(request["weight_layout"]),
+        output_layout=str(request["output_layout"]),
+        activation_scale_layout=request.get("activation_scale_layout"),
+        weight_scale_layout=request.get("weight_scale_layout"),
+        epilogue=request["epilogue"],
+        graph_capture=bool(request["graph_capture"]),
+        deterministic=bool(request["deterministic"]),
+        fallback=str(request["fallback"]),
+    )
 
 
 def _fixed_request(
@@ -199,7 +241,14 @@ def plan_graph(graph: Graph, profile: ShapeProfile, target: str,
             for t, reasons in rejected
         )
         if not compatible:
-            planned.append(PlannedOperation(op, None, None, "fallback", request["fallback"], tuple(explanation)))
+            planned.append(PlannedOperation(
+                op,
+                _fallback_contract(request),
+                None,
+                "fallback",
+                request["fallback"],
+                tuple(explanation),
+            ))
             continue
         tactic = compatible[0]
         contract = tactic.make_contract(request)

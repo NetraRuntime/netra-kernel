@@ -1,0 +1,364 @@
+{
+  "format": "netra-model-1",
+  "name": "qwen3.6-27b-fp8-gfx950",
+  "family": "qwen3.6",
+  "configuration": {
+    "architecture": "Qwen3_5ForConditionalGeneration",
+    "model_type": "qwen3_5_text",
+    "checkpoint": "Qwen3.6-27B-FP8",
+    "checkpoint_repository": "Qwen/Qwen3.6-27B-FP8",
+    "checkpoint_revision": "e89b16ebf1988b3d6befa7de50abc2d76f26eb09",
+    "checkpoint_revision_tree_sha256": "80fa5ef34e3beec2b0a5ae835ff24a85dedd7b4fb2dba5742bf47d18c63c02f5",
+    "checkpoint_config_sha256": "885e6830f8d6883fefd63e3608c267452da2e6ce353a3494f42a7aa3d70c8434",
+    "checkpoint_total_bytes": 30890040900,
+    "hidden_size": 5120,
+    "intermediate_size": 17408,
+    "layers": 64,
+    "layer_types": [
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention"
+    ],
+    "full_attention_interval": 4,
+    "num_attention_heads": 24,
+    "num_key_value_heads": 4,
+    "head_dim": 256,
+    "attention_output_gate": true,
+    "linear_num_key_heads": 16,
+    "linear_key_head_dim": 128,
+    "linear_num_value_heads": 48,
+    "linear_value_head_dim": 128,
+    "linear_conv_kernel_dim": 4,
+    "vocab_size": 248320,
+    "max_position_embeddings": 262144,
+    "mtp_layers": 1,
+    "tensor_parallel": 1,
+    "data_parallel_workers": 1,
+    "target": "gfx950",
+    "wave_size": 64,
+    "quantization_method": "fp8",
+    "quantization_format": "e4m3",
+    "activation_quantization": "e4m3_per_128",
+    "checkpoint_activation_scheme": "dynamic",
+    "weight_scale_block": [
+      128,
+      128
+    ],
+    "checkpoint_scale_dtype": "bf16",
+    "kernel_scale_dtype": "fp32",
+    "activation_layout": "row_major_fp8_block128",
+    "activation_scale_layout": "transposed_kblock_major_fp32",
+    "checkpoint_layout": "checkpoint_row_major_fp8_block128",
+    "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128",
+    "weight_scale_layout": "row_major_nblock_kblock_fp32",
+    "deployment_graph_mode": "full",
+    "cuda_graph_batch_sizes": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "speculative_algorithm": null,
+    "dflash_enabled": false,
+    "required_profiles": [
+      "decode_m1",
+      "decode_m16_b16",
+      "prefill_m80_b1",
+      "prefill_m256_b1",
+      "prefill_m3840_b15",
+      "verify_m4_b1"
+    ],
+    "required_environment": {
+      "SGLANG_USE_AITER": "1"
+    }
+  },
+  "layer_dense_operations": [
+    {
+      "name": "model.layers.{layer}.linear_attn.in_proj_qkvz",
+      "layers": "linear_attention",
+      "n": 16384,
+      "k": 5120,
+      "weight_binding": "model.layers.{layer}.linear_attn.in_proj_qkvz.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.linear_attn.in_proj_qkv.weight",
+        "model.language_model.layers.{layer}.linear_attn.in_proj_z.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.linear_attn.in_proj_qkv.weight_scale_inv",
+        "model.language_model.layers.{layer}.linear_attn.in_proj_z.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_split_output_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    },
+    {
+      "name": "model.layers.{layer}.linear_attn.out_proj",
+      "layers": "linear_attention",
+      "n": 5120,
+      "k": 6144,
+      "weight_binding": "model.layers.{layer}.linear_attn.out_proj.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.linear_attn.out_proj.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.linear_attn.out_proj.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    },
+    {
+      "name": "model.layers.{layer}.self_attn.qkv_proj",
+      "layers": "full_attention",
+      "n": 14336,
+      "k": 5120,
+      "weight_binding": "model.layers.{layer}.self_attn.qkv_proj.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.self_attn.q_proj.weight",
+        "model.language_model.layers.{layer}.self_attn.k_proj.weight",
+        "model.language_model.layers.{layer}.self_attn.v_proj.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.self_attn.q_proj.weight_scale_inv",
+        "model.language_model.layers.{layer}.self_attn.k_proj.weight_scale_inv",
+        "model.language_model.layers.{layer}.self_attn.v_proj.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_split_output_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    },
+    {
+      "name": "model.layers.{layer}.self_attn.o_proj",
+      "layers": "full_attention",
+      "n": 5120,
+      "k": 6144,
+      "weight_binding": "model.layers.{layer}.self_attn.o_proj.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.self_attn.o_proj.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.self_attn.o_proj.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    },
+    {
+      "name": "model.layers.{layer}.mlp.gate_up_proj",
+      "layers": "all",
+      "n": 34816,
+      "k": 5120,
+      "weight_binding": "model.layers.{layer}.mlp.gate_up_proj.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.mlp.gate_proj.weight",
+        "model.language_model.layers.{layer}.mlp.up_proj.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.mlp.gate_proj.weight_scale_inv",
+        "model.language_model.layers.{layer}.mlp.up_proj.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_split_output_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    },
+    {
+      "name": "model.layers.{layer}.mlp.down_proj",
+      "layers": "all",
+      "n": 5120,
+      "k": 17408,
+      "weight_binding": "model.layers.{layer}.mlp.down_proj.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.mlp.down_proj.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.mlp.down_proj.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    }
+  ],
+  "fallback_operations": [
+    {
+      "name": "embedding_and_lm_head",
+      "operation": "qwen36_27b_embedding_lm_head",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "vision_encoder",
+      "operation": "qwen36_27b_vision_encoder",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "normalization",
+      "operation": "qwen36_27b_gemma_rmsnorm",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "mlp_activation",
+      "operation": "qwen36_27b_silu_mul",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "gdn_ba_projection",
+      "operation": "qwen36_27b_gdn_ba_bf16",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "gdn_causal_conv",
+      "operation": "qwen36_27b_gdn_causal_conv_width4",
+      "fallback": "sglang.triton",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "gdn_recurrence_and_state",
+      "operation": "qwen36_27b_gdn_recurrence_state",
+      "fallback": "sglang.triton",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "full_attention_qk_norm_rope",
+      "operation": "qwen36_27b_qk_norm_rope",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "full_attention_paged_kv",
+      "operation": "qwen36_27b_gqa6_fp8kv",
+      "fallback": "sglang.aiter",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "mtp_and_verification",
+      "operation": "qwen36_27b_mtp_verification",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "sampling",
+      "operation": "qwen36_27b_sampling",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    }
+  ]
+}
