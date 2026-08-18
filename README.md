@@ -163,29 +163,30 @@ List the available gfx950 tactics:
 netra-compile list-tactics --target gfx950 --library-root .
 ```
 
-Compile a synthetic Llama-style operation that exactly reuses a
-model-independent routed-MoE tactic:
+Compile a Qwen3.6 routed-MoE operation into a specialized gfx950 engine:
 
 ```bash
 netra-compile compile \
-  --model tests/compiler/fixtures/llama-moe-gate-up-exact.json \
+  --model examples/gfx950/qwen36-moe-gate-up.json \
   --target gfx950 \
   --profile decode_m1 \
   --library-root . \
-  --output build/netra-engines/llama-moe-example
+  --output build/netra-engines/qwen36-moe-gate-up
 
 netra-compile explain \
-  --engine build/netra-engines/llama-moe-example
+  --engine build/netra-engines/qwen36-moe-gate-up
 
 netra-compile validate \
-  --engine build/netra-engines/llama-moe-example \
+  --engine build/netra-engines/qwen36-moe-gate-up \
   --static \
   --library-root .
 ```
 
 The result includes a deterministic manifest, graph and memory recipes,
 selected contract, stable symbol, and specialized assembly translation unit
-under `build/netra-engines/llama-moe-example/`.
+under `build/netra-engines/qwen36-moe-gate-up/`. The example is synthetic and
+does not require checkpoint files; its dimensions and semantics match the
+accepted Qwen3.6 decode tactic exactly.
 
 ## Build for gfx950
 

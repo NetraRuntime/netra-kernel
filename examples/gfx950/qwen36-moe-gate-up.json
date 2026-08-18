@@ -1,0 +1,116 @@
+{
+  "format": "netra-model-1",
+  "name": "qwen3.6-moe-gate-up-specialized-example",
+  "family": "qwen3.6",
+  "synthetic": true,
+  "configuration": {
+    "architecture": "Qwen3_5MoeForConditionalGeneration",
+    "tensor_parallel": 1
+  },
+  "graph": {
+    "format": "netra-ir-1",
+    "name": "qwen3.6-moe-gate-up",
+    "tensors": [
+      {
+        "name": "hidden",
+        "shape": [1, 2048],
+        "dtype": "fp8_e4m3",
+        "layout": "row_major_fp8_block128",
+        "role": "input",
+        "alias_of": null,
+        "persistent": false
+      },
+      {
+        "name": "hidden_scale",
+        "shape": [1, 16],
+        "dtype": "fp32",
+        "layout": "row_major",
+        "role": "input",
+        "alias_of": null,
+        "persistent": false
+      },
+      {
+        "name": "w13",
+        "shape": [257, 1024, 2048],
+        "dtype": "fp8_e4m3",
+        "layout": "aiter_expert_n16k16_gate_up",
+        "role": "weight",
+        "alias_of": null,
+        "persistent": true
+      },
+      {
+        "name": "w13_scale",
+        "shape": [257, 8, 16],
+        "dtype": "fp32",
+        "layout": "expert_block128x128",
+        "role": "weight",
+        "alias_of": null,
+        "persistent": true
+      },
+      {
+        "name": "topk_ids",
+        "shape": [1, 9],
+        "dtype": "int32",
+        "layout": "row_major",
+        "role": "input",
+        "alias_of": null,
+        "persistent": false
+      },
+      {
+        "name": "gate_up",
+        "shape": [9, 1024],
+        "dtype": "fp32",
+        "layout": "routed_topk_rows_intermediate",
+        "role": "output",
+        "alias_of": null,
+        "persistent": false
+      }
+    ],
+    "operations": [
+      {
+        "name": "model.layers.shared.moe_gate_up",
+        "kind": "fixed_kernel",
+        "inputs": ["hidden", "hidden_scale", "w13", "w13_scale", "topk_ids"],
+        "outputs": ["gate_up"],
+        "attributes": {
+          "family": "moe.fp8_block128.gate_up",
+          "operation": "moe_gate_up",
+          "constants": {
+            "NETRA_M": 1,
+            "NETRA_HIDDEN_SIZE": 2048,
+            "NETRA_INTERMEDIATE_SIZE": 512,
+            "NETRA_TOPK": 9,
+            "NETRA_SCALE_BLOCK": 128,
+            "NETRA_WEIGHT_LAYOUT_ID": 1
+          },
+          "semantics": {
+            "abi": "moe.routed_gate_up.ptr6.v1",
+            "dtypes": "fp8e4m3_f32scale_weights_to_f32.v1",
+            "quantization": "fp8e4m3_block128x128.v1",
+            "layouts": "aiter_expert_n16k16_gate_up.v1",
+            "numerical": "fp32_accum_kblock_ascending.v1"
+          },
+          "launch_grid": [576, 1, 1],
+          "graph_capture": true,
+          "deterministic": true,
+          "fallback": "framework.qwen36_moe_gate_up",
+          "arguments": [
+            {"name": "hidden", "kind": "pointer", "access": "read", "offset": 0},
+            {"name": "hidden_scale", "kind": "pointer", "access": "read", "offset": 8},
+            {"name": "w13", "kind": "pointer", "access": "read", "offset": 16},
+            {"name": "w13_scale", "kind": "pointer", "access": "read", "offset": 24},
+            {"name": "topk_ids", "kind": "pointer", "access": "read", "offset": 32},
+            {"name": "gate_up", "kind": "pointer", "access": "write", "offset": 40}
+          ]
+        },
+        "numerical": {
+          "accumulation_dtype": "fp32",
+          "reduction_order": "k_block_ascending_fixed"
+        }
+      }
+    ],
+    "inputs": ["hidden", "hidden_scale", "topk_ids"],
+    "outputs": ["gate_up"],
+    "state": []
+  }
+}

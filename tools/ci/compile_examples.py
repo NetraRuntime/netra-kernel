@@ -29,7 +29,7 @@ def main() -> int:
     build_root.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="ci-examples-", dir=build_root) as directory:
         root = Path(directory)
-        qwen_model = ROOT / "manifests/gfx950/models/qwen36-dense.json"
+        qwen_model = ROOT / "examples/gfx950/qwen36-moe-gate-up.json"
         first = root / "qwen-first"
         second = root / "qwen-second"
         qwen = compile_one(qwen_model, "decode_m1", first)
