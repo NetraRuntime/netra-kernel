@@ -8,8 +8,8 @@
 
 Netra Kernel compiles model operations into fixed-contract raw-assembly
 kernels and packages them as loadable **Netra Engines**. It brings a
-TensorRT-style workflow—profiles, tactics, layout planning, static memory
-planning, and engine building—to native AMD GPU kernels.
+TensorRT-style workflow for profiles, tactics, layout planning, static memory
+planning, and engine building, applied to native AMD GPU kernels.
 
 > Compile for the exact serving contract. Launch only specialized kernels at
 > runtime.
