@@ -6,7 +6,7 @@
   "evidence": {
     "lock": "/data/netra/benchmarks/gfx950_qwen36_27b/20260818-dflash12-gdnhv48-attnm16-tuned-gpu7/deterministic-hv48.json",
     "lock_sha256": "3b5088eea606918a1855fe0afb1fcca1e8a02088b08bdd4d61dfedf54710ff52",
-    "source_revision": "pending-first-push"
+    "source_revision": "265196ec59a3aa0f2017a72aafed114c1f8cc075"
   },
   "artifacts": [
     {
