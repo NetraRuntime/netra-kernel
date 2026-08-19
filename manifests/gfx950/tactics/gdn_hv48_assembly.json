@@ -103,6 +103,43 @@
       "template_sha256": "1b71858fe814e4f735aebec265145688a35f1f7baf1af1cb0e76dd8867270259",
       "source_closure_sha256": "685c06b6319ac21789d0b911c7edeef87e4c8aa2e5a375b4059ce8e12e5e204a",
       "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_verify_precompute_m12_hv48_gates",
+      "operation": "gdn_verify_precompute",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/verify/precompute_hv48_gates.inc",
+      "symbols": [
+        "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_PRECOMPUTE_VARIANT": 7
+      },
+      "rank": 140,
+      "kernarg_size": 96,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "gdn.verify_precompute.ptr10_u32x4.v1",
+        "dtypes": "bf16_gates_qk_to_fp32_normalized.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_token_head_qk128_hv48.v1",
+        "numerical": "gdn_norm_decay_beta_fp32_fixed_hv48.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify_precompute",
+      "locked_hsaco_sha256": [
+        "6ae434c8b5b345578fa3b38178c3070c2be6a505816af877149b7382c051c508"
+      ],
+      "instantiation_macro": "NETRA_GDN_VERIFY_PRECOMPUTE_HV48_GATES",
+      "template_sha256": "61396c60d06eeb087aa1ab33f36d6df3113947034409eba8950af6f20e0d28db",
+      "source_closure_sha256": "69a0e679de2523b0c8623df3fb98cea996354ab837375c650426fdacf8097221",
+      "family": "gdn.verify_precompute"
     }
   ]
 }

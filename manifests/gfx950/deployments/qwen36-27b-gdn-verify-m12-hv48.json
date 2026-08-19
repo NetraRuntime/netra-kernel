@@ -44,6 +44,20 @@
           }
         }
       ]
+    },
+    {
+      "name": "qwen36_27b_gdn_verify_m12_batched_precompute_gates_gfx950",
+      "locked_text_sha256": "c3c0c96fe983733238671fb24b4fb27a1e8c32c9c5e104542415cf753d7c7178",
+      "locked_hsaco_sha256": "6ae434c8b5b345578fa3b38178c3070c2be6a505816af877149b7382c051c508",
+      "members": [
+        {
+          "tactic": "gdn_verify_precompute_m12_hv48_gates",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
+          "definitions": {
+            "NETRA_GDN_PRECOMPUTE_VARIANT": 7
+          }
+        }
+      ]
     }
   ]
 }
