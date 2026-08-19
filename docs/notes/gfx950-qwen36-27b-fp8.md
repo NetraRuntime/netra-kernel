@@ -35,9 +35,50 @@ M=16 for the concurrency-16 measurement, prefill M=80 during warmup, and
 prefill M=256 plus M=3840 for the matched 16-request wave. Exact profiles bind
 those shapes and their observed batch counts. Bundled MTP warmup reached an
 exact verification shape of M=4 before the unmodified framework failed in its
-AITER attention metadata path. `verify_m4_b1` records that shape, but MTP and
-speculative serving remain framework fallback and are not supported by this
-deployment.
+AITER attention metadata path. `verify_m4_b1` records that shape. The engine
+keeps MTP and speculative serving on the framework; the dFlash-12 deployment
+below serves them through the verified raw-kernel bridge instead.
+
+## Verified HV48 GDN verification tactics
+
+The dFlash block-12 deployment uses two model-independent gfx950 tactics from
+`manifests/gfx950/tactics/gdn_hv48_assembly.json`, both at maturity
+`verified`:
+
+- `gdn_verify_precompute_m12_qk_hv48` builds the QK-only normalization
+  precompute from
+  `kernels/gfx950/templates/gdn/verify/precompute_qk_hv48.inc`. The recurrent
+  gate pairs come from an exact framework precompute, so the lane-zero gate
+  block is omitted.
+- `gdn_verify_core_m12_bv16_hv48_k0` builds the K0 recurrent verification core
+  from `kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc`
+  with variant 13 arithmetic, one wave per workgroup, an FP32 initial state,
+  and a 1.5 MiB HV48 state-pool slot.
+
+Both templates pin the 48-value-head contract. The locked HV32 templates used
+by the accepted Qwen3.6-35B tactics are byte-identical to their pinned catalog
+hashes; the accepted tactic set is pinned by
+`tests/compiler/test_current_best_assembly.py`.
+
+The build entry point is
+`tools/build/build_gfx950_qwen36_27b_gdn_verify_m12_batched.sh`. It compiles
+the deployment manifest
+`manifests/gfx950/deployments/qwen36-27b-gdn-verify-m12-hv48.json`, verifies
+the locked executable text hashes recorded from the serving artifacts, copies
+`precompute.hsaco` and `core.hsaco` into the serving layout, and builds
+`libqwen36_27b_gdn_verify_m12_batched_bridge.so` from
+`runtime/gfx950/linear_attention/verify/`. The synthetic correctness and
+latency gate is `tools/benchmark/qwen36_27b_gdn_verify_m12_batched_synthetic.py`.
+
+Hardware evidence for the verified maturity is recorded under
+`/data/netra/benchmarks/gfx950_qwen36_27b/20260818-dflash12-gdnhv48-attnm16-tuned-gpu7`.
+Fixed-prompt captures `deterministic-hv48.json` and
+`deterministic-fp32state.json` show identical output tokens and identical
+12-bin acceptance histograms across the kernel variants. The locked
+concurrency-128 measurement with three warmup waves reached 2314.46 output
+tokens/s with mean dFlash acceptance 3.667. The tactics are not accepted and
+the engine keeps them out of the default path until the remaining serving
+gates pass.
 
 No accepted Qwen3.6-35B tactic matches these five projection shapes. The 27B
 engine therefore retains `framework.aiter` for all dense projections and

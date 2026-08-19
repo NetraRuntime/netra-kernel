@@ -20,12 +20,37 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class CurrentBestAssemblyTest(unittest.TestCase):
+    LOCKED_ACCEPTED_TACTICS = frozenset(
+        {
+            "gfx950.attention_gqa4_fp8kv",
+            "gfx950.attention_gqa8_fp8kv",
+            "gfx950.attention_splitseq_prepare",
+            "gfx950.attention_splitseq_stage1",
+            "gfx950.attention_splitseq_stage2",
+            "gfx950.gdn_h_m8192_bv16_varlen",
+            "gfx950.gdn_qkvz_conv_m12",
+            "gfx950.gdn_state_replay_m12_fused_exact",
+            "gfx950.gdn_verify_core_m12_packed_pair_interleaved",
+            "gfx950.gdn_verify_precompute_m12",
+            "gfx950.moe_down_reduce_decode_m1",
+            "gfx950.moe_gate_up_decode_m1",
+            "gfx950.moe_silu_quant_decode_m1",
+            "gfx950.router_bf16_verify_m16",
+        }
+    )
+
     def test_registry_is_model_independent_and_locked(self) -> None:
         tactics = load_fixed_tactic_catalog(ROOT)
-        self.assertEqual(len(tactics), 14)
-        self.assertTrue(all(t.maturity is Maturity.ACCEPTED for t in tactics))
-        self.assertTrue(all(t.acceptance_scope == "locked_exact_contract" for t in tactics))
-        self.assertEqual(len({t.stable_id for t in tactics}), 14)
+        accepted = [t for t in tactics if t.maturity is Maturity.ACCEPTED]
+        # The accepted set is exactly the locked Qwen3.6-35B current-best
+        # registry. New tactics must enter as experiment or verified and may
+        # not silently join or displace this set.
+        self.assertEqual({t.name for t in accepted}, self.LOCKED_ACCEPTED_TACTICS)
+        self.assertTrue(all(t.acceptance_scope == "locked_exact_contract" for t in accepted))
+        for tactic in tactics:
+            if tactic.maturity is not Maturity.ACCEPTED:
+                self.assertIn(tactic.maturity, (Maturity.EXPERIMENT, Maturity.VERIFIED))
+        self.assertEqual(len({t.stable_id for t in tactics}), len(tactics))
         for tactic in tactics:
             self.assertNotIn("qwen", tactic.name.lower())
             self.assertNotIn("qwen", tactic.family.lower())
@@ -34,6 +59,48 @@ class CurrentBestAssemblyTest(unittest.TestCase):
             self.assertNotIn("qwen", semantic_source.lower())
             renamed = dataclasses.replace(tactic, compatibility_symbols=("another_model_alias",))
             self.assertEqual(tactic.stable_id, renamed.stable_id)
+
+    def test_hv48_verify_tactics_are_verified_and_hv32_contracts_reject_them(self) -> None:
+        tactics = {t.name: t for t in load_fixed_tactic_catalog(ROOT)}
+        precompute = tactics["gfx950.gdn_verify_precompute_m12_qk_hv48"]
+        core = tactics["gfx950.gdn_verify_core_m12_bv16_hv48_k0"]
+        for tactic in (precompute, core):
+            self.assertIs(tactic.maturity, Maturity.VERIFIED)
+            self.assertEqual(tactic.rank, 150)
+            constants = dict(tactic.contract_constants)
+            self.assertEqual(constants["NETRA_VALUE_HEADS"], (48,))
+            self.assertEqual(constants["NETRA_TOKENS"], (12,))
+            request = {
+                "operation": tactic.operation,
+                "target": "gfx950",
+                "wave_size": 64,
+                "semantics": tactic.semantics.to_dict(),
+                "constants": {
+                    name: allowed[0]
+                    for name, allowed in (
+                        *tactic.contract_constants,
+                        *tactic.compile_definitions,
+                    )
+                },
+            }
+            self.assertEqual(tactic.rejection_reasons(request), ())
+            hv32_request = dict(request)
+            hv32_request["constants"] = {
+                **request["constants"],
+                "NETRA_VALUE_HEADS": 32,
+            }
+            self.assertIn(
+                "NETRA_VALUE_HEADS mismatch", tactic.rejection_reasons(hv32_request)
+            )
+        # The locked 35B verify tactics keep their own templates untouched.
+        self.assertEqual(
+            tactics["gfx950.gdn_verify_precompute_m12"].template,
+            "kernels/gfx950/templates/gdn/verify/precompute.inc",
+        )
+        self.assertEqual(
+            tactics["gfx950.gdn_verify_core_m12_packed_pair_interleaved"].template,
+            "kernels/gfx950/templates/gdn/verify/recurrent_packed_pair.inc",
+        )
 
     def test_exact_contract_matches_and_one_dimension_mismatch_rejects(self) -> None:
         tactic = next(

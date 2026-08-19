@@ -1,0 +1,49 @@
+{
+  "format": "netra-compatibility-build-1",
+  "target": "gfx950",
+  "wave_size": 64,
+  "deployment": "qwen36-27b-gdn-verify-m12-hv48",
+  "evidence": {
+    "lock": "/data/netra/benchmarks/gfx950_qwen36_27b/20260818-dflash12-gdnhv48-attnm16-tuned-gpu7/deterministic-hv48.json",
+    "lock_sha256": "3b5088eea606918a1855fe0afb1fcca1e8a02088b08bdd4d61dfedf54710ff52",
+    "source_revision": "pending-first-push"
+  },
+  "artifacts": [
+    {
+      "name": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
+      "locked_text_sha256": "1e74e20bd9b6e61d25861f9fb3d15c4e13f52b0de69b71fb88d3a21d7ed3c38b",
+      "locked_hsaco_sha256": "06ec9fcf7cdba0bf481f2f0f821a458a58c64adc99553bb805004618c95db65f",
+      "members": [
+        {
+          "tactic": "gdn_verify_precompute_m12_qk_hv48",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
+          "definitions": {
+            "NETRA_GDN_PRECOMPUTE_VARIANT": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+      "locked_text_sha256": "127942a0c6e81709bba8657db59a8a6cf9cc5c5cb7066fa20271cfe56a950b33",
+      "locked_hsaco_sha256": "da370e1674edf1c5ea0793bfbbaf62348323e012112444daad9358c056df05bc",
+      "members": [
+        {
+          "tactic": "gdn_verify_core_m12_bv16_hv48_k0",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+          "macro_symbols": [
+            "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+            "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_dual_gfx950"
+          ],
+          "definitions": {
+            "NETRA_GDN_CORE_VARIANT": 13,
+            "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+            "NETRA_GDN_INITIAL_STATE_FP32": 1,
+            "NETRA_GDN_SHARE_QK": 1,
+            "NETRA_GDN_WAVES_PER_WORKGROUP": 1
+          }
+        }
+      ]
+    }
+  ]
+}
