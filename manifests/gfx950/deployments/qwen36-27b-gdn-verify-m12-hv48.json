@@ -18,7 +18,8 @@
           "tactic": "gdn_verify_precompute_m12_qk_hv48",
           "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
           "definitions": {
-            "NETRA_GDN_PRECOMPUTE_VARIANT": 8
+            "NETRA_GDN_PRECOMPUTE_VARIANT": 8,
+            "NETRA_TOKENS": 12
           }
         }
       ]
@@ -40,7 +41,8 @@
             "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
             "NETRA_GDN_INITIAL_STATE_FP32": 1,
             "NETRA_GDN_SHARE_QK": 1,
-            "NETRA_GDN_WAVES_PER_WORKGROUP": 1
+            "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+            "NETRA_TOKENS": 12
           }
         }
       ]
@@ -54,7 +56,8 @@
           "tactic": "gdn_verify_precompute_m12_hv48_gates",
           "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
           "definitions": {
-            "NETRA_GDN_PRECOMPUTE_VARIANT": 7
+            "NETRA_GDN_PRECOMPUTE_VARIANT": 7,
+            "NETRA_TOKENS": 12
           }
         }
       ]
@@ -77,7 +80,85 @@
             "NETRA_GDN_INITIAL_STATE_FP32": 1,
             "NETRA_GDN_SHARE_QK": 1,
             "NETRA_GDN_STATE_REPLAY": 1,
-            "NETRA_GDN_WAVES_PER_WORKGROUP": 1
+            "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+            "NETRA_TOKENS": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_verify_m8_batched_precompute_gfx950",
+      "locked_text_sha256": "1e74e20bd9b6e61d25861f9fb3d15c4e13f52b0de69b71fb88d3a21d7ed3c38b",
+      "locked_hsaco_sha256": "bccc773421fb5ae2319a2472d2847560cd318482b01687faca39cfb39ba2cf50",
+      "members": [
+        {
+          "tactic": "gdn_verify_precompute_m12_qk_hv48",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
+          "definitions": {
+            "NETRA_GDN_PRECOMPUTE_VARIANT": 8,
+            "NETRA_TOKENS": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_verify_m8_batched_precomputed_bv16_gfx950",
+      "locked_text_sha256": "4038e1d86a2c323f1b8df434be45202b3e9e9cae644479426ddf0ad675333115",
+      "locked_hsaco_sha256": "dfbc489be6ab40c1833696cbe735cbf36a708ad1a44ac1de454f50085522899f",
+      "members": [
+        {
+          "tactic": "gdn_verify_core_m12_bv16_hv48_k0",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+          "macro_symbols": [
+            "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+            "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_dual_gfx950"
+          ],
+          "definitions": {
+            "NETRA_GDN_CORE_VARIANT": 13,
+            "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+            "NETRA_GDN_INITIAL_STATE_FP32": 1,
+            "NETRA_GDN_SHARE_QK": 1,
+            "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+            "NETRA_TOKENS": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_verify_m8_batched_precompute_gates_gfx950",
+      "locked_text_sha256": "c3c0c96fe983733238671fb24b4fb27a1e8c32c9c5e104542415cf753d7c7178",
+      "locked_hsaco_sha256": "f7c4b50fca13edb81dea08862c2910ea8eac6569e9dccacd84923e8ad68719c2",
+      "members": [
+        {
+          "tactic": "gdn_verify_precompute_m12_hv48_gates",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
+          "definitions": {
+            "NETRA_GDN_PRECOMPUTE_VARIANT": 7,
+            "NETRA_TOKENS": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_state_replay_m8_fp32_gfx950",
+      "locked_text_sha256": "b600cfba7280a2dc1d42821d8e1d73ca2511d946409b92b456e3caf5c14b1d23",
+      "locked_hsaco_sha256": "e86ea86b6b1939dd81110fb014e76c7c410ce9e7f92385e957590cb7c51a0b1c",
+      "members": [
+        {
+          "tactic": "gdn_state_replay_m12_bv16_hv48_fp32",
+          "symbol": "qwen36_27b_gdn_state_replay_m12_fp32_gfx950",
+          "macro_symbols": [
+            "qwen36_27b_gdn_state_replay_m12_fp32_gfx950",
+            "qwen36_27b_gdn_state_replay_m12_fp32_dual_gfx950"
+          ],
+          "definitions": {
+            "NETRA_GDN_CORE_VARIANT": 13,
+            "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+            "NETRA_GDN_INITIAL_STATE_FP32": 1,
+            "NETRA_GDN_SHARE_QK": 1,
+            "NETRA_GDN_STATE_REPLAY": 1,
+            "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+            "NETRA_TOKENS": 8
           }
         }
       ]

@@ -22,6 +22,15 @@ cp -f "$out_dir/qwen36_27b_gdn_verify_m12_batched_precompute_gates_gfx950.hsaco"
   "$out_dir/precompute-gates.hsaco"
 cp -f "$out_dir/qwen36_27b_gdn_state_replay_m12_fp32_gfx950.hsaco" \
   "$out_dir/replay.hsaco"
+mkdir -p "$out_dir/t8"
+cp -f "$out_dir/qwen36_27b_gdn_verify_m8_batched_precompute_gfx950.hsaco" \
+  "$out_dir/t8/precompute.hsaco"
+cp -f "$out_dir/qwen36_27b_gdn_verify_m8_batched_precompute_gates_gfx950.hsaco" \
+  "$out_dir/t8/precompute-gates.hsaco"
+cp -f "$out_dir/qwen36_27b_gdn_verify_m8_batched_precomputed_bv16_gfx950.hsaco" \
+  "$out_dir/t8/core.hsaco"
+cp -f "$out_dir/qwen36_27b_gdn_state_replay_m8_fp32_gfx950.hsaco" \
+  "$out_dir/t8/replay.hsaco"
 bridge_library=$out_dir/libqwen36_27b_gdn_verify_m12_batched_bridge.so
 if [[ ! -e $bridge_library || $bridge -nt $bridge_library ]]; then
   "$rocm_dir/bin/hipcc" --offload-arch=gfx950 -O3 -std=c++17 -fPIC -shared \

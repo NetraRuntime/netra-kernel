@@ -69,7 +69,8 @@ class CurrentBestAssemblyTest(unittest.TestCase):
             self.assertEqual(tactic.rank, 150)
             constants = dict(tactic.contract_constants)
             self.assertEqual(constants["NETRA_VALUE_HEADS"], (48,))
-            self.assertEqual(constants["NETRA_TOKENS"], (12,))
+            definitions = dict(tactic.compile_definitions)
+            self.assertEqual(definitions["NETRA_TOKENS"], (8, 12))
             request = {
                 "operation": tactic.operation,
                 "target": "gfx950",

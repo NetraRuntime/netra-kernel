@@ -469,7 +469,9 @@
 
 	.macro NETRA_GDN_RECURRENT_BV16_HV48_CORE symbol, dual_symbol
 	NETRA_REQUIRE_GFX950_WAVE64
-	NETRA_REQUIRE_EQ NETRA_TOKENS, 12
+	.if (NETRA_TOKENS != 8) && (NETRA_TOKENS != 12)
+	.error "NETRA_TOKENS must be 8 or 12"
+	.endif
 	NETRA_REQUIRE_EQ NETRA_QK_HEADS, 16
 	NETRA_REQUIRE_EQ NETRA_VALUE_HEADS, 48
 	NETRA_REQUIRE_EQ NETRA_QK_DIM, 128
@@ -589,7 +591,7 @@
 	// Preserve the tracking length and resolve its independent destination
 	// while s12:s13 still holds the common state-pool base.
 	s_max_i32 s36, s36, 0
-	s_min_i32 s36, s36, 12
+	s_min_i32 s36, s36, NETRA_TOKENS
 	s_mov_b32 s38, s36
 	s_mov_b32 s36, s37
 	s_mov_b32 s37, 0
@@ -614,13 +616,13 @@
 	s_add_u32 s12, s12, s26
 	s_addc_u32 s13, s13, s27
 	s_max_i32 s28, s28, 0
-	s_min_i32 s28, s28, 12
+	s_min_i32 s28, s28, NETRA_TOKENS
 	.else
 	.if NETRA_GDN_VALUE_HEADS == 32
-	s_mul_i32 s26, s26, 12
+	s_mul_i32 s26, s26, (NETRA_TOKENS)
 	s_lshl_b64 s[26:27], s[26:27], 20
 	.else
-	s_mul_i32 s26, s26, 36
+	s_mul_i32 s26, s26, (NETRA_TOKENS * 3)
 	s_lshl_b64 s[26:27], s[26:27], 19
 	.endif
 	s_add_u32 s16, s16, s26
@@ -630,15 +632,15 @@
 
 	// Advance compact precompute buffers and the original V/output views to
 	// this sequence. Each sequence contains exactly 12 contiguous token rows.
-	s_mul_i32 s20, s19, 0x18000
+	s_mul_i32 s20, s19, (NETRA_TOKENS * 8192)
 	s_add_u32 s2, s2, s20
 	s_addc_u32 s3, s3, 0
 	s_add_u32 s4, s4, s20
 	s_addc_u32 s5, s5, 0
 	.if NETRA_GDN_VALUE_HEADS == 32
-	s_mul_i32 s20, s19, 1536
+	s_mul_i32 s20, s19, (NETRA_TOKENS * 128)
 	.else
-	s_mul_i32 s20, s19, 2304
+	s_mul_i32 s20, s19, (NETRA_TOKENS * 192)
 	.endif
 	s_add_u32 s8, s8, s20
 	s_addc_u32 s9, s9, 0
@@ -646,7 +648,7 @@
 	s_addc_u32 s11, s11, 0
 	// V is a view into the packed Q/K/V projection and therefore uses the
 	// caller-provided token stride (8192 elements in the captured graph).
-	s_mul_i32 s20, s19, 12
+	s_mul_i32 s20, s19, (NETRA_TOKENS)
 	s_mul_i32 s20, s20, s29
 	s_add_u32 s6, s6, s20
 	s_addc_u32 s7, s7, 0
@@ -656,9 +658,9 @@
 	// destination through the pool index above.
 	.if NETRA_GDN_STATE_REPLAY == 0
 	.if NETRA_GDN_VALUE_HEADS == 32
-	s_mul_i32 s20, s19, 0x18000
+	s_mul_i32 s20, s19, (NETRA_TOKENS * 8192)
 	.else
-	s_mul_i32 s20, s19, 0x24000
+	s_mul_i32 s20, s19, (NETRA_TOKENS * 12288)
 	.endif
 	s_add_u32 s12, s12, s20
 	s_addc_u32 s13, s13, 0
@@ -1175,7 +1177,7 @@
 	.if NETRA_GDN_STATE_REPLAY == 1
 	s_cmp_lt_u32 s28, s30
 	.else
-	s_cmp_lt_u32 s28, 12
+	s_cmp_lt_u32 s28, NETRA_TOKENS
 	.endif
 	s_cbranch_scc1 .Ltime_loop
 
