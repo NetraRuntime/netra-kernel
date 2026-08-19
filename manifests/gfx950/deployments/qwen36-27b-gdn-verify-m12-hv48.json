@@ -58,6 +58,29 @@
           }
         }
       ]
+    },
+    {
+      "name": "qwen36_27b_gdn_state_replay_m12_fp32_gfx950",
+      "locked_text_sha256": "903ab5fbcb9948a0b6386b0d7dfde9d5480034fc1064ffe9234e96dad2dd2501",
+      "locked_hsaco_sha256": "e114878b3b52c042880310e3e7450ec27aa747a885b0077f37be6b5525f62e40",
+      "members": [
+        {
+          "tactic": "gdn_state_replay_m12_bv16_hv48_fp32",
+          "symbol": "qwen36_27b_gdn_state_replay_m12_fp32_gfx950",
+          "macro_symbols": [
+            "qwen36_27b_gdn_state_replay_m12_fp32_gfx950",
+            "qwen36_27b_gdn_state_replay_m12_fp32_dual_gfx950"
+          ],
+          "definitions": {
+            "NETRA_GDN_CORE_VARIANT": 13,
+            "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+            "NETRA_GDN_INITIAL_STATE_FP32": 1,
+            "NETRA_GDN_SHARE_QK": 1,
+            "NETRA_GDN_STATE_REPLAY": 1,
+            "NETRA_GDN_WAVES_PER_WORKGROUP": 1
+          }
+        }
+      ]
     }
   ]
 }

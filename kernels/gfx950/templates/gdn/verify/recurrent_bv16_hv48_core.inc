@@ -90,8 +90,8 @@
 	.if (NETRA_GDN_STATE_REPLAY != 0) && (NETRA_GDN_STATE_REPLAY != 1)
 	.error "NETRA_GDN_STATE_REPLAY must be 0 or 1"
 	.endif
-	.if (NETRA_GDN_INITIAL_STATE_FP32 == 1) && ((NETRA_GDN_K0_NO_INTERMEDIATE != 1) || (NETRA_GDN_STATE_REPLAY == 1))
-	.error "FP32 initial state is supported only by K0 verification"
+	.if (NETRA_GDN_INITIAL_STATE_FP32 == 1) && (NETRA_GDN_K0_NO_INTERMEDIATE != 1)
+	.error "FP32 state requires the K0 no-intermediate schedule"
 	.endif
 // Dual state replay stores an earlier tracking-prefix snapshot and the final
 // accepted-prefix state from one live FP32 recurrence. It is valid only for
@@ -101,6 +101,9 @@
 .endif
 .if (NETRA_GDN_STATE_REPLAY_DUAL != 0) && (NETRA_GDN_STATE_REPLAY != 1)
 .error "NETRA_GDN_STATE_REPLAY_DUAL requires NETRA_GDN_STATE_REPLAY=1"
+.endif
+.if (NETRA_GDN_STATE_REPLAY_DUAL != 0) && (NETRA_GDN_INITIAL_STATE_FP32 == 1)
+.error "dual state replay supports only the BF16 state pool"
 .endif
 	.if (NETRA_GDN_WAVES_PER_WORKGROUP != 1) && (NETRA_GDN_WAVES_PER_WORKGROUP != 2) && (NETRA_GDN_WAVES_PER_WORKGROUP != 4) && (NETRA_GDN_WAVES_PER_WORKGROUP != 8)
 	.error "NETRA_GDN_WAVES_PER_WORKGROUP must be 1, 2, 4, or 8"
@@ -599,7 +602,10 @@
 	s_add_u32 s34, s12, s36
 	s_addc_u32 s35, s13, s37
 	.endif
-	.if NETRA_GDN_VALUE_HEADS == 32
+	.if NETRA_GDN_INITIAL_STATE_FP32 == 1
+	s_mul_i32 s26, s26, 3
+	s_lshl_b64 s[26:27], s[26:27], 20
+	.elseif NETRA_GDN_VALUE_HEADS == 32
 	s_lshl_b64 s[26:27], s[26:27], 20
 	.else
 	s_mul_i32 s26, s26, 3
@@ -1174,9 +1180,25 @@
 	s_cbranch_scc1 .Ltime_loop
 
 	.if NETRA_GDN_STATE_REPLAY == 1
+	.if NETRA_GDN_INITIAL_STATE_FP32 == 1
+	// The HV48 pool keeps FP32 states between steps, so state-only replay
+	// writes the live FP32 recurrence directly with doubled byte strides.
+	global_store_dwordx4 v7, v[32:35], s[12:13]
+	global_store_dwordx4 v7, v[36:39], s[12:13] offset:16
+	v_add_u32_e32 v5, 2048, v7
+	global_store_dwordx4 v5, v[40:43], s[12:13]
+	global_store_dwordx4 v5, v[44:47], s[12:13] offset:16
+	v_add_u32_e32 v5, 4096, v7
+	global_store_dwordx4 v5, v[48:51], s[12:13]
+	global_store_dwordx4 v5, v[52:55], s[12:13] offset:16
+	v_add_u32_e32 v5, 6144, v7
+	global_store_dwordx4 v5, v[56:59], s[12:13]
+	global_store_dwordx4 v5, v[60:63], s[12:13] offset:16
+	.else
 	// State-only replay exposes only the final BF16 state, matching Triton's
 	// live FP32 recurrence followed by one terminal conversion.
 	NETRA_GDN_PACK_STORE_STATE_BF16 12, 13
+	.endif
 	.endif
 
 .Lexit:

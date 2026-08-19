@@ -100,8 +100,8 @@
         "da370e1674edf1c5ea0793bfbbaf62348323e012112444daad9358c056df05bc"
       ],
       "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
-      "template_sha256": "1b71858fe814e4f735aebec265145688a35f1f7baf1af1cb0e76dd8867270259",
-      "source_closure_sha256": "685c06b6319ac21789d0b911c7edeef87e4c8aa2e5a375b4059ce8e12e5e204a",
+      "template_sha256": "bb0d51fe6d385c4702c88388805c21baee0bb266a4d4e73d753e847d15783b66",
+      "source_closure_sha256": "4a106d443ff4e2b4ad38d2ac8514fdff5ac4c4f980c31ab18f8228b0040dce94",
       "family": "gdn.recurrent_bv16"
     },
     {
@@ -140,6 +140,51 @@
       "template_sha256": "61396c60d06eeb087aa1ab33f36d6df3113947034409eba8950af6f20e0d28db",
       "source_closure_sha256": "69a0e679de2523b0c8623df3fb98cea996354ab837375c650426fdacf8097221",
       "family": "gdn.verify_precompute"
+    },
+    {
+      "id": "gdn_state_replay_m12_bv16_hv48_fp32",
+      "operation": "gdn_state_replay",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "symbols": [
+        "qwen36_27b_gdn_state_replay_m12_fp32_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_INITIAL_STATE_FP32": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_STATE_REPLAY": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 1
+      },
+      "rank": 150,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.state_replay.ptr10_u32x2.v1",
+        "dtypes": "fp32_k_gates_fp32_state_bf16_value_to_fp32_state.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_fp32_state_replay.v1",
+        "numerical": "gdn_recurrence_variant13_fixed.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_state_replay",
+      "locked_hsaco_sha256": [
+        "e114878b3b52c042880310e3e7450ec27aa747a885b0077f37be6b5525f62e40"
+      ],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
+      "template_sha256": "bb0d51fe6d385c4702c88388805c21baee0bb266a4d4e73d753e847d15783b66",
+      "source_closure_sha256": "4a106d443ff4e2b4ad38d2ac8514fdff5ac4c4f980c31ab18f8228b0040dce94",
+      "family": "gdn.recurrent_bv16"
     }
   ]
 }

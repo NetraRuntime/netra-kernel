@@ -16,8 +16,11 @@ hipModule_t precompute_module = nullptr;
 hipModule_t core_module = nullptr;
 hipFunction_t precompute_function = nullptr;
 hipFunction_t core_function = nullptr;
+hipModule_t state_replay_module = nullptr;
+hipFunction_t state_replay_function = nullptr;
 std::string loaded_precompute_path;
 std::string loaded_core_path;
+std::string loaded_state_replay_path;
 thread_local std::string last_error;
 
 int fail(const char* operation, hipError_t error) {
@@ -31,10 +34,14 @@ int fail_message(const std::string& message) {
 }
 
 void clear_modules() {
+  if (state_replay_module != nullptr) (void)hipModuleUnload(state_replay_module);
   if (core_module != nullptr) (void)hipModuleUnload(core_module);
   if (precompute_module != nullptr) (void)hipModuleUnload(precompute_module);
   precompute_module = nullptr;
   core_module = nullptr;
+  state_replay_module = nullptr;
+  state_replay_function = nullptr;
+  loaded_state_replay_path.clear();
   precompute_function = nullptr;
   core_function = nullptr;
   loaded_precompute_path.clear();
@@ -134,7 +141,7 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch_precomputed(
   if (std::any_of(pointers.begin(), pointers.end(),
                   [](const void* pointer) { return pointer == nullptr; }))
     return fail_message("precomputed GDN launch pointers must be nonnull");
-  if (stride_v < 6144 || batch_size == 0 || batch_size > 128 ||
+  if (stride_v < 6144 || batch_size == 0 || batch_size > 256 ||
       state_capacity == 0)
     return fail_message("invalid precomputed Qwen3.6-27B GDN launch shape");
 
@@ -189,7 +196,7 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch_precompute(
                   [](const void* pointer) { return pointer == nullptr; }))
     return fail_message("GDN precompute launch pointers must be nonnull");
   if (stride_q < 2048 || stride_k < 2048 || stride_a < 48 ||
-      stride_b < 48 || batch_size == 0 || batch_size > 128)
+      stride_b < 48 || batch_size == 0 || batch_size > 256)
     return fail_message("invalid Qwen3.6-27B GDN precompute shape");
 
   void* A_log_pointer = const_cast<void*>(A_log_f32);
@@ -252,8 +259,8 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
   if (stride_q < 2048 || stride_k < 2048 || stride_v < 6144 ||
       stride_a < 48 || stride_b < 48)
     return fail_message("Qwen3.6-27B GDN tensor stride is smaller than its row");
-  if (batch_size == 0 || batch_size > 128)
-    return fail_message("Qwen3.6-27B M=12 verify batch must be in [1,128]");
+  if (batch_size == 0 || batch_size > 256)
+    return fail_message("Qwen3.6-27B M=12 verify batch must be in [1,256]");
   if (state_capacity == 0)
     return fail_message("Qwen3.6-27B state capacity must be positive");
 
@@ -309,6 +316,88 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_unload(void) {
   loaded_core_path.clear();
   loaded_precompute_path.clear();
   if (first_error != hipSuccess) return fail("hipModuleUnload", first_error);
+  last_error.clear();
+  return 0;
+}
+
+extern "C" int netra_qwen36_gdn_verify_m12_batched_load_state_replay(
+    const char* state_replay_hsaco_path) {
+  if (state_replay_hsaco_path == nullptr || state_replay_hsaco_path[0] == '\0')
+    return fail_message("state replay hsaco path must be nonempty");
+  std::lock_guard<std::mutex> guard(module_mutex);
+  if (state_replay_module != nullptr) {
+    if (loaded_state_replay_path == state_replay_hsaco_path) {
+      last_error.clear();
+      return 0;
+    }
+    return fail_message("a different Qwen3.6-27B state replay module is already loaded");
+  }
+  if (validate_device() != 0) return -1;
+  hipError_t error = hipModuleLoad(&state_replay_module, state_replay_hsaco_path);
+  if (error != hipSuccess) return fail("hipModuleLoad(state replay)", error);
+  error = hipModuleGetFunction(
+      &state_replay_function, state_replay_module,
+      "qwen36_27b_gdn_state_replay_m12_fp32_gfx950");
+  if (error != hipSuccess) {
+    (void)hipModuleUnload(state_replay_module);
+    state_replay_module = nullptr;
+    state_replay_function = nullptr;
+    return fail("hipModuleGetFunction(state replay)", error);
+  }
+  loaded_state_replay_path = state_replay_hsaco_path;
+  last_error.clear();
+  return 0;
+}
+
+extern "C" int netra_qwen36_gdn_verify_m12_batched_launch_state_replay(
+    const void* k_normalized_f32,
+    const void* v_bf16,
+    const void* decay_f32,
+    const void* beta_f32,
+    void* state_pool_f32,
+    const void* accept_lengths_i32,
+    const void* initial_state_indices_i32,
+    const void* output_state_indices_i32,
+    uint32_t stride_v,
+    uint32_t batch_size,
+    uint32_t state_capacity,
+    hipStream_t stream) {
+  if (state_replay_function == nullptr)
+    return fail_message("Qwen3.6-27B GDN state replay module is not loaded");
+  const std::array<const void*, 8> pointers = {
+      k_normalized_f32, v_bf16, decay_f32, beta_f32, state_pool_f32,
+      accept_lengths_i32, initial_state_indices_i32, output_state_indices_i32,
+  };
+  if (std::any_of(pointers.begin(), pointers.end(),
+                  [](const void* pointer) { return pointer == nullptr; }))
+    return fail_message("state replay launch pointers must be nonnull");
+  if (stride_v < 6144 || batch_size == 0 || batch_size > 256 ||
+      state_capacity == 0)
+    return fail_message("invalid Qwen3.6-27B GDN state replay shape");
+
+  // The replay kernel keeps the verification kernarg layout: slot 0 (unused
+  // Q), slot 5 output SSM pool, slot 7 accepted lengths, slot 9 destination
+  // state indices. The FP32 pool serves as both source and destination.
+  void* q_pointer = const_cast<void*>(k_normalized_f32);
+  void* k_pointer = const_cast<void*>(k_normalized_f32);
+  void* v_pointer = const_cast<void*>(v_bf16);
+  void* decay_pointer = const_cast<void*>(decay_f32);
+  void* beta_pointer = const_cast<void*>(beta_f32);
+  void* initial_pointer = state_pool_f32;
+  void* lengths_pointer = const_cast<void*>(accept_lengths_i32);
+  void* initial_indices_pointer = const_cast<void*>(initial_state_indices_i32);
+  void* output_indices_pointer = const_cast<void*>(output_state_indices_i32);
+  void* replay_arguments[] = {
+      &q_pointer, &k_pointer, &v_pointer, &decay_pointer, &beta_pointer,
+      &state_pool_f32, &initial_pointer, &lengths_pointer,
+      &initial_indices_pointer, &output_indices_pointer, &stride_v,
+      &state_capacity,
+  };
+  hipError_t error = hipModuleLaunchKernel(
+      state_replay_function, batch_size * 384, 1, 1, 64, 1, 1, 0, stream,
+      replay_arguments, nullptr);
+  if (error != hipSuccess)
+    return fail("hipModuleLaunchKernel(state replay)", error);
   last_error.clear();
   return 0;
 }

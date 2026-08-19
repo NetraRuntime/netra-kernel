@@ -20,11 +20,13 @@ cp -f "$out_dir/qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950.hsaco"
   "$out_dir/core.hsaco"
 cp -f "$out_dir/qwen36_27b_gdn_verify_m12_batched_precompute_gates_gfx950.hsaco" \
   "$out_dir/precompute-gates.hsaco"
+cp -f "$out_dir/qwen36_27b_gdn_state_replay_m12_fp32_gfx950.hsaco" \
+  "$out_dir/replay.hsaco"
 bridge_library=$out_dir/libqwen36_27b_gdn_verify_m12_batched_bridge.so
 if [[ ! -e $bridge_library || $bridge -nt $bridge_library ]]; then
   "$rocm_dir/bin/hipcc" --offload-arch=gfx950 -O3 -std=c++17 -fPIC -shared \
     -I"$header_dir" "$bridge" -o "$bridge_library"
 fi
-(cd "$out_dir" && sha256sum precompute.hsaco precompute-gates.hsaco core.hsaco \
+(cd "$out_dir" && sha256sum precompute.hsaco precompute-gates.hsaco core.hsaco replay.hsaco \
   libqwen36_27b_gdn_verify_m12_batched_bridge.so > SHA256SUMS)
 echo "gfx950 HV48 M=12 GDN verification build complete: $out_dir"
