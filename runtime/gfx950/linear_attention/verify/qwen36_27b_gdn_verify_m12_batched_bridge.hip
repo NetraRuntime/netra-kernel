@@ -21,6 +21,10 @@ hipFunction_t state_replay_function = nullptr;
 std::string loaded_precompute_path;
 std::string loaded_core_path;
 std::string loaded_state_replay_path;
+// Verification block size: 12 (promoted) or 8 (block-8 experiment). Affects
+// only the precompute grid (tokens x 16 QK heads per request); the core and
+// replay grids are token-count independent (HV x value tiles).
+unsigned int block_tokens = 12;
 thread_local std::string last_error;
 
 int fail(const char* operation, hipError_t error) {
@@ -211,7 +215,7 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch_precompute(
       &beta_f32, &stride_q, &stride_k, &stride_a, &stride_b,
   };
   hipError_t error = hipModuleLaunchKernel(
-      precompute_function, batch_size * 192, 1, 1, 64, 1, 1, 0, stream,
+      precompute_function, batch_size * block_tokens * 16, 1, 1, 64, 1, 1, 0, stream,
       arguments, nullptr);
   if (error != hipSuccess)
     return fail("hipModuleLaunchKernel(precompute only)", error);
@@ -282,7 +286,7 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
       &beta_f32, &stride_q, &stride_k, &stride_a, &stride_b,
   };
   hipError_t error = hipModuleLaunchKernel(
-      precompute_function, batch_size * 192, 1, 1, 64, 1, 1, 0, stream,
+      precompute_function, batch_size * block_tokens * 16, 1, 1, 64, 1, 1, 0, stream,
       precompute_arguments, nullptr);
   if (error != hipSuccess)
     return fail("hipModuleLaunchKernel(precompute)", error);
@@ -316,6 +320,16 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_unload(void) {
   loaded_core_path.clear();
   loaded_precompute_path.clear();
   if (first_error != hipSuccess) return fail("hipModuleUnload", first_error);
+  last_error.clear();
+  return 0;
+}
+
+extern "C" int netra_qwen36_gdn_verify_m12_batched_set_block_tokens(
+    uint32_t tokens) {
+  if (tokens != 8 && tokens != 12)
+    return fail_message("verification block tokens must be 8 or 12");
+  std::lock_guard<std::mutex> guard(module_mutex);
+  block_tokens = tokens;
   last_error.clear();
   return 0;
 }
