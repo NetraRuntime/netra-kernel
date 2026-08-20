@@ -111,8 +111,8 @@ def validate_engine_directory(
             arguments = operation.get("arguments")
             if not isinstance(arguments, list) or not arguments:
                 errors.append(f"selected kernel lacks typed arguments: {operation.get('name')}")
-            elif len(arguments) > 16:
-                errors.append(f"selected kernel exceeds 16 kernargs: {operation.get('name')}")
+            elif len(arguments) > 32:
+                errors.append(f"selected kernel exceeds 32 kernargs: {operation.get('name')}")
             else:
                 if all(isinstance(argument.get("offset"), int) for argument in arguments):
                     spans = []

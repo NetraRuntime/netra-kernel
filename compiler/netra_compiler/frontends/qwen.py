@@ -23,11 +23,13 @@ def qwen_graph(model: dict[str, Any]) -> Graph:
     dense = list(model.get("dense_operations", []))
     layer_dense = model.get("layer_dense_operations", [])
     golden = model.get("golden_operations", [])
+    fixed_templates = model.get("fixed_operation_templates", [])
     fallbacks = model.get("fallback_operations", [])
-    if not dense and not layer_dense and not golden and not fallbacks:
+    if not dense and not layer_dense and not golden and not fixed_templates and not fallbacks:
         raise ValidationError(
             "Qwen manifest must explicitly list dense_operations, "
-            "layer_dense_operations, golden_operations, or fallback_operations"
+            "layer_dense_operations, golden_operations, fixed_operation_templates, "
+            "or fallback_operations"
         )
     if layer_dense:
         layer_types = config.get("layer_types")
@@ -127,6 +129,76 @@ def qwen_graph(model: dict[str, Any]) -> Graph:
             {"golden_artifact": artifact},
             dict(spec.get("numerical", {})),
         ))
+    for template in fixed_templates:
+        rows = template.get("rows")
+        if (
+            not isinstance(rows, list)
+            or not rows
+            or any(not isinstance(value, int) or isinstance(value, bool) or value <= 0
+                   for value in rows)
+            or rows != sorted(set(rows))
+        ):
+            raise ValidationError(
+                "fixed operation template rows must be sorted unique positive integers"
+            )
+        grid = template.get("launch_grid")
+        if not isinstance(grid, list) or len(grid) != 3:
+            raise ValidationError(
+                "fixed operation template launch_grid must have three dimensions"
+            )
+        divisor = int(template.get("launch_grid_rows_divisor", 1))
+        if divisor <= 0:
+            raise ValidationError("fixed operation launch-grid divisor must be positive")
+        constants = dict(template.get("constants", {}))
+        if "NETRA_ROWS" in constants:
+            raise ValidationError("NETRA_ROWS is populated by fixed template expansion")
+        for row_count in rows:
+            if row_count % divisor:
+                raise ValidationError(
+                    f"fixed operation row count {row_count} is not divisible by {divisor}"
+                )
+            resolved_grid = [
+                row_count // divisor if value == "rows" else int(value)
+                for value in grid
+            ]
+            raw_arguments = template.get("arguments")
+            if not isinstance(raw_arguments, list) or not raw_arguments:
+                raise ValidationError("fixed operation templates require typed arguments")
+            arguments = []
+            for argument in raw_arguments:
+                if not isinstance(argument, dict):
+                    raise ValidationError("fixed operation arguments must be objects")
+                resolved_argument = dict(argument)
+                if resolved_argument.get("value") == "rows":
+                    resolved_argument["value"] = row_count
+                elif resolved_argument.get("value") == "rows_div_48":
+                    if row_count % 48:
+                        raise ValidationError(
+                            "rows_div_48 argument requires rows divisible by 48"
+                        )
+                    resolved_argument["value"] = row_count // 48
+                arguments.append(resolved_argument)
+            attributes = {
+                "family": str(template["family"]),
+                "operation": str(template["operation"]),
+                "constants": {**constants, "NETRA_ROWS": row_count},
+                "semantics": dict(template["semantics"]),
+                "launch_grid": resolved_grid,
+                "graph_capture": bool(template.get("graph_capture", True)),
+                "deterministic": bool(template.get("deterministic", True)),
+                "fallback": str(template["fallback"]),
+                "binding_scope": str(template.get("binding_scope", "per_layer")),
+                "profile_names": list(template.get("profile_names", ())),
+                "arguments": arguments,
+            }
+            operations.append(Operation(
+                str(template["name"]).format(rows=row_count),
+                "fixed_kernel",
+                (),
+                (),
+                attributes,
+                dict(template.get("numerical", {})),
+            ))
     for spec in fallbacks:
         name = str(spec["name"])
         operations.append(Operation(

@@ -18,11 +18,11 @@ struct netra_operation_record {
   // metadata. Only dynamic_lds_bytes is passed to hipModuleLaunchKernel.
   unsigned int lds_bytes = 0;
   unsigned int dynamic_lds_bytes = 0;
-  std::array<void*, 16> argument_values{};
-  std::array<uint32_t, 16> scalar_u32{};
-  std::array<void*, 16> argument_addresses{};
-  std::array<bool, 16> argument_bindable{};
-  std::array<bool, 16> argument_is_u32{};
+  std::array<void*, 32> argument_values{};
+  std::array<uint32_t, 32> scalar_u32{};
+  std::array<void*, 32> argument_addresses{};
+  std::array<bool, 32> argument_bindable{};
+  std::array<bool, 32> argument_is_u32{};
   uint32_t argument_count = 0;
 };
 

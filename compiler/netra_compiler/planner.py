@@ -162,6 +162,15 @@ def plan_graph(graph: Graph, profile: ShapeProfile, target: str,
             ))
             continue
         if op.kind == "fixed_kernel":
+            profile_names = op.attributes.get("profile_names", ())
+            if profile_names and profile.name not in profile_names:
+                fallback = str(op.attributes.get("fallback", "framework"))
+                planned.append(PlannedOperation(
+                    op, None, None, "fallback", fallback,
+                    ({"tactic": None, "selected": False,
+                      "reasons": [f"operation is outside profile {profile.name}"]},),
+                ))
+                continue
             request = _fixed_request(
                 op, target, allow_experimental=allow_experimental
             )
