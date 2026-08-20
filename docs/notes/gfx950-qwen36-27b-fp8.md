@@ -27,8 +27,10 @@ occurs in the request path.
 The model manifest is
 `manifests/gfx950/models/qwen36-27b-fp8.json`. It expands six layer templates
 into 256 bound dense projections and deduplicates them into five exact
-computational contracts for each profile. The contracts contain no model
-name.
+computational contracts for each profile. For block-8 verification it also
+expands 52 exact fixed assembly contracts for the observed graph buckets
+through batch 192. Repeated layer use shares these contracts while retaining
+per-layer weight and state bindings. The contracts contain no model name.
 
 The observed single-GPU serving shapes are decode M=1 during warmup, decode
 M=16 for the concurrency-16 measurement, prefill M=80 during warmup, and
@@ -150,9 +152,40 @@ with SHA-256
 
 No accepted Qwen3.6-35B tactic matches these five projection shapes. The 27B
 engine therefore retains `framework.aiter` for all dense projections and
-records the remaining embedding, vision, normalization, activation, GDN,
-attention, MTP, and sampling boundaries as explicit fallbacks. This is
-intentional. No 35B tactic or rank is changed.
+records embedding, vision, unsupported GDN, unsupported attention, MTP, and
+sampling boundaries as explicit fallbacks. No 35B tactic or rank is changed.
+
+## Fixed assembly fusion ownership
+
+All Netra-owned fused normalization, activation, and group-quant compute is
+implemented by model-independent gfx950 assembly templates in
+`kernels/gfx950/templates/activation/verify/` and
+`kernels/gfx950/templates/norm/verify/`. The six verified schedules cover:
+
+- residual add plus RMSNorm plus FP8 group quant at width 5120;
+- SiLU multiply plus FP8 group quant at width 17408, with and without a BF16
+  output store;
+- gated RMSNorm plus FP8 group quant at width 128 and 48 heads, with one, two,
+  or four rows per workgroup.
+
+The original measured sources are retained only as pinned historical Git
+blobs at revision `0e0f97dfee142bee398cd0795d163f82cc591f36`. They are not
+runtime sources. Instantiating the templates reproduced the originating
+code-object executable text byte for byte on gfx950. The tactics remain
+`verified` until the post-migration serving and 35B regression campaigns pass.
+
+Build the six artifacts and the graph-safe launch bridge on a ROCm host with:
+
+```bash
+python3 tools/build/build_gfx950_group_quant_assembly.py \
+  --output build/gfx950-group-quant-assembly
+```
+
+The bridge performs initialization and symbol lookup before graph capture.
+Its launch functions only check an exact profile, update stable arguments,
+and launch on the caller-owned stream. The launch path has no allocation,
+filesystem access, environment lookup, module loading, symbol lookup, tactic
+selection, or synchronization.
 
 Build a decode engine with:
 
@@ -166,8 +199,9 @@ PYTHONPATH=compiler python3 -m netra_compiler.cli compile \
 ```
 
 Build the exact concurrency-16 serving profile by replacing `decode_m1` with
-`decode_m16_b16` and selecting a different output directory. Build the c192
-verification ceiling with profile `verify_m8_b129_192`.
+`decode_m16_b16` and selecting a different output directory. Build the
+assembly verification engine with profile `verify_m8` or the c192 ceiling
+with profile `verify_m8_b129_192`.
 
 Validate a staged checkpoint without loading its tensor payloads:
 
@@ -179,12 +213,12 @@ python3 tools/checkpoint/inspect_qwen36_27b_fp8.py \
 
 ## Validation status
 
-All eight required profiles compiled and passed static validation on gfx950.
-Each engine contains 267 explicit framework fallbacks and no specialized
-code object. Compiling every required engine twice produced byte-identical
-semantic outputs. The documented `decode_m1` engine ID is
-`ne_be980d1db69175e3c7afac0d`. The c192 verification engine ID is
-`ne_5f1e7a7a89636501ff847e37`.
+All eight previously required profiles compiled and passed static validation
+on gfx950. The updated block-8 verification engine contains 52 exact fixed
+assembly operations and 267 explicit framework fallbacks. Two local builds
+of the updated engine produced byte-identical semantic outputs. Post-migration
+gfx950 compilation, bridge correctness, GSM8K serving, and the locked 35B
+regression campaign are `not_run` for this revision.
 
 The current engine additionally guards the exact dFlash checkpoint repository,
 revision, config hash, weights hash, block size, draft window, mamba cache
