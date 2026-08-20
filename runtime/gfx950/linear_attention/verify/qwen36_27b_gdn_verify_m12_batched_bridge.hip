@@ -48,6 +48,11 @@ hipError_t get_function_with_legacy_fallback(
   hipError_t error =
       hipModuleGetFunction(function, module, model_independent_symbol);
   if (error == hipSuccess) return error;
+  if (error != hipErrorNotFound) return error;
+  // The legacy artifact is an initialization-only compatibility path. Clear
+  // the expected model-independent-symbol miss before returning to PyTorch;
+  // otherwise HIP reports the stale miss at the caller's next runtime API.
+  (void)hipGetLastError();
   return hipModuleGetFunction(function, module, legacy_symbol);
 }
 

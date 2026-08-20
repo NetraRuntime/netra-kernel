@@ -230,6 +230,22 @@ class CurrentBestAssemblyTest(unittest.TestCase):
         self.assertIn("state_replay_function = nullptr", unload)
         self.assertIn("loaded_state_replay_path.clear()", unload)
 
+    def test_hv48_bridge_clears_expected_legacy_symbol_miss(self) -> None:
+        source = (
+            ROOT
+            / "runtime/gfx950/linear_attention/verify/"
+            "qwen36_27b_gdn_verify_m12_batched_bridge.hip"
+        ).read_text()
+        lookup = source.split(
+            "hipError_t get_function_with_legacy_fallback(", 1
+        )[1].split("\n}\n", 1)[0]
+        self.assertIn("error != hipErrorNotFound", lookup)
+        self.assertIn("hipGetLastError()", lookup)
+        self.assertLess(
+            lookup.index("hipGetLastError()"),
+            lookup.index("hipModuleGetFunction(function, module, legacy_symbol)"),
+        )
+
     def test_exact_contract_matches_and_one_dimension_mismatch_rejects(self) -> None:
         tactic = next(
             item
