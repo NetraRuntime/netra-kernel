@@ -300,6 +300,172 @@
       "family": "gdn.recurrent_bv16"
     },
     {
+      "id": "gdn_verify_core_t8_bv16_hv48_k0_bf16_state_waves4",
+      "operation": "gdn_verify",
+      "maturity": "experiment",
+      "acceptance_scope": "unmeasured_wavegroup_schedule",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "symbols": [
+        "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_waves4_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 4,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 200,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.recurrent_verify.ptr10_u32x2.v1",
+        "dtypes": "fp32_qk_gates_bf16_state_bf16_value_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_k0_bf16_state.v1",
+        "numerical": "gdn_recurrence_variant13_bf16_input_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify",
+      "locked_hsaco_sha256": [],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
+      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
+      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_verify_core_t8_bv16_hv48_k0_bf16_state_waves8",
+      "operation": "gdn_verify",
+      "maturity": "experiment",
+      "acceptance_scope": "unmeasured_wavegroup_schedule",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "symbols": [
+        "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_waves8_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 8,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 210,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.recurrent_verify.ptr10_u32x2.v1",
+        "dtypes": "fp32_qk_gates_bf16_state_bf16_value_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_k0_bf16_state.v1",
+        "numerical": "gdn_recurrence_variant13_bf16_input_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify",
+      "locked_hsaco_sha256": [],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
+      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
+      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_state_replay_t8_bv16_hv48_bf16_state_waves4",
+      "operation": "gdn_state_replay",
+      "maturity": "experiment",
+      "acceptance_scope": "unmeasured_wavegroup_schedule",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "symbols": [
+        "netra_gdn_state_replay_t8_bv16_hv48_bf16_state_waves4_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_STATE_REPLAY": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 4,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 200,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.state_replay.ptr10_u32x2.v1",
+        "dtypes": "fp32_k_gates_bf16_state_bf16_value_to_bf16_state.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_bf16_state_replay.v1",
+        "numerical": "gdn_recurrence_variant13_terminal_bf16_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_state_replay",
+      "locked_hsaco_sha256": [],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
+      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
+      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_state_replay_t8_bv16_hv48_bf16_state_waves8",
+      "operation": "gdn_state_replay",
+      "maturity": "experiment",
+      "acceptance_scope": "unmeasured_wavegroup_schedule",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "symbols": [
+        "netra_gdn_state_replay_t8_bv16_hv48_bf16_state_waves8_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_STATE_REPLAY": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 8,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 210,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.state_replay.ptr10_u32x2.v1",
+        "dtypes": "fp32_k_gates_bf16_state_bf16_value_to_bf16_state.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_bf16_state_replay.v1",
+        "numerical": "gdn_recurrence_variant13_terminal_bf16_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_state_replay",
+      "locked_hsaco_sha256": [],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
+      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
+      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
       "id": "gdn_qkvz_conv_t8_d10240",
       "operation": "gdn_qkvz_conv",
       "maturity": "verified",

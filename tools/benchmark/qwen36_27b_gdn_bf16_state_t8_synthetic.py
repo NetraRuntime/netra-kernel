@@ -69,6 +69,8 @@ def main() -> None:
         "--batch", type=int, choices=(1, 32, 128, 192, 256), required=True
     )
     parser.add_argument("--iterations", type=int, default=50)
+    parser.add_argument("--core-waves", type=int, choices=(1, 2, 4, 8), default=1)
+    parser.add_argument("--replay-waves", type=int, choices=(1, 2, 4, 8), default=1)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
@@ -142,6 +144,14 @@ def main() -> None:
             raw = bridge.netra_qwen36_gdn_verify_m12_batched_last_error()
             message = raw.decode() if raw else "unknown bridge error"
             raise RuntimeError(f"{operation}: {message}")
+
+    check(
+        bridge.netra_qwen36_gdn_verify_m12_batched_set_wavegroups(
+            ctypes.c_uint32(args.core_waves),
+            ctypes.c_uint32(args.replay_waves),
+        ),
+        "set wavegroups",
+    )
 
     check(
         bridge.netra_qwen36_gdn_verify_m12_batched_set_block_tokens(
@@ -310,6 +320,8 @@ def main() -> None:
         "tokens": tokens,
         "batch": batch,
         "state_dtype": "bfloat16",
+        "core_waves_per_workgroup": args.core_waves,
+        "replay_waves_per_workgroup": args.replay_waves,
         "eager": {"core": eager_core, "replay": eager_replay},
         "graph": {"core": graph_core, "replay": graph_replay},
         "timing": timings,

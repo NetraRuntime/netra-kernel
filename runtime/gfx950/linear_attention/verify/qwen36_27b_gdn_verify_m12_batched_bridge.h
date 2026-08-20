@@ -15,6 +15,10 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_load_wavegroup_variants(
     const char* core_waves4_hsaco_path,
     const char* core_waves8_hsaco_path);
 
+extern "C" int netra_qwen36_gdn_verify_m12_batched_set_wavegroups(
+    uint32_t core_waves_per_workgroup,
+    uint32_t replay_waves_per_workgroup);
+
 extern "C" int netra_gdn_qkvz_conv_t8_d10240_load(
     const char* qkvz_conv_hsaco_path);
 

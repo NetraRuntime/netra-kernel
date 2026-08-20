@@ -28,6 +28,8 @@ std::string loaded_qkvz_conv_t8_path;
 // only the precompute grid (tokens x 16 QK heads per request); the core and
 // replay grids are token-count independent (HV x value tiles).
 unsigned int block_tokens = 12;
+unsigned int core_waves_per_workgroup = 1;
+unsigned int replay_waves_per_workgroup = 1;
 thread_local std::string last_error;
 
 int fail(const char* operation, hipError_t error) {
@@ -142,6 +144,23 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_load_wavegroup_variants(
     const char*, const char*, const char*, const char*) {
   return fail_message(
       "Qwen3.6-27B HV48 verification currently supports one wave only");
+}
+
+extern "C" int netra_qwen36_gdn_verify_m12_batched_set_wavegroups(
+    uint32_t core_waves,
+    uint32_t replay_waves) {
+  const auto valid = [](uint32_t waves) {
+    return waves == 1 || waves == 2 || waves == 4 || waves == 8;
+  };
+  if (!valid(core_waves) || !valid(replay_waves))
+    return fail_message("GDN wavegroups must contain 1, 2, 4, or 8 waves");
+  std::lock_guard<std::mutex> guard(module_mutex);
+  if (core_module != nullptr || state_replay_module != nullptr)
+    return fail_message("GDN wavegroups must be fixed before module loading");
+  core_waves_per_workgroup = core_waves;
+  replay_waves_per_workgroup = replay_waves;
+  last_error.clear();
+  return 0;
 }
 
 extern "C" int netra_gdn_qkvz_conv_t8_d10240_load(
@@ -264,7 +283,8 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch_precomputed(
       &state_capacity,
   };
   hipError_t error = hipModuleLaunchKernel(
-      core_function, batch_size * 384, 1, 1, 64, 1, 1, 0, stream,
+      core_function, batch_size * 384 / core_waves_per_workgroup, 1, 1,
+      64 * core_waves_per_workgroup, 1, 1, 0, stream,
       core_arguments, nullptr);
   if (error != hipSuccess)
     return fail("hipModuleLaunchKernel(core precomputed)", error);
@@ -397,7 +417,8 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
       &state_capacity,
   };
   error = hipModuleLaunchKernel(
-      core_function, batch_size * 384, 1, 1, 64, 1, 1, 0, stream,
+      core_function, batch_size * 384 / core_waves_per_workgroup, 1, 1,
+      64 * core_waves_per_workgroup, 1, 1, 0, stream,
       core_arguments, nullptr);
   if (error != hipSuccess) return fail("hipModuleLaunchKernel(core)", error);
   last_error.clear();
@@ -526,7 +547,9 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch_state_replay(
       &state_capacity,
   };
   hipError_t error = hipModuleLaunchKernel(
-      state_replay_function, batch_size * 384, 1, 1, 64, 1, 1, 0, stream,
+      state_replay_function,
+      batch_size * 384 / replay_waves_per_workgroup, 1, 1,
+      64 * replay_waves_per_workgroup, 1, 1, 0, stream,
       replay_arguments, nullptr);
   if (error != hipSuccess)
     return fail("hipModuleLaunchKernel(state replay)", error);
