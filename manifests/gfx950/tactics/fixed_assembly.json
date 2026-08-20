@@ -676,6 +676,7 @@
       },
       "kernarg_size": 96,
       "launch_block": 1024,
+      "dynamic_lds_bytes": 256,
       "semantics": {
         "abi": "norm.add_rmsnorm_quant.ptr7_u32x6_scalar2.v1",
         "dtypes": "bf16_bf16_f32_to_bf16_bf16_fp8e4m3_f32scale.v1",

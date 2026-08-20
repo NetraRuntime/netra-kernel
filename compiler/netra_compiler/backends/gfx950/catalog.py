@@ -42,6 +42,7 @@ class FixedAssemblyTactic:
     launch_block_multiplier: int
     threads_per_workgroup: int
     lds_bytes: int
+    dynamic_lds_bytes: int
     workspace: Workspace
     graph_capture: bool
     deterministic: bool
@@ -73,6 +74,7 @@ class FixedAssemblyTactic:
             "launch_block_multiplier": self.launch_block_multiplier,
             "threads_per_workgroup": self.threads_per_workgroup,
             "lds_bytes": self.lds_bytes,
+            "dynamic_lds_bytes": self.dynamic_lds_bytes,
             "workspace": {
                 "bytes": self.workspace.bytes,
                 "alignment": self.workspace.alignment,
@@ -181,7 +183,7 @@ class FixedAssemblyTactic:
                 grid,
                 (block_x, 1, 1),
                 self.lds_bytes,
-                0,
+                self.dynamic_lds_bytes,
             ),
             workspace=self.workspace,
             graph_capture=self.graph_capture,
@@ -231,6 +233,7 @@ class FixedAssemblyTactic:
                     }
                 ),
                 "lds_bytes": self.lds_bytes,
+                "dynamic_lds_bytes": self.dynamic_lds_bytes,
                 "grid": "resolved_by_exact_engine_profile",
             },
             "compatibility_symbols": list(self.compatibility_symbols),
@@ -450,6 +453,7 @@ def load_fixed_tactic_catalog(
                 launch_block_multiplier=launch_block_multiplier,
                 threads_per_workgroup=workgroups.pop(),
                 lds_bytes=lds_sizes.pop(),
+                dynamic_lds_bytes=int(entry.get("dynamic_lds_bytes", 0)),
                 workspace=Workspace(
                     int(workspace_data.get("bytes", 0)),
                     int(workspace_data.get("alignment", 256)),

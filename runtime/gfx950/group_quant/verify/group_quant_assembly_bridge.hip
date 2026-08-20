@@ -104,7 +104,8 @@ static_assert(offsetof(GatedNormKernarg, hidden_scratch) == 88);
 template <typename Kernarg>
 hipError_t launch_fixed(hipFunction_t function, uint32_t grid_x,
                         uint32_t grid_y, uint32_t block_x,
-                        hipStream_t stream, Kernarg* kernarg) {
+                        uint32_t dynamic_lds_bytes, hipStream_t stream,
+                        Kernarg* kernarg) {
   size_t size = sizeof(Kernarg);
   void* config[] = {
       HIP_LAUNCH_PARAM_BUFFER_POINTER, kernarg,
@@ -112,7 +113,7 @@ hipError_t launch_fixed(hipFunction_t function, uint32_t grid_x,
       HIP_LAUNCH_PARAM_END,
   };
   return hipModuleLaunchKernel(function, grid_x, grid_y, 1, block_x, 1, 1,
-                               0, stream, nullptr, config);
+                               dynamic_lds_bytes, stream, nullptr, config);
 }
 
 std::mutex module_mutex;
@@ -229,7 +230,7 @@ extern "C" int netra_add_rmsnorm_group_quant_n5120_launch(
       output_fp8, output_scale_f32, rows, cols, row_stride, row_stride,
       epsilon, inv_fp8_max, nullptr, nullptr};
   const hipError_t error = launch_fixed(
-      loaded[0].function, rows, 1, 1024, stream, &kernarg);
+      loaded[0].function, rows, 1, 1024, 256, stream, &kernarg);
   if (error != hipSuccess) return fail("launch add+RMSNorm group-quant", error);
   last_error[0] = '\0';
   return 0;
@@ -256,7 +257,8 @@ extern "C" int netra_silu_mul_group_quant_n17408_launch(
   SiluKernarg kernarg = {input, output, output_fp8, output_scale_f32,
                          width, rows, inv_fp8_max, 0, nullptr, nullptr};
   const hipError_t error = launch_fixed(
-      loaded[index].function, rows, kSiluGroupsPerGrid, 64, stream, &kernarg);
+      loaded[index].function, rows, kSiluGroupsPerGrid, 64, 0, stream,
+      &kernarg);
   if (error != hipSuccess) return fail("launch SiLU group-quant", error);
   last_error[0] = '\0';
   return 0;
@@ -288,7 +290,8 @@ extern "C" int netra_gated_rmsnorm_group_quant_d128_launch(
       gate_token_stride, gate_head_stride, rows, heads, token_rows,
       epsilon, inv_fp8_max, 0, nullptr, nullptr};
   const hipError_t error = launch_fixed(
-      loaded[index].function, rows / rows_per_block, 1, 64, stream, &kernarg);
+      loaded[index].function, rows / rows_per_block, 1, 64, 0, stream,
+      &kernarg);
   if (error != hipSuccess)
     return fail("launch gated RMSNorm group-quant", error);
   last_error[0] = '\0';

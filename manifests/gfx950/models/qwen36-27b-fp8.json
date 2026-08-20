@@ -296,6 +296,7 @@
         "numerical": "residual_add_fp32_rms_bf16_round_then_fp8_rne_fixed.v1"
       },
       "launch_grid": ["rows", 1, 1],
+      "dynamic_lds_bytes": 256,
       "fallback": "framework.add_rmsnorm_then_group_quant",
       "profile_names": ["verify_m8", "verify_m8_b129_192"],
       "binding_scope": "per_layer_weight_and_state",

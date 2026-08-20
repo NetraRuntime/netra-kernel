@@ -110,6 +110,9 @@ class GroupQuantAssemblyCatalogTest(unittest.TestCase):
             ["rows", "cols", "input_row_stride", "residual_row_stride",
              "epsilon_f32_bits", "inv_fp8_max_f32_bits"],
         )
+        add_tactic = _tactics()["add_rmsnorm_group_quant_n5120"]
+        self.assertEqual(add_tactic.lds_bytes, 0)
+        self.assertEqual(add_tactic.dynamic_lds_bytes, 256)
         gated = [item for item in templates if
                  item["operation"] == "gated_rmsnorm_group_quant"]
         self.assertEqual(len(gated), 3)

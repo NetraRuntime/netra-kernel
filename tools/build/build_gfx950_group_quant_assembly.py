@@ -199,7 +199,8 @@ def build(
             "text_sha256": text_sha256,
             "metadata": actual,
             "launch": {"grid": list(variant.grid), "block": list(contract.launch.block),
-                       "lds_bytes": contract.launch.lds_bytes},
+                       "lds_bytes": contract.launch.lds_bytes,
+                       "dynamic_lds_bytes": contract.launch.dynamic_lds_bytes},
         })
 
     bridge = output / "libnetra_group_quant_assembly_bridge.so"

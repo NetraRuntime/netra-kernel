@@ -184,6 +184,7 @@ def qwen_graph(model: dict[str, Any]) -> Graph:
                 "constants": {**constants, "NETRA_ROWS": row_count},
                 "semantics": dict(template["semantics"]),
                 "launch_grid": resolved_grid,
+                "dynamic_lds_bytes": int(template.get("dynamic_lds_bytes", 0)),
                 "graph_capture": bool(template.get("graph_capture", True)),
                 "deterministic": bool(template.get("deterministic", True)),
                 "fallback": str(template["fallback"]),

@@ -71,11 +71,11 @@ class Qwen3627BTest(unittest.TestCase):
         graph, model = load_model(MODEL)
         self.assertEqual(
             stable_hash(model),
-            "d2b53104eb03130b728cbfad4a84145667eacca2219fe43d33e4fdf86341a51a",
+            "9811392fcf8615a505525ce1392ab10d9c95e81045cde410766c5016051f8889",
         )
         self.assertEqual(
             stable_hash(graph.to_dict()),
-            "6e45bd650070f117e3c194e7fba57d7bb33b1544fb176731146d6b1d1f913af7",
+            "9e5343f9669762a6b06ae2461a8428066f02c2f7cfcd217df53029817c392013",
         )
         dense = [operation for operation in graph.operations if operation.kind == "dense"]
         self.assertEqual(len(dense), 256)

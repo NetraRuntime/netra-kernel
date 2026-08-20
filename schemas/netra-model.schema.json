@@ -133,6 +133,7 @@
           "items": {"anyOf": [{"type": "integer", "minimum": 1}, {"const": "rows"}]}
         },
         "launch_grid_rows_divisor": {"type": "integer", "minimum": 1},
+        "dynamic_lds_bytes": {"type": "integer", "minimum": 0},
         "fallback": {"type": "string", "minLength": 1},
         "profile_names": {
           "type": "array",
