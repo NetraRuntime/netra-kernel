@@ -120,7 +120,7 @@ class CurrentBestAssemblyTest(unittest.TestCase):
         self.assertIs(qkvz_27b.maturity, Maturity.VERIFIED)
         self.assertEqual(
             qkvz_27b.acceptance_scope,
-            "hardware_verified_operator_serving_pending",
+            "hardware_verified_operator_serving_rejected",
         )
         self.assertEqual(qkvz_27b.rank, 140)
         self.assertEqual(
@@ -184,7 +184,7 @@ class CurrentBestAssemblyTest(unittest.TestCase):
             self.assertEqual(tactic.rank, 140)
             self.assertEqual(
                 tactic.acceptance_scope,
-                "hardware_verified_operator_serving_soak_pending",
+                "hardware_verified_operator_and_five_process_serving",
             )
             definitions = dict(tactic.compile_definitions)
             self.assertEqual(definitions["NETRA_TOKENS"], (8,))

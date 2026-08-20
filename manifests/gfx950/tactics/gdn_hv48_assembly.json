@@ -17,8 +17,8 @@
       "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-upstream-qkvz-t8"
     },
     "gfx950_hv48_bf16_state_candidate_20260820": {
-      "lock_name": "c128-summary.json",
-      "lock_sha256": "89c190d7c0b679dadc398b62cd130e52718e7b877a009636a38c9e19d99037d5",
+      "lock_name": "serving-bf16-only-five-fresh-r1/summary.json",
+      "lock_sha256": "5c102f23f1b2f15f7899b1e91216d8ba1322d133afccf46935ae352b5a6c94fe",
       "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-bf16state"
     }
   },
@@ -216,7 +216,7 @@
       "id": "gdn_verify_core_t8_bv16_hv48_k0_bf16_state",
       "operation": "gdn_verify",
       "maturity": "verified",
-      "acceptance_scope": "hardware_verified_operator_serving_soak_pending",
+      "acceptance_scope": "hardware_verified_operator_and_five_process_serving",
       "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
       "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
       "symbols": [
@@ -259,7 +259,7 @@
       "id": "gdn_state_replay_t8_bv16_hv48_bf16_state",
       "operation": "gdn_state_replay",
       "maturity": "verified",
-      "acceptance_scope": "hardware_verified_operator_serving_soak_pending",
+      "acceptance_scope": "hardware_verified_operator_and_five_process_serving",
       "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
       "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
       "symbols": [
@@ -303,7 +303,7 @@
       "id": "gdn_qkvz_conv_t8_d10240",
       "operation": "gdn_qkvz_conv",
       "maturity": "verified",
-      "acceptance_scope": "hardware_verified_operator_serving_pending",
+      "acceptance_scope": "hardware_verified_operator_serving_rejected",
       "evidence_set": "gfx950_qkvz_t8_verified_20260820",
       "template": "kernels/gfx950/templates/gdn/verify/qkvz_causal_conv_t8.inc",
       "symbols": [
