@@ -64,7 +64,8 @@ Two additional block-8 contracts use a BF16 recurrent state pool:
 
 They are separate from the FP32-state contracts because state type,
 accumulation, storage, ABI, and replay semantics are part of computational
-identity. They remain at maturity `verified` with serving soak pending.
+identity. They remain at maturity `verified`. Their five-process 27B serving
+soak passed, while the final 35B preservation rerun is still pending.
 
 The Qwen3.8 GDN projection and Conv1D fusion was adapted only as an operator
 pattern. The 27B checkpoint has a different exact contract: T=8, QKV=10240,
@@ -101,14 +102,26 @@ measured 33.941 microseconds versus 44.141 microseconds, a 1.3005x operator
 speedup. Two independent builds produced identical source, executable text,
 code-object bytes, and normalized metadata. The artifact is gfx950 wave64
 with kernarg size 64, 33 VGPRs, 34 SGPRs, no LDS, and no private segment.
+Matched c128 serving nevertheless regressed from 3307.72 to 3206.81 output
+tokens/s with FP32 state and to 3220.31 output tokens/s with BF16 state. The
+acceptance-normalized changes were -1.05 and -1.45 percent. The tactic remains
+verified and opt-in, and is not a serving promotion candidate.
 
-Prior BF16-state evidence is under
+BF16-state evidence is under
 `/data/netra/benchmarks/gfx950_qwen36_27b/20260820-bf16state`. The block-12
 experiment was bitwise exact against its BF16-pool reference, reduced VRAM by
 about 9.1 GB, and improved same-window throughput by 3.7 percent with flat
-acceptance. The exact block-8 BF16 artifacts now build deterministically, but
-their matched serving and block-8 operator gates are not run yet. The tactics
-are not accepted and remain disabled by default.
+acceptance. The exact block-8 BF16 core and replay artifacts are bitwise exact
+in eager execution and HIP graph replay at batches 1, 32, 128, and 256. A
+matched serving screen improved from 3307.72 to 3391.88 output tokens/s, or
++2.54 percent raw and +3.02 percent after acceptance normalization, while the
+state pool fell from 18.14 to 9.07 GB. Five fresh BF16-state processes measured
+3375.76, 3425.77, 3445.78, 3457.64, and 3440.14 output tokens/s. Their mean was
+3429.02 with standard deviation 31.90 and mean dFlash acceptance 3.1464. This
+is +4.30 percent raw and +3.12 percent acceptance-normalized over the prior
+five-process FP32-state mean. All 1920 requests passed. The tactics remain
+disabled by default and are not accepted until the final 35B preservation
+gate passes.
 
 No accepted Qwen3.6-35B tactic matches these five projection shapes. The 27B
 engine therefore retains `framework.aiter` for all dense projections and
