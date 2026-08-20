@@ -91,7 +91,11 @@ class GroupQuantAssemblyCatalogTest(unittest.TestCase):
             "hipStreamSynchronize", "hipModuleLoad", "hipModuleGetFunction",
         ):
             self.assertNotIn(forbidden, launch_source)
-        self.assertIn("stream, arguments, nullptr", launch_source)
+        self.assertIn("HIP_LAUNCH_PARAM_BUFFER_POINTER", source)
+        self.assertIn("stream, nullptr, config", source)
+        self.assertIn("sizeof(AddNormKernarg) == 96", source)
+        self.assertIn("sizeof(SiluKernarg) == 64", source)
+        self.assertIn("sizeof(GatedNormKernarg) == 104", source)
         self.assertIn("kTokenRows", launch_source)
         self.assertIn("kGatedRows", launch_source)
 

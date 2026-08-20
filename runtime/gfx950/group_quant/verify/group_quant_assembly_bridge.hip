@@ -4,6 +4,7 @@
 #include "runtime/gfx950/group_quant/verify/group_quant_assembly_bridge.h"
 
 #include <array>
+#include <cstddef>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -41,6 +42,78 @@ struct ModuleFunction {
   hipModule_t module = nullptr;
   hipFunction_t function = nullptr;
 };
+
+struct alignas(8) AddNormKernarg {
+  void* input;
+  void* residual;
+  void* weight;
+  void* output;
+  void* residual_out;
+  void* output_fp8;
+  void* output_scale;
+  uint32_t rows;
+  uint32_t cols;
+  uint32_t input_row_stride;
+  uint32_t residual_row_stride;
+  float epsilon;
+  float inv_fp8_max;
+  void* hidden_scratch;
+  void* hidden_profile;
+};
+static_assert(sizeof(AddNormKernarg) == 96);
+static_assert(offsetof(AddNormKernarg, epsilon) == 72);
+
+struct alignas(8) SiluKernarg {
+  void* input;
+  void* output;
+  void* output_fp8;
+  void* output_scale;
+  uint32_t width;
+  uint32_t rows;
+  float inv_fp8_max;
+  uint32_t padding;
+  void* hidden_scratch;
+  void* hidden_profile;
+};
+static_assert(sizeof(SiluKernarg) == 64);
+static_assert(offsetof(SiluKernarg, hidden_scratch) == 48);
+
+struct alignas(8) GatedNormKernarg {
+  void* input;
+  void* output;
+  void* weight;
+  void* gate;
+  void* output_fp8;
+  void* output_scale;
+  uint32_t input_row_stride;
+  uint32_t output_row_stride;
+  uint32_t gate_token_stride;
+  uint32_t gate_head_stride;
+  uint32_t rows;
+  uint32_t heads;
+  uint32_t tokens;
+  float epsilon;
+  float inv_fp8_max;
+  uint32_t padding;
+  void* hidden_scratch;
+  void* hidden_profile;
+};
+static_assert(sizeof(GatedNormKernarg) == 104);
+static_assert(offsetof(GatedNormKernarg, hidden_scratch) == 88);
+
+template <typename Kernarg>
+hipError_t launch_fixed(hipFunction_t function, uint32_t grid_x,
+                        uint32_t grid_y, uint32_t block_x,
+                        hipStream_t stream, Kernarg* kernarg) {
+  size_t size = sizeof(Kernarg);
+  void* config[] = {
+      HIP_LAUNCH_PARAM_BUFFER_POINTER, kernarg,
+      HIP_LAUNCH_PARAM_BUFFER_SIZE, &size,
+      HIP_LAUNCH_PARAM_END,
+  };
+  return hipModuleLaunchKernel(function, grid_x, grid_y, 1, block_x, 1, 1,
+                               0, stream, nullptr, config);
+}
 
 std::mutex module_mutex;
 std::array<ModuleFunction, 6> loaded{};
@@ -150,17 +223,13 @@ extern "C" int netra_add_rmsnorm_group_quant_n5120_launch(
   uint32_t cols = kWidthAddNorm;
   uint32_t row_stride = kWidthAddNorm;
   float inv_fp8_max = kInvFp8Max;
-  void* hidden_scratch = nullptr;
-  void* hidden_profile = nullptr;
-  void* input = const_cast<void*>(input_bf16);
-  void* residual = const_cast<void*>(residual_bf16);
-  void* weight = const_cast<void*>(weight_f32);
-  void* arguments[] = {
-      &input, &residual, &weight, &output_bf16, &residual_out_bf16,
-      &output_fp8, &output_scale_f32, &rows, &cols, &row_stride, &row_stride,
-      &epsilon, &inv_fp8_max, &hidden_scratch, &hidden_profile};
-  const hipError_t error = hipModuleLaunchKernel(
-      loaded[0].function, rows, 1, 1, 1024, 1, 1, 0, stream, arguments, nullptr);
+  AddNormKernarg kernarg = {
+      const_cast<void*>(input_bf16), const_cast<void*>(residual_bf16),
+      const_cast<void*>(weight_f32), output_bf16, residual_out_bf16,
+      output_fp8, output_scale_f32, rows, cols, row_stride, row_stride,
+      epsilon, inv_fp8_max, nullptr, nullptr};
+  const hipError_t error = launch_fixed(
+      loaded[0].function, rows, 1, 1024, stream, &kernarg);
   if (error != hipSuccess) return fail("launch add+RMSNorm group-quant", error);
   last_error[0] = '\0';
   return 0;
@@ -184,14 +253,10 @@ extern "C" int netra_silu_mul_group_quant_n17408_launch(
   void* output = output_bf16 != nullptr ? output_bf16 : input;
   uint32_t width = kWidthSilu;
   float inv_fp8_max = kInvFp8Max;
-  void* hidden_scratch = nullptr;
-  void* hidden_profile = nullptr;
-  void* arguments[] = {&input, &output, &output_fp8, &output_scale_f32,
-                       &width, &rows, &inv_fp8_max,
-                       &hidden_scratch, &hidden_profile};
-  const hipError_t error = hipModuleLaunchKernel(
-      loaded[index].function, rows, kSiluGroupsPerGrid, 1, 64, 1, 1, 0,
-      stream, arguments, nullptr);
+  SiluKernarg kernarg = {input, output, output_fp8, output_scale_f32,
+                         width, rows, inv_fp8_max, 0, nullptr, nullptr};
+  const hipError_t error = launch_fixed(
+      loaded[index].function, rows, kSiluGroupsPerGrid, 64, stream, &kernarg);
   if (error != hipSuccess) return fail("launch SiLU group-quant", error);
   last_error[0] = '\0';
   return 0;
@@ -212,23 +277,18 @@ extern "C" int netra_gated_rmsnorm_group_quant_d128_launch(
   if (loaded[index].function == nullptr)
     return fail_message("gated RMSNorm group-quant module is not loaded");
 
-  void* input = const_cast<void*>(input_bf16);
-  void* weight = const_cast<void*>(weight_bf16);
-  void* gate = const_cast<void*>(gate_bf16);
   uint32_t row_stride = kWidthGated;
   uint32_t heads = kGatedHeads;
   uint32_t token_rows = rows / kGatedHeads;
   float inv_fp8_max = kInvFp8Max;
-  void* hidden_scratch = nullptr;
-  void* hidden_profile = nullptr;
-  void* arguments[] = {
-      &input, &output_bf16, &weight, &gate, &output_fp8, &output_scale_f32,
-      &row_stride, &row_stride, &gate_token_stride, &gate_head_stride,
-      &rows, &heads, &token_rows, &epsilon, &inv_fp8_max,
-      &hidden_scratch, &hidden_profile};
-  const hipError_t error = hipModuleLaunchKernel(
-      loaded[index].function, rows / rows_per_block, 1, 1, 64, 1, 1, 0,
-      stream, arguments, nullptr);
+  GatedNormKernarg kernarg = {
+      const_cast<void*>(input_bf16), output_bf16,
+      const_cast<void*>(weight_bf16), const_cast<void*>(gate_bf16),
+      output_fp8, output_scale_f32, row_stride, row_stride,
+      gate_token_stride, gate_head_stride, rows, heads, token_rows,
+      epsilon, inv_fp8_max, 0, nullptr, nullptr};
+  const hipError_t error = launch_fixed(
+      loaded[index].function, rows / rows_per_block, 1, 64, stream, &kernarg);
   if (error != hipSuccess)
     return fail("launch gated RMSNorm group-quant", error);
   last_error[0] = '\0';
