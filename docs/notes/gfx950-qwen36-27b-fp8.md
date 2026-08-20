@@ -70,7 +70,8 @@ Two additional block-8 contracts use a BF16 recurrent state pool:
 They are separate from the FP32-state contracts because state type,
 accumulation, storage, ABI, and replay semantics are part of computational
 identity. They remain at maturity `verified`. Their five-process 27B serving
-soak passed, while the final 35B preservation rerun is still pending.
+soak and the final 35B preservation rerun passed. They remain opt in because
+the complete 27B engine still contains explicit framework fallbacks.
 
 The Qwen3.8 GDN projection and Conv1D fusion was adapted only as an operator
 pattern. The 27B checkpoint has a different exact contract: T=8, QKV=10240,
@@ -183,7 +184,8 @@ The original measured sources are retained only as pinned historical Git
 blobs at revision `0e0f97dfee142bee398cd0795d163f82cc591f36`. They are not
 runtime sources. Instantiating the templates reproduced the originating
 code-object executable text byte for byte on gfx950. The tactics remain
-`verified` until the post-migration serving and 35B regression campaigns pass.
+`verified` and opt in after the post-migration serving and 35B regression
+campaigns passed.
 
 Build the seven artifacts and the graph-safe launch bridge on a ROCm host with:
 
@@ -261,8 +263,17 @@ requests completed without serving errors. This is 2.81 percent above the
 prior modular five-process mean of 6289.03 output tokens/s. One additional
 post-migration GSM8K run, using the kernel-owned tuning package after removal
 of all server table copies, measured 6428.18 output tokens/s and completed all
-1319 requests. The tactics remain `verified` and opt in while the full engine
-still contains explicit framework fallbacks.
+1319 requests. A final five-process campaign from clean feature heads and
+freshly rebuilt modular artifacts measured 6478.70, 6562.83, 6430.39, 6493.09,
+and 6539.43 output tokens/s. Mean throughput was 6500.89 output tokens/s with
+standard deviation 52.07, mean acceptance 5.5779, and mean numeric accuracy
+96.25 percent. All 6595 requests completed without serving errors. The
+machine-readable summary is
+`/data/netra/benchmarks/gfx950_qwen36_27b/20260821-best-modular-dflash8-c192-r31/summary.json`
+with SHA-256
+`35853ce85662518eef6df7dfa84cdcf37e8999e25662a30d7e3c179293e6adfb`.
+The tactics remain `verified` and opt in while the full engine still contains
+explicit framework fallbacks.
 
 The engine additionally guards the exact dFlash checkpoint repository,
 revision, config hash, weights hash, block size, draft window, mamba cache
@@ -315,3 +326,8 @@ contract before request launch. The machine-readable summary is
 `/data/netra/benchmarks/gfx950_qwen36_27b/20260821-qwen36-35b-regression-r23/five-fresh/summary.json`
 with SHA-256
 `af4216cf927cb85b0df7b28db4a39222d0dbe85b5d430f14362cf43dc85b39bb`.
+The final natural-EOS GSM8K preservation run from the clean current server
+head measured 11067.26 output tokens/s at concurrency 128. All 1319 requests
+completed without serving errors. It was 1.38 percent below the earlier
+matched sample of 11221.87 output tokens/s and remained 10.62 percent above
+the locked single-GPU mean, so no 35B performance regression is indicated.
