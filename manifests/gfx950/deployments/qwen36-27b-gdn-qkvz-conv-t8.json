@@ -6,7 +6,7 @@
   "evidence": {
     "lock": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-upstream-qkvz-t8/oracle-summary.json",
     "lock_sha256": "d69642f4b46b7345543dd3c58ac94f0e7cf9df66bc21b4bbfee6d325861662e0",
-    "source_revision": "667b9238edf06d2bbaa3a81dee2dc4d6ed1eb415"
+    "source_revision": "d4e402cf59100ef96fd040451465d1dda9c85b6c"
   },
   "artifacts": [
     {
