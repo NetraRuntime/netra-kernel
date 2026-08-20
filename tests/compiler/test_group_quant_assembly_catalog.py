@@ -116,6 +116,10 @@ class GroupQuantAssemblyCatalogTest(unittest.TestCase):
         add_tactic = _tactics()["add_rmsnorm_group_quant_n5120"]
         self.assertEqual(add_tactic.lds_bytes, 0)
         self.assertEqual(add_tactic.dynamic_lds_bytes, 256)
+        bf16_add = _tactics()["add_rmsnorm_group_quant_n5120_bf16_weight"]
+        self.assertEqual(bf16_add.maturity.value, "experiment")
+        self.assertIn("bf16_bf16_bf16_to_", bf16_add.semantics.dtypes)
+        self.assertNotEqual(add_tactic.stable_id, bf16_add.stable_id)
         gated_rpb4 = _tactics()["gated_rmsnorm_group_quant_d128_rpb4"]
         self.assertEqual(gated_rpb4.lds_bytes, 0)
         self.assertEqual(gated_rpb4.dynamic_lds_bytes, 256)
