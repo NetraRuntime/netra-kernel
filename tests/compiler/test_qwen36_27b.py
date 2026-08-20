@@ -71,7 +71,7 @@ class Qwen3627BTest(unittest.TestCase):
         graph, model = load_model(MODEL)
         self.assertEqual(
             stable_hash(model),
-            "25c31796d242732a91f243920bed1616fdd915ec70ad9ed6466602af9e6e1798",
+            "816052714bafdf106a55481f2c00a56a3ade23134a87475fb6fdb488a8cc9823",
         )
         self.assertEqual(
             stable_hash(graph.to_dict()),
@@ -106,6 +106,21 @@ class Qwen3627BTest(unittest.TestCase):
                 "model.layers.3.mlp.gate_up_proj",
                 "model.layers.3.mlp.down_proj",
             ],
+        )
+        configuration = model["configuration"]
+        self.assertEqual(configuration["speculative_algorithm"], "DFLASH")
+        self.assertTrue(configuration["dflash_enabled"])
+        self.assertEqual(configuration["dflash_block_size"], 8)
+        self.assertEqual(configuration["dflash_draft_window_size"], 2048)
+        self.assertEqual(configuration["dflash_mamba_cache_steps"], 0)
+        self.assertEqual(configuration["mamba_ssm_dtype"], "float32")
+        self.assertEqual(
+            configuration["dflash_checkpoint_revision"],
+            "0919688658996800f86b895034249700e9481106",
+        )
+        self.assertEqual(
+            configuration["cuda_graph_batch_sizes"],
+            [1, 2, 4, 8, 16, 32, 64, 80, 96, 112, 128],
         )
 
     def test_no_35b_tactic_is_relabelled_for_27b(self) -> None:
@@ -187,6 +202,7 @@ class Qwen3627BTest(unittest.TestCase):
             "prefill_m256_b1": {"m": 256, "batch": 1, "sequence": 256},
             "prefill_m3840_b15": {"m": 3840, "batch": 15, "sequence": 256},
             "verify_m4_b1": {"m": 4, "batch": 1, "sequence": 80},
+            "verify_m8": {"m": 8, "batch": 128, "sequence": 32768},
         }
         for name, dimensions in observed.items():
             self.assertTrue(
@@ -196,6 +212,18 @@ class Qwen3627BTest(unittest.TestCase):
                     tensor_parallel=1,
                 ),
                 name,
+            )
+        for dimensions in (
+            {"m": 8, "batch": 129, "sequence": 32768},
+            {"m": 8, "batch": 128, "sequence": 32769},
+            {"m": 7, "batch": 128, "sequence": 32768},
+        ):
+            self.assertFalse(
+                by_name["verify_m8"].matches(
+                    dimensions,
+                    quantization="fp8_block128",
+                    tensor_parallel=1,
+                )
             )
         unsupported = select_profile(
             profiles,

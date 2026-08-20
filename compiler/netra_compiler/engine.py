@@ -439,6 +439,10 @@ def compile_engine(model_path: Path, target: str, profile_name: str, output: Pat
         "piecewise_cuda_graph_tokens", "speculative_algorithm",
         "speculative_num_steps", "speculative_eagle_topk",
         "speculative_num_draft_tokens", "dflash_enabled", "dflash_block_size",
+        "dflash_checkpoint", "dflash_checkpoint_repository",
+        "dflash_checkpoint_revision", "dflash_checkpoint_config_sha256",
+        "dflash_checkpoint_weights_sha256", "dflash_draft_window_size",
+        "dflash_mamba_cache_steps", "mamba_ssm_dtype",
         "required_environment",
     )
     deployment_guards = {

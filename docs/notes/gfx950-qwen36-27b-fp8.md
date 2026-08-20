@@ -38,7 +38,10 @@ exact verification shape of M=4 before the unmodified framework failed in its
 AITER attention metadata path. `verify_m4_b1` records that shape. The engine
 keeps MTP and speculative serving on the framework. The dFlash block-8
 deployment below serves selected GDN operations through an opt-in raw-kernel
-bridge instead.
+bridge instead. `verify_m8` records its exact eight-token verification window,
+batch range 1 through 128, and sequence bound 32768. The deployment manifest
+pins dFlash block size 8, draft window 2048, zero mamba cache steps, FP32 state,
+and full graph batches 1, 2, 4, 8, 16, 32, 64, 80, 96, 112, and 128.
 
 ## Verified HV48 GDN verification tactics
 
@@ -137,18 +140,24 @@ python3 tools/checkpoint/inspect_qwen36_27b_fp8.py \
 
 ## Validation status
 
-All six observed profiles compiled and passed static validation on gfx950.
+All seven required profiles compiled and passed static validation on gfx950.
 Each engine contains 267 explicit framework fallbacks and no specialized
-code object. Compiling the primary `decode_m16_b16` engine twice produced
-byte-identical semantic outputs. Its engine ID is
-`ne_f70a65a84efb0dce83555986`.
+code object. Compiling every required engine twice produced byte-identical
+semantic outputs. The documented `decode_m1` engine ID is
+`ne_219f9e67da889e379efb4671`.
 
-Real-checkpoint serving passed model loading, exact guards, full HIP graph
-capture and replay, short boundary token checks, and direct state comparison.
-The framework control and shadow engine produced byte-identical prefill and
-two-step decode logits, GDN intermediates and recurrent state, and raw FP8 KV
-cache tensors for the inspected layers. These results establish guarded
-framework compatibility, not a Netra kernel speedup.
+The current engine additionally guards the exact dFlash checkpoint repository,
+revision, config hash, weights hash, block size, draft window, mamba cache
+steps, state type, and graph ladder. Hardware shadow validation for this
+updated dFlash engine is `not_run`.
+
+The earlier non-speculative fallback-only engine passed real-checkpoint model
+loading, exact guards, full HIP graph capture and replay, short boundary token
+checks, and direct state comparison. Its framework control and shadow engine
+produced byte-identical prefill and two-step decode logits, GDN intermediates
+and recurrent state, and raw FP8 KV cache tensors for the inspected layers.
+These historical results establish guarded framework compatibility, not a
+Netra kernel speedup for the updated dFlash engine.
 
 Five matched fresh-process serving pairs measured 740.74 output tokens/s for
 the framework control and 738.50 output tokens/s for shadow mode. The paired

@@ -120,17 +120,31 @@
       8,
       16,
       32,
-      64
+      64,
+      80,
+      96,
+      112,
+      128
     ],
-    "speculative_algorithm": null,
-    "dflash_enabled": false,
+    "speculative_algorithm": "DFLASH",
+    "dflash_enabled": true,
+    "dflash_checkpoint": "Qwen3.6-27B-DFlash",
+    "dflash_checkpoint_repository": "z-lab/Qwen3.6-27B-DFlash",
+    "dflash_checkpoint_revision": "0919688658996800f86b895034249700e9481106",
+    "dflash_checkpoint_config_sha256": "fcdec9ee2da902d24e69ba3fc666e50a0aa723147689ffc900f425db0381bc54",
+    "dflash_checkpoint_weights_sha256": "e0c050b34798d32728a164d2c3f1681746ff85c11945701b0205b654e2f1fdbe",
+    "dflash_block_size": 8,
+    "dflash_draft_window_size": 2048,
+    "dflash_mamba_cache_steps": 0,
+    "mamba_ssm_dtype": "float32",
     "required_profiles": [
       "decode_m1",
       "decode_m16_b16",
       "prefill_m80_b1",
       "prefill_m256_b1",
       "prefill_m3840_b15",
-      "verify_m4_b1"
+      "verify_m4_b1",
+      "verify_m8"
     ],
     "required_environment": {
       "SGLANG_USE_AITER": "1"
