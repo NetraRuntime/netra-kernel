@@ -10,6 +10,11 @@
       "lock_name": "CURRENT_BEST.json",
       "lock_sha256": "2823d64410ba4a87223ede5429c90677cc76aea628244dd3c4a1c810af76557a",
       "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260817T042500Z-generic-deterministic-promote-dp8"
+    },
+    "gfx950_gqa6_fp8kv_m8_verified_20260820": {
+      "lock_name": "validation.json",
+      "lock_sha256": "0354b245a2e4b999071ced7a6e107527bcd3ac9c28d0b2e249dfeab25f63c047",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-attn-tune/gqa6-fixed-template-validation-r2"
     }
   },
   "policy": {
@@ -232,6 +237,126 @@
       "template_sha256": "c06c3401b0e619602771d10a8c61d7a363a0e19eb1f101afc13795a7384ace80",
       "source_closure_sha256": "9e22f2846a1c4e5b6c4448c80095fc98a550d6e7ac6f4b4a839f13ad54ddc245",
       "family": "attention.gqa_fp8kv"
+    },
+    {
+      "id": "attention_gqa6_fp8kv_m8_qo32_kv32",
+      "operation": "attention_extend",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_five_process_serving_inconclusive",
+      "evidence_set": "gfx950_gqa6_fp8kv_m8_verified_20260820",
+      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8_qo32_kv32.inc",
+      "golden_source": "kernels/gfx950/attention/verify/attention_gqa6_fp8kv_m8_qo32_kv32_gfx950.s",
+      "source_revision": "a5c909ce027f4ee5cc5a7fb5d12a18e55ff85805",
+      "source_sha256": "6fd3fc6171d6fa40f1145d084918cefbe818adc3d3c9786a7777f9ee322be711",
+      "symbols": [
+        "netra_attention_gqa6_fp8kv_m8_qo32_kv32_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 96,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "attention.gqa6_fp8kv.ptr9_qo32_kv32_f32_ptr2.v1",
+        "dtypes": "bf16_query_tail_fp8e4m3_kv_to_bf16.v1",
+        "quantization": "native_fp8e4m3_kv_unit_per_tensor_scale.v1",
+        "layouts": "paged_kv_gqa6_head256_value_stride14336.v1",
+        "numerical": "causal_m8_online_softmax_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_extend",
+      "rank": 130,
+      "locked_hsaco_sha256": [
+        "0c0bba3bc643417c12b4e9c55cb274d797d6bca847df7db9b03a19081cf21a9f"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_QO32_KV32",
+      "template_sha256": "412e5cd596c062171364b8f3125ea2e91f4f5df647e881c35ca90ca58ff17492",
+      "source_closure_sha256": "a2f4f894b1d9cd14b8d72e3cf17d06b95e95d1a87a7da854f4085efb3bb5aa68",
+      "family": "attention.gqa_fp8kv",
+      "serving_evidence": {
+        "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/gqa6-fp8kv-c192-five-fresh-r1/summary.json",
+        "sha256": "fa63f71bf540aa3885f5a6d83f5540cc7dd59b07dff96f398a18066bd593b288"
+      }
+    },
+    {
+      "id": "attention_gqa6_fp8kv_m8_qo32_kv64",
+      "operation": "attention_extend",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_five_process_serving_inconclusive",
+      "evidence_set": "gfx950_gqa6_fp8kv_m8_verified_20260820",
+      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8_qo32_kv64.inc",
+      "golden_source": "kernels/gfx950/attention/verify/attention_gqa6_fp8kv_m8_qo32_kv64_gfx950.s",
+      "source_revision": "a5c909ce027f4ee5cc5a7fb5d12a18e55ff85805",
+      "source_sha256": "4b1f077d5425d828877ccbb60fdb4adb56a317bf01305e2ff410dde213ed10c3",
+      "symbols": [
+        "netra_attention_gqa6_fp8kv_m8_qo32_kv64_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 96,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "attention.gqa6_fp8kv.ptr9_qo32_kv64_f32_ptr2.v1",
+        "dtypes": "bf16_query_tail_fp8e4m3_kv_to_bf16.v1",
+        "quantization": "native_fp8e4m3_kv_unit_per_tensor_scale.v1",
+        "layouts": "paged_kv_gqa6_head256_value_stride14336.v1",
+        "numerical": "causal_m8_online_softmax_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_extend",
+      "rank": 131,
+      "locked_hsaco_sha256": [
+        "6718afd90222744dbffff3555c5046777c352cee7b60bf3286a49454367d80a1"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_QO32_KV64",
+      "template_sha256": "cebe67508e3f7e7dedd3b64f70dcb9f0261d45e1f2606d6dd37f0280bf226f3a",
+      "source_closure_sha256": "b835c5d77e4a934c19d6a20268fa9991d4a43159a3192515edd79135ac5f0f79",
+      "family": "attention.gqa_fp8kv",
+      "serving_evidence": {
+        "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/gqa6-fp8kv-c192-five-fresh-r1/summary.json",
+        "sha256": "fa63f71bf540aa3885f5a6d83f5540cc7dd59b07dff96f398a18066bd593b288"
+      }
+    },
+    {
+      "id": "attention_gqa6_fp8kv_m8_qo64_kv64",
+      "operation": "attention_extend",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_five_process_serving_inconclusive",
+      "evidence_set": "gfx950_gqa6_fp8kv_m8_verified_20260820",
+      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8_qo64_kv64.inc",
+      "golden_source": "kernels/gfx950/attention/verify/attention_gqa6_fp8kv_m8_qo64_kv64_gfx950.s",
+      "source_revision": "a5c909ce027f4ee5cc5a7fb5d12a18e55ff85805",
+      "source_sha256": "dc8ba03026b265c9c9f2bab193a715ae9e94fc8e2dad6f6ab538281b6e4d55f4",
+      "symbols": [
+        "netra_attention_gqa6_fp8kv_m8_qo64_kv64_gfx950"
+      ],
+      "compile_definitions": {},
+      "kernarg_size": 96,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "attention.gqa6_fp8kv.ptr9_qo64_kv64_f32_ptr2.v1",
+        "dtypes": "bf16_query_tail_fp8e4m3_kv_to_bf16.v1",
+        "quantization": "native_fp8e4m3_kv_unit_per_tensor_scale.v1",
+        "layouts": "paged_kv_gqa6_head256_value_stride14336.v1",
+        "numerical": "causal_m8_online_softmax_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_extend",
+      "rank": 132,
+      "locked_hsaco_sha256": [
+        "f396e5364524767e4f37e07cb38ed81440dfd17453f4ab732a476e1b15c602b7"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_QO64_KV64",
+      "template_sha256": "df78117cb4beb9648dd6e9d884939029982736761b89c2622f65e2c84f8d3a6c",
+      "source_closure_sha256": "52d21abf782029010dbefa64eab472a0935887f9ee149c5a16661cc37382ca5e",
+      "family": "attention.gqa_fp8kv",
+      "serving_evidence": {
+        "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/gqa6-fp8kv-c192-five-fresh-r1/summary.json",
+        "sha256": "fa63f71bf540aa3885f5a6d83f5540cc7dd59b07dff96f398a18066bd593b288"
+      }
     },
     {
       "id": "attention_splitseq_prepare",

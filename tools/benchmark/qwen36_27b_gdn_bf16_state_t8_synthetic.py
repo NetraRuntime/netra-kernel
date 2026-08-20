@@ -65,7 +65,9 @@ def median_us(function: Callable[[], None], iterations: int) -> float:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--build-dir", type=Path, required=True)
-    parser.add_argument("--batch", type=int, choices=(1, 32, 128, 256), required=True)
+    parser.add_argument(
+        "--batch", type=int, choices=(1, 32, 128, 192, 256), required=True
+    )
     parser.add_argument("--iterations", type=int, default=50)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()

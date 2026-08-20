@@ -307,6 +307,105 @@ class CurrentBestAssemblyTest(unittest.TestCase):
             (32, 64),
         )
 
+    def test_gqa6_m8_attention_is_verified_separate_and_exact(self) -> None:
+        tactics = {t.name: t for t in load_fixed_tactic_catalog(ROOT)}
+        accepted_gqa8 = tactics["gfx950.attention_gqa8_fp8kv"]
+        names = (
+            "gfx950.attention_gqa6_fp8kv_m8_qo32_kv32",
+            "gfx950.attention_gqa6_fp8kv_m8_qo32_kv64",
+            "gfx950.attention_gqa6_fp8kv_m8_qo64_kv64",
+        )
+        variants = [tactics[name] for name in names]
+        self.assertEqual([t.rank for t in variants], [130, 131, 132])
+        self.assertTrue(all(t.maturity is Maturity.VERIFIED for t in variants))
+        self.assertTrue(all(t.threads_per_workgroup == 64 for t in variants))
+        self.assertTrue(all(t.lds_bytes == 32768 for t in variants))
+        self.assertTrue(
+            all(
+                t.acceptance_scope
+                == "hardware_verified_operator_five_process_serving_inconclusive"
+                for t in variants
+            )
+        )
+        self.assertEqual(
+            [
+                (
+                    dict(t.contract_constants)["NETRA_QO_INDPTR_BITS"],
+                    dict(t.contract_constants)["NETRA_KV_INDEX_BITS"],
+                )
+                for t in variants
+            ],
+            [((32,), (32,)), ((32,), (64,)), ((64,), (64,))],
+        )
+        self.assertTrue(
+            all(
+                dict(t.contract_constants)["NETRA_M_MAX"] == (8,)
+                and dict(t.contract_constants)["NETRA_QUERY_HEADS"] == (24,)
+                and dict(t.contract_constants)["NETRA_KV_HEADS"] == (4,)
+                and dict(t.contract_constants)["NETRA_HEAD_DIM"] == (256,)
+                for t in variants
+            )
+        )
+        self.assertIs(accepted_gqa8.maturity, Maturity.ACCEPTED)
+        self.assertEqual(
+            accepted_gqa8.template,
+            "kernels/gfx950/templates/attention/verify/gqa8_fp8kv.inc",
+        )
+        self.assertEqual(
+            accepted_gqa8.template_sha256,
+            "c06c3401b0e619602771d10a8c61d7a363a0e19eb1f101afc13795a7384ace80",
+        )
+
+        tactic = variants[0]
+        constants = {
+            name: values[0]
+            for name, values in tactic.contract_constants
+        }
+        request = {
+            "family": tactic.family,
+            "operation": tactic.operation,
+            "target": tactic.target,
+            "wave_size": tactic.wave_size,
+            "semantics": tactic.semantics.to_dict(),
+            "constants": constants,
+            "launch_grid": (192, 4, 3),
+        }
+        self.assertEqual(tactic.rejection_reasons(request), ())
+        contract = tactic.make_contract(request)
+        self.assertEqual(contract.launch.grid, (192, 4, 3))
+        self.assertEqual(contract.launch.block, (64, 1, 1))
+        self.assertEqual(contract.launch.lds_bytes, 32768)
+        self.assertEqual(contract.launch.dynamic_lds_bytes, 0)
+        self.assertNotIn("qwen", contract.symbol)
+        self.assertIn(
+            "NETRA_KV_HEADS mismatch",
+            tactic.rejection_reasons(
+                {**request, "constants": {**constants, "NETRA_KV_HEADS": 2}}
+            ),
+        )
+        self.assertIn(
+            "layouts semantic mismatch", accepted_gqa8.rejection_reasons(request)
+        )
+
+    def test_gqa6_bridge_has_no_hot_path_specialization_or_dynamic_lds(self) -> None:
+        source = (
+            ROOT
+            / "runtime/gfx950/attention/verify/attention_gqa6_fp8kv_m8_bridge.hip"
+        ).read_text()
+        launch = source.split(
+            'extern "C" int netra_attention_gqa6_fp8kv_m8_launch(', 1
+        )[1].split(
+            'extern "C" const char* netra_attention_gqa6_fp8kv_m8_last_error', 1
+        )[0]
+        self.assertIn("constexpr unsigned kDynamicLdsBytes = 0", source)
+        self.assertIn("kDynamicLdsBytes, stream", launch)
+        self.assertNotIn("hipModuleLoad", launch)
+        self.assertNotIn("hipModuleGetFunction", launch)
+        self.assertNotIn("getenv", launch)
+        self.assertNotIn("hipMalloc", launch)
+        self.assertNotIn("hipStreamSynchronize", launch)
+        self.assertIn("1, 2, 4, 8, 16, 32, 64, 80, 96, 112, 128, 160, 192", source)
+
     def test_source_integrity_and_computational_identity_are_separate(self) -> None:
         tactics = load_fixed_tactic_catalog(ROOT)
         self.assertTrue(all(len(t.source_closure_sha256) == 64 for t in tactics))
