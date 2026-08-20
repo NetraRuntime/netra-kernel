@@ -11,6 +11,7 @@ from netra_compiler.backends.gfx950.codegen import instantiate_fixed_source
 ROOT = Path(__file__).resolve().parents[2]
 EXPECTED_RANGES = {
     "add_rmsnorm_group_quant_n5120": (1, 8192, 1),
+    "add_rmsnorm_group_quant_n5120_bf16_weight": (1, 8192, 1),
     "silu_mul_group_quant_n17408_store_bf16": (1, 8192, 1),
     "silu_mul_group_quant_n17408_prequant_only": (1, 8192, 1),
     "gated_rmsnorm_group_quant_d128_rpb1": (48, 480, 48),
@@ -117,7 +118,7 @@ class GroupQuantAssemblyCatalogTest(unittest.TestCase):
         self.assertEqual(add_tactic.lds_bytes, 0)
         self.assertEqual(add_tactic.dynamic_lds_bytes, 256)
         bf16_add = _tactics()["add_rmsnorm_group_quant_n5120_bf16_weight"]
-        self.assertEqual(bf16_add.maturity.value, "experiment")
+        self.assertEqual(bf16_add.maturity.value, "verified")
         self.assertIn("bf16_bf16_bf16_to_", bf16_add.semantics.dtypes)
         self.assertNotEqual(add_tactic.stable_id, bf16_add.stable_id)
         gated_rpb4 = _tactics()["gated_rmsnorm_group_quant_d128_rpb4"]

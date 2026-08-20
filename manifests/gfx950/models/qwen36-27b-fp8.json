@@ -290,7 +290,7 @@
       },
       "semantics": {
         "abi": "norm.add_rmsnorm_quant.ptr7_u32x6_scalar2.v1",
-        "dtypes": "bf16_bf16_f32_to_bf16_bf16_fp8e4m3_f32scale.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_bf16_fp8e4m3_f32scale.v1",
         "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
         "layouts": "row_major_n5120_scale_group_major.v1",
         "numerical": "residual_add_fp32_rms_bf16_round_then_fp8_rne_fixed.v1"
@@ -303,7 +303,7 @@
       "arguments": [
         {"name": "input_bf16", "kind": "pointer", "access": "read", "offset": 0},
         {"name": "residual_bf16", "kind": "pointer", "access": "read", "offset": 8},
-        {"name": "weight_f32", "kind": "pointer", "access": "read", "offset": 16},
+        {"name": "weight_bf16", "kind": "pointer", "access": "read", "offset": 16},
         {"name": "output_bf16", "kind": "pointer", "access": "write", "offset": 24},
         {"name": "residual_out_bf16", "kind": "pointer", "access": "write", "offset": 32},
         {"name": "output_fp8", "kind": "pointer", "access": "write", "offset": 40},

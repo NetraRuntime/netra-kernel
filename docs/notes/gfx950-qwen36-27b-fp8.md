@@ -160,9 +160,10 @@ sampling boundaries as explicit fallbacks. No 35B tactic or rank is changed.
 All Netra-owned fused normalization, activation, and group-quant compute is
 implemented by model-independent gfx950 assembly templates in
 `kernels/gfx950/templates/activation/verify/` and
-`kernels/gfx950/templates/norm/verify/`. The six verified schedules cover:
+`kernels/gfx950/templates/norm/verify/`. The seven verified schedules cover:
 
-- residual add plus RMSNorm plus FP8 group quant at width 5120;
+- residual add plus RMSNorm plus FP8 group quant at width 5120, with distinct
+  FP32-weight and BF16-weight contracts;
 - SiLU multiply plus FP8 group quant at width 17408, with and without a BF16
   output store;
 - gated RMSNorm plus FP8 group quant at width 128 and 48 heads, with one, two,
@@ -184,12 +185,27 @@ runtime sources. Instantiating the templates reproduced the originating
 code-object executable text byte for byte on gfx950. The tactics remain
 `verified` until the post-migration serving and 35B regression campaigns pass.
 
-Build the six artifacts and the graph-safe launch bridge on a ROCm host with:
+Build the seven artifacts and the graph-safe launch bridge on a ROCm host with:
 
 ```bash
 python3 tools/build/build_gfx950_group_quant_assembly.py \
   --output build/gfx950-group-quant-assembly
 ```
+
+The measured AITER GEMM selections are also owned and packaged by this
+repository. They are model-neutral exact-key tables, not Netra compute
+kernels. The selected AITER assembly, CK, and CK Tile implementations remain
+explicit framework fallbacks. Build the deterministic package with:
+
+```bash
+python3 tools/build/build_gfx950_gemm_tuning_package.py \
+  --output build/gfx950-gemm-tuning
+```
+
+The package records gfx950, 256 compute units, every exact selection key, and
+the SHA-256 of all six tables used by the 27B and preserved 35B deployments.
+The server validates `package.json`, the exact inventory, and every table hash
+before startup. No model name participates in a selection key.
 
 The bridge performs initialization and symbol lookup before graph capture.
 Its launch functions only check the bounded profile and fixed schedule range,
@@ -227,9 +243,9 @@ All eight required profiles compiled and passed static validation on gfx950.
 The block-8 verification engine contains 52 exact fixed assembly operations
 and 267 explicit framework fallbacks. Two independent c192 builds produced 76
 byte-identical semantic files. Both `engine.json` files have SHA-256
-`50c6b4ed0f30f27889d2716423dc936a59fd2097059de2aa1f00f7d26e97aabc`.
+`6bcd01b9d0e2345b3931be40f648b15d8ec06685e66c00115d93eccfeb7c71d8`.
 
-The six modular group-quant artifacts built on the supplied 256-compute-unit
+The seven modular group-quant artifacts built on the supplied 256-compute-unit
 MI350X with all locked executable-text hashes identical. Metadata validation
 passed for gfx950, wave64, kernarg size, launch dimensions, VGPR, SGPR, AGPR,
 LDS, and private segment. Boundary tests at 10, 11, 21, and 22 tokens were
@@ -237,15 +253,16 @@ bitwise identical to the former Triton oracle in eager execution and graph
 replay. Repeated graph replay was bitwise stable.
 
 Five fresh-process natural-EOS GSM8K runs of the best dFlash block-8, BF16
-state, GQA6 M=8, c192 stack measured 6325.85, 6341.28, 6268.34, 6228.95, and
-6280.75 output tokens/s. Mean throughput was 6289.03 output tokens/s with
-standard deviation 45.26, mean acceptance 5.5814, and mean numeric accuracy
-96.43 percent. A matched four-process legacy control averaged 6377.32 output
-tokens/s with standard deviation 66.44. The modular point estimate was 1.38
-percent lower. A two-sided Welch test gave p=0.0713 and a 95 percent interval
-of -187.63 to +11.06 output tokens/s for modular minus legacy, so the runs are
-statistically indistinguishable at alpha 0.05. The tactics remain `verified`
-rather than `accepted` because the point estimate did not improve.
+state, BF16-weight fused add-RMSNorm quantization, GQA6 M=8, c192 stack
+measured 6360.07, 6622.10, 6467.57, 6510.44, and 6369.54 output tokens/s.
+Mean throughput was 6465.94 output tokens/s with standard deviation 108.25,
+mean acceptance 5.5837, and mean numeric accuracy 96.41 percent. All 6595
+requests completed without serving errors. This is 2.81 percent above the
+prior modular five-process mean of 6289.03 output tokens/s. One additional
+post-migration GSM8K run, using the kernel-owned tuning package after removal
+of all server table copies, measured 6428.18 output tokens/s and completed all
+1319 requests. The tactics remain `verified` and opt in while the full engine
+still contains explicit framework fallbacks.
 
 The engine additionally guards the exact dFlash checkpoint repository,
 revision, config hash, weights hash, block size, draft window, mamba cache
@@ -286,3 +303,15 @@ mean dFlash acceptance was 5.5220. One additional attempt with a 23.9-second
 system stall is preserved separately and excluded from the clean aggregate.
 The locked `CURRENT_BEST.json` hash remained unchanged. DP8 serving was
 `not_run` by instruction.
+
+After the 27B migration, five additional fresh-process single-GPU 35B runs
+used the exact throughput128, dFlash-12, B128 deployment. They measured
+11415.36, 11304.09, 10159.75, 11256.39, and 11462.40 output tokens/s. The mean
+was 11119.60 output tokens/s with mean acceptance 5.5821. All 1920 requests
+completed with exactly 1024 output tokens and no request errors. This is 11.14
+percent above the locked single-GPU mean. The final fixed B128 configuration
+guard also completed graph capture after freezing its environment-derived
+contract before request launch. The machine-readable summary is
+`/data/netra/benchmarks/gfx950_qwen36_27b/20260821-qwen36-35b-regression-r23/five-fresh/summary.json`
+with SHA-256
+`af4216cf927cb85b0df7b28db4a39222d0dbe85b5d430f14362cf43dc85b39bb`.

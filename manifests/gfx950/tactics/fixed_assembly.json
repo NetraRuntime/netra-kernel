@@ -20,6 +20,11 @@
       "lock_name": "validation.json",
       "lock_sha256": "15751a2fa72a3219cc283bec7ce486cec75cdd61931b833c123b251a4cd063cb",
       "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-group-quant-assembly/fixed-template-validation-r1"
+    },
+    "gfx950_group_quant_bf16_weight_verified_20260821": {
+      "lock_name": "validation.json",
+      "lock_sha256": "0059b4b1e88fa57d1791356ae6bf5bed79c7c5ac19f70a9a2dcc8d0174ccc762",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260821-bf16-norm-r16/operator-validation"
     }
   },
   "policy": {
@@ -697,9 +702,9 @@
     {
       "id": "add_rmsnorm_group_quant_n5120_bf16_weight",
       "operation": "add_rmsnorm_group_quant",
-      "maturity": "experiment",
-      "acceptance_scope": "real_checkpoint_bf16_weight_operator_validation_pending",
-      "evidence_set": "gfx950_group_quant_assembly_verified_20260820",
+      "maturity": "verified",
+      "acceptance_scope": "operator_bitwise_exact_eager_and_graph_serving_promotion_pending",
+      "evidence_set": "gfx950_group_quant_bf16_weight_verified_20260821",
       "template": "kernels/gfx950/templates/norm/verify/add_rmsnorm_group_quant_n5120_bf16_weight.inc",
       "golden_source": "build/experiments/add_rmsnorm_bf16_weight.amdgcn",
       "source_revision": "c726bec1decde21ee43889ca6bde6cd368cf8649",
@@ -722,8 +727,10 @@
       "deterministic": true,
       "fallback": "framework.add_rmsnorm_then_group_quant",
       "rank": 200,
-      "locked_text_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-      "locked_hsaco_sha256": [],
+      "locked_text_sha256": "23a9b09e3b8b30795757d149ef1ea21b047d7e09a37e28456bdf7199c05959bd",
+      "locked_hsaco_sha256": [
+        "0938c9b67d1f41bd216467874c3fe57299b0d7907e5c8602e1abd3ccb00d02f9"
+      ],
       "instantiation_macro": "NETRA_ADD_RMSNORM_GROUP_QUANT_N5120_BF16_WEIGHT",
       "template_sha256": "b1d6c2a18e0774b5240e239a6374ad9b9f61460b8b71bc77d5424453989c7eb0",
       "source_closure_sha256": "b49df3f114f6e5c2a54bbd1628e82de59d8afebf7907dead2337b4904b3f1c2a",

@@ -38,6 +38,17 @@ VARIANTS = (
          "wavefront_size": 64},
     ),
     Variant(
+        "add_rmsnorm_group_quant_n5120_bf16_weight",
+        "netra_add_rmsnorm_group_quant_n5120_gfx950",
+        8,
+        (8, 1, 1),
+        "23a9b09e3b8b30795757d149ef1ea21b047d7e09a37e28456bdf7199c05959bd",
+        {"agpr_count": 0, "vgpr_count": 28, "sgpr_count": 46,
+         "kernarg_segment_size": 96, "group_segment_fixed_size": 0,
+         "private_segment_fixed_size": 0, "max_flat_workgroup_size": 1024,
+         "wavefront_size": 64},
+    ),
+    Variant(
         "silu_mul_group_quant_n17408_store_bf16",
         "netra_silu_mul_group_quant_n17408_store_bf16_gfx950",
         8,
