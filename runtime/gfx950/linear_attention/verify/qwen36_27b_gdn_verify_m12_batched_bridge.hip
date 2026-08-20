@@ -18,9 +18,12 @@ hipFunction_t precompute_function = nullptr;
 hipFunction_t core_function = nullptr;
 hipModule_t state_replay_module = nullptr;
 hipFunction_t state_replay_function = nullptr;
+hipModule_t qkvz_conv_t8_module = nullptr;
+hipFunction_t qkvz_conv_t8_function = nullptr;
 std::string loaded_precompute_path;
 std::string loaded_core_path;
 std::string loaded_state_replay_path;
+std::string loaded_qkvz_conv_t8_path;
 // Verification block size: 12 (promoted) or 8 (block-8 experiment). Affects
 // only the precompute grid (tokens x 16 QK heads per request); the core and
 // replay grids are token-count independent (HV x value tiles).
@@ -37,7 +40,19 @@ int fail_message(const std::string& message) {
   return -1;
 }
 
+hipError_t get_function_with_legacy_fallback(
+    hipFunction_t* function,
+    hipModule_t module,
+    const char* model_independent_symbol,
+    const char* legacy_symbol) {
+  hipError_t error =
+      hipModuleGetFunction(function, module, model_independent_symbol);
+  if (error == hipSuccess) return error;
+  return hipModuleGetFunction(function, module, legacy_symbol);
+}
+
 void clear_modules() {
+  if (qkvz_conv_t8_module != nullptr) (void)hipModuleUnload(qkvz_conv_t8_module);
   if (state_replay_module != nullptr) (void)hipModuleUnload(state_replay_module);
   if (core_module != nullptr) (void)hipModuleUnload(core_module);
   if (precompute_module != nullptr) (void)hipModuleUnload(precompute_module);
@@ -46,6 +61,9 @@ void clear_modules() {
   state_replay_module = nullptr;
   state_replay_function = nullptr;
   loaded_state_replay_path.clear();
+  qkvz_conv_t8_module = nullptr;
+  qkvz_conv_t8_function = nullptr;
+  loaded_qkvz_conv_t8_path.clear();
   precompute_function = nullptr;
   core_function = nullptr;
   loaded_precompute_path.clear();
@@ -101,8 +119,9 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_load(
     clear_modules();
     return fail("hipModuleLoad(core)", error);
   }
-  error = hipModuleGetFunction(
+  error = get_function_with_legacy_fallback(
       &core_function, core_module,
+      "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_gfx950",
       "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950");
   if (error != hipSuccess) {
     clear_modules();
@@ -118,6 +137,81 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_load_wavegroup_variants(
     const char*, const char*, const char*, const char*) {
   return fail_message(
       "Qwen3.6-27B HV48 verification currently supports one wave only");
+}
+
+extern "C" int netra_gdn_qkvz_conv_t8_d10240_load(
+    const char* qkvz_conv_hsaco_path) {
+  if (qkvz_conv_hsaco_path == nullptr || qkvz_conv_hsaco_path[0] == '\0')
+    return fail_message("QKVZ convolution hsaco path must be nonempty");
+  std::lock_guard<std::mutex> guard(module_mutex);
+  if (qkvz_conv_t8_module != nullptr) {
+    if (loaded_qkvz_conv_t8_path == qkvz_conv_hsaco_path) {
+      last_error.clear();
+      return 0;
+    }
+    return fail_message("a different T=8 QKVZ convolution module is loaded");
+  }
+  if (validate_device() != 0) return -1;
+  hipError_t error = hipModuleLoad(
+      &qkvz_conv_t8_module, qkvz_conv_hsaco_path);
+  if (error != hipSuccess) return fail("hipModuleLoad(qkvz conv T=8)", error);
+  error = hipModuleGetFunction(
+      &qkvz_conv_t8_function, qkvz_conv_t8_module,
+      "netra_gdn_qkvz_conv_t8_d10240_gfx950");
+  if (error != hipSuccess) {
+    (void)hipModuleUnload(qkvz_conv_t8_module);
+    qkvz_conv_t8_module = nullptr;
+    qkvz_conv_t8_function = nullptr;
+    return fail("hipModuleGetFunction(qkvz conv T=8)", error);
+  }
+  loaded_qkvz_conv_t8_path = qkvz_conv_hsaco_path;
+  last_error.clear();
+  return 0;
+}
+
+extern "C" int netra_gdn_qkvz_conv_t8_d10240_launch(
+    const void* qkvz_bf16,
+    const void* weight_bf16,
+    void* state_bf16,
+    const void* state_indices_i32,
+    void* intermediate_window_bf16,
+    const void* intermediate_indices_i32,
+    void* output_bf16,
+    uint32_t batch_size,
+    hipStream_t stream) {
+  if (qkvz_conv_t8_function == nullptr)
+    return fail_message("T=8 QKVZ convolution module is not loaded");
+  const std::array<const void*, 7> pointers = {
+      qkvz_bf16, weight_bf16, state_bf16, state_indices_i32,
+      intermediate_window_bf16, intermediate_indices_i32, output_bf16};
+  if (std::any_of(pointers.begin(), pointers.end(),
+                  [](const void* pointer) { return pointer == nullptr; }))
+    return fail_message("T=8 QKVZ convolution pointers must be nonnull");
+  if (batch_size == 0 || batch_size > 256)
+    return fail_message("T=8 QKVZ convolution batch must be in [1,256]");
+
+  void* qkvz_pointer = const_cast<void*>(qkvz_bf16);
+  void* weight_pointer = const_cast<void*>(weight_bf16);
+  void* state_indices_pointer = const_cast<void*>(state_indices_i32);
+  void* intermediate_indices_pointer =
+      const_cast<void*>(intermediate_indices_i32);
+  void* arguments[] = {
+      &qkvz_pointer,
+      &weight_pointer,
+      &state_bf16,
+      &state_indices_pointer,
+      &intermediate_window_bf16,
+      &intermediate_indices_pointer,
+      &output_bf16,
+      &batch_size,
+  };
+  const hipError_t error = hipModuleLaunchKernel(
+      qkvz_conv_t8_function, 40, batch_size, 1, 256, 1, 1, 0, stream,
+      arguments, nullptr);
+  if (error != hipSuccess)
+    return fail("hipModuleLaunchKernel(qkvz conv T=8)", error);
+  last_error.clear();
+  return 0;
 }
 
 extern "C" int netra_qwen36_gdn_verify_m12_batched_launch_precomputed(
@@ -308,7 +402,14 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
 extern "C" int netra_qwen36_gdn_verify_m12_batched_unload(void) {
   std::lock_guard<std::mutex> guard(module_mutex);
   hipError_t first_error = hipSuccess;
-  if (core_module != nullptr) first_error = hipModuleUnload(core_module);
+  if (qkvz_conv_t8_module != nullptr) {
+    const hipError_t error = hipModuleUnload(qkvz_conv_t8_module);
+    if (first_error == hipSuccess) first_error = error;
+  }
+  if (core_module != nullptr) {
+    const hipError_t error = hipModuleUnload(core_module);
+    if (first_error == hipSuccess) first_error = error;
+  }
   if (precompute_module != nullptr) {
     const hipError_t error = hipModuleUnload(precompute_module);
     if (first_error == hipSuccess) first_error = error;
@@ -317,6 +418,9 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_unload(void) {
   precompute_module = nullptr;
   core_function = nullptr;
   precompute_function = nullptr;
+  qkvz_conv_t8_module = nullptr;
+  qkvz_conv_t8_function = nullptr;
+  loaded_qkvz_conv_t8_path.clear();
   loaded_core_path.clear();
   loaded_precompute_path.clear();
   if (first_error != hipSuccess) return fail("hipModuleUnload", first_error);
@@ -349,8 +453,9 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_load_state_replay(
   if (validate_device() != 0) return -1;
   hipError_t error = hipModuleLoad(&state_replay_module, state_replay_hsaco_path);
   if (error != hipSuccess) return fail("hipModuleLoad(state replay)", error);
-  error = hipModuleGetFunction(
+  error = get_function_with_legacy_fallback(
       &state_replay_function, state_replay_module,
+      "netra_gdn_state_replay_t8_bv16_hv48_bf16_state_gfx950",
       "qwen36_27b_gdn_state_replay_m12_fp32_gfx950");
   if (error != hipSuccess) {
     (void)hipModuleUnload(state_replay_module);
@@ -368,7 +473,7 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch_state_replay(
     const void* v_bf16,
     const void* decay_f32,
     const void* beta_f32,
-    void* state_pool_f32,
+    void* state_pool,
     const void* accept_lengths_i32,
     const void* initial_state_indices_i32,
     const void* output_state_indices_i32,
@@ -379,7 +484,7 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch_state_replay(
   if (state_replay_function == nullptr)
     return fail_message("Qwen3.6-27B GDN state replay module is not loaded");
   const std::array<const void*, 8> pointers = {
-      k_normalized_f32, v_bf16, decay_f32, beta_f32, state_pool_f32,
+      k_normalized_f32, v_bf16, decay_f32, beta_f32, state_pool,
       accept_lengths_i32, initial_state_indices_i32, output_state_indices_i32,
   };
   if (std::any_of(pointers.begin(), pointers.end(),
@@ -391,19 +496,20 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_launch_state_replay(
 
   // The replay kernel keeps the verification kernarg layout: slot 0 (unused
   // Q), slot 5 output SSM pool, slot 7 accepted lengths, slot 9 destination
-  // state indices. The FP32 pool serves as both source and destination.
+  // state indices. The exact-contract state pool serves as both source and
+  // destination.
   void* q_pointer = const_cast<void*>(k_normalized_f32);
   void* k_pointer = const_cast<void*>(k_normalized_f32);
   void* v_pointer = const_cast<void*>(v_bf16);
   void* decay_pointer = const_cast<void*>(decay_f32);
   void* beta_pointer = const_cast<void*>(beta_f32);
-  void* initial_pointer = state_pool_f32;
+  void* initial_pointer = state_pool;
   void* lengths_pointer = const_cast<void*>(accept_lengths_i32);
   void* initial_indices_pointer = const_cast<void*>(initial_state_indices_i32);
   void* output_indices_pointer = const_cast<void*>(output_state_indices_i32);
   void* replay_arguments[] = {
       &q_pointer, &k_pointer, &v_pointer, &decay_pointer, &beta_pointer,
-      &state_pool_f32, &initial_pointer, &lengths_pointer,
+      &state_pool, &initial_pointer, &lengths_pointer,
       &initial_indices_pointer, &output_indices_pointer, &stride_v,
       &state_capacity,
   };

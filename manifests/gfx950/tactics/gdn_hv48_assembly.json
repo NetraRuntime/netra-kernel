@@ -10,6 +10,16 @@
       "lock_name": "deterministic-hv48.json",
       "lock_sha256": "3b5088eea606918a1855fe0afb1fcca1e8a02088b08bdd4d61dfedf54710ff52",
       "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260818-dflash12-gdnhv48-attnm16-tuned-gpu7"
+    },
+    "gfx950_qkvz_t8_verified_20260820": {
+      "lock_name": "oracle-summary.json",
+      "lock_sha256": "d69642f4b46b7345543dd3c58ac94f0e7cf9df66bc21b4bbfee6d325861662e0",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-upstream-qkvz-t8"
+    },
+    "gfx950_hv48_bf16_state_candidate_20260820": {
+      "lock_name": "c128-summary.json",
+      "lock_sha256": "89c190d7c0b679dadc398b62cd130e52718e7b877a009636a38c9e19d99037d5",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-bf16state"
     }
   },
   "policy": {
@@ -201,6 +211,129 @@
       "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
       "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
       "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_verify_core_t8_bv16_hv48_k0_bf16_state",
+      "operation": "gdn_verify",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_serving_soak_pending",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "symbols": [
+        "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 140,
+      "kernarg_size": 88,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "gdn.recurrent_verify.ptr10_u32x2.v1",
+        "dtypes": "fp32_qk_gates_bf16_state_bf16_value_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_k0_bf16_state.v1",
+        "numerical": "gdn_recurrence_variant13_bf16_input_fixed.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify",
+      "locked_hsaco_sha256": [
+        "1bb7c660e3579115b0364831c4bf97d206237caa6f59e8db416910ae13ed8ed1"
+      ],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
+      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
+      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_state_replay_t8_bv16_hv48_bf16_state",
+      "operation": "gdn_state_replay",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_serving_soak_pending",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "symbols": [
+        "netra_gdn_state_replay_t8_bv16_hv48_bf16_state_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_STATE_REPLAY": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 140,
+      "kernarg_size": 88,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "gdn.state_replay.ptr10_u32x2.v1",
+        "dtypes": "fp32_k_gates_bf16_state_bf16_value_to_bf16_state.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_bf16_state_replay.v1",
+        "numerical": "gdn_recurrence_variant13_terminal_bf16_fixed.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_state_replay",
+      "locked_hsaco_sha256": [
+        "c695b47a2765b8b1955c1090459df070c9cf1eb7adf1480a5a67870c7b99a862"
+      ],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
+      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
+      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_qkvz_conv_t8_d10240",
+      "operation": "gdn_qkvz_conv",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_serving_pending",
+      "evidence_set": "gfx950_qkvz_t8_verified_20260820",
+      "template": "kernels/gfx950/templates/gdn/verify/qkvz_causal_conv_t8.inc",
+      "symbols": [
+        "netra_gdn_qkvz_conv_t8_d10240_gfx950"
+      ],
+      "compile_definitions": {},
+      "rank": 140,
+      "kernarg_size": 64,
+      "launch_block": 256,
+      "semantics": {
+        "abi": "gdn.causal_conv.ptr7_u32.grid2d.v1",
+        "dtypes": "bf16_qkvz_weight_state_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_qkvz_depthwise_conv4.t8_d10240.v1",
+        "numerical": "causal_conv_bf16_inputs_fp32_fixed.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_qkvz_conv",
+      "locked_hsaco_sha256": [
+        "1bfd6e5df75f32dbf309b262e13a425323d3b7fecdd7585d7a4d029d2bc74ba3"
+      ],
+      "instantiation_macro": "NETRA_GDN_QKVZ_CAUSAL_CONV_T8",
+      "template_sha256": "4d4af12382dfc26178255adfd695fc71183ca0984075b30ded35d0d0c9d5787e",
+      "source_closure_sha256": "7972112e28646f96da895f3a98267c848e6046d671653c4337da712f648c57af",
+      "family": "gdn.causal_conv"
     }
   ]
 }

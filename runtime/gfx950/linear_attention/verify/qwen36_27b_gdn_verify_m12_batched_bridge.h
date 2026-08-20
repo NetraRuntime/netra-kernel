@@ -15,6 +15,20 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_load_wavegroup_variants(
     const char* core_waves4_hsaco_path,
     const char* core_waves8_hsaco_path);
 
+extern "C" int netra_gdn_qkvz_conv_t8_d10240_load(
+    const char* qkvz_conv_hsaco_path);
+
+extern "C" int netra_gdn_qkvz_conv_t8_d10240_launch(
+    const void* qkvz_bf16,
+    const void* weight_bf16,
+    void* state_bf16,
+    const void* state_indices_i32,
+    void* intermediate_window_bf16,
+    const void* intermediate_indices_i32,
+    void* output_bf16,
+    uint32_t batch_size,
+    hipStream_t stream);
+
 extern "C" int netra_qwen36_gdn_verify_m12_batched_launch(
     void* output_bf16,
     const void* A_log_f32,

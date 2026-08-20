@@ -103,6 +103,115 @@ class CurrentBestAssemblyTest(unittest.TestCase):
             "kernels/gfx950/templates/gdn/verify/recurrent_packed_pair.inc",
         )
 
+    def test_27b_t8_qkvz_convolution_is_separate_from_accepted_35b(self) -> None:
+        tactics = {t.name: t for t in load_fixed_tactic_catalog(ROOT)}
+        accepted_35b = tactics["gfx950.gdn_qkvz_conv_m12"]
+        qkvz_27b = tactics["gfx950.gdn_qkvz_conv_t8_d10240"]
+
+        self.assertIs(accepted_35b.maturity, Maturity.ACCEPTED)
+        self.assertEqual(
+            accepted_35b.template,
+            "kernels/gfx950/templates/gdn/verify/qkvz_causal_conv.inc",
+        )
+        self.assertEqual(
+            accepted_35b.template_sha256,
+            "3dbf73c67dec17862438413bd60a4b61c20787dc1461b496a42b1d10011851aa",
+        )
+        self.assertIs(qkvz_27b.maturity, Maturity.VERIFIED)
+        self.assertEqual(
+            qkvz_27b.acceptance_scope,
+            "hardware_verified_operator_serving_pending",
+        )
+        self.assertEqual(qkvz_27b.rank, 140)
+        self.assertEqual(
+            dict(qkvz_27b.contract_constants),
+            {
+                "NETRA_K": (2048,),
+                "NETRA_N": (16384,),
+                "NETRA_TOKENS": (8,),
+            },
+        )
+        self.assertEqual(
+            qkvz_27b.compatibility_symbols,
+            ("netra_gdn_qkvz_conv_t8_d10240_gfx950",),
+        )
+
+        request = {
+            "family": qkvz_27b.family,
+            "operation": qkvz_27b.operation,
+            "target": qkvz_27b.target,
+            "wave_size": qkvz_27b.wave_size,
+            "semantics": qkvz_27b.semantics.to_dict(),
+            "constants": {
+                name: values[0]
+                for name, values in qkvz_27b.contract_constants
+            },
+            "launch_grid": (40, 128, 1),
+        }
+        self.assertEqual(qkvz_27b.rejection_reasons(request), ())
+        contract = qkvz_27b.make_contract(request)
+        self.assertEqual(contract.launch.grid, (40, 128, 1))
+        self.assertEqual(contract.launch.block, (256, 1, 1))
+        self.assertNotIn("qwen", contract.symbol)
+
+        old_constants = {
+            name: values[0]
+            for name, values in accepted_35b.contract_constants
+        }
+        self.assertIn(
+            "NETRA_N mismatch",
+            qkvz_27b.rejection_reasons(
+                {**request, "constants": old_constants}
+            ),
+        )
+        self.assertIn(
+            "layouts semantic mismatch",
+            accepted_35b.rejection_reasons(request),
+        )
+
+    def test_hv48_bf16_state_tactics_are_distinct_t8_contracts(self) -> None:
+        tactics = {t.name: t for t in load_fixed_tactic_catalog(ROOT)}
+        fp32_core = tactics["gfx950.gdn_verify_core_m12_bv16_hv48_k0"]
+        bf16_core = tactics[
+            "gfx950.gdn_verify_core_t8_bv16_hv48_k0_bf16_state"
+        ]
+        bf16_replay = tactics[
+            "gfx950.gdn_state_replay_t8_bv16_hv48_bf16_state"
+        ]
+
+        for tactic in (bf16_core, bf16_replay):
+            self.assertIs(tactic.maturity, Maturity.VERIFIED)
+            self.assertEqual(tactic.rank, 140)
+            self.assertEqual(
+                tactic.acceptance_scope,
+                "hardware_verified_operator_serving_soak_pending",
+            )
+            definitions = dict(tactic.compile_definitions)
+            self.assertEqual(definitions["NETRA_TOKENS"], (8,))
+            self.assertEqual(definitions["NETRA_GDN_INITIAL_STATE_FP32"], (0,))
+            self.assertTrue(
+                all("qwen" not in symbol.lower() for symbol in tactic.compatibility_symbols)
+            )
+
+        self.assertNotEqual(fp32_core.stable_id, bf16_core.stable_id)
+        fp32_request = {
+            "operation": bf16_core.operation,
+            "target": bf16_core.target,
+            "wave_size": bf16_core.wave_size,
+            "semantics": fp32_core.semantics.to_dict(),
+            "constants": {
+                name: values[0]
+                for name, values in (
+                    *bf16_core.contract_constants,
+                    *bf16_core.compile_definitions,
+                )
+            },
+        }
+        self.assertIn(
+            "dtypes semantic mismatch",
+            bf16_core.rejection_reasons(fp32_request),
+        )
+
     def test_exact_contract_matches_and_one_dimension_mismatch_rejects(self) -> None:
         tactic = next(
             item
