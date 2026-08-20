@@ -494,6 +494,7 @@
       },
       "launch_grid": ["rows", 1, 1],
       "launch_grid_rows_divisor": 4,
+      "dynamic_lds_bytes": 256,
       "fallback": "framework.gated_rmsnorm_then_group_quant",
       "profile_names": ["verify_m8", "verify_m8_b129_192"],
       "binding_scope": "per_linear_attention_layer_weight_and_state",

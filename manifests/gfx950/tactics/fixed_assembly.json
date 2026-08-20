@@ -843,6 +843,7 @@
       },
       "kernarg_size": 104,
       "launch_block": 64,
+      "dynamic_lds_bytes": 256,
       "semantics": {
         "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
         "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",

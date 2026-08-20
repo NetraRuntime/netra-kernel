@@ -290,7 +290,8 @@ extern "C" int netra_gated_rmsnorm_group_quant_d128_launch(
       gate_token_stride, gate_head_stride, rows, heads, token_rows,
       epsilon, inv_fp8_max, 0, nullptr, nullptr};
   const hipError_t error = launch_fixed(
-      loaded[index].function, rows / rows_per_block, 1, 64, 0, stream,
+      loaded[index].function, rows / rows_per_block, 1, 64,
+      rows_per_block == 4 ? 256 : 0, stream,
       &kernarg);
   if (error != hipSuccess)
     return fail("launch gated RMSNorm group-quant", error);
