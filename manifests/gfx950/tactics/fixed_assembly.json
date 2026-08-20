@@ -772,7 +772,7 @@
       "source_sha256": "d28b77e8b744a78976554e3ebfcb88ae16a7a3939bd48656f94fd2f5309a4fc7",
       "symbols": ["netra_gated_rmsnorm_group_quant_d128_rpb1_gfx950"],
       "compile_definitions": {},
-      "compile_ranges": {"NETRA_ROWS": {"min": 48, "max": 576, "step": 48}},
+      "compile_ranges": {"NETRA_ROWS": {"min": 48, "max": 480, "step": 48}},
       "kernarg_size": 104,
       "launch_block": 64,
       "semantics": {
@@ -805,7 +805,7 @@
       "source_sha256": "4a8c01d2a8ae4d16de9d10bb78012a318c040310b29ad89ee5aef8a15b23e65e",
       "symbols": ["netra_gated_rmsnorm_group_quant_d128_rpb2_gfx950"],
       "compile_definitions": {},
-      "compile_ranges": {"NETRA_ROWS": {"min": 624, "max": 1200, "step": 48}},
+      "compile_ranges": {"NETRA_ROWS": {"min": 528, "max": 1008, "step": 48}},
       "kernarg_size": 104,
       "launch_block": 64,
       "semantics": {
@@ -838,7 +838,7 @@
       "source_sha256": "7c47af3b84f82b90708e0843b222f566398caf184cd21d93938a53d7d1447fef",
       "symbols": ["netra_gated_rmsnorm_group_quant_d128_rpb4_gfx950"],
       "compile_definitions": {},
-      "compile_ranges": {"NETRA_ROWS": {"min": 1248, "max": 393216, "step": 48}},
+      "compile_ranges": {"NETRA_ROWS": {"min": 1056, "max": 393216, "step": 48}},
       "kernarg_size": 104,
       "launch_block": 64,
       "dynamic_lds_bytes": 256,

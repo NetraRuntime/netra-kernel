@@ -13,9 +13,9 @@ EXPECTED_RANGES = {
     "add_rmsnorm_group_quant_n5120": (1, 8192, 1),
     "silu_mul_group_quant_n17408_store_bf16": (1, 8192, 1),
     "silu_mul_group_quant_n17408_prequant_only": (1, 8192, 1),
-    "gated_rmsnorm_group_quant_d128_rpb1": (48, 576, 48),
-    "gated_rmsnorm_group_quant_d128_rpb2": (624, 1200, 48),
-    "gated_rmsnorm_group_quant_d128_rpb4": (1248, 393216, 48),
+    "gated_rmsnorm_group_quant_d128_rpb1": (48, 480, 48),
+    "gated_rmsnorm_group_quant_d128_rpb2": (528, 1008, 48),
+    "gated_rmsnorm_group_quant_d128_rpb4": (1056, 393216, 48),
 }
 
 
@@ -100,6 +100,7 @@ class GroupQuantAssemblyCatalogTest(unittest.TestCase):
         self.assertIn("kMaxTokenRows", launch_source)
         self.assertIn("kRpb1MaxTokenRows", launch_source)
         self.assertIn("kRpb2MaxTokenRows", launch_source)
+        self.assertIn("properties.multiProcessorCount != kTargetComputeUnits", source)
 
     def test_manifest_records_the_measured_kernel_abi(self) -> None:
         model = json.loads((ROOT / "manifests/gfx950/models/"

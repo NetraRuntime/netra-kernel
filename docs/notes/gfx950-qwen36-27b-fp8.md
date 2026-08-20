@@ -171,8 +171,9 @@ implemented by model-independent gfx950 assembly templates in
 The row dimension uses an explicit bounded contract from 1 through 8192
 tokens. Width, dtype, layouts, quantization, scale interpretation, numerical
 order, ABI, workspace, and graph properties remain fixed. Gated RMSNorm uses
-three non-overlapping bounded schedules: 1 through 12 tokens use one row per
-workgroup, 13 through 25 use two, and 26 through 8192 use four. Requests
+three non-overlapping bounded schedules for the exact 256-compute-unit MI350X:
+1 through 10 tokens use one row per workgroup, 11 through 21 use two, and 22
+through 8192 use four. The bridge rejects other compute-unit counts. Requests
 outside these bounds use the framework fallback. This coverage includes the
 irregular prefill batches produced by the c192 GSM8K serving workload while
 keeping schedule selection deterministic and model-independent.

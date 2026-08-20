@@ -17,12 +17,17 @@ constexpr uint32_t kWidthSilu = 17408;
 constexpr uint32_t kWidthGated = 128;
 constexpr uint32_t kGatedHeads = 48;
 constexpr uint32_t kSiluGroupsPerGrid = 34;
+constexpr uint32_t kTargetComputeUnits = 256;
 constexpr float kInvFp8Max = 1.0f / 448.0f;
 constexpr float kExactAddNormEpsilon = 1.0e-6f;
 constexpr uint32_t kMinTokenRows = 1;
 constexpr uint32_t kMaxTokenRows = 8192;
-constexpr uint32_t kRpb1MaxTokenRows = 12;
-constexpr uint32_t kRpb2MaxTokenRows = 25;
+// Match the legacy measured scheduler exactly: next_power_of_2(
+// ceil(rows / (2 * compute_units))), capped at four rows per block.
+constexpr uint32_t kRpb1MaxTokenRows =
+    (2 * kTargetComputeUnits) / kGatedHeads;
+constexpr uint32_t kRpb2MaxTokenRows =
+    (4 * kTargetComputeUnits) / kGatedHeads;
 
 constexpr const char* kAddNormSymbol =
     "netra_add_rmsnorm_group_quant_n5120_gfx950";
@@ -180,6 +185,8 @@ extern "C" int netra_group_quant_assembly_load(
   if (error != hipSuccess) return fail("hipGetDeviceProperties", error);
   if (std::strstr(properties.gcnArchName, "gfx950") == nullptr)
     return fail_message("group-quant assembly requires gfx950");
+  if (properties.multiProcessorCount != kTargetComputeUnits)
+    return fail_message("group-quant assembly requires 256 compute units");
 
   for (size_t index = 0; index < loaded.size(); ++index) {
     error = load_one(&loaded[index], paths[index], symbols[index]);
