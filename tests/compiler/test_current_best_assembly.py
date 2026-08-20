@@ -212,6 +212,24 @@ class CurrentBestAssemblyTest(unittest.TestCase):
             bf16_core.rejection_reasons(fp32_request),
         )
 
+    def test_hv48_bridge_unloads_optional_state_replay_module(self) -> None:
+        source = (
+            ROOT
+            / "runtime/gfx950/linear_attention/verify/"
+            "qwen36_27b_gdn_verify_m12_batched_bridge.hip"
+        ).read_text()
+        unload = source.split(
+            'extern "C" int netra_qwen36_gdn_verify_m12_batched_unload(void)',
+            1,
+        )[1].split(
+            'extern "C" int netra_qwen36_gdn_verify_m12_batched_set_block_tokens',
+            1,
+        )[0]
+        self.assertIn("hipModuleUnload(state_replay_module)", unload)
+        self.assertIn("state_replay_module = nullptr", unload)
+        self.assertIn("state_replay_function = nullptr", unload)
+        self.assertIn("loaded_state_replay_path.clear()", unload)
+
     def test_exact_contract_matches_and_one_dimension_mismatch_rejects(self) -> None:
         tactic = next(
             item

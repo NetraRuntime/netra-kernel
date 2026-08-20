@@ -406,6 +406,10 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_unload(void) {
     const hipError_t error = hipModuleUnload(qkvz_conv_t8_module);
     if (first_error == hipSuccess) first_error = error;
   }
+  if (state_replay_module != nullptr) {
+    const hipError_t error = hipModuleUnload(state_replay_module);
+    if (first_error == hipSuccess) first_error = error;
+  }
   if (core_module != nullptr) {
     const hipError_t error = hipModuleUnload(core_module);
     if (first_error == hipSuccess) first_error = error;
@@ -421,6 +425,9 @@ extern "C" int netra_qwen36_gdn_verify_m12_batched_unload(void) {
   qkvz_conv_t8_module = nullptr;
   qkvz_conv_t8_function = nullptr;
   loaded_qkvz_conv_t8_path.clear();
+  state_replay_module = nullptr;
+  state_replay_function = nullptr;
+  loaded_state_replay_path.clear();
   loaded_core_path.clear();
   loaded_precompute_path.clear();
   if (first_error != hipSuccess) return fail("hipModuleUnload", first_error);
