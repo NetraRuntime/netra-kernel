@@ -160,7 +160,9 @@ def main() -> None:
         ),
         "load replay",
     )
-    stream = ctypes.c_void_p(torch.cuda.current_stream(device).cuda_stream)
+    def current_stream() -> ctypes.c_void_p:
+        """Resolve the caller-owned stream, including PyTorch's capture stream."""
+        return ctypes.c_void_p(torch.cuda.current_stream(device).cuda_stream)
 
     def launch_precompute() -> None:
         check(
@@ -180,7 +182,7 @@ def main() -> None:
                 ctypes.c_uint32(value_heads),
                 ctypes.c_uint32(value_heads),
                 ctypes.c_uint32(batch),
-                stream,
+                current_stream(),
             ),
             "precompute",
         )
@@ -201,7 +203,7 @@ def main() -> None:
                 ctypes.c_uint32(v_storage.stride(0)),
                 ctypes.c_uint32(batch),
                 ctypes.c_uint32(state_capacity),
-                stream,
+                current_stream(),
             ),
             "core",
         )
@@ -220,7 +222,7 @@ def main() -> None:
                 ctypes.c_uint32(v_storage.stride(0)),
                 ctypes.c_uint32(batch),
                 ctypes.c_uint32(state_capacity),
-                stream,
+                current_stream(),
             ),
             "replay",
         )
