@@ -223,17 +223,35 @@ python3 tools/checkpoint/inspect_qwen36_27b_fp8.py \
 
 ## Validation status
 
-All eight previously required profiles compiled and passed static validation
-on gfx950. The updated block-8 verification engine contains 52 exact fixed
-assembly operations and 267 explicit framework fallbacks. Two local builds
-of the updated engine produced byte-identical semantic outputs. Post-migration
-gfx950 compilation, bridge correctness, GSM8K serving, and the locked 35B
-regression campaign are `not_run` for this revision.
+All eight required profiles compiled and passed static validation on gfx950.
+The block-8 verification engine contains 52 exact fixed assembly operations
+and 267 explicit framework fallbacks. Two independent c192 builds produced 76
+byte-identical semantic files. Both `engine.json` files have SHA-256
+`50c6b4ed0f30f27889d2716423dc936a59fd2097059de2aa1f00f7d26e97aabc`.
 
-The current engine additionally guards the exact dFlash checkpoint repository,
+The six modular group-quant artifacts built on the supplied 256-compute-unit
+MI350X with all locked executable-text hashes identical. Metadata validation
+passed for gfx950, wave64, kernarg size, launch dimensions, VGPR, SGPR, AGPR,
+LDS, and private segment. Boundary tests at 10, 11, 21, and 22 tokens were
+bitwise identical to the former Triton oracle in eager execution and graph
+replay. Repeated graph replay was bitwise stable.
+
+Five fresh-process natural-EOS GSM8K runs of the best dFlash block-8, BF16
+state, GQA6 M=8, c192 stack measured 6325.85, 6341.28, 6268.34, 6228.95, and
+6280.75 output tokens/s. Mean throughput was 6289.03 output tokens/s with
+standard deviation 45.26, mean acceptance 5.5814, and mean numeric accuracy
+96.43 percent. A matched four-process legacy control averaged 6377.32 output
+tokens/s with standard deviation 66.44. The modular point estimate was 1.38
+percent lower. A two-sided Welch test gave p=0.0713 and a 95 percent interval
+of -187.63 to +11.06 output tokens/s for modular minus legacy, so the runs are
+statistically indistinguishable at alpha 0.05. The tactics remain `verified`
+rather than `accepted` because the point estimate did not improve.
+
+The engine additionally guards the exact dFlash checkpoint repository,
 revision, config hash, weights hash, block size, draft window, mamba cache
-steps, state type, and graph ladder. Hardware shadow validation for this
-updated dFlash engine is `not_run`.
+steps, state type, and graph ladder. Hardware shadow validation for full
+engine replacement is `not_run`. Serving used the verified fixed assembly
+fusions through the guarded SGLang bindings.
 
 The earlier non-speculative fallback-only engine passed real-checkpoint model
 loading, exact guards, full HIP graph capture and replay, short boundary token
@@ -252,13 +270,13 @@ promotion is claimed.
 Two gates remain failed. Long repeated generation was nondeterministic in the
 unmodified framework control, and bundled EAGLE/MTP warmup failed in the
 framework AITER attention metadata path before measurement. The engine is
-therefore not accepted or promoted. All operations remain on the framework,
-and the server integration remains disabled unless
+therefore not accepted or promoted. Unsupported operations and profiles remain
+on the framework, and engine mode remains disabled unless
 `SGLANG_NETRA_ENGINE_MODE` is explicitly set.
 
-The Qwen3.6-35B catalog remains the primary proven deployment. Its rebuilt 18
-code objects retained all locked assembly text hashes and 19
-specializations. Full code-object container bytes may vary with the linker,
+The Qwen3.6-35B catalog remains the primary proven deployment. Its latest
+rebuild retained all locked assembly text hashes across 18 code objects and
+19 specializations. Full code-object container bytes may vary with the linker,
 so preservation is gated on executable text and validated metadata rather
 than container identity. Five clean fresh-process runs of the patched server
 with the locked current-best deployment averaged 80,444.27 output tokens/s,
@@ -266,4 +284,5 @@ compared with the locked 78,748.15 output tokens/s mean. All five met the
 canonical target and passed request, token, cache, error, and dFlash checks;
 mean dFlash acceptance was 5.5220. One additional attempt with a 23.9-second
 system stall is preserved separately and excluded from the clean aggregate.
-The locked `CURRENT_BEST.json` hash remained unchanged.
+The locked `CURRENT_BEST.json` hash remained unchanged. DP8 serving was
+`not_run` by instruction.
