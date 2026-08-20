@@ -114,7 +114,13 @@ def _metadata_integer(text: str, name: str) -> int:
     return int(match.group(1))
 
 
-def build(repo: Path, output: Path, rocm: Path) -> dict[str, Any]:
+def build(
+    repo: Path,
+    output: Path,
+    rocm: Path,
+    *,
+    build_bridge: bool = True,
+) -> dict[str, Any]:
     sys.path.insert(0, str(repo / "compiler"))
     from netra_compiler.backends.gfx950.catalog import load_fixed_tactic_catalog
     from netra_compiler.backends.gfx950.codegen import instantiate_fixed_source
@@ -124,8 +130,9 @@ def build(repo: Path, output: Path, rocm: Path) -> dict[str, Any]:
         "linker": rocm / "llvm/bin/ld.lld",
         "objcopy": rocm / "llvm/bin/llvm-objcopy",
         "readobj": rocm / "llvm/bin/llvm-readobj",
-        "hipcc": rocm / "bin/hipcc",
     }
+    if build_bridge:
+        tools["hipcc"] = rocm / "bin/hipcc"
     missing = [str(path) for path in tools.values() if not os.access(path, os.X_OK)]
     if missing:
         raise RuntimeError("required ROCm tools are unavailable: " + ", ".join(missing))
@@ -196,12 +203,13 @@ def build(repo: Path, output: Path, rocm: Path) -> dict[str, Any]:
         })
 
     bridge = output / "libnetra_group_quant_assembly_bridge.so"
-    _run([
-        str(tools["hipcc"]), "-std=c++17", "-O2", "-fPIC", "-shared",
-        "-I", str(repo),
-        str(repo / "runtime/gfx950/group_quant/verify/group_quant_assembly_bridge.hip"),
-        "-o", str(bridge),
-    ], cwd=repo)
+    if build_bridge:
+        _run([
+            str(tools["hipcc"]), "-std=c++17", "-O2", "-fPIC", "-shared",
+            "-I", str(repo),
+            str(repo / "runtime/gfx950/group_quant/verify/group_quant_assembly_bridge.hip"),
+            "-o", str(bridge),
+        ], cwd=repo)
 
     report = {
         "format": "netra-group-quant-assembly-build-result-1",
@@ -210,8 +218,9 @@ def build(repo: Path, output: Path, rocm: Path) -> dict[str, Any]:
         "maturity": "verified",
         "artifact_count": len(artifacts),
         "all_text_identical": True,
-        "bridge": bridge.name,
-        "bridge_sha256": _sha256(bridge),
+        "bridge_built": build_bridge,
+        "bridge": bridge.name if build_bridge else None,
+        "bridge_sha256": _sha256(bridge) if build_bridge else None,
         "artifacts": artifacts,
     }
     (output / "build-result.json").write_text(
@@ -226,9 +235,19 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--rocm-dir", type=Path,
                         default=Path(os.environ.get("ROCM_DIR", "/opt/rocm")))
+    parser.add_argument(
+        "--skip-bridge",
+        action="store_true",
+        help="cross-build assembly only when HIP headers/runtime are unavailable",
+    )
     args = parser.parse_args()
     try:
-        report = build(args.repo_root.resolve(), args.output.resolve(), args.rocm_dir.resolve())
+        report = build(
+            args.repo_root.resolve(),
+            args.output.resolve(),
+            args.rocm_dir.resolve(),
+            build_bridge=not args.skip_bridge,
+        )
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f"group-quant assembly build failed: {exc}", file=sys.stderr)
         return 1
