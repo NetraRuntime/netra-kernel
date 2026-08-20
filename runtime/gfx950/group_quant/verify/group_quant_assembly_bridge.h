@@ -42,7 +42,7 @@ int netra_silu_mul_group_quant_n17408_launch(
 int netra_gated_rmsnorm_group_quant_d128_launch(
     const void* input_bf16,
     void* output_bf16,
-    const void* weight_f32,
+    const void* weight_bf16,
     const void* gate_bf16,
     void* output_fp8,
     void* output_scale_f32,

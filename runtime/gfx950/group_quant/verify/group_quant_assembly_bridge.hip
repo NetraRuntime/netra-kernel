@@ -149,7 +149,7 @@ extern "C" int netra_add_rmsnorm_group_quant_n5120_launch(
 
   uint32_t cols = kWidthAddNorm;
   uint32_t row_stride = kWidthAddNorm;
-  uint32_t col_stride = 1;
+  float inv_fp8_max = kInvFp8Max;
   void* hidden_scratch = nullptr;
   void* hidden_profile = nullptr;
   void* input = const_cast<void*>(input_bf16);
@@ -157,8 +157,8 @@ extern "C" int netra_add_rmsnorm_group_quant_n5120_launch(
   void* weight = const_cast<void*>(weight_f32);
   void* arguments[] = {
       &input, &residual, &weight, &output_bf16, &residual_out_bf16,
-      &output_fp8, &output_scale_f32, &rows, &cols, &row_stride, &col_stride,
-      &row_stride, &col_stride, &hidden_scratch, &hidden_profile};
+      &output_fp8, &output_scale_f32, &rows, &cols, &row_stride, &row_stride,
+      &epsilon, &inv_fp8_max, &hidden_scratch, &hidden_profile};
   const hipError_t error = hipModuleLaunchKernel(
       loaded[0].function, rows, 1, 1, 1024, 1, 1, 0, stream, arguments, nullptr);
   if (error != hipSuccess) return fail("launch add+RMSNorm group-quant", error);
@@ -198,11 +198,11 @@ extern "C" int netra_silu_mul_group_quant_n17408_launch(
 }
 
 extern "C" int netra_gated_rmsnorm_group_quant_d128_launch(
-    const void* input_bf16, void* output_bf16, const void* weight_f32,
+    const void* input_bf16, void* output_bf16, const void* weight_bf16,
     const void* gate_bf16, void* output_fp8, void* output_scale_f32,
     uint32_t rows, uint32_t gate_token_stride, uint32_t gate_head_stride,
     float epsilon, hipStream_t stream) {
-  if (!all_nonnull({input_bf16, output_bf16, weight_f32, gate_bf16,
+  if (!all_nonnull({input_bf16, output_bf16, weight_bf16, gate_bf16,
                     output_fp8, output_scale_f32}))
     return fail_message("gated RMSNorm group-quant pointers must be nonnull");
   if (!supported(kGatedRows, rows))
@@ -213,7 +213,7 @@ extern "C" int netra_gated_rmsnorm_group_quant_d128_launch(
     return fail_message("gated RMSNorm group-quant module is not loaded");
 
   void* input = const_cast<void*>(input_bf16);
-  void* weight = const_cast<void*>(weight_f32);
+  void* weight = const_cast<void*>(weight_bf16);
   void* gate = const_cast<void*>(gate_bf16);
   uint32_t row_stride = kWidthGated;
   uint32_t heads = kGatedHeads;

@@ -778,7 +778,7 @@
       "launch_block": 64,
       "semantics": {
         "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
-        "dtypes": "bf16_bf16_f32_to_bf16_fp8e4m3_f32scale.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
         "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
         "layouts": "token_head_row_d128_scale_head_major.v1",
         "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
@@ -810,7 +810,7 @@
       "launch_block": 64,
       "semantics": {
         "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
-        "dtypes": "bf16_bf16_f32_to_bf16_fp8e4m3_f32scale.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
         "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
         "layouts": "token_head_row_d128_scale_head_major.v1",
         "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
@@ -844,7 +844,7 @@
       "launch_block": 64,
       "semantics": {
         "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
-        "dtypes": "bf16_bf16_f32_to_bf16_fp8e4m3_f32scale.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
         "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
         "layouts": "token_head_row_d128_scale_head_major.v1",
         "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"

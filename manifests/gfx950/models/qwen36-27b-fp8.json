@@ -310,9 +310,9 @@
         {"name": "rows", "kind": "u32_constant", "access": "value", "offset": 56, "value": "rows"},
         {"name": "cols", "kind": "u32_constant", "access": "value", "offset": 60, "value": 5120},
         {"name": "input_row_stride", "kind": "u32_constant", "access": "value", "offset": 64, "value": 5120},
-        {"name": "input_col_stride", "kind": "u32_constant", "access": "value", "offset": 68, "value": 1},
-        {"name": "residual_row_stride", "kind": "u32_constant", "access": "value", "offset": 72, "value": 5120},
-        {"name": "residual_col_stride", "kind": "u32_constant", "access": "value", "offset": 76, "value": 1},
+        {"name": "residual_row_stride", "kind": "u32_constant", "access": "value", "offset": 68, "value": 5120},
+        {"name": "epsilon_f32_bits", "kind": "u32_constant", "access": "value", "offset": 72, "value": 897988541},
+        {"name": "inv_fp8_max_f32_bits", "kind": "u32_constant", "access": "value", "offset": 76, "value": 991054117},
         {"name": "hidden_scratch", "kind": "pointer", "access": "read", "offset": 80},
         {"name": "hidden_profile", "kind": "pointer", "access": "read", "offset": 88}
       ]
@@ -399,7 +399,7 @@
       },
       "semantics": {
         "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
-        "dtypes": "bf16_bf16_f32_to_bf16_fp8e4m3_f32scale.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
         "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
         "layouts": "token_head_row_d128_scale_head_major.v1",
         "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
@@ -411,7 +411,7 @@
       "arguments": [
         {"name": "input_bf16", "kind": "pointer", "access": "read", "offset": 0},
         {"name": "output_bf16", "kind": "pointer", "access": "write", "offset": 8},
-        {"name": "weight_f32", "kind": "pointer", "access": "read", "offset": 16},
+        {"name": "weight_bf16", "kind": "pointer", "access": "read", "offset": 16},
         {"name": "gate_bf16", "kind": "pointer", "access": "read", "offset": 24},
         {"name": "output_fp8", "kind": "pointer", "access": "write", "offset": 32},
         {"name": "output_scale_f32", "kind": "pointer", "access": "write", "offset": 40},
@@ -442,7 +442,7 @@
       },
       "semantics": {
         "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
-        "dtypes": "bf16_bf16_f32_to_bf16_fp8e4m3_f32scale.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
         "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
         "layouts": "token_head_row_d128_scale_head_major.v1",
         "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
@@ -455,7 +455,7 @@
       "arguments": [
         {"name": "input_bf16", "kind": "pointer", "access": "read", "offset": 0},
         {"name": "output_bf16", "kind": "pointer", "access": "write", "offset": 8},
-        {"name": "weight_f32", "kind": "pointer", "access": "read", "offset": 16},
+        {"name": "weight_bf16", "kind": "pointer", "access": "read", "offset": 16},
         {"name": "gate_bf16", "kind": "pointer", "access": "read", "offset": 24},
         {"name": "output_fp8", "kind": "pointer", "access": "write", "offset": 32},
         {"name": "output_scale_f32", "kind": "pointer", "access": "write", "offset": 40},
@@ -486,7 +486,7 @@
       },
       "semantics": {
         "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
-        "dtypes": "bf16_bf16_f32_to_bf16_fp8e4m3_f32scale.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
         "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
         "layouts": "token_head_row_d128_scale_head_major.v1",
         "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
@@ -499,7 +499,7 @@
       "arguments": [
         {"name": "input_bf16", "kind": "pointer", "access": "read", "offset": 0},
         {"name": "output_bf16", "kind": "pointer", "access": "write", "offset": 8},
-        {"name": "weight_f32", "kind": "pointer", "access": "read", "offset": 16},
+        {"name": "weight_bf16", "kind": "pointer", "access": "read", "offset": 16},
         {"name": "gate_bf16", "kind": "pointer", "access": "read", "offset": 24},
         {"name": "output_fp8", "kind": "pointer", "access": "write", "offset": 32},
         {"name": "output_scale_f32", "kind": "pointer", "access": "write", "offset": 40},

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from pathlib import Path
 
@@ -93,6 +94,25 @@ class GroupQuantAssemblyCatalogTest(unittest.TestCase):
         self.assertIn("stream, arguments, nullptr", launch_source)
         self.assertIn("kTokenRows", launch_source)
         self.assertIn("kGatedRows", launch_source)
+
+    def test_manifest_records_the_measured_kernel_abi(self) -> None:
+        model = json.loads((ROOT / "manifests/gfx950/models/"
+                            "qwen36-27b-fp8.json").read_text())
+        templates = model["fixed_operation_templates"]
+        add_norm = next(item for item in templates if
+                        item["operation"] == "add_rmsnorm_group_quant")
+        self.assertEqual(
+            [item["name"] for item in add_norm["arguments"]][7:13],
+            ["rows", "cols", "input_row_stride", "residual_row_stride",
+             "epsilon_f32_bits", "inv_fp8_max_f32_bits"],
+        )
+        gated = [item for item in templates if
+                 item["operation"] == "gated_rmsnorm_group_quant"]
+        self.assertEqual(len(gated), 3)
+        for item in gated:
+            self.assertEqual(item["arguments"][2]["name"], "weight_bf16")
+            self.assertIn("bf16_bf16_bf16_to_",
+                          item["semantics"]["dtypes"])
 
 
 if __name__ == "__main__":
