@@ -1,6 +1,6 @@
 # Qwen3.6-27B-FP8 on gfx950
 
-Status: framework-compatible engine, disabled by default
+Status: framework-compatible engine and verified raw T8 tactics, disabled by default
 
 Qwen3.6-27B-FP8 is represented by the real
 `Qwen/Qwen3.6-27B-FP8` checkpoint at revision
@@ -36,49 +36,76 @@ prefill M=256 plus M=3840 for the matched 16-request wave. Exact profiles bind
 those shapes and their observed batch counts. Bundled MTP warmup reached an
 exact verification shape of M=4 before the unmodified framework failed in its
 AITER attention metadata path. `verify_m4_b1` records that shape. The engine
-keeps MTP and speculative serving on the framework; the dFlash-12 deployment
-below serves them through the verified raw-kernel bridge instead.
+keeps MTP and speculative serving on the framework. The dFlash block-8
+deployment below serves selected GDN operations through an opt-in raw-kernel
+bridge instead.
 
 ## Verified HV48 GDN verification tactics
 
-The dFlash block-12 deployment uses two model-independent gfx950 tactics from
-`manifests/gfx950/tactics/gdn_hv48_assembly.json`, both at maturity
-`verified`:
+The catalog retains the verified dFlash block-12 tactics and adds exact
+block-8 variants for the current deployment. All are model-independent gfx950
+tactics in `manifests/gfx950/tactics/gdn_hv48_assembly.json`. The current
+block-8 contracts use:
 
-- `gdn_verify_precompute_m12_qk_hv48` builds the QK-only normalization
-  precompute from
-  `kernels/gfx950/templates/gdn/verify/precompute_qk_hv48.inc`. The recurrent
-  gate pairs come from an exact framework precompute, so the lane-zero gate
-  block is omitted.
-- `gdn_verify_core_m12_bv16_hv48_k0` builds the K0 recurrent verification core
-  from `kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc`
-  with variant 13 arithmetic, one wave per workgroup, an FP32 initial state,
-  and a 1.5 MiB HV48 state-pool slot.
+- A T=8 specialization of `gdn_verify_precompute_m12_qk_hv48` for the
+  QK-only normalization precompute. The recurrent gate pairs come from an
+  exact framework precompute, so the lane-zero gate block is omitted.
+- A T=8 specialization of `gdn_verify_core_m12_bv16_hv48_k0` for the K0
+  recurrent verification core, with variant 13 arithmetic, one wave per
+  workgroup, and an FP32 initial state.
 
-Both templates pin the 48-value-head contract. The locked HV32 templates used
-by the accepted Qwen3.6-35B tactics are byte-identical to their pinned catalog
-hashes; the accepted tactic set is pinned by
-`tests/compiler/test_current_best_assembly.py`.
+Two additional block-8 contracts use a BF16 recurrent state pool:
+
+- `gdn_verify_core_t8_bv16_hv48_k0_bf16_state`
+- `gdn_state_replay_t8_bv16_hv48_bf16_state`
+
+They are separate from the FP32-state contracts because state type,
+accumulation, storage, ABI, and replay semantics are part of computational
+identity. They remain at maturity `verified` with serving soak pending.
+
+The Qwen3.8 GDN projection and Conv1D fusion was adapted only as an operator
+pattern. The 27B checkpoint has a different exact contract: T=8, QKV=10240,
+QKVZ=16384, BF16 input and output, width-4 causal convolution, and 48 value
+heads. The new `gdn_qkvz_conv_t8_d10240` tactic uses the generic symbol
+`netra_gdn_qkvz_conv_t8_d10240_gfx950`, a 256-thread block, and a
+`(40, batch, 1)` grid. It does not reuse the accepted 35B T=12, QKV=8192,
+QKVZ=12288 contract.
+
+The locked HV32 templates used by accepted Qwen3.6-35B tactics remain
+byte-identical to their pinned catalog hashes. The accepted tactic set is
+pinned by `tests/compiler/test_current_best_assembly.py`.
 
 The build entry point is
 `tools/build/build_gfx950_qwen36_27b_gdn_verify_m12_batched.sh`. It compiles
-the deployment manifest
-`manifests/gfx950/deployments/qwen36-27b-gdn-verify-m12-hv48.json`, verifies
-the locked executable text hashes recorded from the serving artifacts, copies
-`precompute.hsaco` and `core.hsaco` into the serving layout, and builds
+the FP32 block-12 and block-8 deployments plus the BF16-state block-8 and
+QKVZ-Conv1D deployments. It verifies locked executable text hashes, copies
+the artifacts into separate `t8/` and `t8-bf16/` serving layouts, and builds
 `libqwen36_27b_gdn_verify_m12_batched_bridge.so` from
-`runtime/gfx950/linear_attention/verify/`. The synthetic correctness and
-latency gate is `tools/benchmark/qwen36_27b_gdn_verify_m12_batched_synthetic.py`.
+`runtime/gfx950/linear_attention/verify/`. Synthetic gates live under
+`tools/benchmark/qwen36_27b_gdn_*_synthetic.py`.
 
-Hardware evidence for the verified maturity is recorded under
-`/data/netra/benchmarks/gfx950_qwen36_27b/20260818-dflash12-gdnhv48-attnm16-tuned-gpu7`.
-Fixed-prompt captures `deterministic-hv48.json` and
-`deterministic-fp32state.json` show identical output tokens and identical
-12-bin acceptance histograms across the kernel variants. The locked
-concurrency-128 measurement with three warmup waves reached 2314.46 output
-tokens/s with mean dFlash acceptance 3.667. The tactics are not accepted and
-the engine keeps them out of the default path until the remaining serving
-gates pass.
+The current block-8 five-process baseline is recorded under
+`/data/netra/benchmarks/gfx950_qwen36_27b/20260820-blk8-fresh-process-five-rep`.
+It measured 3246.51, 3257.92, 3309.78, 3316.49, and 3308.34 output tokens/s,
+for a mean of 3287.81 and standard deviation of 32.88 output tokens/s. Mean
+dFlash acceptance was approximately 3.1.
+
+Operator evidence for the new QKVZ-Conv1D contract is under
+`/data/netra/benchmarks/gfx950_qwen36_27b/20260820-upstream-qkvz-t8`. It was
+bitwise exact against the Triton oracle in eager execution and HIP graph
+replay at batches 1, 32, 128, and 256. At batch 128 its catalog artifact
+measured 33.941 microseconds versus 44.141 microseconds, a 1.3005x operator
+speedup. Two independent builds produced identical source, executable text,
+code-object bytes, and normalized metadata. The artifact is gfx950 wave64
+with kernarg size 64, 33 VGPRs, 34 SGPRs, no LDS, and no private segment.
+
+Prior BF16-state evidence is under
+`/data/netra/benchmarks/gfx950_qwen36_27b/20260820-bf16state`. The block-12
+experiment was bitwise exact against its BF16-pool reference, reduced VRAM by
+about 9.1 GB, and improved same-window throughput by 3.7 percent with flat
+acceptance. The exact block-8 BF16 artifacts now build deterministically, but
+their matched serving and block-8 operator gates are not run yet. The tactics
+are not accepted and remain disabled by default.
 
 No accepted Qwen3.6-35B tactic matches these five projection shapes. The 27B
 engine therefore retains `framework.aiter` for all dense projections and
