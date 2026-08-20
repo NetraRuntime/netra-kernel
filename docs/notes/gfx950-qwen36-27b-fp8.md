@@ -168,6 +168,15 @@ implemented by model-independent gfx950 assembly templates in
 - gated RMSNorm plus FP8 group quant at width 128 and 48 heads, with one, two,
   or four rows per workgroup.
 
+The row dimension uses an explicit bounded contract from 1 through 8192
+tokens. Width, dtype, layouts, quantization, scale interpretation, numerical
+order, ABI, workspace, and graph properties remain fixed. Gated RMSNorm uses
+three non-overlapping bounded schedules: 1 through 12 tokens use one row per
+workgroup, 13 through 25 use two, and 26 through 8192 use four. Requests
+outside these bounds use the framework fallback. This coverage includes the
+irregular prefill batches produced by the c192 GSM8K serving workload while
+keeping schedule selection deterministic and model-independent.
+
 The original measured sources are retained only as pinned historical Git
 blobs at revision `0e0f97dfee142bee398cd0795d163f82cc591f36`. They are not
 runtime sources. Instantiating the templates reproduced the originating
@@ -182,8 +191,8 @@ python3 tools/build/build_gfx950_group_quant_assembly.py \
 ```
 
 The bridge performs initialization and symbol lookup before graph capture.
-Its launch functions only check an exact profile, update stable arguments,
-and launch on the caller-owned stream. The launch path has no allocation,
+Its launch functions only check the bounded profile and fixed schedule range,
+update stable arguments, and launch on the caller-owned stream. The launch path has no allocation,
 filesystem access, environment lookup, module loading, symbol lookup, tactic
 selection, or synchronization.
 

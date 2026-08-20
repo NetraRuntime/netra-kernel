@@ -36,6 +36,7 @@ class FixedAssemblyTactic:
     macro_parameters: tuple[str, ...]
     contract_constants: tuple[tuple[str, tuple[int, ...]], ...]
     compile_definitions: tuple[tuple[str, tuple[int, ...]], ...]
+    compile_ranges: tuple[tuple[str, int, int, int], ...]
     semantics: KernelSemantics
     kernarg_size: int
     launch_block_constant: str | None
@@ -68,6 +69,7 @@ class FixedAssemblyTactic:
             "computational_sha256": self.computational_sha256,
             "contract_constants": self.contract_constants,
             "compile_definitions": self.compile_definitions,
+            "compile_ranges": self.compile_ranges,
             "semantics": self.semantics.to_dict(),
             "kernarg_size": self.kernarg_size,
             "launch_block_constant": self.launch_block_constant,
@@ -130,9 +132,22 @@ class FixedAssemblyTactic:
                 reasons.append(f"{name} missing")
             elif constants[name] not in allowed:
                 reasons.append(f"{name} mismatch")
+        for name, minimum, maximum, step in self.compile_ranges:
+            value = constants.get(name)
+            if value is None:
+                reasons.append(f"{name} missing")
+            elif (
+                not isinstance(value, int)
+                or isinstance(value, bool)
+                or value < minimum
+                or value > maximum
+                or (value - minimum) % step
+            ):
+                reasons.append(f"{name} mismatch")
         declared = {
             name for name, _ in (*self.contract_constants, *self.compile_definitions)
         }
+        declared.update(name for name, _, _, _ in self.compile_ranges)
         for name in sorted(set(constants) - declared):
             reasons.append(f"undeclared compile-time constant {name}")
         return tuple(reasons)
@@ -158,6 +173,8 @@ class FixedAssemblyTactic:
             )
         concrete_specialization = tuple(
             (name, int(constants[name])) for name, _ in self.compile_definitions
+        ) + tuple(
+            (name, int(constants[name])) for name, _, _, _ in self.compile_ranges
         )
         identity = {
             "tactic": self.stable_id,
@@ -219,6 +236,10 @@ class FixedAssemblyTactic:
             "compile_definitions": {
                 name: values[0] if len(values) == 1 else list(values)
                 for name, values in self.compile_definitions
+            },
+            "compile_ranges": {
+                name: {"min": minimum, "max": maximum, "step": step}
+                for name, minimum, maximum, step in self.compile_ranges
             },
             "semantics": self.semantics.to_dict(),
             "kernarg_size": self.kernarg_size,
@@ -382,11 +403,37 @@ def load_fixed_tactic_catalog(
                 (name, _values(value))
                 for name, value in entry["compile_definitions"].items()
             ))
-            overlap = set(required) & set(dict(compile_definitions))
+            compile_ranges_list: list[tuple[str, int, int, int]] = []
+            for name, raw_range in entry.get("compile_ranges", {}).items():
+                if not isinstance(raw_range, Mapping):
+                    raise ValueError(
+                        f"compile range {name} must be an object in {entry['id']}"
+                    )
+                minimum = int(raw_range.get("min", 0))
+                maximum = int(raw_range.get("max", 0))
+                step = int(raw_range.get("step", 1))
+                if minimum <= 0 or maximum < minimum or step <= 0:
+                    raise ValueError(
+                        f"invalid compile range {name} in {entry['id']}"
+                    )
+                compile_ranges_list.append((str(name), minimum, maximum, step))
+            compile_ranges = tuple(sorted(compile_ranges_list))
+            selectable = set(dict(compile_definitions)) | {
+                name for name, _, _, _ in compile_ranges
+            }
+            overlap = set(required) & selectable
             if overlap:
                 raise ValueError(
                     f"fixed and selectable constants overlap for {entry['id']}: "
                     + ", ".join(sorted(overlap))
+                )
+            duplicated = set(dict(compile_definitions)) & {
+                name for name, _, _, _ in compile_ranges
+            }
+            if duplicated:
+                raise ValueError(
+                    f"listed and ranged constants overlap for {entry['id']}: "
+                    + ", ".join(sorted(duplicated))
                 )
             workgroups = {int(value) for value in _MAX_WORKGROUP.findall(closure_text)}
             lds_sizes = {int(value) for value in _FIXED_LDS.findall(closure_text)}
@@ -447,6 +494,7 @@ def load_fixed_tactic_catalog(
                 macro_parameters=macro_parameters,
                 contract_constants=tuple(sorted(required.items())),
                 compile_definitions=compile_definitions,
+                compile_ranges=compile_ranges,
                 semantics=semantics,
                 kernarg_size=kernarg_size,
                 launch_block_constant=launch_block_constant,

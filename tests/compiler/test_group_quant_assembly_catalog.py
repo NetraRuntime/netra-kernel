@@ -9,20 +9,13 @@ from netra_compiler.backends.gfx950.codegen import instantiate_fixed_source
 
 
 ROOT = Path(__file__).resolve().parents[2]
-EXPECTED_ROWS = {
-    "add_rmsnorm_group_quant_n5120": (8, 16, 32, 64, 128, 256, 512, 640,
-                                       768, 896, 1024, 1280, 1536),
-    "silu_mul_group_quant_n17408_store_bf16": (8, 16, 32, 64, 128, 256,
-                                                512, 640, 768, 896, 1024,
-                                                1280, 1536),
-    "silu_mul_group_quant_n17408_prequant_only": (8, 16, 32, 64, 128, 256,
-                                                   512, 640, 768, 896, 1024,
-                                                   1280, 1536),
-    "gated_rmsnorm_group_quant_d128_rpb1": (384,),
-    "gated_rmsnorm_group_quant_d128_rpb2": (768,),
-    "gated_rmsnorm_group_quant_d128_rpb4": (1536, 3072, 6144, 12288, 24576,
-                                             30720, 36864, 43008, 49152,
-                                             61440, 73728),
+EXPECTED_RANGES = {
+    "add_rmsnorm_group_quant_n5120": (1, 8192, 1),
+    "silu_mul_group_quant_n17408_store_bf16": (1, 8192, 1),
+    "silu_mul_group_quant_n17408_prequant_only": (1, 8192, 1),
+    "gated_rmsnorm_group_quant_d128_rpb1": (48, 576, 48),
+    "gated_rmsnorm_group_quant_d128_rpb2": (624, 1200, 48),
+    "gated_rmsnorm_group_quant_d128_rpb4": (1248, 393216, 48),
 }
 
 
@@ -36,12 +29,16 @@ def _tactics():
 class GroupQuantAssemblyCatalogTest(unittest.TestCase):
     def test_tactics_are_model_neutral_fixed_assembly(self) -> None:
         tactics = _tactics()
-        for name, rows in EXPECTED_ROWS.items():
+        for name, expected_range in EXPECTED_RANGES.items():
             with self.subTest(name=name):
                 tactic = tactics[name]
                 self.assertEqual(tactic.artifact_kind, "raw_assembly_template")
                 self.assertEqual(tactic.maturity.value, "verified")
-                self.assertEqual(dict(tactic.compile_definitions)["NETRA_ROWS"], rows)
+                self.assertEqual(tactic.compile_definitions, ())
+                self.assertEqual(
+                    {item[0]: item[1:] for item in tactic.compile_ranges},
+                    {"NETRA_ROWS": expected_range},
+                )
                 self.assertNotIn("qwen", tactic.name.lower())
                 self.assertNotIn("qwen", tactic.family.lower())
                 self.assertNotIn("gemma", tactic.name.lower())
@@ -50,13 +47,13 @@ class GroupQuantAssemblyCatalogTest(unittest.TestCase):
                 self.assertTrue(tactic.deterministic)
 
     def test_instantiation_is_deterministic_and_exactly_guarded(self) -> None:
-        for name, rows in EXPECTED_ROWS.items():
+        for name, (minimum, maximum, step) in EXPECTED_RANGES.items():
             with self.subTest(name=name):
                 tactic = _tactics()[name]
                 constants = {
                     key: values[0] for key, values in tactic.contract_constants
                 }
-                constants["NETRA_ROWS"] = rows[0]
+                constants["NETRA_ROWS"] = minimum
                 request = {
                     "family": tactic.family,
                     "operation": tactic.operation,
@@ -72,10 +69,13 @@ class GroupQuantAssemblyCatalogTest(unittest.TestCase):
                 self.assertEqual(first, second)
                 self.assertIn(b"NETRA_ROWS", first[0])
 
-                bad = dict(request)
-                bad["constants"] = dict(constants, NETRA_ROWS=7)
-                with self.assertRaisesRegex(ValueError, "NETRA_ROWS mismatch"):
-                    tactic.make_contract(bad)
+                for rejected in (minimum - 1, maximum + 1, minimum + 1):
+                    if rejected == minimum + 1 and step == 1:
+                        continue
+                    bad = dict(request)
+                    bad["constants"] = dict(constants, NETRA_ROWS=rejected)
+                    with self.assertRaisesRegex(ValueError, "NETRA_ROWS mismatch"):
+                        tactic.make_contract(bad)
 
     def test_raw_sources_are_only_pinned_history(self) -> None:
         self.assertFalse(list((ROOT / "kernels/gfx950/activation/verify").glob("*.s")))
@@ -96,8 +96,10 @@ class GroupQuantAssemblyCatalogTest(unittest.TestCase):
         self.assertIn("sizeof(AddNormKernarg) == 96", source)
         self.assertIn("sizeof(SiluKernarg) == 64", source)
         self.assertIn("sizeof(GatedNormKernarg) == 104", source)
-        self.assertIn("kTokenRows", launch_source)
-        self.assertIn("kGatedRows", launch_source)
+        self.assertIn("kMinTokenRows", launch_source)
+        self.assertIn("kMaxTokenRows", launch_source)
+        self.assertIn("kRpb1MaxTokenRows", launch_source)
+        self.assertIn("kRpb2MaxTokenRows", launch_source)
 
     def test_manifest_records_the_measured_kernel_abi(self) -> None:
         model = json.loads((ROOT / "manifests/gfx950/models/"

@@ -19,11 +19,10 @@ constexpr uint32_t kGatedHeads = 48;
 constexpr uint32_t kSiluGroupsPerGrid = 34;
 constexpr float kInvFp8Max = 1.0f / 448.0f;
 constexpr float kExactAddNormEpsilon = 1.0e-6f;
-constexpr std::array<uint32_t, 13> kTokenRows = {
-    8, 16, 32, 64, 128, 256, 512, 640, 768, 896, 1024, 1280, 1536};
-constexpr std::array<uint32_t, 13> kGatedRows = {
-    384, 768, 1536, 3072, 6144, 12288, 24576,
-    30720, 36864, 43008, 49152, 61440, 73728};
+constexpr uint32_t kMinTokenRows = 1;
+constexpr uint32_t kMaxTokenRows = 8192;
+constexpr uint32_t kRpb1MaxTokenRows = 12;
+constexpr uint32_t kRpb2MaxTokenRows = 25;
 
 constexpr const char* kAddNormSymbol =
     "netra_add_rmsnorm_group_quant_n5120_gfx950";
@@ -120,13 +119,6 @@ std::mutex module_mutex;
 std::array<ModuleFunction, 6> loaded{};
 thread_local char last_error[512] = {};
 
-bool supported(const std::array<uint32_t, 13>& values, uint32_t value) {
-  for (const uint32_t candidate : values) {
-    if (candidate == value) return true;
-  }
-  return false;
-}
-
 int fail(const char* operation, hipError_t error) {
   std::snprintf(last_error, sizeof(last_error), "%s: %s", operation,
                 hipGetErrorString(error));
@@ -216,8 +208,8 @@ extern "C" int netra_add_rmsnorm_group_quant_n5120_launch(
   if (!all_nonnull({input_bf16, residual_bf16, weight_f32, output_bf16,
                     residual_out_bf16, output_fp8, output_scale_f32}))
     return fail_message("add+RMSNorm group-quant pointers must be nonnull");
-  if (!supported(kTokenRows, rows))
-    return fail_message("add+RMSNorm rows are outside exact profiles");
+  if (rows < kMinTokenRows || rows > kMaxTokenRows)
+    return fail_message("add+RMSNorm rows are outside bounded profiles");
   if (epsilon != kExactAddNormEpsilon)
     return fail_message("add+RMSNorm epsilon differs from fixed contract");
 
@@ -247,8 +239,8 @@ extern "C" int netra_silu_mul_group_quant_n17408_launch(
     return fail_message("SiLU group-quant pointers must be nonnull");
   if (store_bf16 != 0 && output_bf16 == nullptr)
     return fail_message("SiLU BF16 output must be nonnull when enabled");
-  if (!supported(kTokenRows, rows))
-    return fail_message("SiLU group-quant rows are outside exact profiles");
+  if (rows < kMinTokenRows || rows > kMaxTokenRows)
+    return fail_message("SiLU group-quant rows are outside bounded profiles");
 
   void* input = const_cast<void*>(gate_up_bf16);
   void* output = output_bf16 != nullptr ? output_bf16 : input;
@@ -272,9 +264,12 @@ extern "C" int netra_gated_rmsnorm_group_quant_d128_launch(
   if (!all_nonnull({input_bf16, output_bf16, weight_bf16, gate_bf16,
                     output_fp8, output_scale_f32}))
     return fail_message("gated RMSNorm group-quant pointers must be nonnull");
-  if (!supported(kGatedRows, rows))
-    return fail_message("gated RMSNorm rows are outside exact profiles");
-  const uint32_t rows_per_block = rows == 384 ? 1 : (rows == 768 ? 2 : 4);
+  if (rows < kMinTokenRows * kGatedHeads || rows % kGatedHeads != 0 ||
+      rows > kMaxTokenRows * kGatedHeads)
+    return fail_message("gated RMSNorm rows are outside bounded profiles");
+  const uint32_t rows_per_block = rows <= kRpb1MaxTokenRows * kGatedHeads
+      ? 1
+      : (rows <= kRpb2MaxTokenRows * kGatedHeads ? 2 : 4);
   const size_t index = rows_per_block == 1 ? 3 : (rows_per_block == 2 ? 4 : 5);
   if (loaded[index].function == nullptr)
     return fail_message("gated RMSNorm group-quant module is not loaded");
