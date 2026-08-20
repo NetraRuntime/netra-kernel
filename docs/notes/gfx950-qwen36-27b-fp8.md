@@ -39,9 +39,12 @@ AITER attention metadata path. `verify_m4_b1` records that shape. The engine
 keeps MTP and speculative serving on the framework. The dFlash block-8
 deployment below serves selected GDN operations through an opt-in raw-kernel
 bridge instead. `verify_m8` records its exact eight-token verification window,
-batch range 1 through 128, and sequence bound 32768. The deployment manifest
-pins dFlash block size 8, draft window 2048, zero mamba cache steps, FP32 state,
-and full graph batches 1, 2, 4, 8, 16, 32, 64, 80, 96, 112, and 128.
+batch range 1 through 128, and sequence bound 32768. A separate observed
+`verify_m8_b129_192` profile records batches 129 through 192. The optimized
+model manifest pins dFlash block size 8, draft window 2048, zero mamba cache
+steps, BF16 state, and full graph batches 1, 2, 4, 8, 16, 32, 64, 80, 96, 112,
+128, 160, and 192. Server integration remains disabled by default, so this
+does not alter framework behavior unless explicitly enabled.
 
 ## Verified HV48 GDN verification tactics
 
@@ -123,6 +126,28 @@ five-process FP32-state mean. All 1920 requests passed. The tactics remain
 disabled by default and are not accepted until the final 35B preservation
 gate passes.
 
+The BF16-state c192 throughput profile was subsequently measured with the full
+1319-question GSM8K test set using OpenAI chat requests, natural EOS, seed
+20260803, and numeric answer scoring. Five fresh-process c128 and c192 pairs
+alternated arm order. Across 13,190 requests, c128 averaged 5710.44 output
+tokens/s and c192 averaged 6381.33 output tokens/s. The paired improvement was
+11.75 percent with a 95 percent confidence interval from 10.41 to 13.09
+percent. Mean numeric accuracy was 96.39 percent at c128 and 96.59 percent at
+c192. The paired accuracy interval crossed zero, so no quality change is
+claimed. Mean acceptance length was 5.5828 and 5.5865 respectively. All ten
+fresh processes loaded, captured their full HIP graph ladders, completed every
+request, and had no fatal server errors.
+
+This profile is throughput-oriented. Median TTFT increased by 15.93 percent
+and median TPOT increased by 31.87 percent. Keep c128 for lower latency. Use
+c192 only when aggregate throughput is the priority. The c192 profile uses
+TP1, DP1, BF16 recurrent state, maximum running requests 192, client
+concurrency 192, and graph batches 1, 2, 4, 8, 16, 32, 64, 80, 96, 112, 128,
+160, and 192. Its pinned summary is
+`/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/bf16-c128-c192-five-fresh-r1/summary.json`
+with SHA-256
+`ed34b53f83733f37678fded570c9d2a01e6375d1e5a0cb730ad33b7feb0e1786`.
+
 No accepted Qwen3.6-35B tactic matches these five projection shapes. The 27B
 engine therefore retains `framework.aiter` for all dense projections and
 records the remaining embedding, vision, normalization, activation, GDN,
@@ -141,7 +166,8 @@ PYTHONPATH=compiler python3 -m netra_compiler.cli compile \
 ```
 
 Build the exact concurrency-16 serving profile by replacing `decode_m1` with
-`decode_m16_b16` and selecting a different output directory.
+`decode_m16_b16` and selecting a different output directory. Build the c192
+verification ceiling with profile `verify_m8_b129_192`.
 
 Validate a staged checkpoint without loading its tensor payloads:
 
@@ -153,11 +179,12 @@ python3 tools/checkpoint/inspect_qwen36_27b_fp8.py \
 
 ## Validation status
 
-All seven required profiles compiled and passed static validation on gfx950.
+All eight required profiles compiled and passed static validation on gfx950.
 Each engine contains 267 explicit framework fallbacks and no specialized
 code object. Compiling every required engine twice produced byte-identical
 semantic outputs. The documented `decode_m1` engine ID is
-`ne_219f9e67da889e379efb4671`.
+`ne_be980d1db69175e3c7afac0d`. The c192 verification engine ID is
+`ne_5f1e7a7a89636501ff847e37`.
 
 The current engine additionally guards the exact dFlash checkpoint repository,
 revision, config hash, weights hash, block size, draft window, mamba cache

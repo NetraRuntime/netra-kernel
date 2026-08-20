@@ -124,7 +124,9 @@
       80,
       96,
       112,
-      128
+      128,
+      160,
+      192
     ],
     "speculative_algorithm": "DFLASH",
     "dflash_enabled": true,
@@ -136,7 +138,7 @@
     "dflash_block_size": 8,
     "dflash_draft_window_size": 2048,
     "dflash_mamba_cache_steps": 0,
-    "mamba_ssm_dtype": "float32",
+    "mamba_ssm_dtype": "bfloat16",
     "required_profiles": [
       "decode_m1",
       "decode_m16_b16",
@@ -144,7 +146,8 @@
       "prefill_m256_b1",
       "prefill_m3840_b15",
       "verify_m4_b1",
-      "verify_m8"
+      "verify_m8",
+      "verify_m8_b129_192"
     ],
     "required_environment": {
       "SGLANG_USE_AITER": "1"

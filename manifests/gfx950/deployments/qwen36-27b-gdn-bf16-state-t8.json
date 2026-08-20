@@ -8,6 +8,40 @@
     "lock_sha256": "89c190d7c0b679dadc398b62cd130e52718e7b877a009636a38c9e19d99037d5",
     "source_revision": "d4e402cf59100ef96fd040451465d1dda9c85b6c"
   },
+  "serving_evidence": {
+    "status": "verified_opt_in",
+    "benchmark": "gsm8k_full_openai_chat_numeric",
+    "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/bf16-c128-c192-five-fresh-r1/summary.json",
+    "summary_sha256": "ed34b53f83733f37678fded570c9d2a01e6375d1e5a0cb730ad33b7feb0e1786",
+    "dataset_sha256": "8993be69122e5e20c23d003467e97011ac0bc0fce7d8fb739f1ff30d0eb6cd76",
+    "gold_sha256": "3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14",
+    "server_revision": "3fe5c26bc8567c3e0f6f38dd2c57dd026579fda9",
+    "kernel_source_revision": "b41054f19475f4858bc977bd323c2f6b89a53c8ea49ba0a3d62122624be5738d",
+    "total_requests": 13190,
+    "tensor_parallelism": 1,
+    "data_parallelism": 1,
+    "speculative_algorithm": "dflash",
+    "dflash_block_size": 8,
+    "mamba_ssm_dtype": "bfloat16",
+    "latency_profile": {
+      "max_running_requests": 128,
+      "client_concurrency": 128,
+      "graph_batch_sizes": [1, 2, 4, 8, 16, 32, 64, 80, 96, 112, 128],
+      "mean_output_tokens_per_second": 5710.439267485291,
+      "mean_numeric_accuracy": 0.9639120545868082
+    },
+    "throughput_profile": {
+      "max_running_requests": 192,
+      "client_concurrency": 192,
+      "graph_batch_sizes": [1, 2, 4, 8, 16, 32, 64, 80, 96, 112, 128, 160, 192],
+      "mean_output_tokens_per_second": 6381.332196653514,
+      "mean_numeric_accuracy": 0.9658832448824868
+    },
+    "paired_output_throughput_delta_percent": 11.749951924063437,
+    "paired_output_throughput_confidence_95_percent": [10.409527436634157, 13.090376411492716],
+    "paired_accuracy_delta_percent": 0.20533109064663213,
+    "paired_accuracy_confidence_95_percent": [-0.2713308972931114, 0.6819930785863757]
+  },
   "artifacts": [
     {
       "name": "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_gfx950",

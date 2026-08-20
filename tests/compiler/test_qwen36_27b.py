@@ -71,7 +71,7 @@ class Qwen3627BTest(unittest.TestCase):
         graph, model = load_model(MODEL)
         self.assertEqual(
             stable_hash(model),
-            "816052714bafdf106a55481f2c00a56a3ade23134a87475fb6fdb488a8cc9823",
+            "46f5549560477c01b77de1033d296c8afbbef4230a253b7487720e515148392e",
         )
         self.assertEqual(
             stable_hash(graph.to_dict()),
@@ -113,14 +113,14 @@ class Qwen3627BTest(unittest.TestCase):
         self.assertEqual(configuration["dflash_block_size"], 8)
         self.assertEqual(configuration["dflash_draft_window_size"], 2048)
         self.assertEqual(configuration["dflash_mamba_cache_steps"], 0)
-        self.assertEqual(configuration["mamba_ssm_dtype"], "float32")
+        self.assertEqual(configuration["mamba_ssm_dtype"], "bfloat16")
         self.assertEqual(
             configuration["dflash_checkpoint_revision"],
             "0919688658996800f86b895034249700e9481106",
         )
         self.assertEqual(
             configuration["cuda_graph_batch_sizes"],
-            [1, 2, 4, 8, 16, 32, 64, 80, 96, 112, 128],
+            [1, 2, 4, 8, 16, 32, 64, 80, 96, 112, 128, 160, 192],
         )
 
     def test_no_35b_tactic_is_relabelled_for_27b(self) -> None:
@@ -203,6 +203,7 @@ class Qwen3627BTest(unittest.TestCase):
             "prefill_m3840_b15": {"m": 3840, "batch": 15, "sequence": 256},
             "verify_m4_b1": {"m": 4, "batch": 1, "sequence": 80},
             "verify_m8": {"m": 8, "batch": 128, "sequence": 32768},
+            "verify_m8_b129_192": {"m": 8, "batch": 192, "sequence": 32768},
         }
         for name, dimensions in observed.items():
             self.assertTrue(
@@ -220,6 +221,18 @@ class Qwen3627BTest(unittest.TestCase):
         ):
             self.assertFalse(
                 by_name["verify_m8"].matches(
+                    dimensions,
+                    quantization="fp8_block128",
+                    tensor_parallel=1,
+                )
+            )
+        for dimensions in (
+            {"m": 8, "batch": 128, "sequence": 32768},
+            {"m": 8, "batch": 193, "sequence": 32768},
+            {"m": 8, "batch": 192, "sequence": 32769},
+        ):
+            self.assertFalse(
+                by_name["verify_m8_b129_192"].matches(
                     dimensions,
                     quantization="fp8_block128",
                     tensor_parallel=1,
@@ -252,6 +265,30 @@ class Qwen3627BTest(unittest.TestCase):
                 for artifact in deployment["artifacts"]
             )
         )
+
+    def test_bf16_c192_gsm8k_evidence_matches_optimized_manifest(self) -> None:
+        deployment = json.loads(
+            (
+                ROOT
+                / "manifests/gfx950/deployments/qwen36-27b-gdn-bf16-state-t8.json"
+            ).read_text()
+        )
+        serving = deployment["serving_evidence"]
+        self.assertEqual(serving["status"], "verified_opt_in")
+        self.assertEqual(
+            serving["summary_sha256"],
+            "ed34b53f83733f37678fded570c9d2a01e6375d1e5a0cb730ad33b7feb0e1786",
+        )
+        self.assertEqual(serving["total_requests"], 13190)
+        self.assertEqual(serving["tensor_parallelism"], 1)
+        self.assertEqual(serving["data_parallelism"], 1)
+        self.assertEqual(serving["throughput_profile"]["max_running_requests"], 192)
+        self.assertEqual(
+            serving["throughput_profile"]["graph_batch_sizes"][-2:], [160, 192]
+        )
+        _, model = load_model(MODEL)
+        self.assertEqual(model["configuration"]["mamba_ssm_dtype"], "bfloat16")
+        self.assertEqual(model["configuration"]["cuda_graph_batch_sizes"][-1], 192)
 
 
 if __name__ == "__main__":
