@@ -124,6 +124,7 @@ def build(repo: Path, output: Path, rocm: Path) -> dict[str, Any]:
         "linker": rocm / "llvm/bin/ld.lld",
         "objcopy": rocm / "llvm/bin/llvm-objcopy",
         "readobj": rocm / "llvm/bin/llvm-readobj",
+        "hipcc": rocm / "bin/hipcc",
     }
     missing = [str(path) for path in tools.values() if not os.access(path, os.X_OK)]
     if missing:
@@ -194,6 +195,14 @@ def build(repo: Path, output: Path, rocm: Path) -> dict[str, Any]:
                        "lds_bytes": contract.launch.lds_bytes},
         })
 
+    bridge = output / "libnetra_group_quant_assembly_bridge.so"
+    _run([
+        str(tools["hipcc"]), "-std=c++17", "-O2", "-fPIC", "-shared",
+        "-I", str(repo),
+        str(repo / "runtime/gfx950/group_quant/verify/group_quant_assembly_bridge.hip"),
+        "-o", str(bridge),
+    ], cwd=repo)
+
     report = {
         "format": "netra-group-quant-assembly-build-result-1",
         "target": "gfx950",
@@ -201,6 +210,8 @@ def build(repo: Path, output: Path, rocm: Path) -> dict[str, Any]:
         "maturity": "verified",
         "artifact_count": len(artifacts),
         "all_text_identical": True,
+        "bridge": bridge.name,
+        "bridge_sha256": _sha256(bridge),
         "artifacts": artifacts,
     }
     (output / "build-result.json").write_text(

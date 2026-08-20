@@ -80,6 +80,20 @@ class GroupQuantAssemblyCatalogTest(unittest.TestCase):
         self.assertFalse(list((ROOT / "kernels/gfx950/activation/verify").glob("*.s")))
         self.assertFalse(list((ROOT / "kernels/gfx950/norm/verify").glob("*.s")))
 
+    def test_bridge_hot_path_is_fixed_and_caller_stream_owned(self) -> None:
+        source = (ROOT / "runtime/gfx950/group_quant/verify/"
+                  "group_quant_assembly_bridge.hip").read_text()
+        launch_source = source[source.index(
+            'extern "C" int netra_add_rmsnorm_group_quant_n5120_launch'):]
+        for forbidden in (
+            "getenv(", "hipMalloc", "hipFree", "hipDeviceSynchronize",
+            "hipStreamSynchronize", "hipModuleLoad", "hipModuleGetFunction",
+        ):
+            self.assertNotIn(forbidden, launch_source)
+        self.assertIn("stream, arguments, nullptr", launch_source)
+        self.assertIn("kTokenRows", launch_source)
+        self.assertIn("kGatedRows", launch_source)
+
 
 if __name__ == "__main__":
     unittest.main()
