@@ -184,7 +184,7 @@
       "properties": {
         "name": {"type": "string", "minLength": 1},
         "shape": {"type": "array", "minItems": 1, "items": {"type": ["integer", "string"]}},
-        "dtype": {"enum": ["fp8_e4m3", "bf16", "fp32", "int32"]},
+        "dtype": {"enum": ["fp8_e4m3", "fp16", "bf16", "fp32", "int32"]},
         "layout": {"type": "string", "minLength": 1},
         "role": {"enum": ["input", "output", "state", "weight", "temporary"]},
         "alias_of": {"type": ["string", "null"]},

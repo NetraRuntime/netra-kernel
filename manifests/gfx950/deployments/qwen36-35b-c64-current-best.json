@@ -1,0 +1,40 @@
+{
+  "format": "netra-compatibility-build-1",
+  "target": "gfx950",
+  "wave_size": 64,
+  "deployment": "qwen36-35b-c64-native-moe-current-best",
+  "evidence": {
+    "lock": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260821-modular-moe-m768-c64-five-fresh/summary.json",
+    "lock_sha256": "928ae5b7506cc0088d1fc42dbc5b09fb64a1297471a37441b5667251dbba834c",
+    "safe_default_lock": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260821-modular-moe-m768-c64-safe-final/summary.json",
+    "safe_default_lock_sha256": "28935565f96061775f7c31e95755999b3fed8604820c1b7ecf27db4521205ea7",
+    "producer_selection_provenance": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260820T204400Z-t177-t194-gsm8k-paired-gpu1/comparison.json",
+    "producer_selection_provenance_sha256": "3b850fd43165da8c8361a4cbb225a5aa4df413d3fec994c01039d43d2ccaac9a"
+  },
+  "artifacts": [
+    {
+      "name": "qwen36_moe_fused_m64n256_partial_fp8_gfx950",
+      "locked_text_sha256": "5d51af06c4071458aba7f81c6d3f353aa5e41eda0fa8c56d2f5b51a820ed7db1",
+      "locked_hsaco_sha256": "2a05116d755f3aed60280ef34faaad49c61dd996bc7ad70edfa1a89feaa73627",
+      "members": [
+        {
+          "tactic": "moe_prefill_fused_splitk2_fp8_m768",
+          "symbol": "qwen36_moe_fused_m64n256_partial_fp8_gfx950",
+          "definitions": {}
+        }
+      ]
+    },
+    {
+      "name": "qwen36_moe_route_reduce_f16_2h_x2_gfx950",
+      "locked_text_sha256": "9378c0ab403e0e53346dd4b36365bf0ec43c5f9fd02c0e92c3748a3368c70835",
+      "locked_hsaco_sha256": "dba1989cbf09efb18bd0e96e0de2b021b1eae7fef033caa1a92f2a9961d53633",
+      "members": [
+        {
+          "tactic": "moe_prefill_route_reduce_splitk2_f16_m768",
+          "symbol": "qwen36_moe_route_reduce_f16_2h_x2_gfx950",
+          "definitions": {}
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "format": "netra-fixed-tactic-catalog-1",
+  "catalog_version": 1,
+  "target": "gfx950",
+  "wave_size": 64,
+  "default_rank": 90,
+  "default_evidence_set": "gfx950_moe_prefill_splitk2_accepted_20260821",
+  "evidence_sets": {
+    "gfx950_moe_prefill_splitk2_accepted_20260821": {
+      "lock_name": "summary.json",
+      "lock_sha256": "928ae5b7506cc0088d1fc42dbc5b09fb64a1297471a37441b5667251dbba834c",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260821-modular-moe-m768-c64-five-fresh"
+    },
+    "gfx950_moe_prefill_splitk2_verified_20260820": {
+      "lock_name": "comparison.json",
+      "lock_sha256": "3b850fd43165da8c8361a4cbb225a5aa4df413d3fec994c01039d43d2ccaac9a",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260820T204400Z-t177-t194-gsm8k-paired-gpu1"
+    }
+  },
+  "policy": {
+    "instances_generated_into_build_only": true,
+    "runtime_specialization": false,
+    "unused_raw_assembly_removed": true,
+    "maturity_change": "requires_matched_five_process_serving_gate",
+    "model_names_in_computational_identity": false,
+    "specialization_time": "assembler"
+  },
+  "tactics": [
+    {
+      "id": "moe_prefill_fused_splitk2_fp8_m768",
+      "operation": "moe_prefill_fused_splitk2",
+      "family": "moe.fp8_block128.fused_splitk2",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_serving_verified_exact_m768_c64_dflash12_graph_contract_opt_in",
+      "template": "kernels/gfx950/templates/moe/prefill/fused_splitk2_fp8.inc",
+      "symbols": [
+        "qwen36_moe_fused_m64n256_partial_fp8_gfx950"
+      ],
+      "contract_constants": {
+        "NETRA_ROWS": 768,
+        "NETRA_HIDDEN_SIZE": 2048,
+        "NETRA_INTERMEDIATE_SIZE": 512,
+        "NETRA_EXPERTS": 257,
+        "NETRA_TOPK": 9,
+        "NETRA_ROUTE_BLOCK": 64,
+        "NETRA_SCALE_BLOCK": 128,
+        "NETRA_SPLIT_K": 2,
+        "NETRA_WEIGHT_LAYOUT_ID": 1
+      },
+      "compile_definitions": {},
+      "rank": 90,
+      "kernarg_size": 112,
+      "launch_block": 256,
+      "metadata_contract": {
+        "group_segment_fixed_size": 65536,
+        "kernarg_segment_size": 112,
+        "max_flat_workgroup_size": 256
+      },
+      "semantics": {
+        "abi": "moe.prefill_fused_splitk2.ptr11_u32_ptr_u32.v1",
+        "dtypes": "fp8e4m3_f32scale_weights_to_f16_split_partials.v1",
+        "quantization": "fp8e4m3_block128x128_dynamic_route_scale.v1",
+        "layouts": "aiter_sorted_m64_expert_n16k16_splitk2.v1",
+        "numerical": "w13_fp32_silu_bf16_fp8_w2_fp32_to_f16_fixed.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.moe_prefill",
+      "locked_hsaco_sha256": [
+        "2a05116d755f3aed60280ef34faaad49c61dd996bc7ad70edfa1a89feaa73627"
+      ],
+      "instantiation_macro": "NETRA_MOE_PREFILL_FUSED_SPLITK2_FP8",
+      "template_sha256": "5a0705cffe5415e98103cd0445edfc30d43e6f134c3d4244de9e22206baf51b4",
+      "source_closure_sha256": "26119d644e213a0990897c53e223d47d218a10cc0dce23c512a2a2433749a4a5"
+    },
+    {
+      "id": "moe_prefill_route_reduce_splitk2_f16_m768",
+      "operation": "moe_prefill_route_reduce",
+      "family": "moe.fixed_order_route_reduce",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_serving_verified_exact_m768_c64_dflash12_graph_contract_opt_in",
+      "template": "kernels/gfx950/templates/moe/prefill/route_reduce_splitk2_f16.inc",
+      "symbols": [
+        "qwen36_moe_route_reduce_f16_2h_x2_gfx950"
+      ],
+      "contract_constants": {
+        "NETRA_ROWS": 768,
+        "NETRA_HIDDEN_SIZE": 2048,
+        "NETRA_TOPK": 9,
+        "NETRA_SPLIT_K": 2
+      },
+      "compile_definitions": {},
+      "rank": 90,
+      "kernarg_size": 32,
+      "launch_block": 64,
+      "metadata_contract": {
+        "group_segment_fixed_size": 0,
+        "kernarg_segment_size": 32,
+        "max_flat_workgroup_size": 64
+      },
+      "semantics": {
+        "abi": "moe.route_reduce.ptr4.v1",
+        "dtypes": "f16_split_partials_f32_weights_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "route_major_topk9_hidden2048_splitk2.v1",
+        "numerical": "sum_halves_then_weight_topk_slot_ascending_fp32_rne_bf16.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.moe_route_reduce",
+      "locked_hsaco_sha256": [
+        "dba1989cbf09efb18bd0e96e0de2b021b1eae7fef033caa1a92f2a9961d53633"
+      ],
+      "instantiation_macro": "NETRA_MOE_PREFILL_ROUTE_REDUCE_SPLITK2_F16",
+      "template_sha256": "568afbe421e0e200b0000059989efbc845b98df2d0f6be09a7cd2ee4028478f2",
+      "source_closure_sha256": "40705372554900f14d48c7e3e23a8f9907c3375ff58e95012bf7f6693d523b9d"
+    }
+  ]
+}

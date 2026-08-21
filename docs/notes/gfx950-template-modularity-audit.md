@@ -45,6 +45,22 @@ No numbered size-only fragments are used. Unit tests require the semantic
 module layout, forbid the three legacy GQA6 public templates, and reject
 reintroduced compiler debug payload.
 
+The accepted M768 MoE prefill body is also modular. One public producer
+template selects semantic, assembler-time stages for entry and routing,
+gate/up, SiLU and activation quantization, down projection partials, and
+metadata. A second public template performs the fixed-order split-K2 route
+reduction. These are two real launches with different workgroup contracts,
+not numbered source pipelines. The former four compatibility filenames were
+duplicate aliases for this two-kernel dataflow and are not emitted or mounted.
+The exact route-scale and FP16 partial workspaces are caller bindings recorded
+in the model manifest, so graph replay performs only the two cached launches
+on the caller stream.
+
+The exported compatibility symbols and two historical AMDHSA argument labels
+retain their old spelling so the accepted 35B `.note` sections remain
+identical. They are ABI labels only. Tactic lookup, contract hashing, source
+selection, and generated engine operation identity are model-independent.
+
 Hardware validation on gfx950 proved that the refactor preserves the loaded
 programs:
 
@@ -55,18 +71,23 @@ programs:
 - five fresh Qwen3.6-27B dFlash-8, BF16-state, C192 GSM8K runs averaged
   6,464.93 output tokens/s with 5.5861 mean acceptance, 96.2699 percent
   accuracy, 6,595 completed requests, and no request errors;
-- five fresh single-GPU Qwen3.6-35B dFlash-12, C64 GSM8K runs averaged
-  9,864.13 output tokens/s with 6.8756 mean acceptance, 94.8901 percent
-  accuracy, 6,595 completed requests, and no request errors.
+- the modular M768 producer and reducer have identical `.text`, `.rodata`, and
+  AMDHSA `.note` sections to the accepted T177 artifacts;
+- five fresh single-GPU Qwen3.6-35B dFlash-12, C64 GSM8K runs with the modular
+  M768 pair averaged 11,431.11 output tokens/s with 6.8712 mean acceptance,
+  95.2540 percent accuracy, 6,595 completed requests, and no request errors.
 
 The 27B result is 0.55 percent below its 6,500.89 tokens/s lock and remains
-inside the locked five-run variance. The 35B GSM8K run uses a different
-natural-EOS workload from the locked fixed-output performance gate, so it is
-serving correctness and stability evidence rather than a replacement lock.
-The loaded process maps confirmed the new modular GQA4, GQA8, split-sequence,
-and GQA6 code objects. Evidence is stored under
+inside the locked five-run variance. The corrected 35B comparison is the
+historical 11k-class C64 natural-EOS workload, not the unrelated lower result
+previously cited here. The loaded process maps confirmed the modular GQA4,
+GQA8, split-sequence, GQA6, and M768 MoE code objects. Evidence is stored under
 `/data/netra/benchmarks/gfx950_qwen36_27b/20260821-modular-attention-final` and
-`/data/netra/benchmarks/gfx950_qwen36_optimization/20260821-modular-attention-final`.
+`/data/netra/benchmarks/gfx950_qwen36_optimization/20260821-modular-moe-m768-c64-five-fresh`.
+The 35B summary SHA-256 is
+`928ae5b7506cc0088d1fc42dbc5b09fb64a1297471a37441b5667251dbba834c`.
+Exact section hashes and resource metadata are recorded in
+`docs/compiler/gfx950-moe-prefill-m768-equivalence-20260821.json`.
 
 All other gfx950 template files are compact operation schedules or shared ABI,
 addressing, numerical, reduction, synchronization, MFMA, state, and metadata

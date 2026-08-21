@@ -52,7 +52,13 @@ def _profile(repo_root: Path, target: str, name: str, tensor_parallel: int) -> S
 
 def _memory_plan(plan: Plan) -> dict[str, object]:
     requests: list[BufferRequest] = []
-    dtype_bytes = {"fp8_e4m3": 1, "bf16": 2, "fp32": 4, "int32": 4}
+    dtype_bytes = {
+        "fp8_e4m3": 1,
+        "fp16": 2,
+        "bf16": 2,
+        "fp32": 4,
+        "int32": 4,
+    }
     temporary_storage: dict[str, set[str]] = {}
     for operation in plan.graph.operations:
         artifact = operation.attributes.get("golden_artifact", {})
@@ -64,6 +70,17 @@ def _memory_plan(plan: Plan) -> dict[str, object]:
             temporary_storage.setdefault(name, set()).add(
                 str(argument.get("runtime_storage", "workspace"))
             )
+        if operation.kind == "fixed_kernel":
+            for argument in operation.attributes.get("arguments", ()):
+                tensor_name = argument.get("tensor")
+                if (
+                    argument.get("kind") == "pointer"
+                    and argument.get("source", "binding") == "binding"
+                    and isinstance(tensor_name, str)
+                ):
+                    temporary_storage.setdefault(tensor_name, set()).add(
+                        "caller_binding"
+                    )
     for name, storage in temporary_storage.items():
         if len(storage) != 1:
             raise ValidationError(

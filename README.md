@@ -208,6 +208,31 @@ hash before reporting success. Generated assembly, code objects, disassembly,
 metadata, and `build-result.json` are written under
 `build/qwen36-35b-current-best/`.
 
+Build the exact c64 M768 MoE prefill pair and its fixed-launch bridge:
+
+```bash
+ROCM_DIR=/opt/rocm \
+  bash tools/build/build_gfx950_moe_prefill_m768.sh \
+  "$PWD" "$PWD/build/gfx950-moe-prefill-m768"
+```
+
+Compile its deterministic two-operation engine directory:
+
+```bash
+netra-compile compile \
+  --model manifests/gfx950/models/qwen36-35b-c64-fp8.json \
+  --target gfx950 \
+  --profile verify_m12_b64_routes768 \
+  --library-root . \
+  --output build/netra-engines/qwen36-35b-c64-m768
+```
+
+The producer template is composed from semantic routing, gate/up, SiLU and
+quantization, down-partial, and metadata stages. The route reducer is a
+separate fixed operation because it has a different ABI, launch geometry, and
+reduction order. The build emits two code objects, not four legacy alias
+files. Unsupported row counts retain the framework MoE path.
+
 Build the reusable HIP engine runtime:
 
 ```bash
