@@ -358,7 +358,7 @@ class CurrentBestAssemblyTest(unittest.TestCase):
         )
         self.assertEqual(
             accepted_gqa8.template_sha256,
-            "c06c3401b0e619602771d10a8c61d7a363a0e19eb1f101afc13795a7384ace80",
+            "b7143d4c4e9af35c81786ae237eeceef6e47e2d3a1d86fb2c658f0ec30c32a31",
         )
 
         tactic = variants[0]

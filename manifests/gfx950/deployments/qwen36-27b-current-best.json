@@ -48,7 +48,7 @@
     },
     {
       "path": "manifests/gfx950/tactics/fixed_assembly.json",
-      "sha256": "8604567ed48603b7fa6ef1d2d6b0b5575e2f06895cfe3548f3473c5c6ff213a4"
+      "sha256": "50b9254f26d6d9a5095037529d5ec419c53f59bb88b04794848aff6127c59725"
     },
     {
       "path": "manifests/gfx950/tactics/gdn_hv48_assembly.json",

@@ -44,24 +44,41 @@ class KernelTemplateModularityTest(unittest.TestCase):
             ["recurrent_bv16_core.inc"],
         )
 
-    def test_frozen_imported_attention_sources_cannot_grow_silently(self) -> None:
-        # These locked sources still require a text-preserving decomposition.
-        # Keep the debt explicit and reject any additional large imported dump.
-        allowed = {
-            "attention/verify/gqa4_fp8kv.inc",
-            "attention/verify/gqa8_fp8kv.inc",
-            "attention/verify/gqa6_fp8kv_m8_qo32_kv32.inc",
-            "attention/verify/gqa6_fp8kv_m8_qo32_kv64.inc",
-            "attention/verify/gqa6_fp8kv_m8_qo64_kv64.inc",
-            "attention/verify/splitseq_stage1.inc",
-            "attention/verify/splitseq_stage2.inc",
+    def test_attention_public_templates_are_compositional(self) -> None:
+        verify = TEMPLATES / "attention/verify"
+        public = {
+            path.name: path.read_text(encoding="utf-8")
+            for path in verify.glob("*.inc")
         }
-        large = {
-            path.relative_to(TEMPLATES).as_posix()
-            for path in (TEMPLATES / "attention").rglob("*.inc")
-            if path.stat().st_size >= 25_000
-        }
-        self.assertEqual(large, allowed)
+        self.assertTrue(
+            all(
+                len(source.encode("utf-8")) < 25_000
+                for source in public.values()
+            )
+        )
+        self.assertNotIn("gqa6_fp8kv_m8_qo32_kv32.inc", public)
+        self.assertNotIn("gqa6_fp8kv_m8_qo32_kv64.inc", public)
+        self.assertNotIn("gqa6_fp8kv_m8_qo64_kv64.inc", public)
+
+        gqa6 = public["gqa6_fp8kv_m8.inc"]
+        self.assertIn(".macro NETRA_ATTENTION_GQA6_FP8KV_M8 symbol", gqa6)
+        self.assertIn("gqa6_m8/output_normalize.inc", gqa6)
+        self.assertIn("gqa6_m8/output_pack_first_store.inc", gqa6)
+        self.assertEqual(gqa6.count("_schedule.inc"), 3)
+
+        for geometry in ("gqa4", "gqa8"):
+            source = public[f"{geometry}_fp8kv.inc"]
+            self.assertIn(f"{geometry}/entry_addressing.inc", source)
+            self.assertIn(f"{geometry}/prefix_fp8kv_attention.inc", source)
+            self.assertIn(f"{geometry}/causal_tail_output.inc", source)
+
+    def test_attention_templates_have_no_imported_debug_payload(self) -> None:
+        forbidden = (".file", ".loc", ".cfi_", ".debug_")
+        for path in (TEMPLATES / "attention").rglob("*.inc"):
+            source = path.read_text(encoding="utf-8")
+            for directive in forbidden:
+                self.assertNotIn(directive, source, path.as_posix())
+            self.assertNotRegex(source, r"pipeline_[0-9]+")
 
 
 if __name__ == "__main__":

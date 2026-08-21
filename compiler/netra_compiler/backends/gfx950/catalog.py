@@ -452,10 +452,48 @@ def load_fixed_tactic_catalog(
             workgroups = {int(value) for value in _MAX_WORKGROUP.findall(closure_text)}
             lds_sizes = {int(value) for value in _FIXED_LDS.findall(closure_text)}
             kernarg_sizes = {int(value) for value in _KERNARG_SIZE.findall(closure_text)}
-            if len(workgroups) != 1 or len(lds_sizes) != 1:
-                raise ValueError(f"ambiguous launch metadata for {entry['id']}")
+            metadata_contract = entry.get("metadata_contract")
+            if metadata_contract is None:
+                if len(workgroups) != 1 or len(lds_sizes) != 1:
+                    raise ValueError(f"ambiguous launch metadata for {entry['id']}")
+                threads_per_workgroup = workgroups.pop()
+                lds_bytes = lds_sizes.pop()
+            else:
+                if not isinstance(metadata_contract, Mapping):
+                    raise ValueError(
+                        f"metadata_contract must be an object for {entry['id']}"
+                    )
+                threads_per_workgroup = int(
+                    metadata_contract.get("max_flat_workgroup_size", 0)
+                )
+                lds_bytes = int(
+                    metadata_contract.get("group_segment_fixed_size", -1)
+                )
+                if threads_per_workgroup <= 0 or lds_bytes < 0:
+                    raise ValueError(
+                        f"invalid metadata_contract for {entry['id']}"
+                    )
+                if workgroups and threads_per_workgroup not in workgroups:
+                    raise ValueError(
+                        f"declared workgroup size is absent for {entry['id']}"
+                    )
+                if lds_sizes and lds_bytes not in lds_sizes:
+                    raise ValueError(
+                        f"declared fixed LDS size is absent for {entry['id']}"
+                    )
             kernarg_size = int(entry["kernarg_size"])
-            if kernarg_size not in kernarg_sizes:
+            declared_kernarg_size = (
+                None
+                if metadata_contract is None
+                else int(metadata_contract.get("kernarg_segment_size", -1))
+            )
+            if declared_kernarg_size is not None and declared_kernarg_size != kernarg_size:
+                raise ValueError(
+                    f"metadata kernarg size mismatch for {entry['id']}"
+                )
+            if kernarg_sizes and kernarg_size not in kernarg_sizes:
+                raise ValueError(f"declared kernarg size is absent for {entry['id']}")
+            if not kernarg_sizes and declared_kernarg_size is None:
                 raise ValueError(f"declared kernarg size is absent for {entry['id']}")
             semantics = KernelSemantics(**entry["semantics"])
             workspace_data = entry.get("workspace", {})
@@ -513,8 +551,8 @@ def load_fixed_tactic_catalog(
                 kernarg_size=kernarg_size,
                 launch_block_constant=launch_block_constant,
                 launch_block_multiplier=launch_block_multiplier,
-                threads_per_workgroup=workgroups.pop(),
-                lds_bytes=lds_sizes.pop(),
+                threads_per_workgroup=threads_per_workgroup,
+                lds_bytes=lds_bytes,
                 dynamic_lds_bytes=int(entry.get("dynamic_lds_bytes", 0)),
                 workspace=Workspace(
                     int(workspace_data.get("bytes", 0)),

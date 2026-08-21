@@ -189,6 +189,11 @@
       "compile_definitions": {},
       "kernarg_size": 96,
       "launch_block": 256,
+      "metadata_contract": {
+        "group_segment_fixed_size": 0,
+        "kernarg_segment_size": 96,
+        "max_flat_workgroup_size": 256
+      },
       "semantics": {
         "abi": "attention.gqa4_fp8kv.ptr9_u32_ptr2.v1",
         "dtypes": "bf16_query_fp8e4m3_kv_bf16_tail_to_bf16.v1",
@@ -204,8 +209,8 @@
         "494a9daafdb059b64bf6e95c857c74fdb365bde788af38b45152fbe61fd4e361"
       ],
       "instantiation_macro": "NETRA_ATTENTION_GQA4_FP8KV",
-      "template_sha256": "9b63093cc8240dcc2712af5fe8546bdeb8f517f76922fb61603ebb3c15576dcc",
-      "source_closure_sha256": "fbecde87f16f385ee821d3ef39e1c8c22ec8f5098fd3ad706853d1ea739c420e",
+      "template_sha256": "fa696ff1db9f3fe5d30196939175b15c4121ff4d755ffda239885375643b889f",
+      "source_closure_sha256": "1ecac2c1e0812ce143c4796a76cd68ecd158dd8078913ccd21d0810b79f5585e",
       "family": "attention.gqa_fp8kv"
     },
     {
@@ -229,6 +234,11 @@
       },
       "kernarg_size": 96,
       "launch_block": 512,
+      "metadata_contract": {
+        "group_segment_fixed_size": 0,
+        "kernarg_segment_size": 96,
+        "max_flat_workgroup_size": 512
+      },
       "semantics": {
         "abi": "attention.gqa8_fp8kv.ptr9_u32x2_ptr2.v1",
         "dtypes": "bf16_query_fp8e4m3_kv_bf16_tail_to_bf16.v1",
@@ -244,8 +254,8 @@
         "cb482ce544c27dd4449320c7fe64d3024a75643bdfa1658cefa2e576f4d7bfe6"
       ],
       "instantiation_macro": "NETRA_ATTENTION_GQA8_FP8KV",
-      "template_sha256": "c06c3401b0e619602771d10a8c61d7a363a0e19eb1f101afc13795a7384ace80",
-      "source_closure_sha256": "9e22f2846a1c4e5b6c4448c80095fc98a550d6e7ac6f4b4a839f13ad54ddc245",
+      "template_sha256": "b7143d4c4e9af35c81786ae237eeceef6e47e2d3a1d86fb2c658f0ec30c32a31",
+      "source_closure_sha256": "e3cc8d2f199b381c514e6e18e7e0d7857c299a9631989122130d7712f4d692e1",
       "family": "attention.gqa_fp8kv"
     },
     {
@@ -254,16 +264,31 @@
       "maturity": "verified",
       "acceptance_scope": "hardware_verified_operator_five_process_serving_inconclusive",
       "evidence_set": "gfx950_gqa6_fp8kv_m8_verified_20260820",
-      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8_qo32_kv32.inc",
+      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8.inc",
       "golden_source": "kernels/gfx950/attention/verify/attention_gqa6_fp8kv_m8_qo32_kv32_gfx950.s",
       "source_revision": "a5c909ce027f4ee5cc5a7fb5d12a18e55ff85805",
       "source_sha256": "6fd3fc6171d6fa40f1145d084918cefbe818adc3d3c9786a7777f9ee322be711",
       "symbols": [
         "netra_attention_gqa6_fp8kv_m8_qo32_kv32_gfx950"
       ],
+      "contract_constants": {
+        "NETRA_HEAD_DIM": 256,
+        "NETRA_KV_HEADS": 4,
+        "NETRA_KV_INDEX_BITS": 32,
+        "NETRA_KV_LAYOUT_ID": 1,
+        "NETRA_M_MAX": 8,
+        "NETRA_QUERY_HEADS": 24,
+        "NETRA_QO_INDPTR_BITS": 32,
+        "NETRA_VALUE_TOKEN_STRIDE": 14336
+      },
       "compile_definitions": {},
       "kernarg_size": 96,
       "launch_block": 64,
+      "metadata_contract": {
+        "group_segment_fixed_size": 32768,
+        "kernarg_segment_size": 96,
+        "max_flat_workgroup_size": 64
+      },
       "semantics": {
         "abi": "attention.gqa6_fp8kv.ptr9_qo32_kv32_f32_ptr2.v1",
         "dtypes": "bf16_query_tail_fp8e4m3_kv_to_bf16.v1",
@@ -279,9 +304,9 @@
       "locked_hsaco_sha256": [
         "0c0bba3bc643417c12b4e9c55cb274d797d6bca847df7db9b03a19081cf21a9f"
       ],
-      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_QO32_KV32",
-      "template_sha256": "412e5cd596c062171364b8f3125ea2e91f4f5df647e881c35ca90ca58ff17492",
-      "source_closure_sha256": "a2f4f894b1d9cd14b8d72e3cf17d06b95e95d1a87a7da854f4085efb3bb5aa68",
+      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_M8",
+      "template_sha256": "44154ced165ad7219f203be75d1f291d5f0847f7acf82e3255240e0b538b8d64",
+      "source_closure_sha256": "e8864078265a83141e4c0c1483fb03db161f87740326d005846ad7bb4d08c62e",
       "family": "attention.gqa_fp8kv",
       "serving_evidence": {
         "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/gqa6-fp8kv-c192-five-fresh-r1/summary.json",
@@ -294,16 +319,31 @@
       "maturity": "verified",
       "acceptance_scope": "hardware_verified_operator_five_process_serving_inconclusive",
       "evidence_set": "gfx950_gqa6_fp8kv_m8_verified_20260820",
-      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8_qo32_kv64.inc",
+      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8.inc",
       "golden_source": "kernels/gfx950/attention/verify/attention_gqa6_fp8kv_m8_qo32_kv64_gfx950.s",
       "source_revision": "a5c909ce027f4ee5cc5a7fb5d12a18e55ff85805",
       "source_sha256": "4b1f077d5425d828877ccbb60fdb4adb56a317bf01305e2ff410dde213ed10c3",
       "symbols": [
         "netra_attention_gqa6_fp8kv_m8_qo32_kv64_gfx950"
       ],
+      "contract_constants": {
+        "NETRA_HEAD_DIM": 256,
+        "NETRA_KV_HEADS": 4,
+        "NETRA_KV_INDEX_BITS": 64,
+        "NETRA_KV_LAYOUT_ID": 1,
+        "NETRA_M_MAX": 8,
+        "NETRA_QUERY_HEADS": 24,
+        "NETRA_QO_INDPTR_BITS": 32,
+        "NETRA_VALUE_TOKEN_STRIDE": 14336
+      },
       "compile_definitions": {},
       "kernarg_size": 96,
       "launch_block": 64,
+      "metadata_contract": {
+        "group_segment_fixed_size": 32768,
+        "kernarg_segment_size": 96,
+        "max_flat_workgroup_size": 64
+      },
       "semantics": {
         "abi": "attention.gqa6_fp8kv.ptr9_qo32_kv64_f32_ptr2.v1",
         "dtypes": "bf16_query_tail_fp8e4m3_kv_to_bf16.v1",
@@ -319,9 +359,9 @@
       "locked_hsaco_sha256": [
         "6718afd90222744dbffff3555c5046777c352cee7b60bf3286a49454367d80a1"
       ],
-      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_QO32_KV64",
-      "template_sha256": "cebe67508e3f7e7dedd3b64f70dcb9f0261d45e1f2606d6dd37f0280bf226f3a",
-      "source_closure_sha256": "b835c5d77e4a934c19d6a20268fa9991d4a43159a3192515edd79135ac5f0f79",
+      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_M8",
+      "template_sha256": "44154ced165ad7219f203be75d1f291d5f0847f7acf82e3255240e0b538b8d64",
+      "source_closure_sha256": "e8864078265a83141e4c0c1483fb03db161f87740326d005846ad7bb4d08c62e",
       "family": "attention.gqa_fp8kv",
       "serving_evidence": {
         "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/gqa6-fp8kv-c192-five-fresh-r1/summary.json",
@@ -334,16 +374,31 @@
       "maturity": "verified",
       "acceptance_scope": "hardware_verified_operator_five_process_serving_inconclusive",
       "evidence_set": "gfx950_gqa6_fp8kv_m8_verified_20260820",
-      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8_qo64_kv64.inc",
+      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8.inc",
       "golden_source": "kernels/gfx950/attention/verify/attention_gqa6_fp8kv_m8_qo64_kv64_gfx950.s",
       "source_revision": "a5c909ce027f4ee5cc5a7fb5d12a18e55ff85805",
       "source_sha256": "dc8ba03026b265c9c9f2bab193a715ae9e94fc8e2dad6f6ab538281b6e4d55f4",
       "symbols": [
         "netra_attention_gqa6_fp8kv_m8_qo64_kv64_gfx950"
       ],
+      "contract_constants": {
+        "NETRA_HEAD_DIM": 256,
+        "NETRA_KV_HEADS": 4,
+        "NETRA_KV_INDEX_BITS": 64,
+        "NETRA_KV_LAYOUT_ID": 1,
+        "NETRA_M_MAX": 8,
+        "NETRA_QUERY_HEADS": 24,
+        "NETRA_QO_INDPTR_BITS": 64,
+        "NETRA_VALUE_TOKEN_STRIDE": 14336
+      },
       "compile_definitions": {},
       "kernarg_size": 96,
       "launch_block": 64,
+      "metadata_contract": {
+        "group_segment_fixed_size": 32768,
+        "kernarg_segment_size": 96,
+        "max_flat_workgroup_size": 64
+      },
       "semantics": {
         "abi": "attention.gqa6_fp8kv.ptr9_qo64_kv64_f32_ptr2.v1",
         "dtypes": "bf16_query_tail_fp8e4m3_kv_to_bf16.v1",
@@ -359,9 +414,9 @@
       "locked_hsaco_sha256": [
         "f396e5364524767e4f37e07cb38ed81440dfd17453f4ab732a476e1b15c602b7"
       ],
-      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_QO64_KV64",
-      "template_sha256": "df78117cb4beb9648dd6e9d884939029982736761b89c2622f65e2c84f8d3a6c",
-      "source_closure_sha256": "52d21abf782029010dbefa64eab472a0935887f9ee149c5a16661cc37382ca5e",
+      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_M8",
+      "template_sha256": "44154ced165ad7219f203be75d1f291d5f0847f7acf82e3255240e0b538b8d64",
+      "source_closure_sha256": "e8864078265a83141e4c0c1483fb03db161f87740326d005846ad7bb4d08c62e",
       "family": "attention.gqa_fp8kv",
       "serving_evidence": {
         "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/gqa6-fp8kv-c192-five-fresh-r1/summary.json",
@@ -417,6 +472,11 @@
       "compile_definitions": {},
       "kernarg_size": 128,
       "launch_block": 256,
+      "metadata_contract": {
+        "group_segment_fixed_size": 0,
+        "kernarg_segment_size": 128,
+        "max_flat_workgroup_size": 256
+      },
       "semantics": {
         "abi": "attention.splitseq_stage1.ptr3_u32_ptr5_u32x9_ptr2.v1",
         "dtypes": "bf16_query_fp8e4m3_kv_to_fp32_partials.v1",
@@ -432,8 +492,8 @@
         "959dc8c88b50bd19bdd150aceac086adab5c85c3cb2df07a5be52ec8253d24df"
       ],
       "instantiation_macro": "NETRA_ATTENTION_SPLITSEQ_STAGE1",
-      "template_sha256": "143242ad20021fd7da0bd8a9e4f0e483a8387e2a47033efced04e21b67037d85",
-      "source_closure_sha256": "f2d0336a802ca3cc3679cb6787c952e36d42f9d116d4f7bebb14092a0e071a57",
+      "template_sha256": "ba02a6370c6f724972c97268928cda020a92d7f5ea936960722fede2f157d8d9",
+      "source_closure_sha256": "d99fc4e52af0fb782b14eb9592f9a0d268686208b1ed98bd45769dea606d08c8",
       "family": "attention.splitseq_fp8kv"
     },
     {
@@ -451,6 +511,11 @@
       "compile_definitions": {},
       "kernarg_size": 88,
       "launch_block": 256,
+      "metadata_contract": {
+        "group_segment_fixed_size": 0,
+        "kernarg_segment_size": 88,
+        "max_flat_workgroup_size": 256
+      },
       "semantics": {
         "abi": "attention.splitseq_stage2.ptr3_u32_ptr2_u32x5_ptr2.v1",
         "dtypes": "fp32_partials_to_bf16.v1",
@@ -466,8 +531,8 @@
         "aa9fdf9ada8cdb754caa5885f728a314c2031378c476ef313386261e3a38333e"
       ],
       "instantiation_macro": "NETRA_ATTENTION_SPLITSEQ_STAGE2",
-      "template_sha256": "cbaa2767e733a49f1f941aa915570dfc338bf97892bc5a10ca70672ef0f22cce",
-      "source_closure_sha256": "7bd0625a12ce1383cd605cd564979cb3a343f50317080c2924b572741bfd6f0f",
+      "template_sha256": "718aa6d9c09a5d2e6244b1bf49c78f684c31e42c68e4339e156bb5485790b57f",
+      "source_closure_sha256": "5a00ef97248bd516529d525256c9cf525f822cb41ad972177db09fe6080ed3ef",
       "family": "attention.splitseq_fp8kv"
     },
     {
