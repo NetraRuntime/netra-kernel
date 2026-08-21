@@ -1,0 +1,37 @@
+{
+  "captured_at": "2026-08-21T05:41:25.806114+00:00",
+  "format": "netra-gfx950-ignored-artifact-inventory-1",
+  "hash_status_counts": {
+    "hashed": 581
+  },
+  "kind_counts": {
+    "benchmark_or_profile_data": 186,
+    "checkpoint_data": 17,
+    "code_object": 25,
+    "download_metadata": 87,
+    "generated_assembly": 248,
+    "other_relevant_artifact": 18
+  },
+  "max_hash_bytes": 2000000000,
+  "policy": "Ignored target-relevant regular files at or below the size limit are hashed; symlinks are not followed and large checkpoint files are not read in full.",
+  "read_only": true,
+  "repositories": {
+    "analysis-netra-kernel": {
+      "ignored_total": 66,
+      "target_artifacts_selected": 0
+    },
+    "analysis-netra-server": {
+      "ignored_total": 19,
+      "target_artifacts_selected": 0
+    },
+    "original-netra-kernel": {
+      "ignored_total": 1919,
+      "target_artifacts_selected": 425
+    },
+    "original-netra-server": {
+      "ignored_total": 708,
+      "target_artifacts_selected": 156
+    }
+  },
+  "selected_artifacts": 581
+}

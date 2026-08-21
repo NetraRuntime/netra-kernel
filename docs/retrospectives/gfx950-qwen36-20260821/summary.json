@@ -1,14 +1,35 @@
 {
   "as_of": "2026-08-21",
+  "checkpoint_integrity": {
+    "expected_lfs_files": 43,
+    "matching_lfs_files": 17,
+    "mismatching_lfs_files": 0,
+    "missing_lfs_files": 26,
+    "model": "Qwen3.6-35B-A3B-FP8",
+    "present_lfs_files": 17,
+    "present_subset_manifest_sha256": "fa6e21a1b5cd2d8f8c7e7893d3f54abe1a51cd4fc80515691c6c05810d78b052",
+    "revision": "95a723d08a9490559dae23d0cff1d9466213d989",
+    "scope": "Integrity of locally present files only; missing files mean the local checkpoint is incomplete.",
+    "tree_inventory_path": "weights/Qwen3.6-35B-A3B-FP8/.cache/huggingface/trees/95a723d08a9490559dae23d0cff1d9466213d989.json",
+    "tree_inventory_sha256": "474e8741c1920ac064ca7215573d7fb2749e5e612a9553a900ed2fb526cf6186"
+  },
+  "completion_verdict": {
+    "achieved": false,
+    "authoritative_matrix": "completion-audit.csv",
+    "reason": "The repository retrospective and deliverables are present, but the required current MI350X competitor benchmark campaign and raw-artifact verification have not been executed."
+  },
   "curated_counts": {
+    "accepted_path_causal_rows": 15,
     "aggregate_rows": 6,
     "comparison_rows": 27,
     "competitor_records": 11,
+    "completion_audit_rows": 25,
     "exhaustive_tracked_aggregate_fields": 767,
     "exhaustive_tracked_sample_fields": 121,
+    "ignored_code_objects_verified": 25,
     "negative_results": 16,
     "operations": 45,
-    "retained_process_samples": 10,
+    "retained_process_samples": 15,
     "reviewed_decision_rows": 43
   },
   "current_execution": {
@@ -73,6 +94,43 @@
       }
     }
   },
+  "ignored_artifact_evidence": {
+    "captured_at": "2026-08-21T05:41:25.806114+00:00",
+    "format": "netra-gfx950-ignored-artifact-inventory-1",
+    "hash_status_counts": {
+      "hashed": 581
+    },
+    "kind_counts": {
+      "benchmark_or_profile_data": 186,
+      "checkpoint_data": 17,
+      "code_object": 25,
+      "download_metadata": 87,
+      "generated_assembly": 248,
+      "other_relevant_artifact": 18
+    },
+    "max_hash_bytes": 2000000000,
+    "policy": "Ignored target-relevant regular files at or below the size limit are hashed; symlinks are not followed and large checkpoint files are not read in full.",
+    "read_only": true,
+    "repositories": {
+      "analysis-netra-kernel": {
+        "ignored_total": 66,
+        "target_artifacts_selected": 0
+      },
+      "analysis-netra-server": {
+        "ignored_total": 19,
+        "target_artifacts_selected": 0
+      },
+      "original-netra-kernel": {
+        "ignored_total": 1919,
+        "target_artifacts_selected": 425
+      },
+      "original-netra-server": {
+        "ignored_total": 708,
+        "target_artifacts_selected": 156
+      }
+    },
+    "selected_artifacts": 581
+  },
   "novelty": {
     "defensible_internal_engineering": [
       "Byte-locked modular raw-kernel templates plus operation manifests and graph-safe bridges on gfx950.",
@@ -106,7 +164,7 @@
   "validation": {
     "gpu_tests": "not run: no /dev/kfd or ROCm runtime",
     "kernel_tools_ci_check": "passed: 97 tests plus repository, tactic-library, and example-compilation checks",
-    "server_dependency_free_unittest": "passed: 17 tests in test_qwen36_exact_cases.py",
-    "server_pytest_suite": "not run: pytest is absent from the audit host"
+    "server_dependency_light_pytest": "passed: 39 tests and 4 subtests across six Qwen3.6 tooling/profile files using isolated uvx pytest",
+    "server_unrunnable_current_tests": "three additional tooling test files reference scripts deleted from current main; PyTorch-dependent tests cannot collect because torch/sglang are absent"
   }
 }

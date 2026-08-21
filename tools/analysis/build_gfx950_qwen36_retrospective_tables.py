@@ -10,7 +10,9 @@ underlying raw artifact was not available in this worktree, never zero.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
+from collections import defaultdict
 from pathlib import Path
 
 
@@ -83,6 +85,7 @@ samples = []
 for state, values, source in [
     ("27B FP32-state C128", [3246.51,3257.92,3309.78,3316.49,3308.34], "docs/notes/gfx950-qwen36-27b-fp8.md"),
     ("27B BF16-state C128", [3375.76,3425.77,3445.78,3457.64,3440.14], "docs/notes/gfx950-qwen36-27b-fp8.md"),
+    ("27B locked modular C192", [6478.70,6562.83,6430.39,6493.09,6539.43], "docs/notes/gfx950-qwen36-27b-fp8.md"),
 ]:
     for i, value in enumerate(values, 1):
         samples.append(dict(model="27B", experiment=state, metric="output_tokens_per_second", unit="tok/s", process=i, order="fresh process; original arm order not retained", value=value, raw_artifact_available="false", evidence=source))
@@ -158,6 +161,52 @@ prior_art = [
     ("Model frontend to model-neutral operations","Established compiler architecture, useful repository combination","MLIR and graph compilers lower frontends to operation IRs","Netra's manifests/tactics are a practical implementation, not defensible research novelty alone","docs/compiler/architecture.md"),
 ]
 
+causal = [
+    ("35B","MoE SiLU + FP8 quant","9 routes x 512","Fuse FP32 SiLU*up, BF16 rounding, and E4M3 per-128 quantization into one launch; avoid an intermediate kernel boundary","9 wave64 workgroups; 35 VGPR, 27 SGPR, no LDS/scratch; four 128-bit loads and two stores reported","direct metadata + timing","docs/notes/gfx950-qwen36-fp8-kernels.md"),
+    ("35B","M1 MoE down/reduce","9 routes x 512 -> 2048","Exact route count and two-wave MFMA schedule combine down projection with route-scale reduction and remove general dispatch","Exact ISA mechanism is retained in source; uniform comparative counter set unavailable","source + serving evidence; counters incomplete","docs/notes/gfx950-qwen36-fp8-kernels.md"),
+    ("35B","shared gate / sorting bypass","decode M1","Reuse known graph route metadata and avoid repeated sort/workspace preparation at the exact verified boundary","Launch-count/dataflow explanation; no retained uniform counter record","multiple serving experiments","docs/notes/gfx950-qwen36-fp8-kernels.md"),
+    ("35B","BF16 router","M1 K2048 N256","Exact GEMV specialization removes general GEMM selection and shapes work for the single-row boundary","Recorded raw latency; complete VGPR/LDS comparison not retained","timing + integration evidence","docs/notes/gfx950-qwen36-fp8-kernels.md"),
+    ("35B","FP32 argmax","M16 N248320","Convert 16 underfilled row reductions into 2048 stage-one waves, then reduce 128 partial keys per row while preserving NaN/tie semantics","52 VGPR, 20 SGPR, no LDS/scratch; 2048 SQ_WAVES and zero LDSBankConflict in retained intrusive counters","direct counters + disassembly + serving trace","docs/notes/gfx950-qwen36-argmax-f32-accepted.md"),
+    ("35B","GDN verification","M16 H32 K/V128 BV16","Fix recurrence order, dimensions, state ABI, and graph launch; specialize precompute/core rather than materializing generic intermediates","Bit-exact replay retained; uniform occupancy/cache counters unavailable","correctness + timing + serving","docs/notes/gfx950-qwen36-gdn-verify-m16-accepted.md"),
+    ("35B","GDN K0 core","M12 H32 K/V128 BV16","Do not emit full intermediate state; retain only the state required by replay, avoiding about 805 MiB of writes in the rejected variant","Traffic reduction established by workspace/output size; no comparable cache-sector series retained","contrasting experiment + serving","docs/notes/gfx950-qwen36-gdn-m12-k0.md"),
+    ("35B","GDN causal convolution","M12 D8192 width4","Exploit fixed width-4 taps, contiguous BF16 rows, and graph-stable exact batches to remove generic Triton indexing/launch overhead","Bitwise validation and code-object metadata retained; detailed counters unavailable","correctness + timing","docs/notes/gfx950-qwen36-gdn-causal-conv-m12.md"),
+    ("35B","GQA4 extend attention","M12 GQA4 D256 FP8 KV","Share KV work among grouped query heads and consume the deployed cache without repacking","Raw timing and matched serving retained; full counter attribution unavailable","timing + serving","docs/notes/gfx950-qwen36-extend-attention-gqa4.md"),
+    ("35B","GQA8 target attention","M756 capture; GQA8 D256 FP8 KV","One 512-thread workgroup covers four query heads sharing a KV head, reducing repeated prefix-KV traffic fourfold versus per-query-head layout","148 VGPR, 80 SGPR, 32 KiB dynamic LDS, no scratch; exact cache ABI","source/metadata + timing + serving","docs/notes/gfx950-qwen36-target-attention-gqa8-fp8kv.md"),
+    ("35B","M768 MoE producer/reducer pair","M768 E257 top9 K2048 I512","Design producer and reducer around one explicit FP16 split-K2 workspace; avoid generic non-M768 dispatch and preserve graph ABI","Producer: 256 VGPR, 64 KiB LDS, grid (2,365,1); reducer: 28 VGPR, grid (16,768,1)","byte identity + metadata + serving aggregate","docs/compiler/gfx950-moe-prefill-m768-equivalence-20260821.json"),
+    ("35B","GDN recurrent initialization","M8192 H32 K/V128 BV16","Exact long-prefill dispatch fixes model-neutral geometry and avoids a generic recurrent-init path","Tracked profile establishes contribution; comparative counters/raw samples unavailable","profile + manifest; causal counter proof incomplete","manifests/gfx950/tactics/fixed_assembly.json"),
+    ("27B","BF16 recurrent state core/replay","T8 H48 K/V128 BV16","Store state in BF16 while retaining FP32 recurrence/accumulation semantics, halving persistent state traffic and capacity pressure","State pool 18.14 to 9.07 GB; graph replay exact against BF16-pool reference","memory + correctness + five-process serving","docs/notes/gfx950-qwen36-27b-fp8.md"),
+    ("27B","GQA6 verification attention","M8 GQA6 D256 FP8 KV","Exact block-8 verification and fixed pointer/cache ABI remove generic attention dispatch while consuming native FP8 cache","Code-object and guard contracts are locked; current raw counters unavailable","manifest/tests + historical profile","manifests/gfx950/tactics/fixed_assembly.json"),
+    ("27B","fused norm/activation + group quant","rows 1..8192; widths 5120/17408/D128","Fuse residual/norm or activation with E4M3 group quant and choose bounded RPB1/2/4 schedules for the 256-CU target","All seven modular artifacts preserve locked executable text; bridge performs no hot-path allocation/lookup/sync","byte identity + tests + serving preservation","docs/notes/gfx950-qwen36-27b-fp8.md"),
+]
+
+completion = [
+    ("workspace","Fetch latest main and retain anchors","latest remote refs and immutable anchors","proven","Both origin/main refs equalled supplied anchors on 2026-08-21","data/git-revisions.json","none"),
+    ("workspace","Do not modify dirty user checkouts; use clean worktrees/analysis branch","clean isolated paths and branch","proven","Original checkouts untouched; isolated branch/worktrees used","data/git-revisions.json","none"),
+    ("history","Inspect all refs, merges, reflogs, deleted/replaced files, historical blobs and ignored artifacts","exhaustive repository and ignored-file traversal","proven for locally available objects","45 refs; 406 reflog rows; 472 relevant commits; 2292 file changes; 581 ignored target artifacts","data/ignored-artifact-inventory.csv","Remote objects not fetched by advertised refs cannot be proven"),
+    ("history","Record every optimization with full contract/results/decision/checksum","complete experiment-level semantic ledger","partial","43 reviewed decision rows plus exhaustive commit/numeric inventories","optimization-decision-ledger.csv","Many historical commit events lack retained full contract or raw result fields"),
+    ("history","Preserve rejected, reverted, superseded and negative results","explicit negative ledger","proven for discovered tracked evidence","16 curated high-value negatives plus inferred statuses across chronology","rejected-superseded-experiments.csv","Untracked or absent /data-only negatives cannot be recovered"),
+    ("operations","Inventory every named operation for both models and alternatives","dense/GDN/attention/norm/MoE/sampling/misc coverage","proven","45 reviewed operation rows cover every named family","operation-inventory.csv","none"),
+    ("competitors","Pin official competitor revisions and determine exact-contract eligibility","versioned support/eligibility records","proven for source/document inspection","11 competitor records with exact commits and adapter caveats","competitor-eligibility.csv","Compile/runtime attempts require gfx950 environment"),
+    ("competitors","Benchmark every eligible Netra kernel against every credible equivalent","current matched raw and integrated comparisons","not achieved","Historical comparisons curated only","kernel-comparison-matrix.csv","No MI350X device/runtime; most current upstream arms not run"),
+    ("environment","Use isolated MI350X and record hardware/software/clocks/thermals","live immutable environment capture","not achieved","Audit host manifest proves it is not MI350X-capable","data/environment-manifest.json","Requires access to isolated MI350X/gfx950"),
+    ("environment","Hash checkpoint, source, code objects, manifests, engines and tuning tables","available bytes hashed and external expectations checked","partial","Tracked evidence/deliverables plus all 581 selected ignored artifacts hashed, including 25 code objects and every locally present checkpoint shard; 347 external references inventoried","checkpoint-integrity.csv","0/347 /data artifacts mounted; local checkpoint is incomplete relative to its revision tree"),
+    ("benchmark-27B","Input 16/1K/8K, M8/M12, C1/128/192/256, C192, TP1/DP1, dFlash8 BF16 state, eager/capture/replay","complete current matrix","not achieved","Historical coverage exists for most cases but input1K/C1 and current reruns are missing","benchmark-coverage.csv","Requires MI350X and checkpoint/archive"),
+    ("benchmark-35B","Input 16/1K/8K, M16/M768, C64, TP1/DP1, dFlash12, piecewise capture/replay, fallback","complete current matrix","not achieved","Historical coverage exists for most cases but input1K and current reruns are missing","benchmark-coverage.csv","Requires MI350X and checkpoint/archive"),
+    ("method","Correctness before timing with full contract and error metrics","per-arm validation records","partial historical only","Curated matrix retains available correctness results","kernel-comparison-matrix.csv","Cannot validate current external revisions"),
+    ("method","Cold/first/warm/capture/replay, adequate repeats, ABBA/randomization, process repeats","raw phase-separated samples","not achieved","Runbook and deterministic statistics tool supplied","REPRODUCE.md","Historical evidence does not uniformly retain these phases/orders"),
+    ("method","Mean/median/p5/p95/stddev/CV/confidence intervals and raw iterations","uniform statistics and every sample","partial","121 tracked sample leaves; 767 aggregate fields; derived stats for 15 retained process values","benchmark-samples-exhaustive.csv","Most /data raw iterations are absent"),
+    ("method","Kernel-only and integrated costs","paired exact-contract measurements","partial historical only","Primary matrix separates columns when retained","kernel-comparison-matrix.csv","Integrated latency absent for many rows"),
+    ("serving","TTFT/prefill/ITL/output+total TPS/wall/p50/p95/memory/concurrency/graphs/natural+fixed","uniform matched serving dataset","not achieved","Scattered historical metrics inventoried; selected results curated","benchmark-aggregates-exhaustive.csv","No single complete matched matrix and raw archive absent"),
+    ("causality","Explain every accepted Netra kernel using source/ISA/metadata/counters and pipeline effects","kernel-by-kernel causal evidence","partial","15 accepted paths mapped to mechanisms and confidence","causal-mechanism-matrix.csv","Uniform rocprof/disassembly/counter comparisons unavailable"),
+    ("causality","Investigate all named counterexamples and profiler artifacts","explicit causal negative analysis","proven for named cases","Dense, views, fallback, convolution and compare_scalar cases retained","rejected-superseded-experiments.csv","none for named cases"),
+    ("generalization","Classify industry practice, combinations, internal novelty and research novelty with primary sources","defensible cited novelty analysis","proven","12-row prior-art matrix and report chapter; no research-novel claim","prior-art-novelty.csv","A broader formal literature review would be needed for a research claim"),
+    ("deliverables","Markdown report, JSON, CSVs, ledgers, manifests, scripts, executive summary, chapters and roadmap","all named files present and parseable","proven","All 12 artifact classes present; hashes validate","artifact-manifest.sha256","Benchmark content remains limited by execution gaps above"),
+    ("comparison-table","All requested primary comparison columns","schema inspection","proven","17 columns include every named field plus evidence availability","kernel-comparison-matrix.csv","Blank cells explicitly mean unavailable"),
+    ("winner-table","Fastest correct implementation for every exact operation contract","contract-complete current winner set","partial","15 key production winners curated","performance-winners.csv","Not every one of 45 operation rows has a current matched winner measurement"),
+    ("claims","Every important claim linked; missing evidence marked unverified","claim/evidence traceability","proven for report claims","Local evidence links and primary-source URLs; availability labels throughout","REPORT.md","Raw external claims remain historical/unverified, not promoted to current facts"),
+    ("promotion","Do not change production defaults without all gates","clean source diff limited to analysis artifacts","proven","Only retrospective/tooling files changed","artifact-manifest.sha256","none"),
+]
+
 write_csv("competitor-eligibility.csv", list(competitors[0]), competitors)
 write_csv("kernel-comparison-matrix.csv", comparison_fields, comparison_rows)
 write_csv("benchmark-samples.csv", ["model","experiment","metric","unit","process","order","value","raw_artifact_available","evidence"], samples)
@@ -166,6 +215,87 @@ write_csv("rejected-superseded-experiments.csv", ["model","experiment","kernel_o
 write_csv("performance-winners.csv", ["model","operation","exact_contract","winner","status","basis","evidence"], [dict(zip(["model","operation","exact_contract","winner","status","basis","evidence"], r)) for r in winners])
 write_csv("benchmark-coverage.csv", list(coverage[0]), coverage)
 write_csv("prior-art-novelty.csv", ["idea","classification","prior_art","netra_assessment","primary_source"], [dict(zip(["idea","classification","prior_art","netra_assessment","primary_source"], r)) for r in prior_art])
+write_csv("causal-mechanism-matrix.csv", ["model","accepted_path","exact_scope","causal_mechanism","isa_metadata_counter_evidence","confidence","evidence"], [dict(zip(["model","accepted_path","exact_scope","causal_mechanism","isa_metadata_counter_evidence","confidence","evidence"], r)) for r in causal])
+write_csv("completion-audit.csv", ["phase","requirement","proof_required","verdict","current_evidence","artifact","remaining_gap"], [dict(zip(["phase","requirement","proof_required","verdict","current_evidence","artifact","remaining_gap"], r)) for r in completion])
+
+ignored_summary_path = DATA / "ignored-artifact-summary.json"
+ignored_summary = json.loads(ignored_summary_path.read_text()) if ignored_summary_path.exists() else None
+ignored_code_verification: list[dict[str, object]] = []
+checkpoint_integrity: dict[str, object] | None = None
+if ignored_summary is not None:
+    with (DATA / "ignored-artifact-inventory.csv").open(newline="") as f:
+        ignored_rows = list(csv.DictReader(f))
+    with (DATA / "tactic-catalog-inventory.csv").open(newline="") as f:
+        tactic_rows = list(csv.DictReader(f))
+    expected: dict[str, list[str]] = defaultdict(list)
+    for tactic in tactic_rows:
+        for digest in tactic["locked_hsaco_sha256"].split(";"):
+            if digest:
+                expected[digest].append(tactic["id"])
+    for item in ignored_rows:
+        if item["kind"] != "code_object":
+            continue
+        digest = item["sha256"]
+        ignored_code_verification.append({
+            "repository": item["repository"],
+            "path": item["path"],
+            "bytes": item["bytes"],
+            "actual_sha256": digest,
+            "matches_current_locked_tactic": str(digest in expected).lower(),
+            "matching_tactic_ids": ";".join(expected.get(digest, [])),
+            "interpretation": "current accepted tactic byte match" if digest in expected else "historical/rejected/unregistered build artifact",
+        })
+    write_csv("ignored-code-object-verification.csv", ["repository","path","bytes","actual_sha256","matches_current_locked_tactic","matching_tactic_ids","interpretation"], ignored_code_verification)
+
+    tree_rows = [
+        row for row in ignored_rows
+        if "/.cache/huggingface/trees/" in row["path"]
+        and row["path"].endswith(".json")
+        and "Qwen3.6-35B-A3B-FP8" in row["path"]
+    ]
+    if tree_rows:
+        tree_row = tree_rows[0]
+        tree_path = Path(tree_row["repository_root"]) / tree_row["path"]
+        tree_payload = json.loads(tree_path.read_text())
+        model_prefix = tree_row["path"].split("/.cache/huggingface/trees/", 1)[0]
+        actual_by_path = {row["path"]: row for row in ignored_rows}
+        checkpoint_rows = []
+        subset_lines = []
+        for filename, expected_file in sorted(tree_payload["files"].items()):
+            if "lfs_sha256" not in expected_file:
+                continue
+            rel = f"{model_prefix}/{filename}"
+            actual = actual_by_path.get(rel, {})
+            expected_sha = expected_file["lfs_sha256"]
+            actual_sha = actual.get("sha256", "")
+            status = "missing"
+            if actual:
+                status = "match" if actual_sha == expected_sha and int(actual["bytes"]) == int(expected_file["lfs_size"]) else "mismatch"
+                if actual_sha:
+                    subset_lines.append(f"{actual_sha}  {filename}\n")
+            checkpoint_rows.append({
+                "revision": tree_path.stem,
+                "file": filename,
+                "expected_bytes": expected_file["lfs_size"],
+                "actual_bytes": actual.get("bytes", ""),
+                "expected_lfs_sha256": expected_sha,
+                "actual_sha256": actual_sha,
+                "status": status,
+            })
+        write_csv("checkpoint-integrity.csv", ["revision","file","expected_bytes","actual_bytes","expected_lfs_sha256","actual_sha256","status"], checkpoint_rows)
+        checkpoint_integrity = {
+            "model": "Qwen3.6-35B-A3B-FP8",
+            "revision": tree_path.stem,
+            "tree_inventory_path": tree_row["path"],
+            "tree_inventory_sha256": tree_row["sha256"],
+            "expected_lfs_files": len(checkpoint_rows),
+            "present_lfs_files": sum(row["status"] != "missing" for row in checkpoint_rows),
+            "matching_lfs_files": sum(row["status"] == "match" for row in checkpoint_rows),
+            "mismatching_lfs_files": sum(row["status"] == "mismatch" for row in checkpoint_rows),
+            "missing_lfs_files": sum(row["status"] == "missing" for row in checkpoint_rows),
+            "present_subset_manifest_sha256": hashlib.sha256("".join(subset_lines).encode()).hexdigest(),
+            "scope": "Integrity of locally present files only; missing files mean the local checkpoint is incomplete.",
+        }
 
 # Preserve every mechanically identified tracked numeric sample and aggregate
 # in dedicated CSVs. JSON paths are retained and units are not guessed.
@@ -250,6 +380,8 @@ summary = {
         "server_anchor_and_latest_main": "fae2865d9b3096c2cc518aa16d3797ac828f77cc",
     },
     "evidence_counts": json.loads((DATA / "evidence-summary.json").read_text()),
+    "ignored_artifact_evidence": ignored_summary,
+    "checkpoint_integrity": checkpoint_integrity,
     "current_execution": {
         "gpu_benchmarks_run": False,
         "reason": "No /dev/kfd, ROCm runtime/toolchain, Docker daemon, or archived /data/netra artifacts on this host.",
@@ -265,11 +397,14 @@ summary = {
         "negative_results": len(rejected),
         "competitor_records": len(competitors),
         "reviewed_decision_rows": len(decision_rows),
+        "accepted_path_causal_rows": len(causal),
+        "completion_audit_rows": len(completion),
+        "ignored_code_objects_verified": len(ignored_code_verification),
     },
     "validation": {
         "kernel_tools_ci_check": "passed: 97 tests plus repository, tactic-library, and example-compilation checks",
-        "server_dependency_free_unittest": "passed: 17 tests in test_qwen36_exact_cases.py",
-        "server_pytest_suite": "not run: pytest is absent from the audit host",
+        "server_dependency_light_pytest": "passed: 39 tests and 4 subtests across six Qwen3.6 tooling/profile files using isolated uvx pytest",
+        "server_unrunnable_current_tests": "three additional tooling test files reference scripts deleted from current main; PyTorch-dependent tests cannot collect because torch/sglang are absent",
         "gpu_tests": "not run: no /dev/kfd or ROCm runtime",
     },
     "strongest_conclusions": [
@@ -292,6 +427,11 @@ summary = {
         "Input-1K coverage and a complete matched metric set (TTFT, TPOT, p50/p95, memory) are not retained in tracked evidence.",
         "No potentially research-novel claim is asserted without a broader literature and implementation search plus reproducible current measurements.",
     ],
+    "completion_verdict": {
+        "achieved": False,
+        "reason": "The repository retrospective and deliverables are present, but the required current MI350X competitor benchmark campaign and raw-artifact verification have not been executed.",
+        "authoritative_matrix": "completion-audit.csv",
+    },
 }
 (OUT / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 print(f"wrote curated retrospective tables to {OUT}")

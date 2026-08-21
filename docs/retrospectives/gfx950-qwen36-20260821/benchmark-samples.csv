@@ -9,3 +9,8 @@ model,experiment,metric,unit,process,order,value,raw_artifact_available,evidence
 27B,27B BF16-state C128,output_tokens_per_second,tok/s,3,fresh process; original arm order not retained,3445.78,false,docs/notes/gfx950-qwen36-27b-fp8.md
 27B,27B BF16-state C128,output_tokens_per_second,tok/s,4,fresh process; original arm order not retained,3457.64,false,docs/notes/gfx950-qwen36-27b-fp8.md
 27B,27B BF16-state C128,output_tokens_per_second,tok/s,5,fresh process; original arm order not retained,3440.14,false,docs/notes/gfx950-qwen36-27b-fp8.md
+27B,27B locked modular C192,output_tokens_per_second,tok/s,1,fresh process; original arm order not retained,6478.7,false,docs/notes/gfx950-qwen36-27b-fp8.md
+27B,27B locked modular C192,output_tokens_per_second,tok/s,2,fresh process; original arm order not retained,6562.83,false,docs/notes/gfx950-qwen36-27b-fp8.md
+27B,27B locked modular C192,output_tokens_per_second,tok/s,3,fresh process; original arm order not retained,6430.39,false,docs/notes/gfx950-qwen36-27b-fp8.md
+27B,27B locked modular C192,output_tokens_per_second,tok/s,4,fresh process; original arm order not retained,6493.09,false,docs/notes/gfx950-qwen36-27b-fp8.md
+27B,27B locked modular C192,output_tokens_per_second,tok/s,5,fresh process; original arm order not retained,6539.43,false,docs/notes/gfx950-qwen36-27b-fp8.md

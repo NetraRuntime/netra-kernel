@@ -26,7 +26,10 @@ prior art. No research-novel claim is made.
 
 This audit reconstructed 472 relevant commits, 2,292 historical file changes,
 290 tracked evidence files, 37 tactics, 46 manifest operations, and 347
-external-artifact references. The current host has no `/dev/kfd`, ROCm
+external-artifact references. A read-only ignored-file pass also hashed 581
+local artifacts, including 25 HSACOs and 17 present 35B checkpoint shards; all
+17 shards match the pinned revision tree, which still lacks 26 LFS files. The
+current host has no `/dev/kfd`, ROCm
 toolchain, Docker daemon, or mounted `/data/netra` archive. Consequently, the
 report faithfully curates historical tracked measurements but does not claim a
 new 2026-08-21 benchmark run. Input-1K cases, current pinned-upstream reruns,

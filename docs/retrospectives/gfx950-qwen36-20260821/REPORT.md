@@ -48,6 +48,28 @@ decision, reason, evidence commit, and evidence checksum fields to the
 decision-bearing experiments. Missing historical fields are explicitly marked
 instead of inferred.
 
+A second read-only pass inspected ignored files in both original dirty
+checkouts and both isolated worktrees. It selected and hashed 581
+target-relevant artifacts: 248 generated assembly/include files, 186
+JSON/CSV/log/profile-like files, 87 download metadata files, 25 code objects,
+17 checkpoint shards, and other small artifacts. The local 35B checkpoint is
+incomplete, but every one of its 17 present shards matches both the size and
+LFS SHA-256 recorded by revision
+`95a723d08a9490559dae23d0cff1d9466213d989`; missing files are explicitly
+listed rather than treated as verified. The revision tree has 43 LFS files:
+17 match, zero mismatch, and 26 are absent. The deterministic manifest hash of
+the present subset is
+`fa6e21a1b5cd2d8f8c7e7893d3f54abe1a51cd4fc80515691c6c05810d78b052`.
+The three accepted M1 MoE code-object
+hashes found under ignored `build/` trees match the current locked tactic and
+deployment hashes across repeated engine builds. The rejected dense one- and
+four-wave code objects were also recovered but are correctly not registered as
+accepted tactics. Evidence:
+[ignored-artifact inventory](data/ignored-artifact-inventory.csv),
+[summary](data/ignored-artifact-summary.json), and
+[code-object verification](ignored-code-object-verification.csv), plus the
+[checkpoint integrity matrix](checkpoint-integrity.csv).
+
 Evidence labels have strict meanings:
 
 - **Current measurement** would mean generated during this audit on MI350X.
@@ -232,6 +254,15 @@ format, masking, layout, graph semantics, or accuracy gate differs. The compact
 [winner table](performance-winners.csv) distinguishes a microkernel winner
 from the implementation that actually won the production gate.
 
+The [completion audit](completion-audit.csv) maps every major obligation in
+the original brief to its required proof, current evidence, verdict, and
+remaining gap. It is intentionally stricter than file-presence checks: the
+repository retrospective is delivered, but the current MI350X competitor
+campaign is marked **not achieved**. The
+[causal mechanism matrix](causal-mechanism-matrix.csv) separately covers 15
+accepted Netra paths, distinguishing direct counter/metadata evidence from
+source-supported explanations and incomplete counter hypotheses.
+
 Current upstream pins (resolved 2026-08-21) and eligibility are in
 [competitor eligibility](competitor-eligibility.csv). AITER, CK/CK Tile,
 hipBLASLt, Triton, and PyTorch are eligible only operation by operation.
@@ -293,6 +324,17 @@ metadata support those facts; only the argmax report retains selected counter
 values (including zero LDS bank conflicts). Missing rocprof databases prevent
 a uniform counter comparison, so broader occupancy/cache claims remain
 hypotheses.
+
+Recovered ignored HSACOs permit an independent static check of the M1 MoE
+pipeline. The accepted gate/up object has 348 bytes of `.text`, 72 decoded
+instructions, 30 VGPRs, 40 SGPRs, one MFMA, no LDS and no spills. SiLU/quant
+has 724 bytes, 133 instructions, 35 VGPRs, 27 SGPRs, four global-load and two
+global-store instructions, four DPP instructions, and no spills. Down/reduce
+has 796 bytes, 170 instructions, 32 VGPRs, 42 SGPRs, 1 KiB fixed LDS, two
+MFMAs, two barriers, and no spills. These are static counts, not latency or
+dynamic traffic measurements; they corroborate the fixed ABI/resource story
+without pretending to replace rocprof. Exact commands and results are in
+[the static code-object analysis](ignored-code-object-static-analysis.csv).
 
 ### Graph integration is part of the kernel
 
@@ -406,9 +448,11 @@ tools/analysis/run_gfx950_qwen36_retrospective_campaign.sh audit
 
 Audit validation passed the kernel repository's complete `tools/ci/check.sh`:
 97 unit tests plus repository, tactic-library, and example-compilation checks.
-The server's dependency-free `test_qwen36_exact_cases.py` passed 17 tests. The
-remaining targeted server suite was not run because `pytest` is absent from
-the host; GPU tests were not run for the environment reasons above.
+An isolated `uvx pytest` run passed 39 server Qwen3.6 tooling/profile tests and
+four subtests across six files. Three other current-main tooling test files
+reference scripts that no longer exist, and PyTorch-dependent server tests
+cannot collect because PyTorch/SGLang are absent. GPU tests were not run for
+the environment reasons above.
 
 The campaign script refuses GPU modes when `/dev/kfd`, `rocminfo`, or the raw
 archive is missing. [REPRODUCE.md](REPRODUCE.md) gives the immutable-environment
@@ -426,6 +470,11 @@ low sample count is an evidence limitation, not an assertion that
 aggregate-only experiments had one sample. Automated classifications retain
 JSON paths so context-like arrays can be recognized rather than
 overinterpreted.
+[benchmark-sample-derived-aggregates.csv](benchmark-sample-derived-aggregates.csv)
+adds reproducible median, linear p5/p95, sample standard deviation, CV, and a
+deterministic 20,000-resample bootstrap mean interval for the three retained
+five-process sample sets. These are post-hoc descriptive calculations, not new
+GPU measurements.
 
 ## Conclusions and uncertainties
 

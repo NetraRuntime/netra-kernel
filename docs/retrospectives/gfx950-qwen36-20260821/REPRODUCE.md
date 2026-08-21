@@ -10,12 +10,52 @@ From the clean kernel worktree:
 
 ```bash
 export NETRA_RETRO_SERVER_ROOT=/absolute/path/to/clean/netra-server
+export NETRA_RETRO_ORIGINAL_KERNEL_ROOT=/absolute/path/to/original/netra-kernel
+export NETRA_RETRO_ORIGINAL_SERVER_ROOT=/absolute/path/to/original/netra-server
 tools/analysis/run_gfx950_qwen36_retrospective_campaign.sh audit
 sha256sum -c docs/retrospectives/gfx950-qwen36-20260821/artifact-manifest.sha256
+python3 tools/analysis/summarize_benchmark_samples.py --self-test
 ```
 
 The collector is exhaustive and mechanical. The table builder is curated and
 must be reviewed whenever evidence changes. Neither runs GPU code.
+
+To include ignored artifacts from user-owned checkouts without modifying them:
+
+```bash
+python3 tools/analysis/collect_ignored_gfx950_artifacts.py \
+  --repository original-netra-kernel=/absolute/path/to/original/netra-kernel \
+  --repository original-netra-server=/absolute/path/to/original/netra-server \
+  --repository analysis-netra-kernel="$PWD" \
+  --repository analysis-netra-server="$NETRA_RETRO_SERVER_ROOT" \
+  --max-hash-bytes 2000000000 \
+  --output-csv docs/retrospectives/gfx950-qwen36-20260821/data/ignored-artifact-inventory.csv \
+  --output-summary docs/retrospectives/gfx950-qwen36-20260821/data/ignored-artifact-summary.json
+```
+
+The ignored-artifact collector does not follow symlinks and defaults to a
+64-MiB hash limit. This campaign explicitly raises that limit to 2 GB to hash
+the locally present checkpoint shards. It remains a read-only scan.
+
+Repository validation used:
+
+```bash
+# netra-kernel
+./tools/ci/check.sh
+
+# netra-server: dependency-light Qwen3.6 tests in an isolated pytest tool env
+PYTHONPATH=. uvx --from pytest pytest -q \
+  test/registered/unit/tools/test_qwen36_checkpoint_inspector.py \
+  test/registered/unit/tools/test_qwen36_concurrency.py \
+  test/registered/unit/tools/test_qwen36_exact_cases.py \
+  test/registered/unit/tools/test_qwen36_loading_summary.py \
+  test/registered/unit/tools/test_qwen36_production_profiles.py \
+  test/registered/unit/tools/test_summarize_qwen36_dp8_canonical.py
+```
+
+The server command uses an isolated `uvx` environment and does not install
+anything into the project. PyTorch/ROCm-dependent tests still require the
+locked serving container.
 
 ## 2. Prepare an immutable MI350X run
 
