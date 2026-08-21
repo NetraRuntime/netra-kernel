@@ -15,3 +15,7 @@ model,experiment,kernel_only_result,end_to_end_result,decision_reason,status,evi
 27B,frozen dense verification assembly,correct,matched ABBA -0.94%,no serving benefit,rejected,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
 27B/35B,custom AITER compute-source tiles,not run,architecture-ineligible,source family did not target gfx950 exact environment,ineligible,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
 both,compare_scalar 338.8 ms attribution,profiler event,excluded,host synchronization overlapped later same-stream kernels; not GPU work attribution,measurement artifact,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
+35B,current input1024/output4096 Netra serving,not isolated,three output hashes; wall 4.107/20.966/11.493 s,repeatability gate failed,correctness-ineligible,current-serving-samples.csv
+35B,current input8192/output1 framework control,not isolated,"second output hash in repeats 3,9,19",17/20 repeatability is insufficient,correctness-ineligible,current-serving-samples.csv
+27B/35B,current fixed-output concurrency comparisons,not isolated,most cross-arm output hashes diverged,throughput cannot be a winner claim without output/quality equivalence,diagnostic only,current-serving-comparisons.csv
+27B,legacy standalone M12 GDN harness,"1,800 stable timing samples",not run,hybrid and raw assembly failed strict current correctness/ABI gates,performance-ineligible,current-gdn-microbenchmark-aggregates.csv

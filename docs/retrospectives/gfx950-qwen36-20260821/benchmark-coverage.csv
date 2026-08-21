@@ -1,27 +1,27 @@
 model,required_case,current_campaign_execution,historical_evidence,raw_samples_available,gap,evidence
-27B,input16,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,input1K,not_run_no_gfx950,missing,false,No retained evidence found and current host cannot execute,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,input8K,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,M8,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,M12,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,C1,not_run_no_gfx950,missing,false,No retained evidence found and current host cannot execute,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,C128,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,C192,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,C256,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,TP1/DP1,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,dFlash8,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,BF16-state,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,eager,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,graph-capture,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-27B,graph-replay,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,input16,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,input1K,not_run_no_gfx950,missing,false,No retained evidence found and current host cannot execute,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,input8K,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,M16,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,M768,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,natural-C64,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,TP1/DP1,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,dFlash12,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,piecewise-capture,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,piecewise-replay,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
-35B,non-M768-fallback,not_run_no_gfx950,historical_tracked_summary,false,Current host has no /dev/kfd or ROCm; /data artifacts absent,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md;docs/notes/gfx950-qwen36-27b-fp8.md
+27B,input16,measured_pass,historical_tracked_summary,true,20 exact repeats per arm; cross-arm output hash identical,current-serving-samples.csv;external raw campaign
+27B,input1K,measured_pass_netra,missing,true,3 exact input1024/output4096 repeats; no matched control,current-serving-samples.csv;external raw campaign
+27B,input8K,measured_pass,historical_tracked_summary,true,20 exact repeats per arm; cross-arm output hash identical,current-serving-samples.csv;external raw campaign
+27B,M8,recovered_historical_or_current_attempt_only,historical_tracked_summary,true,No new correctness-qualified uniform microbenchmark for this exact contract,external recovered archive;kernel-comparison-matrix.csv
+27B,M12,recovered_historical_or_current_attempt_only,historical_tracked_summary,true,No new correctness-qualified uniform microbenchmark for this exact contract,external recovered archive;kernel-comparison-matrix.csv
+27B,C1,measured_diagnostic,missing,true,matched prompts; cross-arm output hashes diverged,current-serving-samples.csv;external raw campaign
+27B,C128,measured_diagnostic,historical_tracked_summary,true,matched prompts; 37/384 output hashes matched,current-serving-samples.csv;external raw campaign
+27B,C192,measured_diagnostic,historical_tracked_summary,true,matched prompts; 73/576 output hashes matched,current-serving-samples.csv;external raw campaign
+27B,C256,attempted_correctness_failed,historical_tracked_summary,true,legacy standalone GDN harness failed current exact gate,current-serving-samples.csv;external raw campaign
+27B,TP1/DP1,measured,historical_tracked_summary,true,current accepted and control deployments,current-serving-samples.csv;external raw campaign
+27B,dFlash8,measured,historical_tracked_summary,true,current accepted and control deployments,current-serving-samples.csv;external raw campaign
+27B,BF16-state,measured_plus_recovered,historical_tracked_summary,true,current locked deployment and recovered natural serving evidence,current-serving-samples.csv;external raw campaign
+27B,eager,recovered_historical_or_current_attempt_only,historical_tracked_summary,true,No new correctness-qualified uniform microbenchmark for this exact contract,external recovered archive;kernel-comparison-matrix.csv
+27B,graph-capture,measured,historical_tracked_summary,true,full graph server initialized and replayed,current-serving-samples.csv;external raw campaign
+27B,graph-replay,measured,historical_tracked_summary,true,exact and concurrent requests completed,current-serving-samples.csv;external raw campaign
+35B,input16,measured_pass,historical_tracked_summary,true,20 exact repeats per arm; control was 4.50% faster,current-serving-samples.csv;external raw campaign
+35B,input1K,measured_correctness_failed,missing,true,3 input1024/output4096 repeats produced three output hashes,current-serving-samples.csv;external raw campaign
+35B,input8K,netra_pass_control_failed,historical_tracked_summary,true,Netra 20/20; control 17/20 reference hash,current-serving-samples.csv;external raw campaign
+35B,M16,recovered_historical_or_current_attempt_only,historical_tracked_summary,true,No new correctness-qualified uniform microbenchmark for this exact contract,external recovered archive;kernel-comparison-matrix.csv
+35B,M768,recovered_historical_or_current_attempt_only,historical_tracked_summary,true,No new correctness-qualified uniform microbenchmark for this exact contract,external recovered archive;kernel-comparison-matrix.csv
+35B,natural-C64,current_fixed_plus_recovered_natural,historical_tracked_summary,true,current fixed-output window and recovered natural-EOS evidence,current-serving-samples.csv;external raw campaign
+35B,TP1/DP1,measured,historical_tracked_summary,true,current accepted and control deployments,current-serving-samples.csv;external raw campaign
+35B,dFlash12,measured,historical_tracked_summary,true,current accepted and control deployments,current-serving-samples.csv;external raw campaign
+35B,piecewise-capture,measured,historical_tracked_summary,true,server initialization/capture passed,current-serving-samples.csv;external raw campaign
+35B,piecewise-replay,measured,historical_tracked_summary,true,exact and concurrent requests completed,current-serving-samples.csv;external raw campaign
+35B,non-M768-fallback,measured_plus_recovered,historical_tracked_summary,true,8K serving plus recovered 285-candidate/fallback evidence,current-serving-samples.csv;external raw campaign

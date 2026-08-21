@@ -14,3 +14,6 @@ model,operation,exact_contract,winner,status,basis,evidence
 27B,GDN recurrent state,"T8,H48,BV16",Netra BF16-state core/replay,accepted opt-in,memory+serving gated,docs/notes/gfx950-qwen36-27b-fp8.md
 27B,dense projections,observed M1/M16/M80/M256/M768/M3840/M8192,AITER exact selected CK/CK Tile,production retained,model-neutral table,docs/notes/gfx950-qwen36-27b-fp8.md
 27B,C192 serving,"TP1/DP1,dFlash8,BF16 state",Netra locked C192 profile,throughput winner,latency tradeoff explicit,docs/notes/gfx950-qwen36-27b-fp8.md
+27B,exact integrated serving,"input16/output1,TP1/DP1,dFlash8,full replay",Netra accepted deployment,current correctness-qualified,59.086 vs 74.501 ms steady median; identical outputs,current-serving-comparisons.csv
+27B,exact integrated serving,"input8192/output1,TP1/DP1,dFlash8,full replay",Netra accepted deployment,current correctness-qualified,409.187 vs 421.226 ms steady median; identical outputs,current-serving-comparisons.csv
+35B,exact integrated serving,"input16/output1,TP1/DP1,dFlash12,piecewise replay",SGLang/AITER/framework control,current correctness-qualified,23.828 vs 24.951 ms steady median; identical outputs,current-serving-comparisons.csv

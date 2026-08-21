@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import ctypes
 import json
+import math
 import statistics
 from pathlib import Path
 
@@ -54,6 +55,33 @@ def stats(tensor: torch.Tensor) -> dict[str, float | int]:
     }
 
 
+def percentile(values: list[float], probability: float) -> float:
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * probability
+    lower = math.floor(position)
+    upper = math.ceil(position)
+    fraction = position - lower
+    return ordered[lower] + fraction * (ordered[upper] - ordered[lower])
+
+
+def timing_stats(values: list[float]) -> dict[str, object]:
+    mean = statistics.fmean(values)
+    sample_stddev = statistics.stdev(values) if len(values) > 1 else 0.0
+    half_width = 1.96 * sample_stddev / math.sqrt(len(values))
+    return {
+        "samples_us": values,
+        "n": len(values),
+        "mean_us": mean,
+        "median_us": statistics.median(values),
+        "p5_us": percentile(values, 0.05),
+        "p95_us": percentile(values, 0.95),
+        "sample_stddev_us": sample_stddev,
+        "coefficient_of_variation": sample_stddev / mean if mean else None,
+        "normal_mean_ci95_low_us": mean - half_width,
+        "normal_mean_ci95_high_us": mean + half_width,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--build-dir", type=Path, required=True)
@@ -61,6 +89,12 @@ def main() -> None:
     parser.add_argument("--iterations", type=int, default=20)
     parser.add_argument("--precompute-name", default="precompute.hsaco")
     parser.add_argument("--core-name", default="core.hsaco")
+    parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--order",
+        default="triton,hybrid,raw_assembly",
+        help="comma-separated timing order for ABBA/process-drift control",
+    )
     args = parser.parse_args()
 
     device = torch.device("cuda", 0)
@@ -319,6 +353,8 @@ def main() -> None:
             b,
             decay,
             beta,
+            a.stride(-2),
+            b.stride(-2),
             total_elements=total_elements,
             BLOCK=256,
             num_warps=4,
@@ -370,12 +406,18 @@ def main() -> None:
         "b_first_six": b[0, :6].float().tolist(),
     }
 
-    timings: dict[str, float] = {}
-    for name, function in (
-        ("triton", run_triton),
-        ("hybrid", run_hybrid),
-        ("raw_assembly", run_raw),
-    ):
+    functions = {
+        "triton": run_triton,
+        "hybrid": run_hybrid,
+        "raw_assembly": run_raw,
+    }
+    order = args.order.split(",")
+    if sorted(order) != sorted(functions):
+        parser.error("--order must contain triton,hybrid,raw_assembly exactly once")
+    timings: dict[str, object] = {}
+    medians: dict[str, float] = {}
+    for name in order:
+        function = functions[name]
         for _ in range(3):
             function()
         torch.cuda.synchronize(device)
@@ -388,7 +430,11 @@ def main() -> None:
             end.record()
             end.synchronize()
             elapsed.append(float(start.elapsed_time(end) * 1000.0))
-        timings[f"{name}_median_us"] = statistics.median(elapsed)
+        timings[f"{name}_samples_us"] = elapsed
+        timings[f"{name}_stats"] = timing_stats(elapsed)
+        median = statistics.median(elapsed)
+        medians[name] = median
+        timings[f"{name}_median_us"] = median
 
     result = {
         "batch": batch,
@@ -396,10 +442,13 @@ def main() -> None:
         "raw_assembly_correctness": raw_correctness,
         "stages": stages,
         "timing": timings,
-        "median_speedup": timings["triton_median_us"]
-        / timings["hybrid_median_us"],
+        "median_speedup": medians["triton"] / medians["hybrid"],
     }
-    print(json.dumps(result, indent=2, sort_keys=True))
+    rendered = json.dumps(result, indent=2, sort_keys=True) + "\n"
+    print(rendered, end="")
+    if args.output is not None:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(rendered, encoding="utf-8")
     if not correctness["bit_exact"]:
         raise SystemExit(1)
 

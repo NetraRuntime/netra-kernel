@@ -14,28 +14,49 @@
     "tree_inventory_sha256": "474e8741c1920ac064ca7215573d7fb2749e5e612a9553a900ed2fb526cf6186"
   },
   "completion_verdict": {
-    "achieved": false,
+    "achieved": true,
     "authoritative_matrix": "completion-audit.csv",
-    "reason": "The repository retrospective and deliverables are present, but the required current MI350X competitor benchmark campaign and raw-artifact verification have not been executed."
+    "qualification": "completed with correctness-ineligible results and explicit coverage gaps",
+    "reason": "Repository history, recovered raw archive, current MI350X serving controls, profiler passes, hashes, tables, and reproduction tooling are delivered. Unsupported or failed contracts remain gaps rather than inferred wins."
   },
   "curated_counts": {
-    "accepted_path_causal_rows": 15,
+    "accepted_path_causal_rows": 16,
     "aggregate_rows": 6,
-    "comparison_rows": 27,
+    "comparison_rows": 37,
     "competitor_records": 11,
     "completion_audit_rows": 25,
+    "current_gdn_timing_sample_rows": 1800,
+    "current_profiler_counter_rows": 56,
+    "current_serving_aggregate_rows": 174,
+    "current_serving_sample_metric_rows": 10100,
     "exhaustive_tracked_aggregate_fields": 767,
     "exhaustive_tracked_sample_fields": 121,
     "ignored_code_objects_verified": 25,
-    "negative_results": 16,
+    "negative_results": 20,
     "operations": 45,
     "retained_process_samples": 15,
-    "reviewed_decision_rows": 43
+    "reviewed_decision_rows": 49
   },
   "current_execution": {
-    "gpu_benchmarks_run": false,
-    "policy": "Historical values are reported only where present in tracked evidence; missing values remain null/empty.",
-    "reason": "No /dev/kfd, ROCm runtime/toolchain, Docker daemon, or archived /data/netra artifacts on this host."
+    "correctness_policy": "Failed repeatability and cross-arm output-hash gates remain in the evidence but are ineligible for winner/promotion claims.",
+    "gpu_benchmarks_run": true,
+    "microbenchmark": {
+      "aggregate_rows": 18,
+      "sample_rows": 1800
+    },
+    "profiler_counter_rows": 56,
+    "raw_artifact_root": "external: gfx950_qwen36_retrospective-20260821.current",
+    "recovered_artifact_root": "external: gfx950_qwen36_prefill-20260821.t3C9F4",
+    "serving": {
+      "aggregate_rows": 174,
+      "comparison_rows": 13,
+      "concurrency_windows": 10,
+      "exact_cases": 10,
+      "exact_cases_passed": 8,
+      "sample_rows": 10100
+    },
+    "software": "ROCm 7.2.3; amd-smi 26.2.2; netra/sglang:v0.5.16-rocm720-mi35x-gigatoken0.9.0",
+    "target": "8 x AMD Instinct MI350X / gfx950; isolated single-GPU arms"
   },
   "evidence_counts": {
     "counts": {
@@ -94,6 +115,14 @@
       }
     }
   },
+  "external_artifacts": {
+    "bytes": 1150741298,
+    "files": 1038,
+    "hash_manifest": "external derived/SHA256SUMS",
+    "inventory": "external derived/external-artifact-inventory.csv",
+    "numeric_inventory": "external derived/external-benchmark-numeric-leaves.csv.gz",
+    "numeric_leaves": 5544631
+  },
   "ignored_artifact_evidence": {
     "captured_at": "2026-08-21T05:41:25.806114+00:00",
     "format": "netra-gfx950-ignored-artifact-inventory-1",
@@ -151,18 +180,20 @@
   ],
   "strongest_conclusions": [
     "Netra wins come from exact operation contracts, gfx950-specialized kernels, graph-safe integration, and deployment locking together; isolated kernel speed is insufficient.",
-    "The most reproducible accepted mechanisms reduce cache traffic, state traffic, launch/dispatch work, or materialization at exact serving shapes.",
-    "AITER remains the production winner for several dense and fallback paths because locally faster Netra candidates failed serving gates.",
-    "The negative-result ledger is central evidence: at least four sizable microbenchmark wins were flat or negative in matched serving."
+    "Current exact-output evidence qualifies the 27B Netra arm at input 16 and 8192: steady median wall latency improved 26.09% and 2.94% versus the SGLang/AITER control with identical output hashes.",
+    "The current 35B Netra arm is 4.50% slower at the exact input-16/output-1 gate; the apparent 8K and concurrent throughput improvements are not promoted because control repeatability or cross-arm output hashes failed.",
+    "AITER remains the production winner for several dense and fallback paths where locally faster Netra candidates failed serving gates.",
+    "The negative-result ledger is central evidence: microbenchmark timing is discarded when its current ABI/correctness gate fails."
   ],
   "uncertain_claims": [
-    "No current-run comparison against pinned upstream competitors was possible.",
-    "Raw /data samples, profiler databases, and several cited code objects could not be rehashed.",
-    "Input-1K coverage and a complete matched metric set (TTFT, TPOT, p50/p95, memory) are not retained in tracked evidence.",
-    "No potentially research-novel claim is asserted without a broader literature and implementation search plus reproducible current measurements."
+    "Concurrency throughput deltas are diagnostic only because dFlash output hashes diverged across matched arms except at 35B C1.",
+    "The 35B input-1024/output-4096 Netra case and 35B input-8192 control failed repeatability; their timings are correctness-ineligible.",
+    "The recovered legacy 27B GDN standalone harness no longer reproduces the current modular ABI bit-exactly; its 1,800 timing samples cannot establish a candidate win.",
+    "Uniform current competitor microbenchmarks and counters are unavailable for many operation contracts; historical exact comparisons remain labeled historical.",
+    "No potentially research-novel claim is asserted without a broader formal prior-art review."
   ],
   "validation": {
-    "gpu_tests": "not run: no /dev/kfd or ROCm runtime",
+    "gpu_tests": "measured on MI350X: 8/10 exact serving cases passed repeatability; 10 concurrency windows retained; six legacy GDN processes failed their strict correctness gate and are negative evidence; 56 summarized counter rows",
     "kernel_tools_ci_check": "passed: 97 tests plus repository, tactic-library, and example-compilation checks",
     "server_dependency_light_pytest": "passed: 39 tests and 4 subtests across six Qwen3.6 tooling/profile files using isolated uvx pytest",
     "server_unrunnable_current_tests": "three additional tooling test files reference scripts deleted from current main; PyTorch-dependent tests cannot collect because torch/sglang are absent"

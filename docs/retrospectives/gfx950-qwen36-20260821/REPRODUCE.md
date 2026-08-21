@@ -59,11 +59,30 @@ locked serving container.
 
 ## 2. Prepare an immutable MI350X run
 
-Use a reserved MI350X/gfx950 with the historical image
-`lmsysorg/sglang:v0.5.16-rocm720-mi35x` (recorded digest begins
-`sha256:54ac680`) or record a new full digest and treat it as a new campaign.
-Historical notes record PyTorch 2.9.1 and ROCm 7.2. Do not substitute a newer
-stack under the old result label.
+The completed campaign used eight MI350X/gfx950 devices and exact image ID
+`sha256:89941358...`, named
+`netra/sglang:v0.5.16-rocm720-mi35x-gigatoken0.9.0`, with ROCm 7.2.3 and
+amd-smi 26.2.2. Recover the full image ID from the saved inspect record; the
+abbreviation here is only for readability. Do not substitute a newer stack
+under the same result label.
+
+Relaunch a saved configuration with the supplied read-only reconstruction
+tool. It preserves image, command, environment, mounts, devices, IPC, network,
+and shared memory while requiring explicit output/GPU/port isolation:
+
+```bash
+python3 tools/analysis/relaunch_inspected_container.py \
+  --inspect-json /absolute/path/to/container-inspect.json \
+  --name netra-retro-reproduction \
+  --gpu 0 \
+  --results-dir /absolute/path/to/new-results \
+  --port 31401
+```
+
+The physical GPU is exposed with `ROCR_VISIBLE_DEVICES=<physical>` and appears
+as logical device zero through `HIP_VISIBLE_DEVICES=0`. Setting both variables
+to the physical index makes nonzero isolated GPUs invisible inside this
+container and is not equivalent.
 
 Before any timing, save these outputs in a new external artifact directory:
 
@@ -156,7 +175,75 @@ masking, report it as a distinct integrated path and do not place its raw
 kernel latency in the exact-contract speedup column. Ineligibility is a valid
 result and must include compiler/runtime output.
 
-## 6. Promotion gate
+## 6. Completed campaign commands and artifact integration
+
+The completed exact and concurrency clients were invoked from the clean server
+worktree with one output directory per arm/case. Substitute each arm's saved
+URL, model basename, and artifact path:
+
+```bash
+python3 "$NETRA_RETRO_SERVER_ROOT/scripts/rocm/mi350x/run_qwen36_exact_cases.py" \
+  --base-url http://127.0.0.1:31401 \
+  --expected-model-name Qwen3.6-27B-FP8 \
+  --campaign-root "$NETRA_RETRO_CURRENT_ARTIFACT_ROOT" \
+  --output-dir "$NETRA_RETRO_CURRENT_ARTIFACT_ROOT/27b-baseline/exact-input16_output1" \
+  --case input16_output1 --repetitions 20
+
+python3 "$NETRA_RETRO_SERVER_ROOT/scripts/rocm/mi350x/run_qwen36_exact_cases.py" \
+  --base-url http://127.0.0.1:31401 \
+  --expected-model-name Qwen3.6-27B-FP8 \
+  --campaign-root "$NETRA_RETRO_CURRENT_ARTIFACT_ROOT" \
+  --output-dir "$NETRA_RETRO_CURRENT_ARTIFACT_ROOT/27b-baseline/exact-input8192_output1" \
+  --case input8192_output1 --repetitions 20
+
+python3 "$NETRA_RETRO_SERVER_ROOT/scripts/rocm/mi350x/benchmark_qwen36_concurrency.py" \
+  --base-url http://127.0.0.1:31401 \
+  --expected-model-name Qwen3.6-27B-FP8 \
+  --output-dir "$NETRA_RETRO_CURRENT_ARTIFACT_ROOT/27b-baseline/concurrency-fixed210x128" \
+  --input-tokens 210 --output-tokens 128 \
+  --concurrencies 1 128 192 --warmup-waves 1 --measurement-waves 3
+```
+
+The other arms used their isolated ports and model basenames; 35B used
+concurrencies 1 and 64. Exact input-1024/output-4096 used the predefined
+`input1024_output4096` case and three repetitions. A nonzero exit from the
+repeatability gate is an expected negative artifact, not permission to delete
+the partial result directory.
+
+After GPU work is quiescent, hash model trees and artifacts without modifying
+the checkpoints:
+
+```bash
+(cd /data/netra/models/Qwen3.6-27B-FP8 && \
+  find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+  > "$NETRA_RETRO_CURRENT_ARTIFACT_ROOT/checkpoints/qwen36-27b-fp8.sha256"
+
+find "$NETRA_RETRO_CURRENT_ARTIFACT_ROOT" -type f ! -name SHA256SUMS -print0 \
+  | sort -z | xargs -0 sha256sum \
+  > "$NETRA_RETRO_CURRENT_ARTIFACT_ROOT/SHA256SUMS"
+```
+
+Repeat the model-tree command for both FP8 and DFlash directories of both
+models. Transfer with metadata preservation, then build the compact tracked
+tables and the exhaustive external numeric ledger:
+
+```bash
+rsync -a gpu-host:/data/netra/benchmarks/gfx950_qwen36_retrospective-20260821.current \
+  "$NETRA_RETRO_LOCAL_ARTIFACT_ROOT/"
+
+python3 tools/analysis/integrate_gfx950_qwen36_campaign.py \
+  --current-root "$NETRA_RETRO_CURRENT_ARTIFACT_ROOT" \
+  --recovered-root "$NETRA_RETRO_RECOVERED_ARTIFACT_ROOT" \
+  --report-root docs/retrospectives/gfx950-qwen36-20260821 \
+  --derived-root "$NETRA_RETRO_DERIVED_ARTIFACT_ROOT"
+```
+
+The derivation tool enumerates every numeric field in parseable benchmark
+JSON/CSV/TSV. It excludes profiler event traces from that ledger because they
+are event timelines, not benchmark samples, but includes their bytes and
+SHA-256 in the artifact inventory.
+
+## 7. Promotion gate
 
 A candidate is promotable only after correctness, repeated warm and replay
 microbenchmarks, graph capture/replay, matched natural serving, and quality all

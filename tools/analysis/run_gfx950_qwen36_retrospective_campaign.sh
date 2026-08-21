@@ -9,6 +9,9 @@ report_root="${kernel_root}/docs/retrospectives/gfx950-qwen36-20260821"
 artifact_root="${NETRA_RETRO_ARTIFACT_ROOT:-/data/netra/benchmarks}"
 original_kernel_root="${NETRA_RETRO_ORIGINAL_KERNEL_ROOT:-}"
 original_server_root="${NETRA_RETRO_ORIGINAL_SERVER_ROOT:-}"
+current_artifact_root="${NETRA_RETRO_CURRENT_ARTIFACT_ROOT:-}"
+recovered_artifact_root="${NETRA_RETRO_RECOVERED_ARTIFACT_ROOT:-}"
+derived_artifact_root="${NETRA_RETRO_DERIVED_ARTIFACT_ROOT:-}"
 
 preflight() {
   test -d "${kernel_root}/.git" -o -f "${kernel_root}/.git"
@@ -50,14 +53,25 @@ audit() {
   python3 "${kernel_root}/tools/analysis/summarize_benchmark_samples.py" \
     --input "${report_root}/benchmark-samples.csv" \
     --output "${report_root}/benchmark-sample-derived-aggregates.csv"
+  if [[ -n "${current_artifact_root}" && -n "${recovered_artifact_root}" && -n "${derived_artifact_root}" ]]; then
+    python3 "${kernel_root}/tools/analysis/integrate_gfx950_qwen36_campaign.py" \
+      --current-root "${current_artifact_root}" \
+      --recovered-root "${recovered_artifact_root}" \
+      --report-root "${report_root}" \
+      --derived-root "${derived_artifact_root}"
+  fi
   python3 -m py_compile "${kernel_root}/tools/analysis/collect_gfx950_qwen36_retrospective.py" \
     "${kernel_root}/tools/analysis/analyze_ignored_gfx950_code_objects.py" \
     "${kernel_root}/tools/analysis/build_gfx950_qwen36_retrospective_tables.py" \
     "${kernel_root}/tools/analysis/collect_ignored_gfx950_artifacts.py" \
-    "${kernel_root}/tools/analysis/summarize_benchmark_samples.py"
+    "${kernel_root}/tools/analysis/summarize_benchmark_samples.py" \
+    "${kernel_root}/tools/analysis/integrate_gfx950_qwen36_campaign.py" \
+    "${kernel_root}/tools/analysis/relaunch_inspected_container.py"
   (
     cd "${kernel_root}"
     find docs/retrospectives/gfx950-qwen36-20260821 tools/analysis \
+      tools/benchmark/qwen36_27b_gdn_verify_m12_batched_synthetic.py \
+      tools/profiling/summarize_rocprof_counters.py \
       -type f ! -name artifact-manifest.sha256 ! -path '*/__pycache__/*' -print0 \
       | sort -z | xargs -0 sha256sum > "${report_root}/artifact-manifest.sha256"
   )

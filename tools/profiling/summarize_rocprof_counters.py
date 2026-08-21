@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Merge one-counter-per-pass rocprofv3 CSVs for gfx1151 kernels."""
+"""Merge one-counter-per-pass rocprofv3 CSVs for a selected GPU target."""
 from __future__ import annotations
 
 import argparse
@@ -14,6 +14,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("root", type=Path)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--target", required=True)
     parser.add_argument("--kernel-prefix", action="append")
     parser.add_argument(
         "--input-scope",
@@ -55,7 +56,7 @@ def main() -> None:
         }
         kernels.append({"kernel": name, **resources[name], "counters": packed})
     report = {
-        "target": "gfx1151",
+        "target": args.target,
         "measurement_status": "measured",
         "input_scope": args.input_scope,
         "profiler": "/opt/rocm-7.2.1/bin/rocprofv3",
@@ -68,7 +69,9 @@ def main() -> None:
             "MemUnitBusy": "percent of GPUTime",
             "WriteUnitStalled": "percent of GPUTime",
         },
-        "direct_dependency_stall_counter": "not exposed for gfx1151 by this rocprofv3 metric set",
+        "direct_dependency_stall_counter": (
+            f"not exposed for {args.target} by this rocprofv3 metric set"
+        ),
         "kernels": kernels,
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)

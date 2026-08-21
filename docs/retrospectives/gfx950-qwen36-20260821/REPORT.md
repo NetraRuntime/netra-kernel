@@ -2,7 +2,7 @@
 
 Date: 2026-08-21
 
-Status: evidence-complete repository retrospective; GPU rerun blocked by host capability
+Status: retrospective and MI350X campaign complete with explicit correctness and coverage gaps
 
 Kernel revision: `9c5940cceaecb00a26f157a4894d1a8edad4e0d4`
 
@@ -22,7 +22,11 @@ specialization with layouts that avoid conversion, fixed graph-safe ABIs,
 bounded fallbacks, and byte-locked deployment evidence. AITER remains the
 winner for multiple dense and fallback contracts where Netra assembly was
 locally faster but failed matched serving. This is an engineering result, not
-a claim that one kernel language or vendor library universally wins.
+a claim that one kernel language or vendor library universally wins. A current
+isolated MI350X campaign adds exact-output Netra-versus-SGLang/AITER serving
+controls, fixed-concurrency diagnostics, standalone GDN attempts, and
+rocprofv3 counter passes. Failed repeatability and cross-arm output gates are
+retained but never promoted as wins.
 
 ## Evidence boundary and audit method
 
@@ -72,26 +76,36 @@ accepted tactics. Evidence:
 
 Evidence labels have strict meanings:
 
-- **Current measurement** would mean generated during this audit on MI350X.
-  There are none.
+- **Current measurement** was generated during this audit on an isolated AMD
+  Instinct MI350X/gfx950 using the recorded immutable container.
 - **Tracked aggregate** is a number present in a committed Markdown or JSON
   artifact. It is not represented as a newly reproduced measurement.
-- **External raw** is a tracked path/hash whose bytes should live under
-  `/data/netra`; none of the 347 referenced paths is mounted here.
+- **Recovered raw** is a byte-for-byte local copy of the historical
+  `/data/netra/benchmarks/gfx950_qwen36_prefill-20260821.t3C9F4` archive.
 - **Inferred mechanism** is a causal interpretation supported by source,
   metadata, counters, or contrasting experiments, not a direct measurement.
 - An empty CSV cell means unavailable, never zero.
 
-The host has no `/dev/kfd`, ROCm utilities/compiler, or usable Docker daemon.
-Only an Intel render node is present. The cited prefill archive
-`/data/netra/benchmarks/gfx950_qwen36_prefill-20260821.t3C9F4` is absent.
-Therefore a current MI350X benchmark campaign, code-object rebuild, counter
-collection, and raw-artifact checksum audit are impossible on this host. The
-[environment manifest](data/environment-manifest.json),
-[coverage matrix](benchmark-coverage.csv), and
-[external artifact inventory](data/external-artifact-inventory.csv) make this
-gap machine-readable. No missing samples, confidence intervals, or timings
-were reconstructed from prose.
+The execution host exposed eight MI350X/gfx950 GPUs, ROCm 7.2.3, amd-smi
+26.2.2, and the exact container image `sha256:89941358...`
+(`netra/sglang:v0.5.16-rocm720-mi35x-gigatoken0.9.0`). Four single-GPU
+serving arms were reconstructed from saved `docker inspect` records: accepted
+27B and 35B deployments and matched controls that disabled the relevant Netra
+paths while retaining framework/AITER defaults. The campaign captured
+hardware, package, container, log, clock, power, thermal, and process state
+before, during, and after execution. All four containers exited cleanly and
+the final accelerator process inventory was empty.
+
+The current and recovered evidence sets contain 1,038 files and 1,150,741,298
+bytes. Every file is SHA-256 inventoried. Four complete checkpoint trees add
+349 file hashes: 27B FP8/DFlash and 35B FP8/DFlash, approximately 73 GB in
+total. The external numeric ledger preserves 5,544,631 numeric leaves from 544
+JSON/CSV/TSV sources. Seven compressed profiler event traces are deliberately
+excluded from that numeric ledger because events are not benchmark samples;
+their original bytes remain retained and hashed. The machine-readable scope
+and gaps are in [summary.json](summary.json) and
+[benchmark coverage](benchmark-coverage.csv). No failed or missing result was
+reconstructed from prose.
 
 ## Historical reconstruction
 
@@ -236,6 +250,86 @@ The `compare_scalar` event attributed 338.8 ms to a tiny construction but
 overlapped later same-stream work. It is a Kineto host-synchronization
 artifact, not a GPU bottleneck, and is excluded.
 
+## Current MI350X benchmark campaign
+
+The current serving campaign used exact token IDs, disabled the radix cache,
+ran TP1/DP1 on isolated GPUs, and saved every streaming event, request record,
+server-info record, log, and container configuration. The accepted arms used
+dFlash-8/BF16 recurrent state for 27B and dFlash-12/piecewise replay for 35B.
+Controls changed one feature group: Netra kernels were disabled while the same
+model, prompt, graph configuration, framework, AITER stack, and container were
+retained. Each exact short/8K case has 20 repetitions; repeat zero is reported
+separately as cold and steady statistics exclude it.
+
+The correctness-qualified current results are deliberately narrow:
+
+- 27B input-16/output-1 produced identical output hashes in both arms. Steady
+  median wall latency was 59.086 ms for Netra versus 74.501 ms for the control:
+  20.65% lower latency, or 1.261x speedup. Netra's 19 steady samples had mean
+  59.225 ms, p5 58.815 ms, p95 59.599 ms, sample CV 0.59%, and bootstrap mean
+  95% interval 58.998–59.601 ms.
+- 27B input-8192/output-1 also produced identical output hashes. Steady median
+  wall latency was 409.187 versus 421.226 ms: 2.86% lower, or 1.029x. Netra's
+  p5/p95 were 408.168/410.720 ms and its bootstrap mean interval was
+  408.944–409.681 ms.
+- 35B input-16/output-1 was exact in both arms, but Netra was not the winner:
+  steady median wall latency was 24.951 versus 23.828 ms. Netra was 4.71%
+  slower, equivalently the control was 1.047x faster. The report retains this
+  negative result without explaining it away; most accepted exact paths are
+  not activated by an M16 one-output request.
+
+Other current numbers are diagnostic, not winner claims. At 27B C1/C128/C192,
+Netra measured 94.291/2,344.276/2,696.436 output tok/s versus
+82.245/2,045.948/2,445.381 for the control, apparent speedups of
+14.65%/14.58%/10.27%. Every input hash matched, but only 0/3, 37/384, and
+73/576 paired output hashes matched under concurrent dFlash scheduling. At
+35B C1, all three paired output hashes matched and Netra measured 931.196
+versus 803.951 output tok/s, but this is a single three-request measurement
+window rather than an independent-process estimate. At C64, Netra measured
+4,783.565 versus 4,733.326 output tok/s (+1.06%), while only 60/192 paired
+output hashes matched. None of these concurrency deltas is used to promote a
+kernel.
+
+Two further correctness failures are first-class evidence. The 35B
+input-1024/output-4096 Netra arm generated three distinct output hashes in
+three repeats, with wall times 4.107, 20.966, and 11.493 seconds. The 35B
+input-8192/output-1 control produced the reference hash in 17/20 repeats and a
+second hash in repeats 3, 9, and 19. Both cases are performance-ineligible.
+The accepted 35B Netra 8K arm itself passed 20/20 with a steady median of
+125.635 ms, but no control speedup is claimed.
+
+The recovered pre-refactor 27B M12 GDN harness ran in six independent
+processes on six GPUs, with two opposite orders, batches 1/128/256, and 100 HIP
+event samples per implementation per process (1,800 timing samples total).
+Its strict gate failed: the hybrid path differed from its Triton reference by
+7/73,728, 1,144/9,437,184, and 2,313/18,874,368 BF16 elements; maximum absolute
+error was 7.63e-6 to 1.53e-5. The raw assembly path had a gross legacy ABI
+mismatch. Timings are stable and fully retained, but they are invalid for a
+performance claim. This failure says the old standalone harness no longer
+expresses the current modular ABI; it does not override the exact integrated
+serving gates.
+
+Finally, separate rocprofv3 counter processes exercised the accepted M1
+gate/up and down/reduce kernels for 28 counters each. Gate/up reported 576
+waves, 9,216 FP8 MFMA instructions, 9,272.8 KiB fetched, 36 KiB written,
+99.11% VALU utilization, zero LDS bank conflicts, and no LDS/scratch. Down
+reported 256 waves, 4,608 FP8 MFMA instructions, 4,661.1 KiB fetched, 4 KiB
+written, 92.44% VALU utilization, zero LDS bank conflicts, 1 KiB LDS, and no
+scratch. The low whole-device occupancy values (3.04% and 1.53%) reflect the
+small exact M1 workload, not a general occupancy advantage. Profiler-reported
+VGPR/SGPR fields differ from static code-object metadata, so both sources are
+preserved rather than silently reconciled. Counter collection is intrusive;
+latency comes only from non-profiled timing artifacts.
+
+All request samples, descriptive statistics, comparisons, invalid timing
+samples, and counter summaries are in
+[current-serving-samples.csv](current-serving-samples.csv),
+[current-serving-aggregates.csv](current-serving-aggregates.csv),
+[current-serving-comparisons.csv](current-serving-comparisons.csv),
+[current-gdn-microbenchmark-samples.csv](current-gdn-microbenchmark-samples.csv),
+[current-gdn-microbenchmark-aggregates.csv](current-gdn-microbenchmark-aggregates.csv),
+and [current-profiler-counters.csv](current-profiler-counters.csv).
+
 ## Operation and competitor inventory
 
 The [operation inventory](operation-inventory.csv) contains 45 reviewed rows
@@ -257,8 +351,9 @@ from the implementation that actually won the production gate.
 The [completion audit](completion-audit.csv) maps every major obligation in
 the original brief to its required proof, current evidence, verdict, and
 remaining gap. It is intentionally stricter than file-presence checks: the
-repository retrospective is delivered, but the current MI350X competitor
-campaign is marked **not achieved**. The
+repository retrospective and current campaign are delivered, while contracts
+without a new uniform comparison remain partial and correctness failures stay
+explicit. The
 [causal mechanism matrix](causal-mechanism-matrix.csv) separately covers 15
 accepted Netra paths, distinguishing direct counter/metadata evidence from
 source-supported explanations and incomplete counter hypotheses.
@@ -266,6 +361,10 @@ source-supported explanations and incomplete counter hypotheses.
 Current upstream pins (resolved 2026-08-21) and eligibility are in
 [competitor eligibility](competitor-eligibility.csv). AITER, CK/CK Tile,
 hipBLASLt, Triton, and PyTorch are eligible only operation by operation.
+The current integrated controls exercise SGLang/AITER on both models; the
+recovered archive retains the 285-candidate AITER dense screen and historical
+exact Triton/PyTorch/library comparisons. The current legacy Triton GDN attempt
+failed its exact gate and is not substituted for those historical contracts.
 FlashAttention's ROCm backend is conditionally relevant for supported
 attention, but exact D256 paged native-FP8 KV equivalence was not established.
 HipKittens supports CDNA4/gfx950, while its published attention examples do
@@ -320,10 +419,10 @@ VGPRs and 32 KiB dynamic LDS to gain KV reuse; the M768 producer spends 256
 VGPRs and 64 KiB LDS while its reducer needs only 28 VGPRs. Argmax uses 52
 VGPRs, 20 SGPRs, no LDS or scratch in the raw stages. These choices trade
 occupancy for reuse/throughput differently. The retained disassembly and
-metadata support those facts; only the argmax report retains selected counter
-values (including zero LDS bank conflicts). Missing rocprof databases prevent
-a uniform counter comparison, so broader occupancy/cache claims remain
-hypotheses.
+metadata support those facts. The argmax report retains selected historical
+counters, and the current campaign adds a uniform 28-counter set for the M1
+gate/up and down/reduce pair. Other accepted operations still lack comparable
+current counter passes, so broader occupancy/cache claims remain hypotheses.
 
 Recovered ignored HSACOs permit an independent static check of the M1 MoE
 pipeline. The accepted gate/up object has 348 bytes of `.text`, 72 decoded
@@ -408,12 +507,14 @@ gates. Merely copying assembly without those layers is insufficient.
 
 ## Prioritized roadmap
 
-1. **Restore evidence and rerun infrastructure.** Mount the 347 referenced
-   artifacts, verify expected hashes, reserve an isolated MI350X, record clocks,
-   power, thermals, firmware, driver and packages, and run the pinned container.
-2. **Close benchmark coverage.** Execute input 16/1K/8K, all required M and C
-   points, eager/capture/replay, and matched natural/fixed-output serving. Keep
-   per-iteration samples and compute median/mean/p5/p95/stddev/CV/95% CI.
+1. **Close correctness gaps before optimizing.** Reproduce the 35B 1K-output
+   and control-8K hash divergence, then build a concurrency correctness/quality
+   gate appropriate for dFlash scheduling. Do not use the diagnostic throughput
+   deltas until this gate passes.
+2. **Complete independent-process coverage.** Repeat current serving windows
+   across independent container launches; add process-level CIs, a direct
+   prefill-time field, natural-EOS quality, and current M8/M12/M16/M768/C256
+   microbenchmarks against exact-contract controls.
 3. **27B long dense prefill (61.60%).** Start from the proven AITER winners;
    optimize groups of projections or upstream dataflow, not another isolated
    row, and gate at natural C192 plus lower-latency C128.
@@ -426,9 +527,9 @@ gates. Merely copying assembly without those layers is insufficient.
 6. **GDN initialization/chunk/KKT pipeline.** Target eliminated state traffic
    and materialization across stages; do not optimize chunk kernels in
    isolation.
-7. **Uniform counters and disassembly.** Collect comparable SQ waves,
-   VALU/VMEM, TCC sectors, LDS conflicts, occupancy and launch timelines under
-   non-intrusive latency runs plus separate counter runs.
+7. **Extend uniform counters and disassembly.** The M1 MoE pair is covered;
+   collect the same SQ/VALU/VMEM/TCC/LDS/occupancy set for the remaining
+   accepted paths, retaining separate non-intrusive latency runs.
 8. **Upstreamability.** Express winners as operation contracts and reusable
    AITER/SGLang dispatch entries with explicit safe fallbacks, keeping Netra's
    byte-lock and serving gates in CI.
@@ -442,21 +543,29 @@ python3 tools/analysis/collect_gfx950_qwen36_retrospective.py \
   --kernel-root "$PWD" \
   --server-root ../netra-server \
   --output-dir docs/retrospectives/gfx950-qwen36-20260821/data
-python3 tools/analysis/build_gfx950_qwen36_retrospective_tables.py
 tools/analysis/run_gfx950_qwen36_retrospective_campaign.sh audit
+python3 tools/analysis/integrate_gfx950_qwen36_campaign.py \
+  --current-root "$NETRA_RETRO_CURRENT_ARTIFACT_ROOT" \
+  --recovered-root "$NETRA_RETRO_RECOVERED_ARTIFACT_ROOT" \
+  --report-root docs/retrospectives/gfx950-qwen36-20260821 \
+  --derived-root "$NETRA_RETRO_DERIVED_ARTIFACT_ROOT"
 ```
 
 Audit validation passed the kernel repository's complete `tools/ci/check.sh`:
 97 unit tests plus repository, tactic-library, and example-compilation checks.
 An isolated `uvx pytest` run passed 39 server Qwen3.6 tooling/profile tests and
 four subtests across six files. Three other current-main tooling test files
-reference scripts that no longer exist, and PyTorch-dependent server tests
-cannot collect because PyTorch/SGLang are absent. GPU tests were not run for
-the environment reasons above.
+reference scripts that no longer exist, and PyTorch-dependent tests cannot
+collect in the local CPU-only worktree. GPU execution ran remotely in the
+pinned container: 8/10 exact serving cases passed repeatability, all raw
+requests were retained, the six standalone GDN attempts failed their strict
+gate as documented, and both accepted M1 profiler harnesses were deterministic
+across ten invocations per counter pass.
 
-The campaign script refuses GPU modes when `/dev/kfd`, `rocminfo`, or the raw
-archive is missing. [REPRODUCE.md](REPRODUCE.md) gives the immutable-environment
-and benchmark sequence. [benchmark-samples.csv](benchmark-samples.csv) contains
+The campaign script refuses local GPU modes when `/dev/kfd`, `rocminfo`, or the
+raw archive is missing. [REPRODUCE.md](REPRODUCE.md) gives the immutable-
+environment, inspected-container relaunch, benchmark, profiler, checksum,
+transfer, and derivation sequence. [benchmark-samples.csv](benchmark-samples.csv) contains
 reviewed fresh-process values preserved in tracked prose;
 [benchmark-samples-exhaustive.csv](benchmark-samples-exhaustive.csv) preserves
 all mechanically classified sample leaves in tracked JSON. The full numeric
@@ -473,8 +582,12 @@ overinterpreted.
 [benchmark-sample-derived-aggregates.csv](benchmark-sample-derived-aggregates.csv)
 adds reproducible median, linear p5/p95, sample standard deviation, CV, and a
 deterministic 20,000-resample bootstrap mean interval for the three retained
-five-process sample sets. These are post-hoc descriptive calculations, not new
-GPU measurements.
+five-process sample sets. The current CSVs add 10,100 serving metric rows,
+1,800 GDN timing rows, 174 serving aggregate rows, 18 GDN aggregate rows, and
+56 profiler-counter rows. The external derived directory contains the full
+5,544,631-leaf ledger, 1,038-file artifact inventory, exclusions policy, and
+its own `SHA256SUMS`. Descriptive calculations are post-hoc; the raw request,
+HIP-event, and counter records remain immutable.
 
 ## Conclusions and uncertainties
 
@@ -485,8 +598,10 @@ underfill or traffic; layout/compiler/graph discipline makes those wins
 reachable and safe; deployment locks make them reproducible. The rejection
 ledger demonstrates that any one layer without the others is unreliable.
 
-Uncertain or unverified in this audit: current performance against the pinned
-2026-08-21 upstream revisions; raw-sample distributions for aggregate-only
-historical results; raw artifact/hash availability; complete input-1K and
-metric coverage; uniform hardware-counter causality; and any claim of research
-novelty. Those are explicit next measurements, not hidden assumptions.
+Current exact evidence establishes only the narrow qualified results above.
+Uncertain or ineligible: concurrent cross-arm dFlash output equivalence; the
+35B 1K Netra and 8K control cases that failed repeatability; performance from
+the legacy standalone GDN harness; independent-process confidence intervals
+for current concurrency throughput; uniform current competitor/counter
+coverage for every operation; and any claim of research novelty. These are
+explicit gaps, not hidden assumptions or inferred wins.

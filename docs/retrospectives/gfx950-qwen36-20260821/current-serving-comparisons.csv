@@ -1,0 +1,14 @@
+model,case,metric,netra_value,control_value,relative_netra_speedup_percent,correctness_status,cross_arm_output_hash_matches,evidence
+27B,input16_output1,wall_latency_s,0.059086026,0.07450149,26.089864293801046,eligible_exact_cross_arm,all,27b-baseline/exact-input16_output1;27b-aiter-control/exact-input16_output1
+27B,input16_output1,ttft_s,0.058971996,0.074393061,26.14981015734994,eligible_exact_cross_arm,all,27b-baseline/exact-input16_output1;27b-aiter-control/exact-input16_output1
+27B,input8192_output1,wall_latency_s,0.40918695,0.421225737,2.942123887382042,eligible_exact_cross_arm,all,27b-baseline/exact-input8192_output1;27b-aiter-control/exact-input8192_output1
+27B,input8192_output1,ttft_s,0.409067791,0.421105848,2.942802455938165,eligible_exact_cross_arm,all,27b-baseline/exact-input8192_output1;27b-aiter-control/exact-input8192_output1
+27B,concurrency_1,aggregate_output_throughput_tok_s,94.29130469509609,82.24463960318288,14.647355925001836,diagnostic_only_output_hashes_diverge,0/3; input 3/3,27b-baseline/concurrency-fixed210x128;27b-aiter-control/concurrency-fixed210x128
+27B,concurrency_128,aggregate_output_throughput_tok_s,2344.2755319361427,2045.9478972946956,14.581389635382113,diagnostic_only_output_hashes_diverge,37/384; input 384/384,27b-baseline/concurrency-fixed210x128;27b-aiter-control/concurrency-fixed210x128
+27B,concurrency_192,aggregate_output_throughput_tok_s,2696.4362026255235,2445.3811706700676,10.266498939576918,diagnostic_only_output_hashes_diverge,73/576; input 576/576,27b-baseline/concurrency-fixed210x128;27b-aiter-control/concurrency-fixed210x128
+35B,input16_output1,wall_latency_s,0.024950685,0.023828125,-4.499114954158578,eligible_exact_cross_arm,all,35b-baseline/exact-input16_output1;35b-framework-control/exact-input16_output1
+35B,input16_output1,ttft_s,0.024889866,0.023763305,-4.526183467600841,eligible_exact_cross_arm,all,35b-baseline/exact-input16_output1;35b-framework-control/exact-input16_output1
+35B,input8192_output1,wall_latency_s,0.125634838,0.133283381,6.087915678292988,ineligible_repeatability_or_cross_arm_hash,not_all,35b-baseline/exact-input8192_output1;35b-framework-control/exact-input8192_output1
+35B,input8192_output1,ttft_s,0.125523029,0.133181692,6.10140072384644,ineligible_repeatability_or_cross_arm_hash,not_all,35b-baseline/exact-input8192_output1;35b-framework-control/exact-input8192_output1
+35B,concurrency_1,aggregate_output_throughput_tok_s,931.196118285701,803.9505392544302,15.827538240011151,eligible_exact_cross_arm,3/3; input 3/3,35b-baseline/concurrency-fixed210x128;35b-framework-control/concurrency-fixed210x128
+35B,concurrency_64,aggregate_output_throughput_tok_s,4783.5652813437155,4733.325647367262,1.0614024413130752,diagnostic_only_output_hashes_diverge,60/192; input 192/192,35b-baseline/concurrency-fixed210x128;35b-framework-control/concurrency-fixed210x128
