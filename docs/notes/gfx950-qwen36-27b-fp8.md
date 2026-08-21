@@ -316,6 +316,11 @@ machine-readable summary is
 `/data/netra/benchmarks/gfx950_qwen36_27b/20260821-best-modular-dflash8-c192-r31/summary.json`
 with SHA-256
 `35853ce85662518eef6df7dfa84cdcf37e8999e25662a30d7e3c179293e6adfb`.
+The immutable serving lock is
+`/data/netra/benchmarks/gfx950_qwen36_27b/CURRENT_BEST.json` with SHA-256
+`f8c447953c3c387e70eca49c7e34e70f560afd7baaf21f06f6d3a50cbd2ea9b3`.
+Its repository mirror is
+`manifests/gfx950/deployments/qwen36-27b-current-best.json`.
 The tactics remain `verified` and opt in while the full engine still contains
 explicit framework fallbacks.
 

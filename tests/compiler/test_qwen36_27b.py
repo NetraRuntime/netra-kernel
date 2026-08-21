@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import unittest
@@ -304,6 +305,35 @@ class Qwen3627BTest(unittest.TestCase):
         _, model = load_model(MODEL)
         self.assertEqual(model["configuration"]["mamba_ssm_dtype"], "bfloat16")
         self.assertEqual(model["configuration"]["cuda_graph_batch_sizes"][-1], 192)
+
+    def test_current_best_lock_preserves_dflash8_c192_stack(self) -> None:
+        deployment = json.loads(
+            (
+                ROOT
+                / "manifests/gfx950/deployments/qwen36-27b-current-best.json"
+            ).read_text()
+        )
+        self.assertEqual(deployment["status"], "verified_opt_in")
+        self.assertEqual(
+            deployment["evidence"]["lock_sha256"],
+            "f8c447953c3c387e70eca49c7e34e70f560afd7baaf21f06f6d3a50cbd2ea9b3",
+        )
+        self.assertEqual(deployment["configuration"]["dflash_block_size"], 8)
+        self.assertEqual(deployment["configuration"]["tensor_parallelism"], 1)
+        self.assertEqual(deployment["configuration"]["data_parallelism"], 1)
+        self.assertEqual(deployment["configuration"]["mamba_ssm_dtype"], "bfloat16")
+        self.assertEqual(deployment["configuration"]["graph_batch_sizes"][-1], 192)
+        self.assertAlmostEqual(
+            deployment["performance"]["mean_output_tokens_per_second"],
+            6500.886380720891,
+        )
+        self.assertEqual(deployment["performance"]["completed_requests"], 6595)
+        self.assertEqual(deployment["performance"]["request_errors"], 0)
+        for component in deployment["components"]:
+            self.assertEqual(
+                hashlib.sha256((ROOT / component["path"]).read_bytes()).hexdigest(),
+                component["sha256"],
+            )
 
 
 if __name__ == "__main__":

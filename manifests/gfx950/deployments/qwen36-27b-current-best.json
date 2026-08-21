@@ -1,0 +1,74 @@
+{
+  "format": "netra-serving-deployment-lock-1",
+  "target": "gfx950",
+  "wave_size": 64,
+  "deployment": "qwen36-27b-dflash8-tp1-dp1-c192-current-best",
+  "status": "verified_opt_in",
+  "evidence": {
+    "lock": "/data/netra/benchmarks/gfx950_qwen36_27b/CURRENT_BEST.json",
+    "lock_sha256": "f8c447953c3c387e70eca49c7e34e70f560afd7baaf21f06f6d3a50cbd2ea9b3",
+    "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260821-best-modular-dflash8-c192-r31/summary.json",
+    "summary_sha256": "35853ce85662518eef6df7dfa84cdcf37e8999e25662a30d7e3c179293e6adfb"
+  },
+  "tested_source": {
+    "kernel_commit": "004e60087513694b7559da1bb26ef5d7487c3fca",
+    "server_commit": "14036a136574ed094936581a66929bbc55a1d3cf"
+  },
+  "integration_source": {
+    "kernel_commit": "8b8badb2476994a412d80fa0809b647b300270ad",
+    "server_commit": "f566109679713dd48f2650a2800a2ee1c37fbd01"
+  },
+  "configuration": {
+    "tensor_parallelism": 1,
+    "data_parallelism": 1,
+    "speculative_algorithm": "dflash",
+    "dflash_block_size": 8,
+    "dflash_mamba_cache_steps": 0,
+    "mamba_ssm_dtype": "bfloat16",
+    "graph_mode": "full",
+    "graph_batch_sizes": [1, 2, 4, 8, 16, 32, 64, 80, 96, 112, 128, 160, 192],
+    "max_running_requests": 192,
+    "client_concurrency": 192
+  },
+  "performance": {
+    "fresh_process_runs": 5,
+    "mean_output_tokens_per_second": 6500.886380720891,
+    "standard_deviation_output_tokens_per_second": 52.07131827487483,
+    "minimum_output_tokens_per_second": 6430.386513426578,
+    "maximum_output_tokens_per_second": 6562.826003145409,
+    "mean_dflash_acceptance": 5.577927994261678,
+    "mean_numeric_accuracy_percent": 96.25473843821077,
+    "completed_requests": 6595,
+    "request_errors": 0
+  },
+  "components": [
+    {
+      "path": "manifests/gfx950/models/qwen36-27b-fp8.json",
+      "sha256": "37e0c820ebdaad9e8c76336858b7c55bb1a7d122dbc638199887f9088c78a528"
+    },
+    {
+      "path": "manifests/gfx950/tactics/fixed_assembly.json",
+      "sha256": "db8747b8929a3619d818beb2cfb9afd299d3c21bfe3685344a50260e7780dd27"
+    },
+    {
+      "path": "manifests/gfx950/tactics/gdn_hv48_assembly.json",
+      "sha256": "e5b9cd75d7352531fb9307c8ef84c84cf692e60fa5168433d4c5718521c86952"
+    },
+    {
+      "path": "manifests/gfx950/tuning/a8w8_blockscale_bpreshuffle.csv",
+      "sha256": "f3f8b8e2a7d6b8bd1adcb09e64778157f48077e3cbc0939f62643eac92f3c83c"
+    },
+    {
+      "path": "manifests/gfx950/tuning/bf16_gemm.csv",
+      "sha256": "9a5909286f3bdcac971d9d324b57aaf3c466a5a42ae574e8ba0c9353284f39a2"
+    },
+    {
+      "path": "manifests/gfx950/deployments/qwen36-27b-gdn-bf16-state-t8.json",
+      "sha256": "aee578109518c7d62c73792bae23f69a82865380d1c4cd9b52102667bd3dcd09"
+    }
+  ],
+  "promotion": {
+    "default_enabled": false,
+    "full_engine_replacement": "not_accepted"
+  }
+}
