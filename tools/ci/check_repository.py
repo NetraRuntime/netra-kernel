@@ -67,6 +67,8 @@ def main() -> int:
         )
 
     for relative in tracked_files("*.json"):
+        if not (ROOT / relative).is_file():
+            continue
         try:
             json.loads((ROOT / relative).read_text(encoding="utf-8"))
         except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
@@ -74,6 +76,8 @@ def main() -> int:
 
     for relative in tracked_files("*.md"):
         path = ROOT / relative
+        if not path.is_file():
+            continue
         text = path.read_text(encoding="utf-8")
         for raw_target in MARKDOWN_LINK.findall(text):
             target = raw_target.strip().split(maxsplit=1)[0].strip("<>")
@@ -85,6 +89,8 @@ def main() -> int:
 
     for relative in tracked_files("*.sh"):
         path = ROOT / relative
+        if not path.is_file():
+            continue
         if not path.stat().st_mode & stat.S_IXUSR:
             errors.append(f"shell entry point is not executable: {relative}")
         text = path.read_text(encoding="utf-8")

@@ -1,0 +1,86 @@
+{
+  "format": "netra-gfx950-moe-prefill-m768-equivalence-1",
+  "target": "gfx950",
+  "wave_size": 64,
+  "checkpoint_revision": "95a723d08a9490559dae23d0cff1d9466213d989",
+  "profile": "verify_m12_b64_routes768",
+  "engine": {
+    "engine_id": "ne_98e7fb83001dcc85bf70b4e4",
+    "semantic_file_count": 27,
+    "two_builds_byte_identical": true,
+    "validation_status": "hardware_serving_verified_opt_in",
+    "tactic_maturity": "verified_opt_in_to_preserve_the_locked_accepted_catalog"
+  },
+  "artifacts": [
+    {
+      "tactic": "moe_prefill_fused_splitk2_fp8_m768",
+      "symbol": "qwen36_moe_fused_m64n256_partial_fp8_gfx950",
+      "launch_grid": [2, 365, 1],
+      "launch_block": 256,
+      "kernarg_bytes": 112,
+      "lds_bytes": 65536,
+      "private_segment_bytes": 0,
+      "vgpr_count": 256,
+      "sgpr_count": 92,
+      "agpr_count": 0,
+      "section_sha256": {
+        ".note": "61dfafe991c5a23165efccae9dda8e73857a8fac3bcdc19650b01f487a1eb12a",
+        ".rodata": "bba5b3264e5517af580cce1d746dc7dffe3169c0ed4ec5b544456e397073b693",
+        ".text": "5d51af06c4071458aba7f81c6d3f353aa5e41eda0fa8c56d2f5b51a820ed7db1"
+      },
+      "accepted_sections_identical": true
+    },
+    {
+      "tactic": "moe_prefill_route_reduce_splitk2_f16_m768",
+      "symbol": "qwen36_moe_route_reduce_f16_2h_x2_gfx950",
+      "launch_grid": [16, 768, 1],
+      "launch_block": 64,
+      "kernarg_bytes": 32,
+      "lds_bytes": 0,
+      "private_segment_bytes": 0,
+      "vgpr_count": 28,
+      "sgpr_count": 26,
+      "agpr_count": 0,
+      "section_sha256": {
+        ".note": "84442e3ea848cde28b2620c29c3b110b97dc7ad7cedd278c388880e35628fa6c",
+        ".rodata": "33fa5a198a15136e1f3b39fb3a9401bfe20ebff0472a238cd78e89d1d51f8dd1",
+        ".text": "9378c0ab403e0e53346dd4b36365bf0ec43c5f9fd02c0e92c3748a3368c70835"
+      },
+      "accepted_sections_identical": true
+    }
+  ],
+  "compatibility_catalog": {
+    "artifact_count": 18,
+    "specialization_count": 19,
+    "all_locked_text_identical": true
+  },
+  "serving_evidence": {
+    "smoke_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260821-modular-moe-m768-smoke-r2",
+    "five_process_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260821-modular-moe-m768-c64-five-fresh",
+    "five_process_summary_sha256": "928ae5b7506cc0088d1fc42dbc5b09fb64a1297471a37441b5667251dbba834c",
+    "mean_output_throughput_tok_s": 11431.107847197118,
+    "min_output_throughput_tok_s": 11386.687061954368,
+    "max_output_throughput_tok_s": 11474.461336488363,
+    "stdev_output_throughput_tok_s": 42.01190223083253,
+    "mean_accept_length": 6.871234803996941,
+    "mean_accuracy": 0.9525398028809704,
+    "successful_requests": 6595,
+    "historical_comparator_router_bf16": true,
+    "safe_default_router_bf16": false,
+    "safe_default_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260821-modular-moe-m768-c64-safe-final",
+    "safe_default_summary_sha256": "28935565f96061775f7c31e95755999b3fed8604820c1b7ecf27db4521205ea7",
+    "safe_default_output_throughput_tok_s": 11517.223520315782,
+    "safe_default_accept_length": 6.850231017348095,
+    "safe_default_accuracy": 0.9492039423805914,
+    "safe_default_successful_requests": 1319,
+    "safe_default_status": "passed",
+    "qwen36_27b_regression_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260821-final-modular-regression-r2",
+    "qwen36_27b_regression_summary_sha256": "563ad5f7892f1f155f3cd7c74fb89adbdd57a056dc04e8d20d6100ba4afd3292",
+    "qwen36_27b_regression_output_throughput_tok_s": 6365.414482466448,
+    "qwen36_27b_regression_accept_length": 5.577956892948833,
+    "qwen36_27b_regression_accuracy": 0.9605761940864291,
+    "qwen36_27b_regression_successful_requests": 1319,
+    "qwen36_27b_regression_status": "passed",
+    "status": "passed"
+  }
+}

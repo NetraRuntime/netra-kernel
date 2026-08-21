@@ -11,6 +11,7 @@ from typing import Any
 
 class DType(str, Enum):
     FP8_E4M3 = "fp8_e4m3"
+    FP16 = "fp16"
     BF16 = "bf16"
     FP32 = "fp32"
     INT32 = "int32"

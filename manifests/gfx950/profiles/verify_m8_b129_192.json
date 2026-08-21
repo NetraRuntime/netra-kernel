@@ -1,0 +1,1 @@
+{"format":"netra-profile-1","name":"verify_m8_b129_192","guards":{"m":{"min":8,"max":8},"batch":{"min":129,"max":192},"sequence":{"min":0,"max":32768}},"quantization":"fp8_block128","tensor_parallel":"deployment","priority":23}

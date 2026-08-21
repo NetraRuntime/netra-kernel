@@ -1,0 +1,118 @@
+{
+  "format": "netra-model-1",
+  "name": "qwen3.6-35b-a3b-fp8-c64-moe-prefill",
+  "family": "qwen3.6",
+  "configuration": {
+    "architecture": "Qwen3_5MoeForConditionalGeneration",
+    "checkpoint": "Qwen3.6-35B-A3B-FP8",
+    "checkpoint_revision": "95a723d08a9490559dae23d0cff1d9466213d989",
+    "hidden_size": 2048,
+    "intermediate_size": 512,
+    "layers": 40,
+    "num_experts": 257,
+    "num_experts_per_token": 9,
+    "tensor_parallel": 1,
+    "data_parallel_workers": 1,
+    "quantization_method": "fp8",
+    "quantization_format": "fp8_e4m3_block128x128",
+    "activation_quantization": "dynamic_fp8_e4m3_per128",
+    "weight_scale_block": [128, 128],
+    "checkpoint_scale_dtype": "fp32",
+    "kernel_scale_dtype": "fp32",
+    "target": "gfx950",
+    "wave_size": 64,
+    "deployment_graph_mode": "piecewise",
+    "cuda_graph_batch_sizes": [1, 2, 4, 8, 16, 32, 64],
+    "speculative_algorithm": "dflash",
+    "dflash_enabled": true,
+    "dflash_block_size": 12,
+    "required_environment": {
+      "SGLANG_NETRA_GFX950_MOE_PREFILL_M768": "1"
+    }
+  },
+  "graph": {
+    "format": "netra-ir-1",
+    "name": "moe-prefill-splitk2-routes768",
+    "tensors": [
+      {"name": "hidden_fp8", "shape": [768, 2048], "dtype": "fp8_e4m3", "layout": "row_major_fp8_block128", "role": "input"},
+      {"name": "hidden_scale_f32", "shape": [768, 16], "dtype": "fp32", "layout": "row_major_token_block128", "role": "input"},
+      {"name": "w13_fp8", "shape": [257, 1024, 2048], "dtype": "fp8_e4m3", "layout": "aiter_shuffle_16x16_fp8_block128", "role": "weight", "persistent": true},
+      {"name": "w13_scale_f32", "shape": [257, 8, 16], "dtype": "fp32", "layout": "expert_n128_k128", "role": "weight", "persistent": true},
+      {"name": "w2_fp8", "shape": [257, 2048, 512], "dtype": "fp8_e4m3", "layout": "aiter_shuffle_16x16_fp8_block128", "role": "weight", "persistent": true},
+      {"name": "w2_scale_f32", "shape": [257, 16, 4], "dtype": "fp32", "layout": "expert_n128_k128", "role": "weight", "persistent": true},
+      {"name": "sorted_token_ids_i32", "shape": [23360], "dtype": "int32", "layout": "aiter_sorted_m64", "role": "input"},
+      {"name": "sorted_weights_f32", "shape": [23360], "dtype": "fp32", "layout": "aiter_sorted_m64", "role": "input"},
+      {"name": "sorted_expert_ids_i32", "shape": [365], "dtype": "int32", "layout": "aiter_compact_expert_blocks_m64", "role": "input"},
+      {"name": "num_valid_ids_i32", "shape": [1], "dtype": "int32", "layout": "scalar", "role": "input"},
+      {"name": "topk_weights_f32", "shape": [768, 9], "dtype": "fp32", "layout": "row_major", "role": "input"},
+      {"name": "route_scale_workspace_f32", "shape": [23360, 4], "dtype": "fp32", "layout": "padded_sorted_token_block128", "role": "temporary"},
+      {"name": "partials_f16", "shape": [2, 7277, 2048], "dtype": "fp16", "layout": "splitk2_route_major_topk9", "role": "temporary"},
+      {"name": "output_bf16", "shape": [768, 2048], "dtype": "bf16", "layout": "row_major", "role": "output"}
+    ],
+    "operations": [
+      {
+        "name": "moe.prefill.fused_splitk2.r768",
+        "kind": "fixed_kernel",
+        "inputs": ["hidden_fp8", "hidden_scale_f32", "w13_fp8", "w13_scale_f32", "w2_fp8", "w2_scale_f32", "sorted_token_ids_i32", "sorted_weights_f32", "sorted_expert_ids_i32", "num_valid_ids_i32"],
+        "outputs": ["partials_f16", "route_scale_workspace_f32"],
+        "attributes": {
+          "family": "moe.fp8_block128.fused_splitk2",
+          "operation": "moe_prefill_fused_splitk2",
+          "constants": {"NETRA_ROWS": 768, "NETRA_HIDDEN_SIZE": 2048, "NETRA_INTERMEDIATE_SIZE": 512, "NETRA_EXPERTS": 257, "NETRA_TOPK": 9, "NETRA_ROUTE_BLOCK": 64, "NETRA_SCALE_BLOCK": 128, "NETRA_SPLIT_K": 2, "NETRA_WEIGHT_LAYOUT_ID": 1},
+          "semantics": {"abi": "moe.prefill_fused_splitk2.ptr11_u32_ptr_u32.v1", "dtypes": "fp8e4m3_f32scale_weights_to_f16_split_partials.v1", "quantization": "fp8e4m3_block128x128_dynamic_route_scale.v1", "layouts": "aiter_sorted_m64_expert_n16k16_splitk2.v1", "numerical": "w13_fp32_silu_bf16_fp8_w2_fp32_to_f16_fixed.v1"},
+          "launch_grid": [2, 365, 1],
+          "graph_capture": true,
+          "deterministic": true,
+          "fallback": "framework.moe_prefill",
+          "profile_names": ["verify_m12_b64_routes768"],
+          "binding_scope": "per_layer_weight_and_capture_state",
+          "arguments": [
+            {"name": "hidden_fp8", "kind": "pointer", "access": "read", "offset": 0, "source": "binding", "tensor": "hidden_fp8"},
+            {"name": "hidden_scale_f32", "kind": "pointer", "access": "read", "offset": 8, "source": "binding", "tensor": "hidden_scale_f32"},
+            {"name": "w13_fp8", "kind": "pointer", "access": "read", "offset": 16, "source": "binding", "tensor": "w13_fp8"},
+            {"name": "w13_scale_f32", "kind": "pointer", "access": "read", "offset": 24, "source": "binding", "tensor": "w13_scale_f32"},
+            {"name": "w2_fp8", "kind": "pointer", "access": "read", "offset": 32, "source": "binding", "tensor": "w2_fp8"},
+            {"name": "w2_scale_f32", "kind": "pointer", "access": "read", "offset": 40, "source": "binding", "tensor": "w2_scale_f32"},
+            {"name": "sorted_token_ids_i32", "kind": "pointer", "access": "read", "offset": 48, "source": "binding", "tensor": "sorted_token_ids_i32"},
+            {"name": "sorted_weights_f32", "kind": "pointer", "access": "read", "offset": 56, "source": "binding", "tensor": "sorted_weights_f32"},
+            {"name": "sorted_expert_ids_i32", "kind": "pointer", "access": "read", "offset": 64, "source": "binding", "tensor": "sorted_expert_ids_i32"},
+            {"name": "num_valid_ids_i32", "kind": "pointer", "access": "read", "offset": 72, "source": "binding", "tensor": "num_valid_ids_i32"},
+            {"name": "partials_f16", "kind": "pointer", "access": "write", "offset": 80, "source": "binding", "tensor": "partials_f16"},
+            {"name": "rows", "kind": "u32_constant", "access": "value", "offset": 88, "value": 768},
+            {"name": "route_scale_workspace_f32", "kind": "pointer", "access": "read_write", "offset": 96, "source": "binding", "tensor": "route_scale_workspace_f32"},
+            {"name": "workspace_stride_blocks", "kind": "u32_constant", "access": "value", "offset": 104, "value": 365}
+          ]
+        },
+        "numerical": {"reduction_order": "splitk2_fixed", "intermediate_rounding": "rne_bf16_then_fp8_then_fp16"}
+      },
+      {
+        "name": "moe.prefill.route_reduce.r768",
+        "kind": "fixed_kernel",
+        "inputs": ["partials_f16", "topk_weights_f32"],
+        "outputs": ["output_bf16"],
+        "attributes": {
+          "family": "moe.fixed_order_route_reduce",
+          "operation": "moe_prefill_route_reduce",
+          "constants": {"NETRA_ROWS": 768, "NETRA_HIDDEN_SIZE": 2048, "NETRA_TOPK": 9, "NETRA_SPLIT_K": 2},
+          "semantics": {"abi": "moe.route_reduce.ptr4.v1", "dtypes": "f16_split_partials_f32_weights_to_bf16.v1", "quantization": "none.v1", "layouts": "route_major_topk9_hidden2048_splitk2.v1", "numerical": "sum_halves_then_weight_topk_slot_ascending_fp32_rne_bf16.v1"},
+          "launch_grid": [16, 768, 1],
+          "graph_capture": true,
+          "deterministic": true,
+          "fallback": "framework.moe_route_reduce",
+          "profile_names": ["verify_m12_b64_routes768"],
+          "binding_scope": "per_layer_weight_and_capture_state",
+          "arguments": [
+            {"name": "partials0_f16", "kind": "pointer", "access": "read", "offset": 0, "source": "binding", "tensor": "partials_f16"},
+            {"name": "topk_weights_f32", "kind": "pointer", "access": "read", "offset": 8, "source": "binding", "tensor": "topk_weights_f32"},
+            {"name": "output_bf16", "kind": "pointer", "access": "write", "offset": 16, "source": "binding", "tensor": "output_bf16"},
+            {"name": "partials1_f16", "kind": "pointer", "access": "read", "offset": 24, "source": "binding", "tensor": "partials_f16"}
+          ]
+        },
+        "numerical": {"reduction_order": "split_halves_then_topk_slots_ascending", "output_rounding": "rne_bf16"}
+      }
+    ],
+    "inputs": ["hidden_fp8", "hidden_scale_f32", "sorted_token_ids_i32", "sorted_weights_f32", "sorted_expert_ids_i32", "num_valid_ids_i32", "topk_weights_f32"],
+    "outputs": ["output_bf16"],
+    "state": []
+  }
+}

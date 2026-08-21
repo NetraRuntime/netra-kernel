@@ -1,0 +1,13 @@
+{
+  "format": "netra-profile-1",
+  "name": "verify_m12_b64_routes768",
+  "guards": {
+    "m": {"min": 12, "max": 12},
+    "batch": {"min": 64, "max": 64},
+    "route_rows": {"min": 768, "max": 768},
+    "sequence": {"min": 0, "max": 1048576}
+  },
+  "quantization": "fp8_block128",
+  "tensor_parallel": "deployment",
+  "priority": 40
+}

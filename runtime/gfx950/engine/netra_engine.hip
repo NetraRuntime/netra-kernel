@@ -351,7 +351,7 @@ extern "C" netra_status_t netra_engine_create(
             throw std::runtime_error("selected kernel requires typed arguments");
           op.argument_count=static_cast<uint32_t>(arguments.array.size());
           if (op.argument_count > op.argument_values.size())
-            throw std::runtime_error("more than sixteen kernel arguments");
+            throw std::runtime_error("more than 32 kernel arguments");
           for (uint32_t i=0;i<op.argument_count;++i) {
             const Json& argument=arguments.array[i];
             const std::string& kind=text(argument.at("kind"),"argument.kind");

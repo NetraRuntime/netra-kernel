@@ -1,0 +1,544 @@
+{
+  "format": "netra-fixed-tactic-catalog-1",
+  "catalog_version": 1,
+  "target": "gfx950",
+  "wave_size": 64,
+  "default_rank": 150,
+  "default_evidence_set": "gfx950_hv48_verified_20260818",
+  "evidence_sets": {
+    "gfx950_hv48_verified_20260818": {
+      "lock_name": "deterministic-hv48.json",
+      "lock_sha256": "3b5088eea606918a1855fe0afb1fcca1e8a02088b08bdd4d61dfedf54710ff52",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260818-dflash12-gdnhv48-attnm16-tuned-gpu7"
+    },
+    "gfx950_qkvz_t8_verified_20260820": {
+      "lock_name": "oracle-summary.json",
+      "lock_sha256": "d69642f4b46b7345543dd3c58ac94f0e7cf9df66bc21b4bbfee6d325861662e0",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-upstream-qkvz-t8"
+    },
+    "gfx950_hv48_bf16_state_candidate_20260820": {
+      "lock_name": "serving-bf16-only-five-fresh-r1/summary.json",
+      "lock_sha256": "5c102f23f1b2f15f7899b1e91216d8ba1322d133afccf46935ae352b5a6c94fe",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-bf16state"
+    }
+  },
+  "policy": {
+    "templates_are_byte_exact_golden_sources": false,
+    "instances_generated_into_build_only": true,
+    "runtime_specialization": false,
+    "unused_raw_assembly_removed": true,
+    "maturity_change": "requires_hardware_and_serving_gates",
+    "golden_source_revisions_pinned": false,
+    "model_names_in_computational_identity": false,
+    "specialization_time": "assembler"
+  },
+  "tactics": [
+    {
+      "id": "gdn_verify_precompute_m12_qk_hv48",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
+      "operation": "gdn_verify_precompute",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/verify/precompute.inc",
+      "symbols": [
+        "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_QK_ONLY": 1,
+        "NETRA_GDN_PRECOMPUTE_VARIANT": 8,
+        "NETRA_TOKENS": [
+          8,
+          12
+        ]
+      },
+      "rank": 150,
+      "kernarg_size": 96,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "gdn.verify_precompute.ptr10_u32x4.v1",
+        "dtypes": "bf16_qk_to_fp32_normalized_qk_only.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_token_head_qk128_hv48.v1",
+        "numerical": "gdn_norm_fp32_fixed_qk_only.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify_precompute",
+      "locked_hsaco_sha256": [
+        "06ec9fcf7cdba0bf481f2f0f821a458a58c64adc99553bb805004618c95db65f"
+      ],
+      "instantiation_macro": "NETRA_GDN_VERIFY_PRECOMPUTE",
+      "template_sha256": "3689888e21a6797346692d204c6d0c18625874c5596c8829cc8030f75776e81b",
+      "source_closure_sha256": "9c9ce9a399f04e6dc0a9c46acf4d830ddc84b296292d3a54db71c10e1778a085",
+      "family": "gdn.verify_precompute"
+    },
+    {
+      "id": "gdn_verify_core_m12_bv16_hv48_k0",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
+      "operation": "gdn_verify",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
+      "symbols": [
+        "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_INITIAL_STATE_FP32": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+        "NETRA_TOKENS": [
+          8,
+          12
+        ]
+      },
+      "rank": 150,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.recurrent_verify.ptr10_u32x2.v1",
+        "dtypes": "fp32_qk_gates_fp32_state_bf16_value_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_k0_state.v1",
+        "numerical": "gdn_recurrence_variant13_fixed.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify",
+      "locked_hsaco_sha256": [
+        "da370e1674edf1c5ea0793bfbbaf62348323e012112444daad9358c056df05bc"
+      ],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_verify_precompute_m12_hv48_gates",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
+      "operation": "gdn_verify_precompute",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/verify/precompute.inc",
+      "symbols": [
+        "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_QK_ONLY": 0,
+        "NETRA_GDN_PRECOMPUTE_VARIANT": 7,
+        "NETRA_TOKENS": [
+          8,
+          12
+        ]
+      },
+      "rank": 140,
+      "kernarg_size": 96,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "gdn.verify_precompute.ptr10_u32x4.v1",
+        "dtypes": "bf16_gates_qk_to_fp32_normalized.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_token_head_qk128_hv48.v1",
+        "numerical": "gdn_norm_decay_beta_fp32_fixed_hv48.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify_precompute",
+      "locked_hsaco_sha256": [
+        "6ae434c8b5b345578fa3b38178c3070c2be6a505816af877149b7382c051c508"
+      ],
+      "instantiation_macro": "NETRA_GDN_VERIFY_PRECOMPUTE",
+      "template_sha256": "3689888e21a6797346692d204c6d0c18625874c5596c8829cc8030f75776e81b",
+      "source_closure_sha256": "9c9ce9a399f04e6dc0a9c46acf4d830ddc84b296292d3a54db71c10e1778a085",
+      "family": "gdn.verify_precompute"
+    },
+    {
+      "id": "gdn_state_replay_m12_bv16_hv48_fp32",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
+      "operation": "gdn_state_replay",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_exact_contract",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
+      "symbols": [
+        "qwen36_27b_gdn_state_replay_m12_fp32_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_INITIAL_STATE_FP32": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_STATE_REPLAY": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+        "NETRA_TOKENS": [
+          8,
+          12
+        ]
+      },
+      "rank": 150,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.state_replay.ptr10_u32x2.v1",
+        "dtypes": "fp32_k_gates_fp32_state_bf16_value_to_fp32_state.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_fp32_state_replay.v1",
+        "numerical": "gdn_recurrence_variant13_fixed.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_state_replay",
+      "locked_hsaco_sha256": [
+        "e114878b3b52c042880310e3e7450ec27aa747a885b0077f37be6b5525f62e40"
+      ],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_verify_core_t8_bv16_hv48_k0_bf16_state",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
+      "operation": "gdn_verify",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_and_five_process_serving",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
+      "symbols": [
+        "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 140,
+      "kernarg_size": 88,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "gdn.recurrent_verify.ptr10_u32x2.v1",
+        "dtypes": "fp32_qk_gates_bf16_state_bf16_value_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_k0_bf16_state.v1",
+        "numerical": "gdn_recurrence_variant13_bf16_input_fixed.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify",
+      "locked_hsaco_sha256": [
+        "1bb7c660e3579115b0364831c4bf97d206237caa6f59e8db416910ae13ed8ed1"
+      ],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_state_replay_t8_bv16_hv48_bf16_state",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
+      "operation": "gdn_state_replay",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_and_five_process_serving",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
+      "symbols": [
+        "netra_gdn_state_replay_t8_bv16_hv48_bf16_state_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_STATE_REPLAY": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 140,
+      "kernarg_size": 88,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "gdn.state_replay.ptr10_u32x2.v1",
+        "dtypes": "fp32_k_gates_bf16_state_bf16_value_to_bf16_state.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_bf16_state_replay.v1",
+        "numerical": "gdn_recurrence_variant13_terminal_bf16_fixed.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_state_replay",
+      "locked_hsaco_sha256": [
+        "c695b47a2765b8b1955c1090459df070c9cf1eb7adf1480a5a67870c7b99a862"
+      ],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_verify_core_t8_bv16_hv48_k0_bf16_state_waves4",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
+      "operation": "gdn_verify",
+      "maturity": "experiment",
+      "acceptance_scope": "unmeasured_wavegroup_schedule",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
+      "symbols": [
+        "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_waves4_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 4,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 200,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.recurrent_verify.ptr10_u32x2.v1",
+        "dtypes": "fp32_qk_gates_bf16_state_bf16_value_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_k0_bf16_state.v1",
+        "numerical": "gdn_recurrence_variant13_bf16_input_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify",
+      "locked_hsaco_sha256": [],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_verify_core_t8_bv16_hv48_k0_bf16_state_waves8",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
+      "operation": "gdn_verify",
+      "maturity": "experiment",
+      "acceptance_scope": "unmeasured_wavegroup_schedule",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
+      "symbols": [
+        "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_waves8_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 8,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 210,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.recurrent_verify.ptr10_u32x2.v1",
+        "dtypes": "fp32_qk_gates_bf16_state_bf16_value_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_k0_bf16_state.v1",
+        "numerical": "gdn_recurrence_variant13_bf16_input_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_verify",
+      "locked_hsaco_sha256": [],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_state_replay_t8_bv16_hv48_bf16_state_waves4",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
+      "operation": "gdn_state_replay",
+      "maturity": "experiment",
+      "acceptance_scope": "unmeasured_wavegroup_schedule",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
+      "symbols": [
+        "netra_gdn_state_replay_t8_bv16_hv48_bf16_state_waves4_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_STATE_REPLAY": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 4,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 200,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.state_replay.ptr10_u32x2.v1",
+        "dtypes": "fp32_k_gates_bf16_state_bf16_value_to_bf16_state.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_bf16_state_replay.v1",
+        "numerical": "gdn_recurrence_variant13_terminal_bf16_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_state_replay",
+      "locked_hsaco_sha256": [],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_state_replay_t8_bv16_hv48_bf16_state_waves8",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
+      "operation": "gdn_state_replay",
+      "maturity": "experiment",
+      "acceptance_scope": "unmeasured_wavegroup_schedule",
+      "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
+      "symbols": [
+        "netra_gdn_state_replay_t8_bv16_hv48_bf16_state_waves8_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_CORE_VARIANT": 13,
+        "NETRA_GDN_INITIAL_STATE_FP32": 0,
+        "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+        "NETRA_GDN_SHARE_QK": 1,
+        "NETRA_GDN_STATE_REPLAY": 1,
+        "NETRA_GDN_WAVES_PER_WORKGROUP": 8,
+        "NETRA_TOKENS": 8
+      },
+      "rank": 210,
+      "kernarg_size": 88,
+      "launch_block": {
+        "constant": "NETRA_GDN_WAVES_PER_WORKGROUP",
+        "multiplier": 64
+      },
+      "semantics": {
+        "abi": "gdn.state_replay.ptr10_u32x2.v1",
+        "dtypes": "fp32_k_gates_bf16_state_bf16_value_to_bf16_state.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_bv16_hv48_bf16_state_replay.v1",
+        "numerical": "gdn_recurrence_variant13_terminal_bf16_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_state_replay",
+      "locked_hsaco_sha256": [],
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
+      "family": "gdn.recurrent_bv16"
+    },
+    {
+      "id": "gdn_qkvz_conv_t8_d10240",
+      "contract_constants": {
+        "NETRA_K": 2048,
+        "NETRA_N": 16384,
+        "NETRA_TOKENS": 8
+      },
+      "operation": "gdn_qkvz_conv",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_serving_rejected",
+      "evidence_set": "gfx950_qkvz_t8_verified_20260820",
+      "template": "kernels/gfx950/templates/gdn/verify/qkvz_causal_conv.inc",
+      "symbols": [
+        "netra_gdn_qkvz_conv_t8_d10240_gfx950"
+      ],
+      "compile_definitions": {
+        "NETRA_GDN_QKVZ_GRID_2D": 1
+      },
+      "rank": 140,
+      "kernarg_size": 64,
+      "launch_block": 256,
+      "semantics": {
+        "abi": "gdn.causal_conv.ptr7_u32.grid2d.v1",
+        "dtypes": "bf16_qkvz_weight_state_to_bf16.v1",
+        "quantization": "none.v1",
+        "layouts": "gdn_qkvz_depthwise_conv4.t8_d10240.v1",
+        "numerical": "causal_conv_bf16_inputs_fp32_fixed.v1"
+      },
+      "workspace": {
+        "bytes": 0,
+        "alignment": 256
+      },
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gdn_qkvz_conv",
+      "locked_hsaco_sha256": [
+        "1bfd6e5df75f32dbf309b262e13a425323d3b7fecdd7585d7a4d029d2bc74ba3"
+      ],
+      "instantiation_macro": "NETRA_GDN_QKVZ_CAUSAL_CONV",
+      "template_sha256": "f00ae305ee34386de392aa5018c2c73a4aaaef86362f9cd7186ccf93780f8d44",
+      "source_closure_sha256": "756d157f29e56d2d117610bd85959322c84b722f46cbf135dc92fb79f18bea11",
+      "family": "gdn.causal_conv"
+    }
+  ]
+}

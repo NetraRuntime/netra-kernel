@@ -285,6 +285,98 @@ class KernelContract:
 
 
 @dataclass(frozen=True)
+class FallbackKernelContract:
+    """Model-independent requested dense contract with no selected GPU tactic.
+
+    A framework fallback still needs a stable computational identity so repeated
+    layer bindings can deduplicate and mismatched models cannot be described as
+    sharing a kernel.  It intentionally has no launch, workspace, symbol, or
+    schedule because those properties belong to the framework implementation,
+    not to a selected Netra tactic.
+    """
+
+    target: str
+    wave_size: int
+    operation: str
+    m: int
+    n: int
+    k: int
+    input_dtype: DType
+    weight_dtype: DType
+    output_dtype: DType
+    activation_quantization: str
+    weight_quantization: str
+    activation_scale_block: int
+    weight_scale_block: tuple[int, int]
+    activation_layout: str
+    weight_layout: str
+    output_layout: str
+    epilogue: Epilogue
+    graph_capture: bool
+    deterministic: bool
+    fallback: str
+    activation_scale_layout: str | None = None
+    weight_scale_layout: str | None = None
+    numerical: NumericalContract = field(default_factory=NumericalContract)
+
+    def identity_dict(self) -> dict[str, Any]:
+        result = {
+            "target": self.target,
+            "wave_size": self.wave_size,
+            "operation": self.operation,
+            "shape": [self.m, self.n, self.k],
+            "dtypes": [
+                self.input_dtype.value,
+                self.weight_dtype.value,
+                self.numerical.accumulation_dtype.value,
+                self.output_dtype.value,
+            ],
+            "quantization": {
+                "activation": self.activation_quantization,
+                "weight": self.weight_quantization,
+                "activation_scale_block": self.activation_scale_block,
+                "weight_scale_block": list(self.weight_scale_block),
+            },
+            "layouts": [
+                self.activation_layout,
+                self.weight_layout,
+                self.output_layout,
+            ],
+            "epilogue": self.epilogue.value,
+            "graph_capture": self.graph_capture,
+            "deterministic": self.deterministic,
+            "numerical": {
+                "accumulation_dtype": self.numerical.accumulation_dtype.value,
+                "output_rounding": self.numerical.output_rounding,
+                "reduction_order": self.numerical.reduction_order,
+                "nan_behavior": self.numerical.nan_behavior,
+                "deterministic": self.numerical.deterministic,
+            },
+        }
+        scale_layouts = {}
+        if self.activation_scale_layout is not None:
+            scale_layouts["activation"] = self.activation_scale_layout
+        if self.weight_scale_layout is not None:
+            scale_layouts["weight"] = self.weight_scale_layout
+        if scale_layouts:
+            result["scale_layouts"] = scale_layouts
+        return result
+
+    @property
+    def stable_id(self) -> str:
+        return "nkf_" + stable_hash(self.identity_dict())[:24]
+
+    def to_dict(self) -> dict[str, Any]:
+        result = self.identity_dict()
+        result.update({
+            "id": self.stable_id,
+            "artifact_kind": "framework_fallback",
+            "fallback": self.fallback,
+        })
+        return result
+
+
+@dataclass(frozen=True)
 class KernelArgument:
     """One fixed code-object kernarg entry.
 

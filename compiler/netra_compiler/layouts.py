@@ -31,14 +31,40 @@ class LayoutBinding:
     kernel_layout: str
     output_layout: str | None
     steps: tuple[RepackStep, ...]
+    checkpoint_tensors: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             "tensor": self.tensor,
             "checkpoint_layout": self.checkpoint_layout,
             "kernel_layout": self.kernel_layout,
             "output_layout": self.output_layout,
             "steps": [s.to_dict() for s in self.steps],
+        }
+        if self.checkpoint_tensors:
+            result["checkpoint_tensors"] = list(self.checkpoint_tensors)
+        return result
+
+
+@dataclass(frozen=True)
+class ScaleBinding:
+    tensor: str
+    checkpoint_tensors: tuple[str, ...]
+    checkpoint_dtype: str
+    kernel_dtype: str
+    block: tuple[int, int]
+    steps: tuple[str, ...]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "tensor": self.tensor,
+            "checkpoint_tensors": list(self.checkpoint_tensors),
+            "checkpoint_dtype": self.checkpoint_dtype,
+            "kernel_dtype": self.kernel_dtype,
+            "block": list(self.block),
+            "checkpoint_layout": "row_major_block_grid",
+            "kernel_layout": "row_major_block_grid",
+            "steps": list(self.steps),
         }
 
 
@@ -76,14 +102,53 @@ _LAYOUT_TRANSFORMS = {
     )
 }
 
+_SPLIT_PACKED_LAYOUT = "checkpoint_split_output_row_major_fp8_block128"
+_SHUFFLED_LAYOUT = "aiter_shuffle_16x16_fp8_block128"
+
 
 def plan_weight_layout(
-    tensor: str, checkpoint_layout: str, kernel_layout: str
+    tensor: str,
+    checkpoint_layout: str,
+    kernel_layout: str,
+    *,
+    checkpoint_tensors: tuple[str, ...] = (),
 ) -> LayoutBinding:
     """Select one explicit layout transform; never assume a universal shuffle."""
 
     if checkpoint_layout == kernel_layout:
-        return LayoutBinding(tensor, checkpoint_layout, kernel_layout, None, ())
+        return LayoutBinding(
+            tensor,
+            checkpoint_layout,
+            kernel_layout,
+            None,
+            (),
+            checkpoint_tensors,
+        )
+    if checkpoint_layout == _SPLIT_PACKED_LAYOUT and kernel_layout == _SHUFFLED_LAYOUT:
+        if len(checkpoint_tensors) < 2:
+            raise ValidationError(
+                "split-output checkpoint layout requires at least two source tensors"
+            )
+        steps = (
+            RepackStep(
+                _SPLIT_PACKED_LAYOUT,
+                "checkpoint_row_major_fp8_block128",
+                "concatenate_output_shards",
+                (("axis", 0), ("shards", len(checkpoint_tensors))),
+                "real_checkpoint_recipe_unvalidated",
+            ),
+            _LAYOUT_TRANSFORMS[
+                ("checkpoint_row_major_fp8_block128", _SHUFFLED_LAYOUT)
+            ].make_step(),
+        )
+        return LayoutBinding(
+            tensor,
+            checkpoint_layout,
+            kernel_layout,
+            None,
+            steps,
+            checkpoint_tensors,
+        )
     transform = _LAYOUT_TRANSFORMS.get((checkpoint_layout, kernel_layout))
     if transform is None:
         raise ValidationError(
@@ -95,6 +160,7 @@ def plan_weight_layout(
         kernel_layout,
         None,
         (transform.make_step(),),
+        checkpoint_tensors,
     )
 
 
@@ -103,6 +169,40 @@ def qwen_fp8_weight_plan(tensor: str, checkpoint_layout: str) -> LayoutBinding:
 
     return plan_weight_layout(
         tensor, checkpoint_layout, "aiter_shuffle_16x16_fp8_block128"
+    )
+
+
+def plan_scale_layout(
+    tensor: str,
+    checkpoint_tensors: tuple[str, ...],
+    *,
+    checkpoint_dtype: str,
+    kernel_dtype: str,
+    block: tuple[int, int],
+) -> ScaleBinding:
+    if not checkpoint_tensors:
+        raise ValidationError("scale layout requires checkpoint source tensors")
+    if len(block) != 2 or min(block) <= 0:
+        raise ValidationError("scale layout requires a positive two-dimensional block")
+    if checkpoint_dtype not in {"bf16", "fp32"} or kernel_dtype not in {
+        "bf16",
+        "fp32",
+    }:
+        raise ValidationError("unsupported checkpoint or kernel scale dtype")
+    steps: list[str] = []
+    if len(checkpoint_tensors) > 1:
+        steps.append("concatenate_output_scale_shards_axis0")
+    if checkpoint_dtype != kernel_dtype:
+        if (checkpoint_dtype, kernel_dtype) != ("bf16", "fp32"):
+            raise ValidationError("unsupported scale dtype transform")
+        steps.append("widen_bf16_to_fp32_exact")
+    return ScaleBinding(
+        tensor,
+        checkpoint_tensors,
+        checkpoint_dtype,
+        kernel_dtype,
+        block,
+        tuple(steps),
     )
 
 

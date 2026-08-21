@@ -210,35 +210,12 @@ def gfx950_registry() -> tuple[Tactic, ...]:
         DType.BF16, 128, (128, 128), "row_major_fp8_block128",
         "aiter_shuffle_16x16_fp8_block128", "row_major_bf16", (Epilogue.IDENTITY,),
     )
-    note = "docs/notes/gfx950-qwen36-fp8-kernels.md#rejected-dense-m1-output-projection-variants"
     return (
         Tactic(
             "gfx950.aiter_blockscale_dense_m1.compat", predicate, Maturity.ACCEPTED,
             "framework_external", None, None, Launch((1, 1, 1), (1, 1, 1)), Workspace(),
             True, True, 1000,
             evidence_refs=("deployed Netra SGLang AITER path; retained as compatibility baseline",),
-        ),
-        Tactic(
-            "gfx950.raw_dense_m1_one_wave", predicate, Maturity.REJECTED, "raw_assembly",
-            "kernels/gfx950/fp8/dense/decode/experiments/qwen36_dense_m1_n2048_k4096_fp8_mfma_gfx950.s",
-            "qwen36_dense_m1_n2048_k4096_fp8_mfma_gfx950",
-            Launch((128, 1, 1), (64, 1, 1)), Workspace(), True, True, 100,
-            (("waves_per_workgroup", 1),), (note,),
-            "BF16/graph exact, but matched serving wall/generation regressed 4.51%/4.73%.",
-            "kernels/gfx950/templates/dense/dense_fp8_m1_one_wave.inc",
-            source_revision="052c539e0794aedb71761bbffe816930817ac5b3",
-            source_sha256="fe28071a0394a0dab89cb591343e75aecec6855cd6a9d67a459689bbfc97e880",
-        ),
-        Tactic(
-            "gfx950.raw_dense_m1_four_wave_lds", predicate, Maturity.REJECTED, "raw_assembly",
-            "kernels/gfx950/fp8/dense/decode/experiments/qwen36_dense_m1_n2048_k4096_fp8_mfma_4wave_lds_gfx950.s",
-            "qwen36_dense_m1_n2048_k4096_fp8_mfma_4wave_lds_gfx950",
-            Launch((32, 1, 1), (256, 1, 1), 128), Workspace(), True, True, 90,
-            (("waves_per_workgroup", 4),), (note,),
-            "BF16/graph exact, but matched serving wall/generation regressed 10.02%/10.63%.",
-            "kernels/gfx950/templates/dense/dense_fp8_m1_four_wave_lds.inc",
-            source_revision="052c539e0794aedb71761bbffe816930817ac5b3",
-            source_sha256="cc0b32daf4a9f856ef41bb4d73fee3d8a6c365ecc3671783bbac42efb9060f35",
         ),
     )
 

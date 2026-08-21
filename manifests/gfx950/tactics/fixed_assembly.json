@@ -10,6 +10,21 @@
       "lock_name": "CURRENT_BEST.json",
       "lock_sha256": "2823d64410ba4a87223ede5429c90677cc76aea628244dd3c4a1c810af76557a",
       "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260817T042500Z-generic-deterministic-promote-dp8"
+    },
+    "gfx950_gqa6_fp8kv_m8_verified_20260820": {
+      "lock_name": "validation.json",
+      "lock_sha256": "0354b245a2e4b999071ced7a6e107527bcd3ac9c28d0b2e249dfeab25f63c047",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-attn-tune/gqa6-fixed-template-validation-r2"
+    },
+    "gfx950_group_quant_assembly_verified_20260820": {
+      "lock_name": "validation.json",
+      "lock_sha256": "15751a2fa72a3219cc283bec7ce486cec75cdd61931b833c123b251a4cd063cb",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-group-quant-assembly/fixed-template-validation-r1"
+    },
+    "gfx950_group_quant_bf16_weight_verified_20260821": {
+      "lock_name": "validation.json",
+      "lock_sha256": "0059b4b1e88fa57d1791356ae6bf5bed79c7c5ac19f70a9a2dcc8d0174ccc762",
+      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260821-bf16-norm-r16/operator-validation"
     }
   },
   "policy": {
@@ -174,6 +189,11 @@
       "compile_definitions": {},
       "kernarg_size": 96,
       "launch_block": 256,
+      "metadata_contract": {
+        "group_segment_fixed_size": 0,
+        "kernarg_segment_size": 96,
+        "max_flat_workgroup_size": 256
+      },
       "semantics": {
         "abi": "attention.gqa4_fp8kv.ptr9_u32_ptr2.v1",
         "dtypes": "bf16_query_fp8e4m3_kv_bf16_tail_to_bf16.v1",
@@ -189,8 +209,8 @@
         "494a9daafdb059b64bf6e95c857c74fdb365bde788af38b45152fbe61fd4e361"
       ],
       "instantiation_macro": "NETRA_ATTENTION_GQA4_FP8KV",
-      "template_sha256": "9b63093cc8240dcc2712af5fe8546bdeb8f517f76922fb61603ebb3c15576dcc",
-      "source_closure_sha256": "fbecde87f16f385ee821d3ef39e1c8c22ec8f5098fd3ad706853d1ea739c420e",
+      "template_sha256": "fa696ff1db9f3fe5d30196939175b15c4121ff4d755ffda239885375643b889f",
+      "source_closure_sha256": "1ecac2c1e0812ce143c4796a76cd68ecd158dd8078913ccd21d0810b79f5585e",
       "family": "attention.gqa_fp8kv"
     },
     {
@@ -214,6 +234,11 @@
       },
       "kernarg_size": 96,
       "launch_block": 512,
+      "metadata_contract": {
+        "group_segment_fixed_size": 0,
+        "kernarg_segment_size": 96,
+        "max_flat_workgroup_size": 512
+      },
       "semantics": {
         "abi": "attention.gqa8_fp8kv.ptr9_u32x2_ptr2.v1",
         "dtypes": "bf16_query_fp8e4m3_kv_bf16_tail_to_bf16.v1",
@@ -229,9 +254,174 @@
         "cb482ce544c27dd4449320c7fe64d3024a75643bdfa1658cefa2e576f4d7bfe6"
       ],
       "instantiation_macro": "NETRA_ATTENTION_GQA8_FP8KV",
-      "template_sha256": "c06c3401b0e619602771d10a8c61d7a363a0e19eb1f101afc13795a7384ace80",
-      "source_closure_sha256": "9e22f2846a1c4e5b6c4448c80095fc98a550d6e7ac6f4b4a839f13ad54ddc245",
+      "template_sha256": "b7143d4c4e9af35c81786ae237eeceef6e47e2d3a1d86fb2c658f0ec30c32a31",
+      "source_closure_sha256": "e3cc8d2f199b381c514e6e18e7e0d7857c299a9631989122130d7712f4d692e1",
       "family": "attention.gqa_fp8kv"
+    },
+    {
+      "id": "attention_gqa6_fp8kv_m8_qo32_kv32",
+      "operation": "attention_extend",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_five_process_serving_inconclusive",
+      "evidence_set": "gfx950_gqa6_fp8kv_m8_verified_20260820",
+      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8.inc",
+      "golden_source": "kernels/gfx950/attention/verify/attention_gqa6_fp8kv_m8_qo32_kv32_gfx950.s",
+      "source_revision": "a5c909ce027f4ee5cc5a7fb5d12a18e55ff85805",
+      "source_sha256": "6fd3fc6171d6fa40f1145d084918cefbe818adc3d3c9786a7777f9ee322be711",
+      "symbols": [
+        "netra_attention_gqa6_fp8kv_m8_qo32_kv32_gfx950"
+      ],
+      "contract_constants": {
+        "NETRA_HEAD_DIM": 256,
+        "NETRA_KV_HEADS": 4,
+        "NETRA_KV_INDEX_BITS": 32,
+        "NETRA_KV_LAYOUT_ID": 1,
+        "NETRA_M_MAX": 8,
+        "NETRA_QUERY_HEADS": 24,
+        "NETRA_QO_INDPTR_BITS": 32,
+        "NETRA_VALUE_TOKEN_STRIDE": 14336
+      },
+      "compile_definitions": {},
+      "kernarg_size": 96,
+      "launch_block": 64,
+      "metadata_contract": {
+        "group_segment_fixed_size": 32768,
+        "kernarg_segment_size": 96,
+        "max_flat_workgroup_size": 64
+      },
+      "semantics": {
+        "abi": "attention.gqa6_fp8kv.ptr9_qo32_kv32_f32_ptr2.v1",
+        "dtypes": "bf16_query_tail_fp8e4m3_kv_to_bf16.v1",
+        "quantization": "native_fp8e4m3_kv_unit_per_tensor_scale.v1",
+        "layouts": "paged_kv_gqa6_head256_value_stride14336.v1",
+        "numerical": "causal_m8_online_softmax_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_extend",
+      "rank": 130,
+      "locked_hsaco_sha256": [
+        "0c0bba3bc643417c12b4e9c55cb274d797d6bca847df7db9b03a19081cf21a9f"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_M8",
+      "template_sha256": "44154ced165ad7219f203be75d1f291d5f0847f7acf82e3255240e0b538b8d64",
+      "source_closure_sha256": "e8864078265a83141e4c0c1483fb03db161f87740326d005846ad7bb4d08c62e",
+      "family": "attention.gqa_fp8kv",
+      "serving_evidence": {
+        "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/gqa6-fp8kv-c192-five-fresh-r1/summary.json",
+        "sha256": "fa63f71bf540aa3885f5a6d83f5540cc7dd59b07dff96f398a18066bd593b288"
+      }
+    },
+    {
+      "id": "attention_gqa6_fp8kv_m8_qo32_kv64",
+      "operation": "attention_extend",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_five_process_serving_inconclusive",
+      "evidence_set": "gfx950_gqa6_fp8kv_m8_verified_20260820",
+      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8.inc",
+      "golden_source": "kernels/gfx950/attention/verify/attention_gqa6_fp8kv_m8_qo32_kv64_gfx950.s",
+      "source_revision": "a5c909ce027f4ee5cc5a7fb5d12a18e55ff85805",
+      "source_sha256": "4b1f077d5425d828877ccbb60fdb4adb56a317bf01305e2ff410dde213ed10c3",
+      "symbols": [
+        "netra_attention_gqa6_fp8kv_m8_qo32_kv64_gfx950"
+      ],
+      "contract_constants": {
+        "NETRA_HEAD_DIM": 256,
+        "NETRA_KV_HEADS": 4,
+        "NETRA_KV_INDEX_BITS": 64,
+        "NETRA_KV_LAYOUT_ID": 1,
+        "NETRA_M_MAX": 8,
+        "NETRA_QUERY_HEADS": 24,
+        "NETRA_QO_INDPTR_BITS": 32,
+        "NETRA_VALUE_TOKEN_STRIDE": 14336
+      },
+      "compile_definitions": {},
+      "kernarg_size": 96,
+      "launch_block": 64,
+      "metadata_contract": {
+        "group_segment_fixed_size": 32768,
+        "kernarg_segment_size": 96,
+        "max_flat_workgroup_size": 64
+      },
+      "semantics": {
+        "abi": "attention.gqa6_fp8kv.ptr9_qo32_kv64_f32_ptr2.v1",
+        "dtypes": "bf16_query_tail_fp8e4m3_kv_to_bf16.v1",
+        "quantization": "native_fp8e4m3_kv_unit_per_tensor_scale.v1",
+        "layouts": "paged_kv_gqa6_head256_value_stride14336.v1",
+        "numerical": "causal_m8_online_softmax_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_extend",
+      "rank": 131,
+      "locked_hsaco_sha256": [
+        "6718afd90222744dbffff3555c5046777c352cee7b60bf3286a49454367d80a1"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_M8",
+      "template_sha256": "44154ced165ad7219f203be75d1f291d5f0847f7acf82e3255240e0b538b8d64",
+      "source_closure_sha256": "e8864078265a83141e4c0c1483fb03db161f87740326d005846ad7bb4d08c62e",
+      "family": "attention.gqa_fp8kv",
+      "serving_evidence": {
+        "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/gqa6-fp8kv-c192-five-fresh-r1/summary.json",
+        "sha256": "fa63f71bf540aa3885f5a6d83f5540cc7dd59b07dff96f398a18066bd593b288"
+      }
+    },
+    {
+      "id": "attention_gqa6_fp8kv_m8_qo64_kv64",
+      "operation": "attention_extend",
+      "maturity": "verified",
+      "acceptance_scope": "hardware_verified_operator_five_process_serving_inconclusive",
+      "evidence_set": "gfx950_gqa6_fp8kv_m8_verified_20260820",
+      "template": "kernels/gfx950/templates/attention/verify/gqa6_fp8kv_m8.inc",
+      "golden_source": "kernels/gfx950/attention/verify/attention_gqa6_fp8kv_m8_qo64_kv64_gfx950.s",
+      "source_revision": "a5c909ce027f4ee5cc5a7fb5d12a18e55ff85805",
+      "source_sha256": "dc8ba03026b265c9c9f2bab193a715ae9e94fc8e2dad6f6ab538281b6e4d55f4",
+      "symbols": [
+        "netra_attention_gqa6_fp8kv_m8_qo64_kv64_gfx950"
+      ],
+      "contract_constants": {
+        "NETRA_HEAD_DIM": 256,
+        "NETRA_KV_HEADS": 4,
+        "NETRA_KV_INDEX_BITS": 64,
+        "NETRA_KV_LAYOUT_ID": 1,
+        "NETRA_M_MAX": 8,
+        "NETRA_QUERY_HEADS": 24,
+        "NETRA_QO_INDPTR_BITS": 64,
+        "NETRA_VALUE_TOKEN_STRIDE": 14336
+      },
+      "compile_definitions": {},
+      "kernarg_size": 96,
+      "launch_block": 64,
+      "metadata_contract": {
+        "group_segment_fixed_size": 32768,
+        "kernarg_segment_size": 96,
+        "max_flat_workgroup_size": 64
+      },
+      "semantics": {
+        "abi": "attention.gqa6_fp8kv.ptr9_qo64_kv64_f32_ptr2.v1",
+        "dtypes": "bf16_query_tail_fp8e4m3_kv_to_bf16.v1",
+        "quantization": "native_fp8e4m3_kv_unit_per_tensor_scale.v1",
+        "layouts": "paged_kv_gqa6_head256_value_stride14336.v1",
+        "numerical": "causal_m8_online_softmax_fp32_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.attention_extend",
+      "rank": 132,
+      "locked_hsaco_sha256": [
+        "f396e5364524767e4f37e07cb38ed81440dfd17453f4ab732a476e1b15c602b7"
+      ],
+      "instantiation_macro": "NETRA_ATTENTION_GQA6_FP8KV_M8",
+      "template_sha256": "44154ced165ad7219f203be75d1f291d5f0847f7acf82e3255240e0b538b8d64",
+      "source_closure_sha256": "e8864078265a83141e4c0c1483fb03db161f87740326d005846ad7bb4d08c62e",
+      "family": "attention.gqa_fp8kv",
+      "serving_evidence": {
+        "summary": "/data/netra/benchmarks/gfx950_qwen36_27b/20260820-gsm8k/gqa6-fp8kv-c192-five-fresh-r1/summary.json",
+        "sha256": "fa63f71bf540aa3885f5a6d83f5540cc7dd59b07dff96f398a18066bd593b288"
+      }
     },
     {
       "id": "attention_splitseq_prepare",
@@ -282,6 +472,11 @@
       "compile_definitions": {},
       "kernarg_size": 128,
       "launch_block": 256,
+      "metadata_contract": {
+        "group_segment_fixed_size": 0,
+        "kernarg_segment_size": 128,
+        "max_flat_workgroup_size": 256
+      },
       "semantics": {
         "abi": "attention.splitseq_stage1.ptr3_u32_ptr5_u32x9_ptr2.v1",
         "dtypes": "bf16_query_fp8e4m3_kv_to_fp32_partials.v1",
@@ -297,8 +492,8 @@
         "959dc8c88b50bd19bdd150aceac086adab5c85c3cb2df07a5be52ec8253d24df"
       ],
       "instantiation_macro": "NETRA_ATTENTION_SPLITSEQ_STAGE1",
-      "template_sha256": "143242ad20021fd7da0bd8a9e4f0e483a8387e2a47033efced04e21b67037d85",
-      "source_closure_sha256": "f2d0336a802ca3cc3679cb6787c952e36d42f9d116d4f7bebb14092a0e071a57",
+      "template_sha256": "ba02a6370c6f724972c97268928cda020a92d7f5ea936960722fede2f157d8d9",
+      "source_closure_sha256": "d99fc4e52af0fb782b14eb9592f9a0d268686208b1ed98bd45769dea606d08c8",
       "family": "attention.splitseq_fp8kv"
     },
     {
@@ -316,6 +511,11 @@
       "compile_definitions": {},
       "kernarg_size": 88,
       "launch_block": 256,
+      "metadata_contract": {
+        "group_segment_fixed_size": 0,
+        "kernarg_segment_size": 88,
+        "max_flat_workgroup_size": 256
+      },
       "semantics": {
         "abi": "attention.splitseq_stage2.ptr3_u32_ptr2_u32x5_ptr2.v1",
         "dtypes": "fp32_partials_to_bf16.v1",
@@ -331,8 +531,8 @@
         "aa9fdf9ada8cdb754caa5885f728a314c2031378c476ef313386261e3a38333e"
       ],
       "instantiation_macro": "NETRA_ATTENTION_SPLITSEQ_STAGE2",
-      "template_sha256": "cbaa2767e733a49f1f941aa915570dfc338bf97892bc5a10ca70672ef0f22cce",
-      "source_closure_sha256": "7bd0625a12ce1383cd605cd564979cb3a343f50317080c2924b572741bfd6f0f",
+      "template_sha256": "718aa6d9c09a5d2e6244b1bf49c78f684c31e42c68e4339e156bb5485790b57f",
+      "source_closure_sha256": "5a00ef97248bd516529d525256c9cf525f822cb41ad972177db09fe6080ed3ef",
       "family": "attention.splitseq_fp8kv"
     },
     {
@@ -347,7 +547,12 @@
       "symbols": [
         "qwen36_gdn_verify_m12_batched_precompute_gfx950"
       ],
+      "contract_constants": {
+        "NETRA_TOKENS": 12,
+        "NETRA_VALUE_HEADS": 32
+      },
       "compile_definitions": {
+        "NETRA_GDN_QK_ONLY": 0,
         "NETRA_GDN_PRECOMPUTE_VARIANT": 7
       },
       "kernarg_size": 96,
@@ -367,8 +572,8 @@
         "b93c9bbc6926a4decc0b342cc77b2567d4bdf87e9000ba29987904906063ac5a"
       ],
       "instantiation_macro": "NETRA_GDN_VERIFY_PRECOMPUTE",
-      "template_sha256": "e4c5015541d5a0fd167f134f75900c5493192e0e8d04f9cccf19d8cd67ae3497",
-      "source_closure_sha256": "7c1ccbba78383916b7307903231f034d93047a93f648241c6d9707e50c734925",
+      "template_sha256": "3689888e21a6797346692d204c6d0c18625874c5596c8829cc8030f75776e81b",
+      "source_closure_sha256": "9c9ce9a399f04e6dc0a9c46acf4d830ddc84b296292d3a54db71c10e1778a085",
       "family": "gdn.verify_precompute"
     },
     {
@@ -376,13 +581,17 @@
       "operation": "gdn_verify",
       "maturity": "accepted",
       "acceptance_scope": "locked_exact_contract",
-      "template": "kernels/gfx950/templates/gdn/verify/recurrent_packed_pair.inc",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
       "golden_source": "kernels/gfx950/linear_attention/verify/qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950.s",
       "source_revision": "91d154134d0e9fe2816d8a2622fbaed765e0bdca",
       "source_sha256": "b9c49665c305436e7f447c6791c41600fda51d3c50ea4ee2fd3ddf81bf473f7d",
       "symbols": [
         "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950"
       ],
+      "contract_constants": {
+        "NETRA_TOKENS": 12,
+        "NETRA_VALUE_HEADS": 32
+      },
       "compile_definitions": {
         "NETRA_GDN_CORE_VARIANT": 17,
         "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
@@ -411,9 +620,9 @@
         "e900f66d428f4d7098a5ec4ad34cccc831f9023fd5efde9dff6326f147bac04d",
         "139398c28578a08074a04824a937ac5c79283530e412fe073ccfb016e1883333"
       ],
-      "instantiation_macro": "NETRA_GDN_RECURRENT_PACKED_PAIR",
-      "template_sha256": "8fed170784121fc2c0ddbdf826fcf152b5552efed128a65d3576b4e8d1ae3fa2",
-      "source_closure_sha256": "029cfda042bc273f50c73680383fdc435a11c59a235db3aa2f949921e9dd0e70",
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
       "family": "gdn.recurrent_bv16"
     },
     {
@@ -428,6 +637,10 @@
       "symbols": [
         "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950"
       ],
+      "contract_constants": {
+        "NETRA_TOKENS": 12,
+        "NETRA_VALUE_HEADS": 32
+      },
       "compile_definitions": {
         "NETRA_GDN_CORE_VARIANT": 13,
         "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
@@ -459,7 +672,7 @@
       ],
       "instantiation_macro": "NETRA_GDN_RECURRENT_FUSED_REPLAY",
       "template_sha256": "a513cd51154934dfc47a3bd23497d8cd46f4f937beb9d58c17049320f9e1bf3c",
-      "source_closure_sha256": "85151958ca36a8d16798ea54a141c0f57a8e75be8814499741631732c8691ae7",
+      "source_closure_sha256": "6e9ef6f51213cc778cdd0a10afefe6d2d268695a84a84db2ba6261ec051ee07b",
       "family": "gdn.recurrent_bv16"
     },
     {
@@ -474,7 +687,14 @@
       "symbols": [
         "qwen36_gdn_qkvz_conv_m12_gfx950"
       ],
-      "compile_definitions": {},
+      "contract_constants": {
+        "NETRA_K": 2048,
+        "NETRA_N": 12288,
+        "NETRA_TOKENS": 12
+      },
+      "compile_definitions": {
+        "NETRA_GDN_QKVZ_GRID_2D": 0
+      },
       "kernarg_size": 64,
       "launch_block": 256,
       "semantics": {
@@ -492,8 +712,8 @@
         "292c4c59c2681fa3161f40dd506304829ee6d1c0a3e80b4ddb6baf08655cf0af"
       ],
       "instantiation_macro": "NETRA_GDN_QKVZ_CAUSAL_CONV",
-      "template_sha256": "3dbf73c67dec17862438413bd60a4b61c20787dc1461b496a42b1d10011851aa",
-      "source_closure_sha256": "3cbefbd7e4d85c57576a34cd15529c28d8b5e5ffc3b34f1c4db395a92d009148",
+      "template_sha256": "f00ae305ee34386de392aa5018c2c73a4aaaef86362f9cd7186ccf93780f8d44",
+      "source_closure_sha256": "756d157f29e56d2d117610bd85959322c84b722f46cbf135dc92fb79f18bea11",
       "family": "gdn.causal_conv"
     },
     {
@@ -529,6 +749,243 @@
       "template_sha256": "43053c44340a55c32a6c2dca8ccbf92079c8818918324543cd6acbf8dd4930aa",
       "source_closure_sha256": "ce3b1fc1b5ceca39938563d93f6c32343785ea44f8009d69a8ea7c0da59cd0f6",
       "family": "gdn.prefill_recurrence_bv16"
+    },
+    {
+      "id": "add_rmsnorm_group_quant_n5120",
+      "operation": "add_rmsnorm_group_quant",
+      "maturity": "verified",
+      "acceptance_scope": "operator_text_and_metadata_identical_serving_promotion_pending",
+      "evidence_set": "gfx950_group_quant_assembly_verified_20260820",
+      "template": "kernels/gfx950/templates/norm/verify/add_rmsnorm_group_quant_n5120.inc",
+      "golden_source": "kernels/gfx950/norm/verify/gemma_add_rmsnorm_quant_n5120_gfx950.s",
+      "source_revision": "0e0f97dfee142bee398cd0795d163f82cc591f36",
+      "source_sha256": "fbc3a30f1b2cec8b0e4bda7d0402f51de8ee3440f31e396b82150e80d77f6c01",
+      "symbols": ["netra_add_rmsnorm_group_quant_n5120_gfx950"],
+      "compile_definitions": {},
+      "compile_ranges": {"NETRA_ROWS": {"min": 1, "max": 8192, "step": 1}},
+      "kernarg_size": 96,
+      "launch_block": 1024,
+      "dynamic_lds_bytes": 256,
+      "semantics": {
+        "abi": "norm.add_rmsnorm_quant.ptr7_u32x6_scalar2.v1",
+        "dtypes": "bf16_bf16_f32_to_bf16_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "row_major_n5120_scale_group_major.v1",
+        "numerical": "residual_add_fp32_rms_bf16_round_then_fp8_rne_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.add_rmsnorm_then_group_quant",
+      "rank": 140,
+      "locked_text_sha256": "c14e41486b1c9bbd175d2efba1297c1188bc0e54d45d907396192e725762ec80",
+      "instantiation_macro": "NETRA_ADD_RMSNORM_GROUP_QUANT_N5120",
+      "template_sha256": "83be8f2cf48168042f479466c6c0d7a370399efdf1007f4fce7ee8d758ce8864",
+      "source_closure_sha256": "a9a7bcc0a4c16b6eb76e7c98b61319c4652281b0c47a95ee53c000e555f2d09d",
+      "family": "norm.add_rmsnorm_group_quant"
+    },
+    {
+      "id": "add_rmsnorm_group_quant_n5120_bf16_weight",
+      "operation": "add_rmsnorm_group_quant",
+      "maturity": "verified",
+      "acceptance_scope": "operator_bitwise_exact_eager_and_graph_serving_promotion_pending",
+      "evidence_set": "gfx950_group_quant_bf16_weight_verified_20260821",
+      "template": "kernels/gfx950/templates/norm/verify/add_rmsnorm_group_quant_n5120_bf16_weight.inc",
+      "golden_source": "build/experiments/add_rmsnorm_bf16_weight.amdgcn",
+      "source_revision": "c726bec1decde21ee43889ca6bde6cd368cf8649",
+      "source_sha256": "61c4e17d809da844ef3d324ed8be0ef70d9945c4a246f220b87f154180d8f2ec",
+      "symbols": ["netra_add_rmsnorm_group_quant_n5120_gfx950"],
+      "compile_definitions": {},
+      "compile_ranges": {"NETRA_ROWS": {"min": 1, "max": 8192, "step": 1}},
+      "kernarg_size": 96,
+      "launch_block": 1024,
+      "dynamic_lds_bytes": 256,
+      "semantics": {
+        "abi": "norm.add_rmsnorm_quant.ptr7_u32x6_scalar2.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "row_major_n5120_scale_group_major.v1",
+        "numerical": "residual_add_fp32_rms_bf16_round_then_fp8_rne_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.add_rmsnorm_then_group_quant",
+      "rank": 200,
+      "locked_text_sha256": "23a9b09e3b8b30795757d149ef1ea21b047d7e09a37e28456bdf7199c05959bd",
+      "locked_hsaco_sha256": [
+        "0938c9b67d1f41bd216467874c3fe57299b0d7907e5c8602e1abd3ccb00d02f9"
+      ],
+      "instantiation_macro": "NETRA_ADD_RMSNORM_GROUP_QUANT_N5120_BF16_WEIGHT",
+      "template_sha256": "b1d6c2a18e0774b5240e239a6374ad9b9f61460b8b71bc77d5424453989c7eb0",
+      "source_closure_sha256": "b49df3f114f6e5c2a54bbd1628e82de59d8afebf7907dead2337b4904b3f1c2a",
+      "family": "norm.add_rmsnorm_group_quant"
+    },
+    {
+      "id": "silu_mul_group_quant_n17408_store_bf16",
+      "operation": "silu_mul_group_quant",
+      "maturity": "verified",
+      "acceptance_scope": "operator_text_and_metadata_identical_serving_promotion_pending",
+      "evidence_set": "gfx950_group_quant_assembly_verified_20260820",
+      "template": "kernels/gfx950/templates/activation/verify/silu_mul_quant_n17408_store_bf16.inc",
+      "golden_source": "kernels/gfx950/activation/verify/silu_mul_quant_n17408_store_bf16_gfx950.s",
+      "source_revision": "0e0f97dfee142bee398cd0795d163f82cc591f36",
+      "source_sha256": "56359c1b50dd3dd1fc781a46ac7a2d5e49ac34ec815a5c096ec65f7b0f01b158",
+      "symbols": ["netra_silu_mul_group_quant_n17408_store_bf16_gfx950"],
+      "compile_definitions": {},
+      "compile_ranges": {"NETRA_ROWS": {"min": 1, "max": 8192, "step": 1}},
+      "kernarg_size": 64,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "activation.silu_mul_quant.ptr4_u32x3_scalar2.v1",
+        "dtypes": "bf16_gate_up_to_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "row_major_n17408_scale_group_major.v1",
+        "numerical": "fp32_silu_bf16_product_round_then_fp8_rne_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.silu_mul_then_group_quant",
+      "rank": 141,
+      "locked_text_sha256": "f112971ecfc8b2146d60b6a7f17c2166d40287101f8ac15a43c7fa10d672558d",
+      "instantiation_macro": "NETRA_SILU_MUL_QUANT_N17408_STORE_BF16",
+      "template_sha256": "9c9601f96372d446ac7a4719cb0aba0875ea0d45ca5d359984467262af8cba25",
+      "source_closure_sha256": "8a6aa5258070406084f5c4f1610a47aa2b5fb8715b4377d8c2726b2c29eb070b",
+      "family": "activation.silu_mul_group_quant"
+    },
+    {
+      "id": "silu_mul_group_quant_n17408_prequant_only",
+      "operation": "silu_mul_group_quant",
+      "maturity": "verified",
+      "acceptance_scope": "operator_text_and_metadata_identical_serving_promotion_pending",
+      "evidence_set": "gfx950_group_quant_assembly_verified_20260820",
+      "template": "kernels/gfx950/templates/activation/verify/silu_mul_quant_n17408_prequant_only.inc",
+      "golden_source": "kernels/gfx950/activation/verify/silu_mul_quant_n17408_prequant_only_gfx950.s",
+      "source_revision": "0e0f97dfee142bee398cd0795d163f82cc591f36",
+      "source_sha256": "1e8700d42561d833a069cbc821791aa1f44fbbe4214a46b6fc3c7e29f6bf9ddc",
+      "symbols": ["netra_silu_mul_group_quant_n17408_prequant_only_gfx950"],
+      "compile_definitions": {},
+      "compile_ranges": {"NETRA_ROWS": {"min": 1, "max": 8192, "step": 1}},
+      "kernarg_size": 64,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "activation.silu_mul_quant.ptr4_u32x3_scalar2.v1",
+        "dtypes": "bf16_gate_up_to_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "row_major_n17408_scale_group_major.v1",
+        "numerical": "fp32_silu_bf16_product_round_then_fp8_rne_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.silu_mul_then_group_quant",
+      "rank": 142,
+      "locked_text_sha256": "c439caebddf80669f0f8860a47f1625bf818877835d1f23fd4957a000ac747ce",
+      "instantiation_macro": "NETRA_SILU_MUL_QUANT_N17408_PREQUANT_ONLY",
+      "template_sha256": "c41c2364cfe21d9b60d7906aa1493d37d08a778e711b887a0368e6fe6d5a0b28",
+      "source_closure_sha256": "6725217a608866fb13e8cf9026c197735cde131fda126b980eddbf94d2f63560",
+      "family": "activation.silu_mul_group_quant"
+    },
+    {
+      "id": "gated_rmsnorm_group_quant_d128_rpb1",
+      "operation": "gated_rmsnorm_group_quant",
+      "maturity": "verified",
+      "acceptance_scope": "operator_text_and_metadata_identical_serving_promotion_pending",
+      "evidence_set": "gfx950_group_quant_assembly_verified_20260820",
+      "template": "kernels/gfx950/templates/norm/verify/gated_rmsnorm_quant_d128_rpb1.inc",
+      "golden_source": "kernels/gfx950/norm/verify/gated_rmsnorm_quant_d128_rpb1_gfx950.s",
+      "source_revision": "0e0f97dfee142bee398cd0795d163f82cc591f36",
+      "source_sha256": "d28b77e8b744a78976554e3ebfcb88ae16a7a3939bd48656f94fd2f5309a4fc7",
+      "symbols": ["netra_gated_rmsnorm_group_quant_d128_rpb1_gfx950"],
+      "compile_definitions": {},
+      "compile_ranges": {"NETRA_ROWS": {"min": 48, "max": 480, "step": 48}},
+      "kernarg_size": 104,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "token_head_row_d128_scale_head_major.v1",
+        "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gated_rmsnorm_then_group_quant",
+      "rank": 143,
+      "locked_text_sha256": "755a3001d0d864e34d026e16ea845e6a09144967e944bf5744ceff8de232659a",
+      "instantiation_macro": "NETRA_GATED_RMSNORM_QUANT_D128_RPB1",
+      "template_sha256": "cc48e27d679571b3e27bd155fcc98a246fafd573ea426597518b5f701c993ecb",
+      "source_closure_sha256": "73d1d047fa32ce4263a9319aa3e7a0c282a4f05c7a9d5356ba0e73e6a68701fc",
+      "family": "norm.gated_rmsnorm_group_quant"
+    },
+    {
+      "id": "gated_rmsnorm_group_quant_d128_rpb2",
+      "operation": "gated_rmsnorm_group_quant",
+      "maturity": "verified",
+      "acceptance_scope": "operator_text_and_metadata_identical_serving_promotion_pending",
+      "evidence_set": "gfx950_group_quant_assembly_verified_20260820",
+      "template": "kernels/gfx950/templates/norm/verify/gated_rmsnorm_quant_d128_rpb2.inc",
+      "golden_source": "kernels/gfx950/norm/verify/gated_rmsnorm_quant_d128_rpb2_gfx950.s",
+      "source_revision": "0e0f97dfee142bee398cd0795d163f82cc591f36",
+      "source_sha256": "4a8c01d2a8ae4d16de9d10bb78012a318c040310b29ad89ee5aef8a15b23e65e",
+      "symbols": ["netra_gated_rmsnorm_group_quant_d128_rpb2_gfx950"],
+      "compile_definitions": {},
+      "compile_ranges": {"NETRA_ROWS": {"min": 528, "max": 1008, "step": 48}},
+      "kernarg_size": 104,
+      "launch_block": 64,
+      "semantics": {
+        "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "token_head_row_d128_scale_head_major.v1",
+        "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gated_rmsnorm_then_group_quant",
+      "rank": 144,
+      "locked_text_sha256": "e3f04a89ff09d83d92bf942d16af9a48b684336cf5f73e2b02216e7758417815",
+      "instantiation_macro": "NETRA_GATED_RMSNORM_QUANT_D128_RPB2",
+      "template_sha256": "d84538e5d22de7369b388c08c2337f870d013c5096df40f2198a85bade37a2ab",
+      "source_closure_sha256": "98350d8487c0a16386d800cd351dc0939b5496d977bcd319f9f72526947f2b9b",
+      "family": "norm.gated_rmsnorm_group_quant"
+    },
+    {
+      "id": "gated_rmsnorm_group_quant_d128_rpb4",
+      "operation": "gated_rmsnorm_group_quant",
+      "maturity": "verified",
+      "acceptance_scope": "operator_text_and_metadata_identical_serving_promotion_pending",
+      "evidence_set": "gfx950_group_quant_assembly_verified_20260820",
+      "template": "kernels/gfx950/templates/norm/verify/gated_rmsnorm_quant_d128_rpb4.inc",
+      "golden_source": "kernels/gfx950/norm/verify/gated_rmsnorm_quant_d128_rpb4_gfx950.s",
+      "source_revision": "0e0f97dfee142bee398cd0795d163f82cc591f36",
+      "source_sha256": "7c47af3b84f82b90708e0843b222f566398caf184cd21d93938a53d7d1447fef",
+      "symbols": ["netra_gated_rmsnorm_group_quant_d128_rpb4_gfx950"],
+      "compile_definitions": {},
+      "compile_ranges": {"NETRA_ROWS": {"min": 1056, "max": 393216, "step": 48}},
+      "kernarg_size": 104,
+      "launch_block": 64,
+      "dynamic_lds_bytes": 256,
+      "semantics": {
+        "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "token_head_row_d128_scale_head_major.v1",
+        "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
+      },
+      "workspace": {"bytes": 0, "alignment": 256},
+      "graph_capture": true,
+      "deterministic": true,
+      "fallback": "framework.gated_rmsnorm_then_group_quant",
+      "rank": 145,
+      "locked_text_sha256": "ac98722f3f44a44e9f70e0d42e2aabeac4361fe4e83431ecc0d9f264098c3851",
+      "instantiation_macro": "NETRA_GATED_RMSNORM_QUANT_D128_RPB4",
+      "template_sha256": "5d8064b0a6d7a217bc283fa2fa638fb629dc285e9676f9d998d55285ec8d4ebc",
+      "source_closure_sha256": "20357fc5d9fc4e18ffd5bcd50b2bafd4f5968643b9f31cfa88355cf8d468f3e2",
+      "family": "norm.gated_rmsnorm_group_quant"
     }
   ]
 }

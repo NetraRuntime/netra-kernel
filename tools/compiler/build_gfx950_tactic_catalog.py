@@ -25,7 +25,26 @@ def _run(argv: list[str], *, cwd: Path, stdout: Path | None = None) -> None:
         subprocess.run(argv, cwd=cwd, check=True, stdout=stream)
 
 
-def build(repo: Path, deployment_path: Path, output: Path, rocm: Path) -> dict[str, Any]:
+def _is_unlocked_experiment(
+    *, allow: bool, locked_text_hash: str, member_maturities: list[str]
+) -> bool:
+    """Return whether an explicitly unlocked, all-experiment artifact may build."""
+    return (
+        allow
+        and locked_text_hash == "0" * 64
+        and bool(member_maturities)
+        and all(maturity == "experiment" for maturity in member_maturities)
+    )
+
+
+def build(
+    repo: Path,
+    deployment_path: Path,
+    output: Path,
+    rocm: Path,
+    *,
+    allow_unlocked_experiments: bool = False,
+) -> dict[str, Any]:
     sys.path.insert(0, str(repo / "compiler"))
     from netra_compiler.backends.gfx950.catalog import load_fixed_tactic_catalog
     from netra_compiler.backends.gfx950.codegen import instantiate_fixed_source
@@ -57,10 +76,12 @@ def build(repo: Path, deployment_path: Path, output: Path, rocm: Path) -> dict[s
         name = artifact["name"]
         objects: list[Path] = []
         members: list[dict[str, Any]] = []
+        member_maturities: list[str] = []
         for index, member in enumerate(artifact["members"]):
             tactic = tactics.get(member["tactic"])
             if tactic is None:
                 raise ValueError(f"unknown tactic {member['tactic']} in {name}")
+            member_maturities.append(tactic.maturity.value)
             definitions = dict(member.get("definitions", {}))
             constants = {
                 key: values[0] for key, values in tactic.contract_constants
@@ -75,6 +96,11 @@ def build(repo: Path, deployment_path: Path, output: Path, rocm: Path) -> dict[s
                 "constants": constants,
                 "launch_grid": (1, 1, 1),
                 "symbol": member["symbol"],
+                "allow_experimental": (
+                    allow_unlocked_experiments
+                    and artifact["locked_text_sha256"] == "0" * 64
+                    and tactic.maturity.value == "experiment"
+                ),
             }
             contract = tactic.make_contract(request)
             macro_symbols = member.get("macro_symbols")
@@ -115,10 +141,16 @@ def build(repo: Path, deployment_path: Path, output: Path, rocm: Path) -> dict[s
         text_path = output / f"{name}.text"
         _run([str(tools["objcopy"]), "--dump-section", f".text={text_path}", str(hsaco)], cwd=repo)
         text_hash = _sha256(text_path)
-        if text_hash != artifact["locked_text_sha256"]:
+        locked_text_hash = artifact["locked_text_sha256"]
+        unlocked_experiment = _is_unlocked_experiment(
+            allow=allow_unlocked_experiments,
+            locked_text_hash=locked_text_hash,
+            member_maturities=member_maturities,
+        )
+        if text_hash != locked_text_hash and not unlocked_experiment:
             raise RuntimeError(
                 f"{name}: locked .text mismatch: {text_hash} != "
-                f"{artifact['locked_text_sha256']}"
+                f"{locked_text_hash}"
             )
         results.append({
             "name": name,
@@ -127,7 +159,8 @@ def build(repo: Path, deployment_path: Path, output: Path, rocm: Path) -> dict[s
             "prior_locked_hsaco_sha256": artifact["locked_hsaco_sha256"],
             "full_hsaco_identical": _sha256(hsaco) == artifact["locked_hsaco_sha256"],
             "text_sha256": text_hash,
-            "text_identical": True,
+            "text_identical": text_hash == locked_text_hash,
+            "unlocked_experiment": unlocked_experiment,
         })
     report = {
         "format": "netra-compatibility-build-result-1",
@@ -154,13 +187,24 @@ def main() -> int:
     )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--rocm-dir", type=Path, default=Path(os.environ.get("ROCM_DIR", "/opt/rocm")))
+    parser.add_argument(
+        "--allow-unlocked-experiments",
+        action="store_true",
+        help="build zero-hash experiment artifacts without weakening locked tactics",
+    )
     args = parser.parse_args()
     repo = args.repo_root.resolve()
     deployment = args.deployment
     if not deployment.is_absolute():
         deployment = repo / deployment
     try:
-        report = build(repo, deployment, args.output.resolve(), args.rocm_dir.resolve())
+        report = build(
+            repo,
+            deployment,
+            args.output.resolve(),
+            args.rocm_dir.resolve(),
+            allow_unlocked_experiments=args.allow_unlocked_experiments,
+        )
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f"gfx950 tactic catalog build failed: {exc}", file=sys.stderr)
         return 1

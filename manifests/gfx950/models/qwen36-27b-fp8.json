@@ -1,0 +1,623 @@
+{
+  "format": "netra-model-1",
+  "name": "qwen3.6-27b-fp8-gfx950",
+  "family": "qwen3.6",
+  "configuration": {
+    "architecture": "Qwen3_5ForConditionalGeneration",
+    "model_type": "qwen3_5_text",
+    "checkpoint": "Qwen3.6-27B-FP8",
+    "checkpoint_repository": "Qwen/Qwen3.6-27B-FP8",
+    "checkpoint_revision": "e89b16ebf1988b3d6befa7de50abc2d76f26eb09",
+    "checkpoint_revision_tree_sha256": "80fa5ef34e3beec2b0a5ae835ff24a85dedd7b4fb2dba5742bf47d18c63c02f5",
+    "checkpoint_config_sha256": "885e6830f8d6883fefd63e3608c267452da2e6ce353a3494f42a7aa3d70c8434",
+    "checkpoint_total_bytes": 30890040900,
+    "hidden_size": 5120,
+    "intermediate_size": 17408,
+    "layers": 64,
+    "layer_types": [
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention",
+      "linear_attention",
+      "linear_attention",
+      "linear_attention",
+      "full_attention"
+    ],
+    "full_attention_interval": 4,
+    "num_attention_heads": 24,
+    "num_key_value_heads": 4,
+    "head_dim": 256,
+    "attention_output_gate": true,
+    "linear_num_key_heads": 16,
+    "linear_key_head_dim": 128,
+    "linear_num_value_heads": 48,
+    "linear_value_head_dim": 128,
+    "linear_conv_kernel_dim": 4,
+    "vocab_size": 248320,
+    "max_position_embeddings": 262144,
+    "mtp_layers": 1,
+    "tensor_parallel": 1,
+    "data_parallel_workers": 1,
+    "target": "gfx950",
+    "wave_size": 64,
+    "quantization_method": "fp8",
+    "quantization_format": "e4m3",
+    "activation_quantization": "e4m3_per_128",
+    "checkpoint_activation_scheme": "dynamic",
+    "weight_scale_block": [
+      128,
+      128
+    ],
+    "checkpoint_scale_dtype": "bf16",
+    "kernel_scale_dtype": "fp32",
+    "activation_layout": "row_major_fp8_block128",
+    "activation_scale_layout": "transposed_kblock_major_fp32",
+    "checkpoint_layout": "checkpoint_row_major_fp8_block128",
+    "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128",
+    "weight_scale_layout": "row_major_nblock_kblock_fp32",
+    "deployment_graph_mode": "full",
+    "cuda_graph_batch_sizes": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64,
+      80,
+      96,
+      112,
+      128,
+      160,
+      192
+    ],
+    "speculative_algorithm": "DFLASH",
+    "dflash_enabled": true,
+    "dflash_checkpoint": "Qwen3.6-27B-DFlash",
+    "dflash_checkpoint_repository": "z-lab/Qwen3.6-27B-DFlash",
+    "dflash_checkpoint_revision": "0919688658996800f86b895034249700e9481106",
+    "dflash_checkpoint_config_sha256": "fcdec9ee2da902d24e69ba3fc666e50a0aa723147689ffc900f425db0381bc54",
+    "dflash_checkpoint_weights_sha256": "e0c050b34798d32728a164d2c3f1681746ff85c11945701b0205b654e2f1fdbe",
+    "dflash_block_size": 8,
+    "dflash_draft_window_size": 2048,
+    "dflash_mamba_cache_steps": 0,
+    "mamba_ssm_dtype": "bfloat16",
+    "required_profiles": [
+      "decode_m1",
+      "decode_m16_b16",
+      "prefill_m80_b1",
+      "prefill_m256_b1",
+      "prefill_m3840_b15",
+      "verify_m4_b1",
+      "verify_m8",
+      "verify_m8_b129_192"
+    ],
+    "required_environment": {
+      "SGLANG_USE_AITER": "1"
+    }
+  },
+  "layer_dense_operations": [
+    {
+      "name": "model.layers.{layer}.linear_attn.in_proj_qkvz",
+      "layers": "linear_attention",
+      "n": 16384,
+      "k": 5120,
+      "weight_binding": "model.layers.{layer}.linear_attn.in_proj_qkvz.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.linear_attn.in_proj_qkv.weight",
+        "model.language_model.layers.{layer}.linear_attn.in_proj_z.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.linear_attn.in_proj_qkv.weight_scale_inv",
+        "model.language_model.layers.{layer}.linear_attn.in_proj_z.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_split_output_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    },
+    {
+      "name": "model.layers.{layer}.linear_attn.out_proj",
+      "layers": "linear_attention",
+      "n": 5120,
+      "k": 6144,
+      "weight_binding": "model.layers.{layer}.linear_attn.out_proj.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.linear_attn.out_proj.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.linear_attn.out_proj.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    },
+    {
+      "name": "model.layers.{layer}.self_attn.qkv_proj",
+      "layers": "full_attention",
+      "n": 14336,
+      "k": 5120,
+      "weight_binding": "model.layers.{layer}.self_attn.qkv_proj.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.self_attn.q_proj.weight",
+        "model.language_model.layers.{layer}.self_attn.k_proj.weight",
+        "model.language_model.layers.{layer}.self_attn.v_proj.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.self_attn.q_proj.weight_scale_inv",
+        "model.language_model.layers.{layer}.self_attn.k_proj.weight_scale_inv",
+        "model.language_model.layers.{layer}.self_attn.v_proj.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_split_output_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    },
+    {
+      "name": "model.layers.{layer}.self_attn.o_proj",
+      "layers": "full_attention",
+      "n": 5120,
+      "k": 6144,
+      "weight_binding": "model.layers.{layer}.self_attn.o_proj.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.self_attn.o_proj.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.self_attn.o_proj.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    },
+    {
+      "name": "model.layers.{layer}.mlp.gate_up_proj",
+      "layers": "all",
+      "n": 34816,
+      "k": 5120,
+      "weight_binding": "model.layers.{layer}.mlp.gate_up_proj.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.mlp.gate_proj.weight",
+        "model.language_model.layers.{layer}.mlp.up_proj.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.mlp.gate_proj.weight_scale_inv",
+        "model.language_model.layers.{layer}.mlp.up_proj.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_split_output_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    },
+    {
+      "name": "model.layers.{layer}.mlp.down_proj",
+      "layers": "all",
+      "n": 5120,
+      "k": 17408,
+      "weight_binding": "model.layers.{layer}.mlp.down_proj.weight",
+      "checkpoint_tensors": [
+        "model.language_model.layers.{layer}.mlp.down_proj.weight"
+      ],
+      "checkpoint_scale_tensors": [
+        "model.language_model.layers.{layer}.mlp.down_proj.weight_scale_inv"
+      ],
+      "checkpoint_scale_dtype": "bf16",
+      "kernel_scale_dtype": "fp32",
+      "activation_scale_layout": "transposed_kblock_major_fp32",
+      "weight_scale_layout": "row_major_nblock_kblock_fp32",
+      "checkpoint_layout": "checkpoint_row_major_fp8_block128",
+      "kernel_weight_layout": "aiter_shuffle_16x16_fp8_block128"
+    }
+  ],
+  "fixed_operation_templates": [
+    {
+      "name": "verify.add_rmsnorm_group_quant.r{rows}",
+      "family": "norm.add_rmsnorm_group_quant",
+      "operation": "add_rmsnorm_group_quant",
+      "rows": [8, 16, 32, 64, 128, 256, 512, 640, 768, 896, 1024, 1280, 1536],
+      "constants": {
+        "NETRA_WIDTH": 5120,
+        "NETRA_QUANT_GROUP_SIZE": 128,
+        "NETRA_SCALE_LAYOUT_ID": 1
+      },
+      "semantics": {
+        "abi": "norm.add_rmsnorm_quant.ptr7_u32x6_scalar2.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "row_major_n5120_scale_group_major.v1",
+        "numerical": "residual_add_fp32_rms_bf16_round_then_fp8_rne_fixed.v1"
+      },
+      "launch_grid": ["rows", 1, 1],
+      "dynamic_lds_bytes": 256,
+      "fallback": "framework.add_rmsnorm_then_group_quant",
+      "profile_names": ["verify_m8", "verify_m8_b129_192"],
+      "binding_scope": "per_layer_weight_and_state",
+      "arguments": [
+        {"name": "input_bf16", "kind": "pointer", "access": "read", "offset": 0},
+        {"name": "residual_bf16", "kind": "pointer", "access": "read", "offset": 8},
+        {"name": "weight_bf16", "kind": "pointer", "access": "read", "offset": 16},
+        {"name": "output_bf16", "kind": "pointer", "access": "write", "offset": 24},
+        {"name": "residual_out_bf16", "kind": "pointer", "access": "write", "offset": 32},
+        {"name": "output_fp8", "kind": "pointer", "access": "write", "offset": 40},
+        {"name": "output_scale_f32", "kind": "pointer", "access": "write", "offset": 48},
+        {"name": "rows", "kind": "u32_constant", "access": "value", "offset": 56, "value": "rows"},
+        {"name": "cols", "kind": "u32_constant", "access": "value", "offset": 60, "value": 5120},
+        {"name": "input_row_stride", "kind": "u32_constant", "access": "value", "offset": 64, "value": 5120},
+        {"name": "residual_row_stride", "kind": "u32_constant", "access": "value", "offset": 68, "value": 5120},
+        {"name": "epsilon_f32_bits", "kind": "u32_constant", "access": "value", "offset": 72, "value": 897988541},
+        {"name": "inv_fp8_max_f32_bits", "kind": "u32_constant", "access": "value", "offset": 76, "value": 991054117},
+        {"name": "hidden_scratch", "kind": "pointer", "access": "read", "offset": 80},
+        {"name": "hidden_profile", "kind": "pointer", "access": "read", "offset": 88}
+      ]
+    },
+    {
+      "name": "verify.silu_mul_group_quant.store_bf16.r{rows}",
+      "family": "activation.silu_mul_group_quant",
+      "operation": "silu_mul_group_quant",
+      "rows": [8, 16, 32, 64, 128, 256, 512, 640, 768, 896, 1024, 1280, 1536],
+      "constants": {
+        "NETRA_WIDTH": 17408,
+        "NETRA_QUANT_GROUP_SIZE": 128,
+        "NETRA_SCALE_LAYOUT_ID": 1,
+        "NETRA_STORE_BF16": 1
+      },
+      "semantics": {
+        "abi": "activation.silu_mul_quant.ptr4_u32x3_scalar2.v1",
+        "dtypes": "bf16_gate_up_to_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "row_major_n17408_scale_group_major.v1",
+        "numerical": "fp32_silu_bf16_product_round_then_fp8_rne_fixed.v1"
+      },
+      "launch_grid": ["rows", 34, 1],
+      "fallback": "framework.silu_mul_then_group_quant",
+      "profile_names": ["verify_m8", "verify_m8_b129_192"],
+      "binding_scope": "per_layer_state",
+      "arguments": [
+        {"name": "gate_up_bf16", "kind": "pointer", "access": "read", "offset": 0},
+        {"name": "output_bf16", "kind": "pointer", "access": "write", "offset": 8},
+        {"name": "output_fp8", "kind": "pointer", "access": "write", "offset": 16},
+        {"name": "output_scale_f32", "kind": "pointer", "access": "write", "offset": 24},
+        {"name": "width", "kind": "u32_constant", "access": "value", "offset": 32, "value": 17408},
+        {"name": "rows", "kind": "u32_constant", "access": "value", "offset": 36, "value": "rows"},
+        {"name": "inv_fp8_max_f32_bits", "kind": "u32_constant", "access": "value", "offset": 40, "value": 991054117},
+        {"name": "hidden_scratch", "kind": "pointer", "access": "read", "offset": 48},
+        {"name": "hidden_profile", "kind": "pointer", "access": "read", "offset": 56}
+      ]
+    },
+    {
+      "name": "verify.silu_mul_group_quant.prequant_only.r{rows}",
+      "family": "activation.silu_mul_group_quant",
+      "operation": "silu_mul_group_quant",
+      "rows": [8, 16, 32, 64, 128, 256, 512, 640, 768, 896, 1024, 1280, 1536],
+      "constants": {
+        "NETRA_WIDTH": 17408,
+        "NETRA_QUANT_GROUP_SIZE": 128,
+        "NETRA_SCALE_LAYOUT_ID": 1,
+        "NETRA_STORE_BF16": 0
+      },
+      "semantics": {
+        "abi": "activation.silu_mul_quant.ptr4_u32x3_scalar2.v1",
+        "dtypes": "bf16_gate_up_to_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "row_major_n17408_scale_group_major.v1",
+        "numerical": "fp32_silu_bf16_product_round_then_fp8_rne_fixed.v1"
+      },
+      "launch_grid": ["rows", 34, 1],
+      "fallback": "framework.silu_mul_then_group_quant",
+      "profile_names": ["verify_m8", "verify_m8_b129_192"],
+      "binding_scope": "per_layer_state",
+      "arguments": [
+        {"name": "gate_up_bf16", "kind": "pointer", "access": "read", "offset": 0},
+        {"name": "output_placeholder", "kind": "pointer", "access": "read", "offset": 8},
+        {"name": "output_fp8", "kind": "pointer", "access": "write", "offset": 16},
+        {"name": "output_scale_f32", "kind": "pointer", "access": "write", "offset": 24},
+        {"name": "width", "kind": "u32_constant", "access": "value", "offset": 32, "value": 17408},
+        {"name": "rows", "kind": "u32_constant", "access": "value", "offset": 36, "value": "rows"},
+        {"name": "inv_fp8_max_f32_bits", "kind": "u32_constant", "access": "value", "offset": 40, "value": 991054117},
+        {"name": "hidden_scratch", "kind": "pointer", "access": "read", "offset": 48},
+        {"name": "hidden_profile", "kind": "pointer", "access": "read", "offset": 56}
+      ]
+    },
+    {
+      "name": "verify.gated_rmsnorm_group_quant.rpb1.r{rows}",
+      "family": "norm.gated_rmsnorm_group_quant",
+      "operation": "gated_rmsnorm_group_quant",
+      "rows": [384],
+      "constants": {
+        "NETRA_WIDTH": 128,
+        "NETRA_HEADS": 48,
+        "NETRA_QUANT_GROUP_SIZE": 128,
+        "NETRA_SCALE_LAYOUT_ID": 1,
+        "NETRA_ROWS_PER_BLOCK": 1
+      },
+      "semantics": {
+        "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "token_head_row_d128_scale_head_major.v1",
+        "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
+      },
+      "launch_grid": ["rows", 1, 1],
+      "fallback": "framework.gated_rmsnorm_then_group_quant",
+      "profile_names": ["verify_m8", "verify_m8_b129_192"],
+      "binding_scope": "per_linear_attention_layer_weight_and_state",
+      "arguments": [
+        {"name": "input_bf16", "kind": "pointer", "access": "read", "offset": 0},
+        {"name": "output_bf16", "kind": "pointer", "access": "write", "offset": 8},
+        {"name": "weight_bf16", "kind": "pointer", "access": "read", "offset": 16},
+        {"name": "gate_bf16", "kind": "pointer", "access": "read", "offset": 24},
+        {"name": "output_fp8", "kind": "pointer", "access": "write", "offset": 32},
+        {"name": "output_scale_f32", "kind": "pointer", "access": "write", "offset": 40},
+        {"name": "input_row_stride", "kind": "u32_constant", "access": "value", "offset": 48, "value": 128},
+        {"name": "output_row_stride", "kind": "u32_constant", "access": "value", "offset": 52, "value": 128},
+        {"name": "gate_token_stride", "kind": "u32_constant", "access": "value", "offset": 56, "value": 16384},
+        {"name": "gate_head_stride", "kind": "u32_constant", "access": "value", "offset": 60, "value": 128},
+        {"name": "rows", "kind": "u32_constant", "access": "value", "offset": 64, "value": "rows"},
+        {"name": "heads", "kind": "u32_constant", "access": "value", "offset": 68, "value": 48},
+        {"name": "tokens", "kind": "u32_constant", "access": "value", "offset": 72, "value": 8},
+        {"name": "epsilon_f32_bits", "kind": "u32_constant", "access": "value", "offset": 76, "value": 897988541},
+        {"name": "inv_fp8_max_f32_bits", "kind": "u32_constant", "access": "value", "offset": 80, "value": 991054117},
+        {"name": "hidden_scratch", "kind": "pointer", "access": "read", "offset": 88},
+        {"name": "hidden_profile", "kind": "pointer", "access": "read", "offset": 96}
+      ]
+    },
+    {
+      "name": "verify.gated_rmsnorm_group_quant.rpb2.r{rows}",
+      "family": "norm.gated_rmsnorm_group_quant",
+      "operation": "gated_rmsnorm_group_quant",
+      "rows": [768],
+      "constants": {
+        "NETRA_WIDTH": 128,
+        "NETRA_HEADS": 48,
+        "NETRA_QUANT_GROUP_SIZE": 128,
+        "NETRA_SCALE_LAYOUT_ID": 1,
+        "NETRA_ROWS_PER_BLOCK": 2
+      },
+      "semantics": {
+        "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "token_head_row_d128_scale_head_major.v1",
+        "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
+      },
+      "launch_grid": ["rows", 1, 1],
+      "launch_grid_rows_divisor": 2,
+      "fallback": "framework.gated_rmsnorm_then_group_quant",
+      "profile_names": ["verify_m8", "verify_m8_b129_192"],
+      "binding_scope": "per_linear_attention_layer_weight_and_state",
+      "arguments": [
+        {"name": "input_bf16", "kind": "pointer", "access": "read", "offset": 0},
+        {"name": "output_bf16", "kind": "pointer", "access": "write", "offset": 8},
+        {"name": "weight_bf16", "kind": "pointer", "access": "read", "offset": 16},
+        {"name": "gate_bf16", "kind": "pointer", "access": "read", "offset": 24},
+        {"name": "output_fp8", "kind": "pointer", "access": "write", "offset": 32},
+        {"name": "output_scale_f32", "kind": "pointer", "access": "write", "offset": 40},
+        {"name": "input_row_stride", "kind": "u32_constant", "access": "value", "offset": 48, "value": 128},
+        {"name": "output_row_stride", "kind": "u32_constant", "access": "value", "offset": 52, "value": 128},
+        {"name": "gate_token_stride", "kind": "u32_constant", "access": "value", "offset": 56, "value": 16384},
+        {"name": "gate_head_stride", "kind": "u32_constant", "access": "value", "offset": 60, "value": 128},
+        {"name": "rows", "kind": "u32_constant", "access": "value", "offset": 64, "value": "rows"},
+        {"name": "heads", "kind": "u32_constant", "access": "value", "offset": 68, "value": 48},
+        {"name": "tokens", "kind": "u32_constant", "access": "value", "offset": 72, "value": 16},
+        {"name": "epsilon_f32_bits", "kind": "u32_constant", "access": "value", "offset": 76, "value": 897988541},
+        {"name": "inv_fp8_max_f32_bits", "kind": "u32_constant", "access": "value", "offset": 80, "value": 991054117},
+        {"name": "hidden_scratch", "kind": "pointer", "access": "read", "offset": 88},
+        {"name": "hidden_profile", "kind": "pointer", "access": "read", "offset": 96}
+      ]
+    },
+    {
+      "name": "verify.gated_rmsnorm_group_quant.rpb4.r{rows}",
+      "family": "norm.gated_rmsnorm_group_quant",
+      "operation": "gated_rmsnorm_group_quant",
+      "rows": [1536, 3072, 6144, 12288, 24576, 30720, 36864, 43008, 49152, 61440, 73728],
+      "constants": {
+        "NETRA_WIDTH": 128,
+        "NETRA_HEADS": 48,
+        "NETRA_QUANT_GROUP_SIZE": 128,
+        "NETRA_SCALE_LAYOUT_ID": 1,
+        "NETRA_ROWS_PER_BLOCK": 4
+      },
+      "semantics": {
+        "abi": "norm.gated_rmsnorm_quant.ptr6_u32x9_scalar2.v1",
+        "dtypes": "bf16_bf16_bf16_to_bf16_fp8e4m3_f32scale.v1",
+        "quantization": "dynamic_fp8e4m3_per128_transposed_scale.v1",
+        "layouts": "token_head_row_d128_scale_head_major.v1",
+        "numerical": "fp32_rms_silu_gate_bf16_round_then_fp8_rne_fixed.v1"
+      },
+      "launch_grid": ["rows", 1, 1],
+      "launch_grid_rows_divisor": 4,
+      "dynamic_lds_bytes": 256,
+      "fallback": "framework.gated_rmsnorm_then_group_quant",
+      "profile_names": ["verify_m8", "verify_m8_b129_192"],
+      "binding_scope": "per_linear_attention_layer_weight_and_state",
+      "arguments": [
+        {"name": "input_bf16", "kind": "pointer", "access": "read", "offset": 0},
+        {"name": "output_bf16", "kind": "pointer", "access": "write", "offset": 8},
+        {"name": "weight_bf16", "kind": "pointer", "access": "read", "offset": 16},
+        {"name": "gate_bf16", "kind": "pointer", "access": "read", "offset": 24},
+        {"name": "output_fp8", "kind": "pointer", "access": "write", "offset": 32},
+        {"name": "output_scale_f32", "kind": "pointer", "access": "write", "offset": 40},
+        {"name": "input_row_stride", "kind": "u32_constant", "access": "value", "offset": 48, "value": 128},
+        {"name": "output_row_stride", "kind": "u32_constant", "access": "value", "offset": 52, "value": 128},
+        {"name": "gate_token_stride", "kind": "u32_constant", "access": "value", "offset": 56, "value": 16384},
+        {"name": "gate_head_stride", "kind": "u32_constant", "access": "value", "offset": 60, "value": 128},
+        {"name": "rows", "kind": "u32_constant", "access": "value", "offset": 64, "value": "rows"},
+        {"name": "heads", "kind": "u32_constant", "access": "value", "offset": 68, "value": 48},
+        {"name": "tokens", "kind": "u32_constant", "access": "value", "offset": 72, "value": "rows_div_48"},
+        {"name": "epsilon_f32_bits", "kind": "u32_constant", "access": "value", "offset": 76, "value": 897988541},
+        {"name": "inv_fp8_max_f32_bits", "kind": "u32_constant", "access": "value", "offset": 80, "value": 991054117},
+        {"name": "hidden_scratch", "kind": "pointer", "access": "read", "offset": 88},
+        {"name": "hidden_profile", "kind": "pointer", "access": "read", "offset": 96}
+      ]
+    }
+  ],
+  "fallback_operations": [
+    {
+      "name": "embedding_and_lm_head",
+      "operation": "qwen36_27b_embedding_lm_head",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "vision_encoder",
+      "operation": "qwen36_27b_vision_encoder",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "normalization",
+      "operation": "qwen36_27b_gemma_rmsnorm",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "mlp_activation",
+      "operation": "qwen36_27b_silu_mul",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "gdn_ba_projection",
+      "operation": "qwen36_27b_gdn_ba_bf16",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "gdn_causal_conv",
+      "operation": "qwen36_27b_gdn_causal_conv_width4",
+      "fallback": "sglang.triton",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "gdn_recurrence_and_state",
+      "operation": "qwen36_27b_gdn_recurrence_state",
+      "fallback": "sglang.triton",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "full_attention_qk_norm_rope",
+      "operation": "qwen36_27b_qk_norm_rope",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "full_attention_paged_kv",
+      "operation": "qwen36_27b_gqa6_fp8kv",
+      "fallback": "sglang.aiter",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "mtp_and_verification",
+      "operation": "qwen36_27b_mtp_verification",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    },
+    {
+      "name": "sampling",
+      "operation": "qwen36_27b_sampling",
+      "fallback": "sglang.framework",
+      "external_status": "framework_fallback",
+      "evidence_refs": [
+        "docs/notes/gfx950-qwen36-27b-fp8.md"
+      ]
+    }
+  ]
+}

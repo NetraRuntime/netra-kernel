@@ -3,9 +3,9 @@
 	.include "kernels/gfx950/templates/gdn/common/causal_conv.inc"
 // SPDX-License-Identifier: MIT
 //
-// Qwen3.6 GDN target-verification causal convolution consuming the QKV prefix
-// directly from contiguous QKVZ rows. Exact shape family: B>=1, M=12,
-// QKVZ=12288, QKV=8192, width=4, BF16, SiLU.
+// Model-independent GDN target-verification causal convolution consuming the
+// QKV prefix directly from contiguous QKVZ rows. The selected fixed contract
+// determines T, QKVZ, QKV, state strides, and grid topology at assembly time.
 //
 // One 256-thread wave64 workgroup owns 256 contiguous features of one
 // sequence.  Unlike the Triton oracle, the raw kernel has no masked lanes,
@@ -13,16 +13,30 @@
 // preserves the full speculative intermediate-window ABI for commit/rollback.
 
 	NETRA_GFX950_MODULE_HEADER 6
+	.ifndef NETRA_GDN_QKVZ_GRID_2D
+	.set NETRA_GDN_QKVZ_GRID_2D, 0
+	.endif
+	.if (NETRA_GDN_QKVZ_GRID_2D != 0) && (NETRA_GDN_QKVZ_GRID_2D != 1)
+	.error "NETRA_GDN_QKVZ_GRID_2D must be 0 or 1"
+	.endif
 
 	.macro NETRA_GDN_QKVZ_CAUSAL_CONV symbol
 	NETRA_REQUIRE_GFX950_WAVE64
+	.if NETRA_GDN_QKVZ_GRID_2D == 0
 	NETRA_REQUIRE_EQ NETRA_TOKENS, 12
 	NETRA_REQUIRE_EQ NETRA_K, 2048
 	NETRA_REQUIRE_EQ NETRA_N, 12288
+	.else
+	NETRA_REQUIRE_EQ NETRA_TOKENS, 8
+	NETRA_REQUIRE_EQ NETRA_K, 2048
+	NETRA_REQUIRE_EQ NETRA_N, 16384
+	.endif
 	NETRA_KERNEL_ENTRY \symbol, 1
+	.if NETRA_GDN_QKVZ_GRID_2D == 0
+	s_mov_b32 s20, s2
+	.endif
 	// Kernargs: x, weight, state, state_indices, intermediate_window,
 	// intermediate_indices, output, batch.
-	s_mov_b32 s20, s2
 	NETRA_LOAD_KERNARG_PTR s[4:5], 0
 	NETRA_LOAD_KERNARG_PTR s[6:7], 8
 	NETRA_LOAD_KERNARG_PTR s[8:9], 16
@@ -33,11 +47,21 @@
 	NETRA_LOAD_KERNARG_U32 s18, 56
 	NETRA_WAIT_LGKM0
 
-	// workgroup = sequence*32 + 256-feature block.
+	.if NETRA_GDN_QKVZ_GRID_2D == 0
+	// One-dimensional grid: workgroup = sequence*32 + 256-feature block.
 	s_lshr_b32 s21, s20, 5
 	s_and_b32 s22, s20, 31
+	.else
+	// Two-dimensional grid: X is one of 40 feature blocks, Y is sequence.
+	s_mov_b32 s22, s2
+	s_mov_b32 s21, s3
+	.endif
 	s_cmp_ge_u32 s21, s18
 	s_cbranch_scc1 .Lend
+	.if NETRA_GDN_QKVZ_GRID_2D == 1
+	s_cmp_ge_u32 s22, 40
+	s_cbranch_scc1 .Lend
+	.endif
 	s_lshl_b32 s25, s21, 2
 	s_load_dword s23, s[10:11], s25
 	s_load_dword s24, s[14:15], s25
@@ -51,13 +75,21 @@
 	s_cbranch_scc1 .Lend
 
 	// Sequence-local QKVZ source plus the 256-feature QKV block.
+	.if NETRA_GDN_QKVZ_GRID_2D == 0
 	s_mul_i32 s25, s21, 0x48000
+	.else
+	s_lshl_b32 s25, s21, 18
+	.endif
 	s_lshl_b32 s26, s22, 9
 	s_add_u32 s25, s25, s26
 	s_add_u32 s4, s4, s25
 	s_addc_u32 s5, s5, 0
-	// Packed output remains [B,12,8192].
+	// Packed output remains compact for the selected fixed contract.
+	.if NETRA_GDN_QKVZ_GRID_2D == 0
 	s_mul_i32 s25, s21, 0x30000
+	.else
+	s_mul_i32 s25, s21, 0x28000
+	.endif
 	s_add_u32 s25, s25, s26
 	s_add_u32 s16, s16, s25
 	s_addc_u32 s17, s17, 0
@@ -70,8 +102,13 @@
 	// Live cache state is contiguous (cache,D,3).  The serving cache has
 	// millions of slots, so slot*49152 exceeds 32 bits.  Preserve both halves
 	// of the product before adding the small feature-block displacement.
+	.if NETRA_GDN_QKVZ_GRID_2D == 0
 	s_mul_i32 s25, s23, 0xc000
 	s_mul_hi_u32 s26, s23, 0xc000
+	.else
+	s_mul_i32 s25, s23, 0xf000
+	s_mul_hi_u32 s26, s23, 0xf000
+	.endif
 	s_mul_i32 s27, s22, 0x600
 	s_add_u32 s25, s25, s27
 	s_addc_u32 s26, s26, 0
@@ -80,8 +117,13 @@
 
 	// Speculative window is contiguous (cache,12,D,3).  Its 589824-byte slot
 	// stride crosses 4 GiB even sooner, so widen this address independently.
+	.if NETRA_GDN_QKVZ_GRID_2D == 0
 	s_mul_i32 s25, s24, 0x90000
 	s_mul_hi_u32 s26, s24, 0x90000
+	.else
+	s_mul_i32 s25, s24, 0x78000
+	s_mul_hi_u32 s26, s24, 0x78000
+	.endif
 	s_mul_i32 s27, s22, 0x600
 	s_add_u32 s25, s25, s27
 	s_addc_u32 s26, s26, 0
@@ -115,7 +157,7 @@
 	v_mov_b32_e32 v31, s26
 	v_mov_b32_e32 v32, s27
 
-	.rept 12
+	.rept NETRA_TOKENS
 	NETRA_GDN_CONV_TOKEN_EXACT
 	.endr
 
@@ -139,7 +181,7 @@
 		.amdhsa_user_sgpr_kernarg_segment_ptr 1
 		.amdhsa_enable_private_segment 0
 		.amdhsa_system_sgpr_workgroup_id_x 1
-		.amdhsa_system_sgpr_workgroup_id_y 0
+		.amdhsa_system_sgpr_workgroup_id_y NETRA_GDN_QKVZ_GRID_2D
 		.amdhsa_system_sgpr_workgroup_id_z 0
 		.amdhsa_system_vgpr_workitem_id 0
 		.amdhsa_next_free_vgpr 33

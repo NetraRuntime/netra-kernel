@@ -1,0 +1,171 @@
+{
+  "format": "netra-compatibility-build-1",
+  "target": "gfx950",
+  "wave_size": 64,
+  "deployment": "qwen36-27b-gdn-verify-m12-hv48",
+  "evidence": {
+    "lock": "/data/netra/benchmarks/gfx950_qwen36_27b/20260818-dflash12-gdnhv48-attnm16-tuned-gpu7/deterministic-hv48.json",
+    "lock_sha256": "3b5088eea606918a1855fe0afb1fcca1e8a02088b08bdd4d61dfedf54710ff52",
+    "source_revision": "265196ec59a3aa0f2017a72aafed114c1f8cc075"
+  },
+  "artifacts": [
+    {
+      "name": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
+      "locked_text_sha256": "1e74e20bd9b6e61d25861f9fb3d15c4e13f52b0de69b71fb88d3a21d7ed3c38b",
+      "locked_hsaco_sha256": "06ec9fcf7cdba0bf481f2f0f821a458a58c64adc99553bb805004618c95db65f",
+      "members": [
+        {
+          "tactic": "gdn_verify_precompute_m12_qk_hv48",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
+          "definitions": {
+            "NETRA_GDN_QK_ONLY": 1,
+            "NETRA_GDN_PRECOMPUTE_VARIANT": 8,
+            "NETRA_TOKENS": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+      "locked_text_sha256": "127942a0c6e81709bba8657db59a8a6cf9cc5c5cb7066fa20271cfe56a950b33",
+      "locked_hsaco_sha256": "da370e1674edf1c5ea0793bfbbaf62348323e012112444daad9358c056df05bc",
+      "members": [
+        {
+          "tactic": "gdn_verify_core_m12_bv16_hv48_k0",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+          "macro_symbols": [
+            "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+            "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_dual_gfx950"
+          ],
+          "definitions": {
+            "NETRA_GDN_CORE_VARIANT": 13,
+            "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+            "NETRA_GDN_INITIAL_STATE_FP32": 1,
+            "NETRA_GDN_SHARE_QK": 1,
+            "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+            "NETRA_TOKENS": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_verify_m12_batched_precompute_gates_gfx950",
+      "locked_text_sha256": "c3c0c96fe983733238671fb24b4fb27a1e8c32c9c5e104542415cf753d7c7178",
+      "locked_hsaco_sha256": "6ae434c8b5b345578fa3b38178c3070c2be6a505816af877149b7382c051c508",
+      "members": [
+        {
+          "tactic": "gdn_verify_precompute_m12_hv48_gates",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
+          "definitions": {
+            "NETRA_GDN_QK_ONLY": 0,
+            "NETRA_GDN_PRECOMPUTE_VARIANT": 7,
+            "NETRA_TOKENS": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_state_replay_m12_fp32_gfx950",
+      "locked_text_sha256": "903ab5fbcb9948a0b6386b0d7dfde9d5480034fc1064ffe9234e96dad2dd2501",
+      "locked_hsaco_sha256": "e114878b3b52c042880310e3e7450ec27aa747a885b0077f37be6b5525f62e40",
+      "members": [
+        {
+          "tactic": "gdn_state_replay_m12_bv16_hv48_fp32",
+          "symbol": "qwen36_27b_gdn_state_replay_m12_fp32_gfx950",
+          "macro_symbols": [
+            "qwen36_27b_gdn_state_replay_m12_fp32_gfx950",
+            "qwen36_27b_gdn_state_replay_m12_fp32_dual_gfx950"
+          ],
+          "definitions": {
+            "NETRA_GDN_CORE_VARIANT": 13,
+            "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+            "NETRA_GDN_INITIAL_STATE_FP32": 1,
+            "NETRA_GDN_SHARE_QK": 1,
+            "NETRA_GDN_STATE_REPLAY": 1,
+            "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+            "NETRA_TOKENS": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_verify_m8_batched_precompute_gfx950",
+      "locked_text_sha256": "1e74e20bd9b6e61d25861f9fb3d15c4e13f52b0de69b71fb88d3a21d7ed3c38b",
+      "locked_hsaco_sha256": "bccc773421fb5ae2319a2472d2847560cd318482b01687faca39cfb39ba2cf50",
+      "members": [
+        {
+          "tactic": "gdn_verify_precompute_m12_qk_hv48",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
+          "definitions": {
+            "NETRA_GDN_QK_ONLY": 1,
+            "NETRA_GDN_PRECOMPUTE_VARIANT": 8,
+            "NETRA_TOKENS": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_verify_m8_batched_precomputed_bv16_gfx950",
+      "locked_text_sha256": "4038e1d86a2c323f1b8df434be45202b3e9e9cae644479426ddf0ad675333115",
+      "locked_hsaco_sha256": "dfbc489be6ab40c1833696cbe735cbf36a708ad1a44ac1de454f50085522899f",
+      "members": [
+        {
+          "tactic": "gdn_verify_core_m12_bv16_hv48_k0",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+          "macro_symbols": [
+            "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950",
+            "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_dual_gfx950"
+          ],
+          "definitions": {
+            "NETRA_GDN_CORE_VARIANT": 13,
+            "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+            "NETRA_GDN_INITIAL_STATE_FP32": 1,
+            "NETRA_GDN_SHARE_QK": 1,
+            "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+            "NETRA_TOKENS": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_verify_m8_batched_precompute_gates_gfx950",
+      "locked_text_sha256": "c3c0c96fe983733238671fb24b4fb27a1e8c32c9c5e104542415cf753d7c7178",
+      "locked_hsaco_sha256": "f7c4b50fca13edb81dea08862c2910ea8eac6569e9dccacd84923e8ad68719c2",
+      "members": [
+        {
+          "tactic": "gdn_verify_precompute_m12_hv48_gates",
+          "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
+          "definitions": {
+            "NETRA_GDN_QK_ONLY": 0,
+            "NETRA_GDN_PRECOMPUTE_VARIANT": 7,
+            "NETRA_TOKENS": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "qwen36_27b_gdn_state_replay_m8_fp32_gfx950",
+      "locked_text_sha256": "b600cfba7280a2dc1d42821d8e1d73ca2511d946409b92b456e3caf5c14b1d23",
+      "locked_hsaco_sha256": "e86ea86b6b1939dd81110fb014e76c7c410ce9e7f92385e957590cb7c51a0b1c",
+      "members": [
+        {
+          "tactic": "gdn_state_replay_m12_bv16_hv48_fp32",
+          "symbol": "qwen36_27b_gdn_state_replay_m12_fp32_gfx950",
+          "macro_symbols": [
+            "qwen36_27b_gdn_state_replay_m12_fp32_gfx950",
+            "qwen36_27b_gdn_state_replay_m12_fp32_dual_gfx950"
+          ],
+          "definitions": {
+            "NETRA_GDN_CORE_VARIANT": 13,
+            "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
+            "NETRA_GDN_INITIAL_STATE_FP32": 1,
+            "NETRA_GDN_SHARE_QK": 1,
+            "NETRA_GDN_STATE_REPLAY": 1,
+            "NETRA_GDN_WAVES_PER_WORKGROUP": 1,
+            "NETRA_TOKENS": 8
+          }
+        }
+      ]
+    }
+  ]
+}

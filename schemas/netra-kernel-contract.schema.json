@@ -3,9 +3,9 @@
   "$id": "https://netra.ai/schemas/netra-kernel-contract.schema.json",
   "title": "Netra fixed kernel contract",
   "type": "object",
-  "required": ["id", "target", "wave_size", "operation", "launch", "workspace", "graph_capture", "deterministic", "fallback", "maturity"],
+  "required": ["id", "target", "wave_size", "operation", "graph_capture", "deterministic", "fallback"],
   "properties": {
-    "id": {"type": "string", "pattern": "^nk_[0-9a-f]{24}$"},
+    "id": {"type": "string", "pattern": "^nk(f)?_[0-9a-f]{24}$"},
     "target": {"const": "gfx950"},
     "wave_size": {"const": 64},
     "operation": {"type": "string", "minLength": 1},
@@ -17,9 +17,10 @@
     "maturity": {"enum": ["experiment", "verified", "accepted", "rejected"]}
   },
   "oneOf": [
-    {"required": ["shape", "dtypes", "quantization", "layouts", "epilogue", "tactic", "numerical"]},
-    {"required": ["artifact_kind", "family", "constants", "specialization", "semantics", "kernarg_size", "symbol"], "properties": {"artifact_kind": {"const": "raw_assembly_template"}}},
-    {"required": ["artifact_kind", "tactic", "symbol", "hsaco_name", "hsaco_sha256", "kernarg_size", "arguments"], "properties": {"artifact_kind": {"const": "golden_external_hsaco"}}}
+    {"required": ["shape", "dtypes", "quantization", "layouts", "epilogue", "tactic", "numerical", "launch", "workspace", "maturity"]},
+    {"required": ["artifact_kind", "family", "constants", "specialization", "semantics", "kernarg_size", "symbol", "launch", "workspace", "maturity"], "properties": {"artifact_kind": {"const": "raw_assembly_template"}}},
+    {"required": ["artifact_kind", "tactic", "symbol", "hsaco_name", "hsaco_sha256", "kernarg_size", "arguments", "launch", "workspace", "maturity"], "properties": {"artifact_kind": {"const": "golden_external_hsaco"}}},
+    {"required": ["artifact_kind", "shape", "dtypes", "quantization", "layouts", "epilogue", "numerical"], "properties": {"artifact_kind": {"const": "framework_fallback"}}}
   ],
   "$defs": {
     "launch": {"type": "object", "required": ["grid", "block", "lds_bytes", "dynamic_lds_bytes"]},

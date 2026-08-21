@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import unittest
-import hashlib
-import subprocess
 from pathlib import Path
 
 from netra_compiler.frontends import load_model
@@ -21,30 +19,21 @@ class PlannerTest(unittest.TestCase):
         plan = plan_graph(graph, standard_profiles()[0], "gfx950")
         self.assertTrue(all(p.tactic.name.endswith(".compat") for p in plan.operations))
         self.assertTrue(all(p.execution == "framework_fallback" for p in plan.operations))
-        raw = [c for c in plan.operations[0].explanation if c["tactic"] and "raw_dense" in c["tactic"]]
-        self.assertEqual({c["reasons"][0] for c in raw}, {"maturity is rejected"})
+        self.assertFalse(
+            any(
+                c["tactic"] and "raw_dense" in c["tactic"]
+                for c in plan.operations[0].explanation
+            )
+        )
 
     def test_rejected_not_selected_even_when_experimental_enabled(self) -> None:
         graph, _ = load_model(ROOT / "manifests/gfx950/models/qwen36-dense.json")
         plan = plan_graph(graph, standard_profiles()[0], "gfx950", allow_experimental=True)
         self.assertTrue(all(p.tactic.maturity is Maturity.ACCEPTED for p in plan.operations))
 
-    def test_raw_tactics_register_real_templates_without_maturity_change(self) -> None:
+    def test_rejected_dense_experiments_are_not_registered(self) -> None:
         raw = [tactic for tactic in gfx950_registry() if tactic.artifact_kind == "raw_assembly"]
-        self.assertEqual(len(raw), 2)
-        for tactic in raw:
-            self.assertIs(tactic.maturity, Maturity.REJECTED)
-            self.assertIsNotNone(tactic.source_template)
-            self.assertTrue((ROOT / tactic.source_template).is_file())
-            self.assertFalse((ROOT / tactic.source).is_file())
-            self.assertIsNotNone(tactic.source_revision)
-            payload = subprocess.run(
-                ["git", "show", f"{tactic.source_revision}:{tactic.source}"],
-                cwd=ROOT,
-                check=True,
-                stdout=subprocess.PIPE,
-            ).stdout
-            self.assertEqual(hashlib.sha256(payload).hexdigest(), tactic.source_sha256)
+        self.assertEqual(raw, [])
 
     def test_gemma_reuses_without_changing_qwen_tactic(self) -> None:
         graph, _ = load_model(ROOT / "tests/compiler/fixtures/gemma-dense-synthetic.json")

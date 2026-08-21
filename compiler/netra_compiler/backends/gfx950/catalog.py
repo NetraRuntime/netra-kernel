@@ -36,12 +36,14 @@ class FixedAssemblyTactic:
     macro_parameters: tuple[str, ...]
     contract_constants: tuple[tuple[str, tuple[int, ...]], ...]
     compile_definitions: tuple[tuple[str, tuple[int, ...]], ...]
+    compile_ranges: tuple[tuple[str, int, int, int], ...]
     semantics: KernelSemantics
     kernarg_size: int
     launch_block_constant: str | None
     launch_block_multiplier: int
     threads_per_workgroup: int
     lds_bytes: int
+    dynamic_lds_bytes: int
     workspace: Workspace
     graph_capture: bool
     deterministic: bool
@@ -67,12 +69,14 @@ class FixedAssemblyTactic:
             "computational_sha256": self.computational_sha256,
             "contract_constants": self.contract_constants,
             "compile_definitions": self.compile_definitions,
+            "compile_ranges": self.compile_ranges,
             "semantics": self.semantics.to_dict(),
             "kernarg_size": self.kernarg_size,
             "launch_block_constant": self.launch_block_constant,
             "launch_block_multiplier": self.launch_block_multiplier,
             "threads_per_workgroup": self.threads_per_workgroup,
             "lds_bytes": self.lds_bytes,
+            "dynamic_lds_bytes": self.dynamic_lds_bytes,
             "workspace": {
                 "bytes": self.workspace.bytes,
                 "alignment": self.workspace.alignment,
@@ -128,9 +132,22 @@ class FixedAssemblyTactic:
                 reasons.append(f"{name} missing")
             elif constants[name] not in allowed:
                 reasons.append(f"{name} mismatch")
+        for name, minimum, maximum, step in self.compile_ranges:
+            value = constants.get(name)
+            if value is None:
+                reasons.append(f"{name} missing")
+            elif (
+                not isinstance(value, int)
+                or isinstance(value, bool)
+                or value < minimum
+                or value > maximum
+                or (value - minimum) % step
+            ):
+                reasons.append(f"{name} mismatch")
         declared = {
             name for name, _ in (*self.contract_constants, *self.compile_definitions)
         }
+        declared.update(name for name, _, _, _ in self.compile_ranges)
         for name in sorted(set(constants) - declared):
             reasons.append(f"undeclared compile-time constant {name}")
         return tuple(reasons)
@@ -156,6 +173,8 @@ class FixedAssemblyTactic:
             )
         concrete_specialization = tuple(
             (name, int(constants[name])) for name, _ in self.compile_definitions
+        ) + tuple(
+            (name, int(constants[name])) for name, _, _, _ in self.compile_ranges
         )
         identity = {
             "tactic": self.stable_id,
@@ -181,7 +200,7 @@ class FixedAssemblyTactic:
                 grid,
                 (block_x, 1, 1),
                 self.lds_bytes,
-                0,
+                self.dynamic_lds_bytes,
             ),
             workspace=self.workspace,
             graph_capture=self.graph_capture,
@@ -218,6 +237,10 @@ class FixedAssemblyTactic:
                 name: values[0] if len(values) == 1 else list(values)
                 for name, values in self.compile_definitions
             },
+            "compile_ranges": {
+                name: {"min": minimum, "max": maximum, "step": step}
+                for name, minimum, maximum, step in self.compile_ranges
+            },
             "semantics": self.semantics.to_dict(),
             "kernarg_size": self.kernarg_size,
             "launch_constraints": {
@@ -231,6 +254,7 @@ class FixedAssemblyTactic:
                     }
                 ),
                 "lds_bytes": self.lds_bytes,
+                "dynamic_lds_bytes": self.dynamic_lds_bytes,
                 "grid": "resolved_by_exact_engine_profile",
             },
             "compatibility_symbols": list(self.compatibility_symbols),
@@ -364,8 +388,22 @@ def load_fixed_tactic_catalog(
             closure_digest = _closure_hash(closure)
             if closure_digest != entry["source_closure_sha256"]:
                 raise ValueError(f"source closure hash mismatch for {entry['id']}")
-            required: dict[str, tuple[int, ...]] = {}
+            explicit_contracts = entry.get("contract_constants", {})
+            if not isinstance(explicit_contracts, Mapping):
+                raise ValueError(
+                    f"contract_constants must be an object for {entry['id']}"
+                )
+            required: dict[str, tuple[int, ...]] = {
+                str(name): _values(value)
+                for name, value in explicit_contracts.items()
+            }
             for name, expected in _REQUIRE_EQ.findall(closure_text):
+                # A shared template can contain mutually exclusive assembler
+                # branches. Its catalog entry closes those public constants
+                # explicitly, so unreachable branch guards must not create an
+                # ambiguous inferred contract.
+                if name in required:
+                    continue
                 if name in _TARGET_CONSTANTS:
                     continue
                 value = (int(expected),)
@@ -379,19 +417,83 @@ def load_fixed_tactic_catalog(
                 (name, _values(value))
                 for name, value in entry["compile_definitions"].items()
             ))
-            overlap = set(required) & set(dict(compile_definitions))
+            compile_ranges_list: list[tuple[str, int, int, int]] = []
+            for name, raw_range in entry.get("compile_ranges", {}).items():
+                if not isinstance(raw_range, Mapping):
+                    raise ValueError(
+                        f"compile range {name} must be an object in {entry['id']}"
+                    )
+                minimum = int(raw_range.get("min", 0))
+                maximum = int(raw_range.get("max", 0))
+                step = int(raw_range.get("step", 1))
+                if minimum <= 0 or maximum < minimum or step <= 0:
+                    raise ValueError(
+                        f"invalid compile range {name} in {entry['id']}"
+                    )
+                compile_ranges_list.append((str(name), minimum, maximum, step))
+            compile_ranges = tuple(sorted(compile_ranges_list))
+            selectable = set(dict(compile_definitions)) | {
+                name for name, _, _, _ in compile_ranges
+            }
+            overlap = set(required) & selectable
             if overlap:
                 raise ValueError(
                     f"fixed and selectable constants overlap for {entry['id']}: "
                     + ", ".join(sorted(overlap))
                 )
+            duplicated = set(dict(compile_definitions)) & {
+                name for name, _, _, _ in compile_ranges
+            }
+            if duplicated:
+                raise ValueError(
+                    f"listed and ranged constants overlap for {entry['id']}: "
+                    + ", ".join(sorted(duplicated))
+                )
             workgroups = {int(value) for value in _MAX_WORKGROUP.findall(closure_text)}
             lds_sizes = {int(value) for value in _FIXED_LDS.findall(closure_text)}
             kernarg_sizes = {int(value) for value in _KERNARG_SIZE.findall(closure_text)}
-            if len(workgroups) != 1 or len(lds_sizes) != 1:
-                raise ValueError(f"ambiguous launch metadata for {entry['id']}")
+            metadata_contract = entry.get("metadata_contract")
+            if metadata_contract is None:
+                if len(workgroups) != 1 or len(lds_sizes) != 1:
+                    raise ValueError(f"ambiguous launch metadata for {entry['id']}")
+                threads_per_workgroup = workgroups.pop()
+                lds_bytes = lds_sizes.pop()
+            else:
+                if not isinstance(metadata_contract, Mapping):
+                    raise ValueError(
+                        f"metadata_contract must be an object for {entry['id']}"
+                    )
+                threads_per_workgroup = int(
+                    metadata_contract.get("max_flat_workgroup_size", 0)
+                )
+                lds_bytes = int(
+                    metadata_contract.get("group_segment_fixed_size", -1)
+                )
+                if threads_per_workgroup <= 0 or lds_bytes < 0:
+                    raise ValueError(
+                        f"invalid metadata_contract for {entry['id']}"
+                    )
+                if workgroups and threads_per_workgroup not in workgroups:
+                    raise ValueError(
+                        f"declared workgroup size is absent for {entry['id']}"
+                    )
+                if lds_sizes and lds_bytes not in lds_sizes:
+                    raise ValueError(
+                        f"declared fixed LDS size is absent for {entry['id']}"
+                    )
             kernarg_size = int(entry["kernarg_size"])
-            if kernarg_size not in kernarg_sizes:
+            declared_kernarg_size = (
+                None
+                if metadata_contract is None
+                else int(metadata_contract.get("kernarg_segment_size", -1))
+            )
+            if declared_kernarg_size is not None and declared_kernarg_size != kernarg_size:
+                raise ValueError(
+                    f"metadata kernarg size mismatch for {entry['id']}"
+                )
+            if kernarg_sizes and kernarg_size not in kernarg_sizes:
+                raise ValueError(f"declared kernarg size is absent for {entry['id']}")
+            if not kernarg_sizes and declared_kernarg_size is None:
                 raise ValueError(f"declared kernarg size is absent for {entry['id']}")
             semantics = KernelSemantics(**entry["semantics"])
             workspace_data = entry.get("workspace", {})
@@ -444,12 +546,14 @@ def load_fixed_tactic_catalog(
                 macro_parameters=macro_parameters,
                 contract_constants=tuple(sorted(required.items())),
                 compile_definitions=compile_definitions,
+                compile_ranges=compile_ranges,
                 semantics=semantics,
                 kernarg_size=kernarg_size,
                 launch_block_constant=launch_block_constant,
                 launch_block_multiplier=launch_block_multiplier,
-                threads_per_workgroup=workgroups.pop(),
-                lds_bytes=lds_sizes.pop(),
+                threads_per_workgroup=threads_per_workgroup,
+                lds_bytes=lds_bytes,
+                dynamic_lds_bytes=int(entry.get("dynamic_lds_bytes", 0)),
                 workspace=Workspace(
                     int(workspace_data.get("bytes", 0)),
                     int(workspace_data.get("alignment", 256)),

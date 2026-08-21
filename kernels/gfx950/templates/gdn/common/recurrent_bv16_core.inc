@@ -3,10 +3,11 @@
 	.include "kernels/gfx950/templates/gdn/common/recurrent_state.inc"
 // SPDX-License-Identifier: MIT
 //
-// Shape-gated raw gfx950 recurrent core for a fixed-contract dFlash/GDN
-// verification or state-replay schedule:
-//   T=12, H=16, HV=32, K=128, V=128, BV=16.
-// The including leaf fixes the supported batch bound and public tactic name.
+// Model-independent raw gfx950 recurrent core for fixed-contract dFlash/GDN
+// verification and state-replay schedules:
+//   T in {8,12}, H=16, HV in {32,48}, K=128, V=128, BV=16.
+// Geometry, state dtype, replay mode, and launch schedule are all fixed at
+// assembly time. No runtime shape branch is emitted.
 //
 // Q/K normalization and the scalar decay/beta gates are precomputed in FP32.
 // The paired precompute kernel supplies these inputs. Variant 15 is the
@@ -16,8 +17,8 @@
 // produces BF16 outputs but neither rounds the live FP32 recurrence between
 // positions nor writes the twelve rollback snapshots.
 //
-// Grid: B*256 one-wave workgroups.
-// local_workgroup_x = workgroup_x % 256 = hv * 8 + v_tile.
+// Grid: B*(HV*8) one-wave workgroups.
+// local_workgroup_x = workgroup_x % (HV*8) = hv * 8 + v_tile.
 // Each lane owns four V rows and eight consecutive K values (32 FP32 state
 // registers).  K/Q vectors are cooperatively staged through 1 KiB LDS.
 
@@ -56,8 +57,20 @@
 	.ifndef NETRA_GDN_CORE_VARIANT
 	.set NETRA_GDN_CORE_VARIANT, 15
 	.endif
+	.ifndef NETRA_GDN_VALUE_HEADS
+	.set NETRA_GDN_VALUE_HEADS, NETRA_VALUE_HEADS
+	.endif
+	.if (NETRA_GDN_VALUE_HEADS != 32) && (NETRA_GDN_VALUE_HEADS != 48)
+	.error "NETRA_GDN_VALUE_HEADS must be 32 or 48"
+	.endif
 	.ifndef NETRA_GDN_K0_NO_INTERMEDIATE
 	.set NETRA_GDN_K0_NO_INTERMEDIATE, 0
+	.endif
+	.ifndef NETRA_GDN_INITIAL_STATE_FP32
+	.set NETRA_GDN_INITIAL_STATE_FP32, 0
+	.endif
+	.if (NETRA_GDN_INITIAL_STATE_FP32 != 0) && (NETRA_GDN_INITIAL_STATE_FP32 != 1)
+	.error "NETRA_GDN_INITIAL_STATE_FP32 must be 0 or 1"
 	.endif
 	// Experimental high-batch launch geometry.  Consecutive logical waves own
 	// adjacent V tiles of the same value head, so a multi-wave workgroup can
@@ -81,6 +94,9 @@
 	.if (NETRA_GDN_STATE_REPLAY != 0) && (NETRA_GDN_STATE_REPLAY != 1)
 	.error "NETRA_GDN_STATE_REPLAY must be 0 or 1"
 	.endif
+	.if (NETRA_GDN_INITIAL_STATE_FP32 == 1) && (NETRA_GDN_K0_NO_INTERMEDIATE != 1)
+	.error "FP32 state requires the K0 no-intermediate schedule"
+	.endif
 // Dual state replay stores an earlier tracking-prefix snapshot and the final
 // accepted-prefix state from one live FP32 recurrence. It is valid only for
 // the state-only replay specialization.
@@ -89,6 +105,9 @@
 .endif
 .if (NETRA_GDN_STATE_REPLAY_DUAL != 0) && (NETRA_GDN_STATE_REPLAY != 1)
 .error "NETRA_GDN_STATE_REPLAY_DUAL requires NETRA_GDN_STATE_REPLAY=1"
+.endif
+.if (NETRA_GDN_STATE_REPLAY_DUAL != 0) && (NETRA_GDN_INITIAL_STATE_FP32 == 1)
+.error "dual state replay supports only the BF16 state pool"
 .endif
 	.if (NETRA_GDN_WAVES_PER_WORKGROUP != 1) && (NETRA_GDN_WAVES_PER_WORKGROUP != 2) && (NETRA_GDN_WAVES_PER_WORKGROUP != 4) && (NETRA_GDN_WAVES_PER_WORKGROUP != 8)
 	.error "NETRA_GDN_WAVES_PER_WORKGROUP must be 1, 2, 4, or 8"
@@ -454,9 +473,11 @@
 
 	.macro NETRA_GDN_RECURRENT_BV16_CORE symbol, dual_symbol
 	NETRA_REQUIRE_GFX950_WAVE64
-	NETRA_REQUIRE_EQ NETRA_TOKENS, 12
+	.if (NETRA_TOKENS != 8) && (NETRA_TOKENS != 12)
+	.error "NETRA_TOKENS must be 8 or 12"
+	.endif
 	NETRA_REQUIRE_EQ NETRA_QK_HEADS, 16
-	NETRA_REQUIRE_EQ NETRA_VALUE_HEADS, 32
+	NETRA_REQUIRE_EQ NETRA_VALUE_HEADS, NETRA_GDN_VALUE_HEADS
 	NETRA_REQUIRE_EQ NETRA_QK_DIM, 128
 	NETRA_REQUIRE_EQ NETRA_VALUE_DIM, 128
 	.if NETRA_GDN_STATE_REPLAY_DUAL == 1
@@ -507,9 +528,20 @@
 	NETRA_WAIT_LGKM0
 
 	// Decode the sequence and local workgroup. Resolve each sequence's selected
-	// recurrent-state pool slot (1 MiB) and M=12 intermediate slot (12 MiB).
+	// recurrent-state pool slot and M=12 intermediate slot. HV32 uses 1 MiB per
+	// state; HV48 uses 1.5 MiB.
+	.if NETRA_GDN_VALUE_HEADS == 32
 	s_lshr_b32 s19, s18, 8
 	s_and_b32 s18, s18, 255
+	.else
+	// floor(x / 384) = floor((floor(x / 128)) / 3). The high-half magic
+	// multiply implements exact unsigned division by three.
+	s_lshr_b32 s19, s18, 7
+	s_mul_hi_u32 s19, s19, 0xaaaaaaab
+	s_lshr_b32 s19, s19, 1
+	s_mul_i32 s20, s19, 384
+	s_sub_u32 s18, s18, s20
+	.endif
 	s_lshl_b32 s20, s19, 2
 	s_load_dword s24, s[24:25], s20
 	s_load_dword s26, s[26:27], s20
@@ -543,7 +575,15 @@
 	s_min_i32 s37, s37, s31
 	.endif
 	s_mov_b32 s25, 0
+	.if NETRA_GDN_INITIAL_STATE_FP32 == 1
+	s_mul_i32 s24, s24, 3
 	s_lshl_b64 s[24:25], s[24:25], 20
+	.elseif NETRA_GDN_VALUE_HEADS == 32
+	s_lshl_b64 s[24:25], s[24:25], 20
+	.else
+	s_mul_i32 s24, s24, 3
+	s_lshl_b64 s[24:25], s[24:25], 19
+	.endif
 	s_add_u32 s14, s14, s24
 	s_addc_u32 s15, s15, s25
 	s_mov_b32 s27, 0
@@ -555,22 +595,40 @@
 	// Preserve the tracking length and resolve its independent destination
 	// while s12:s13 still holds the common state-pool base.
 	s_max_i32 s36, s36, 0
-	s_min_i32 s36, s36, 12
+	s_min_i32 s36, s36, NETRA_TOKENS
 	s_mov_b32 s38, s36
 	s_mov_b32 s36, s37
 	s_mov_b32 s37, 0
+	.if NETRA_GDN_VALUE_HEADS == 32
 	s_lshl_b64 s[36:37], s[36:37], 20
+	.else
+	s_mul_i32 s36, s36, 3
+	s_lshl_b64 s[36:37], s[36:37], 19
+	.endif
 	s_add_u32 s34, s12, s36
 	s_addc_u32 s35, s13, s37
 	.endif
+	.if NETRA_GDN_INITIAL_STATE_FP32 == 1
+	s_mul_i32 s26, s26, 3
 	s_lshl_b64 s[26:27], s[26:27], 20
+	.elseif NETRA_GDN_VALUE_HEADS == 32
+	s_lshl_b64 s[26:27], s[26:27], 20
+	.else
+	s_mul_i32 s26, s26, 3
+	s_lshl_b64 s[26:27], s[26:27], 19
+	.endif
 	s_add_u32 s12, s12, s26
 	s_addc_u32 s13, s13, s27
 	s_max_i32 s28, s28, 0
-	s_min_i32 s28, s28, 12
+	s_min_i32 s28, s28, NETRA_TOKENS
 	.else
-	s_mul_i32 s26, s26, 12
+	.if NETRA_GDN_VALUE_HEADS == 32
+	s_mul_i32 s26, s26, (NETRA_TOKENS)
 	s_lshl_b64 s[26:27], s[26:27], 20
+	.else
+	s_mul_i32 s26, s26, (NETRA_TOKENS * 3)
+	s_lshl_b64 s[26:27], s[26:27], 19
+	.endif
 	s_add_u32 s16, s16, s26
 	s_addc_u32 s17, s17, s27
 	.endif
@@ -578,36 +636,50 @@
 
 	// Advance compact precompute buffers and the original V/output views to
 	// this sequence. Each sequence contains exactly 12 contiguous token rows.
-	s_mul_i32 s20, s19, 0x18000
+	s_mul_i32 s20, s19, (NETRA_TOKENS * 8192)
 	s_add_u32 s2, s2, s20
 	s_addc_u32 s3, s3, 0
 	s_add_u32 s4, s4, s20
 	s_addc_u32 s5, s5, 0
-	s_mul_i32 s20, s19, 1536
+	.if NETRA_GDN_VALUE_HEADS == 32
+	s_mul_i32 s20, s19, (NETRA_TOKENS * 128)
+	.else
+	s_mul_i32 s20, s19, (NETRA_TOKENS * 192)
+	.endif
 	s_add_u32 s8, s8, s20
 	s_addc_u32 s9, s9, 0
 	s_add_u32 s10, s10, s20
 	s_addc_u32 s11, s11, 0
 	// V is a view into the packed Q/K/V projection and therefore uses the
 	// caller-provided token stride (8192 elements in the captured graph).
-	s_mul_i32 s20, s19, 12
+	s_mul_i32 s20, s19, (NETRA_TOKENS)
 	s_mul_i32 s20, s20, s29
 	s_add_u32 s6, s6, s20
 	s_addc_u32 s7, s7, 0
-	// Output is always compact [B*12,32,128] BF16. It must not inherit V's
+	// Output is always compact [B*12,HV,128] BF16. It must not inherit V's
 	// packed-projection stride; doing so left a 96 KiB hole per sequence and
 	// crossed the graph allocation for B>1. State replay instead addresses its
 	// destination through the pool index above.
 	.if NETRA_GDN_STATE_REPLAY == 0
-	s_mul_i32 s20, s19, 0x18000
+	.if NETRA_GDN_VALUE_HEADS == 32
+	s_mul_i32 s20, s19, (NETRA_TOKENS * 8192)
+	.else
+	s_mul_i32 s20, s19, (NETRA_TOKENS * 12288)
+	.endif
 	s_add_u32 s12, s12, s20
 	s_addc_u32 s13, s13, 0
 	.endif
 
-	// hv = workgroup_x / 8, tile = workgroup_x % 8, head = hv / 2.
+	// hv = workgroup_x / 8, tile = workgroup_x % 8. HV32 maps two value
+	// heads per Q/K head; the 27B HV48 contract maps three.
 	s_lshr_b32 s19, s18, 3
 	s_and_b32 s20, s18, 7
+	.if NETRA_GDN_VALUE_HEADS == 32
 	s_lshr_b32 s21, s19, 1
+	.else
+	s_mul_hi_u32 s21, s19, 0xaaaaaaab
+	s_lshr_b32 s21, s21, 1
+	.endif
 	// s30:s31 is reused by the output-lane EXEC mask below.  Preserve the
 	// immutable wave index in s18 now that the logical workgroup ID has been
 	// fully decoded.
@@ -622,8 +694,34 @@
 	v_lshrrev_b32_e32 v1, 4, v0
 	v_and_b32_e32 v2, 15, v0
 
-	// Initial/intermediate group-0 byte offset:
+	// Initial-state group-0 byte offset. BF16 uses:
 	//   hv*32768 + tile*4096 + row*256 + k_chunk*16.
+	// The 27B K0 specialization reads the live FP32 state pool with every byte
+	// stride doubled.
+	.if NETRA_GDN_INITIAL_STATE_FP32 == 1
+	s_lshl_b32 s22, s19, 16
+	s_lshl_b32 s23, s20, 13
+	s_add_u32 s22, s22, s23
+	v_lshlrev_b32_e32 v3, 9, v1
+	v_lshlrev_b32_e32 v4, 5, v2
+	v_add_u32_e32 v3, v3, v4
+	v_add_u32_e32 v7, s22, v3
+
+	// Eight FP32 K values from each of four V rows. Load directly into the
+	// recurrence registers, avoiding the BF16 unpack used by the legacy path.
+	global_load_dwordx4 v[32:35], v7, s[14:15]
+	global_load_dwordx4 v[36:39], v7, s[14:15] offset:16
+	v_add_u32_e32 v4, 2048, v7
+	global_load_dwordx4 v[40:43], v4, s[14:15]
+	global_load_dwordx4 v[44:47], v4, s[14:15] offset:16
+	v_add_u32_e32 v4, 4096, v7
+	global_load_dwordx4 v[48:51], v4, s[14:15]
+	global_load_dwordx4 v[52:55], v4, s[14:15] offset:16
+	v_add_u32_e32 v4, 6144, v7
+	global_load_dwordx4 v[56:59], v4, s[14:15]
+	global_load_dwordx4 v[60:63], v4, s[14:15] offset:16
+	NETRA_WAIT_VM0
+	.else
 	s_lshl_b32 s22, s19, 15
 	s_lshl_b32 s23, s20, 12
 	s_add_u32 s22, s22, s23
@@ -678,6 +776,7 @@
 	v_and_b32_e32 v61, 0xffff0000, v78
 	v_lshlrev_b32_e32 v62, 16, v79
 	v_and_b32_e32 v63, 0xffff0000, v79
+	.endif
 
 	// Optional assembler-time mapping probe.  A build with
 	// -Wa,-defsym,NETRA_DEBUG_INITIAL_COPY=1 copies the decoded initial state
@@ -1064,23 +1163,48 @@
 .Lskip_tracking_state_store:
 	.endif
 	s_add_u32 s22, s22, 8192
+	.if NETRA_GDN_VALUE_HEADS == 32
 	s_add_u32 s23, s23, 128
 	v_add_u32_e32 v4, 8192, v4
+	.else
+	s_add_u32 s23, s23, 192
+	v_add_u32_e32 v4, 12288, v4
+	.endif
 	v_add_u32_e32 v75, s29, v75
 	.if (NETRA_GDN_K0_NO_INTERMEDIATE == 0) && (NETRA_GDN_STATE_REPLAY == 0)
+	.if NETRA_GDN_VALUE_HEADS == 32
 	v_add_u32_e32 v7, 0x100000, v7
+	.else
+	v_add_u32_e32 v7, 0x180000, v7
+	.endif
 	.endif
 	.if NETRA_GDN_STATE_REPLAY == 1
 	s_cmp_lt_u32 s28, s30
 	.else
-	s_cmp_lt_u32 s28, 12
+	s_cmp_lt_u32 s28, NETRA_TOKENS
 	.endif
 	s_cbranch_scc1 .Ltime_loop
 
 	.if NETRA_GDN_STATE_REPLAY == 1
+	.if NETRA_GDN_INITIAL_STATE_FP32 == 1
+	// The HV48 pool keeps FP32 states between steps, so state-only replay
+	// writes the live FP32 recurrence directly with doubled byte strides.
+	global_store_dwordx4 v7, v[32:35], s[12:13]
+	global_store_dwordx4 v7, v[36:39], s[12:13] offset:16
+	v_add_u32_e32 v5, 2048, v7
+	global_store_dwordx4 v5, v[40:43], s[12:13]
+	global_store_dwordx4 v5, v[44:47], s[12:13] offset:16
+	v_add_u32_e32 v5, 4096, v7
+	global_store_dwordx4 v5, v[48:51], s[12:13]
+	global_store_dwordx4 v5, v[52:55], s[12:13] offset:16
+	v_add_u32_e32 v5, 6144, v7
+	global_store_dwordx4 v5, v[56:59], s[12:13]
+	global_store_dwordx4 v5, v[60:63], s[12:13] offset:16
+	.else
 	// State-only replay exposes only the final BF16 state, matching Triton's
 	// live FP32 recurrence followed by one terminal conversion.
 	NETRA_GDN_PACK_STORE_STATE_BF16 12, 13
+	.endif
 	.endif
 
 .Lexit:
