@@ -1,0 +1,7 @@
+model,experiment,metric,unit,n,mean,median,minimum,maximum,p5,p95,stddev,cv,confidence_interval,correctness,source,availability
+27B,FP32-state C128 five-process,output_tokens_per_second,tok/s,5,3287.81,,3246.51,3316.49,,,32.88,,,mean acceptance about 3.1,docs/notes/gfx950-qwen36-27b-fp8.md,tracked aggregate and five values
+27B,BF16-state C128 five-process,output_tokens_per_second,tok/s,5,3429.02,,3375.76,3457.64,,,31.9,,,1920/1920 requests passed; mean acceptance 3.1464,docs/notes/gfx950-qwen36-27b-fp8.md,tracked aggregate and five values
+27B,C128/C192 paired GSM8K,relative_output_throughput,percent,5,11.75,,,,,,,,95% 10.41 to 13.09,13190 requests; accuracy interval crossed zero,docs/notes/gfx950-qwen36-27b-fp8.md,tracked aggregate; raw summary external
+27B,locked C192 five-process,output_tokens_per_second,tok/s,5,6500.89,,6430.39,6562.83,,,52.07,,,6595 requests; 96.25% numeric accuracy,docs/notes/gfx950-qwen36-27b-fp8.md,tracked aggregate and five values in prose
+35B,locked modular M768 five-process,output_tokens_per_second,tok/s,5,11431.1078,,11386.687,11474.461,,,42.012,,,accuracy .9525,docs/compiler/gfx950-moe-prefill-m768-equivalence-20260821.json,tracked aggregate; process samples external
+35B,Netra C64 in cross-system comparison,output_tokens_per_second,tok/s,,3284.8467,,,,,,,,,480/512 outputs differ across engines; not a quality-equivalent kernel baseline,netra-server:docs/mi350x-gfx950/notes/20260802_c64_apples_to_apples.json,tracked aggregate; graph/dFlash configurations differ

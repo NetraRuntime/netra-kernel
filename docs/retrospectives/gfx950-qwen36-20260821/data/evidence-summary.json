@@ -1,0 +1,57 @@
+{
+  "counts": {
+    "catalog_tactics": 37,
+    "external_artifact_references": 347,
+    "external_artifacts_available": 0,
+    "historical_json_files": 91,
+    "historical_numeric_fields": 5211,
+    "historical_sample_fields": 121,
+    "manifest_operations": 46,
+    "relevant_commits": 472,
+    "relevant_file_changes": 2292,
+    "relevant_reflog_entries": 406,
+    "relevant_refs": 45,
+    "tracked_evidence_files": 290
+  },
+  "format": "netra-gfx950-qwen36-retrospective-evidence-1",
+  "generated_at": "2026-08-21T05:30:59.109141+00:00",
+  "measurement_policy": {
+    "historical_numbers": "inventory_only; consult evidence path and checksum",
+    "missing_artifacts": "unverified, never reconstructed from prose",
+    "new_gpu_measurements": "not_run_no_dev_kfd"
+  },
+  "revisions": {
+    "netra-kernel": {
+      "branch": "analysis/gfx950-qwen36-retrospective-20260821",
+      "head": "9c5940cceaecb00a26f157a4894d1a8edad4e0d4",
+      "origin_main": "9c5940cceaecb00a26f157a4894d1a8edad4e0d4",
+      "path": "/home/rbisri/Projects/netra-qwen36-retrospective-20260821/netra-kernel",
+      "remotes": [
+        "origin\thttps://github.com/NetraRuntime/netra-kernel.git (fetch)",
+        "origin\thttps://github.com/NetraRuntime/netra-kernel.git (push)"
+      ],
+      "status_porcelain_v2": [
+        "# branch.oid 9c5940cceaecb00a26f157a4894d1a8edad4e0d4",
+        "# branch.head analysis/gfx950-qwen36-retrospective-20260821",
+        "# branch.upstream origin/main",
+        "# branch.ab +0 -0",
+        "? docs/retrospectives/",
+        "? tools/analysis/"
+      ]
+    },
+    "netra-server": {
+      "branch": null,
+      "head": "fae2865d9b3096c2cc518aa16d3797ac828f77cc",
+      "origin_main": "fae2865d9b3096c2cc518aa16d3797ac828f77cc",
+      "path": "/home/rbisri/Projects/netra-qwen36-retrospective-20260821/netra-server",
+      "remotes": [
+        "origin\thttps://github.com/NetraRuntime/netra-server.git (fetch)",
+        "origin\thttps://github.com/NetraRuntime/netra-server.git (push)"
+      ],
+      "status_porcelain_v2": [
+        "# branch.oid fae2865d9b3096c2cc518aa16d3797ac828f77cc",
+        "# branch.head (detached)"
+      ]
+    }
+  }
+}

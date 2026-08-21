@@ -1,0 +1,16 @@
+model,operation,exact_contract,winner,status,basis,evidence
+35B,M1 MoE graph pipeline,"M1,K2048,I512,top9",Netra raw three-stage pipeline,accepted,serving-gated,docs/notes/gfx950-qwen36-fp8-results.json
+35B,dense FP8 decode,"M1,K2048,N4096",AITER,production retained,Netra faster only in isolation,docs/notes/gfx950-qwen36-fp8-kernels.md
+35B,argmax,"M16,N248320 FP32",Netra two-stage assembly,accepted,exact,docs/notes/gfx950-qwen36-argmax-f32-accepted.md
+35B,GDN verification,"M16,H32,K/V128",Netra assembly,accepted,exact/replay,docs/notes/gfx950-qwen36-gdn-verify-m16-results.json
+35B,GDN K0 core,"M12,H32,K/V128,BV16",Netra assembly,accepted,serving-gated,docs/notes/gfx950-qwen36-gdn-m12-k0.md
+35B,GDN causal convolution,"M12,QKV8192,width4",Netra assembly,accepted,exact,docs/notes/gfx950-qwen36-gdn-causal-conv-m12.md
+35B,extend attention,"M12,GQA4,D256,FP8 KV",Netra assembly,accepted,serving-gated,docs/notes/gfx950-qwen36-extend-attention-gqa4.md
+35B,target attention,"M756,GQA8,D256,FP8 KV",Netra assembly,accepted,bounded tolerance,docs/notes/gfx950-qwen36-target-attention-gqa8-fp8kv.md
+35B,MoE exact producer/reducer,M768,Netra modular assembly pair,accepted locked,byte-locked,docs/notes/gfx950-template-modularity-audit.md
+35B,MoE non-M768 fallback,M8192,AITER FMoE block64,production retained,serving-flat candidate,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
+35B,dense long prefill,M8192 five contracts,AITER selected CK/CK Tile,production retained,285-candidate screen,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
+27B,GDN QKVZ+conv,"T8,QKV10240",Triton/framework,production retained,Netra micro-win failed serving,docs/notes/gfx950-qwen36-27b-fp8.md
+27B,GDN recurrent state,"T8,H48,BV16",Netra BF16-state core/replay,accepted opt-in,memory+serving gated,docs/notes/gfx950-qwen36-27b-fp8.md
+27B,dense projections,observed M1/M16/M80/M256/M768/M3840/M8192,AITER exact selected CK/CK Tile,production retained,model-neutral table,docs/notes/gfx950-qwen36-27b-fp8.md
+27B,C192 serving,"TP1/DP1,dFlash8,BF16 state",Netra locked C192 profile,throughput winner,latency tradeoff explicit,docs/notes/gfx950-qwen36-27b-fp8.md

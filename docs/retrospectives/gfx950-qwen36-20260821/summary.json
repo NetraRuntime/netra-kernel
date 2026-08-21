@@ -1,0 +1,112 @@
+{
+  "as_of": "2026-08-21",
+  "curated_counts": {
+    "aggregate_rows": 6,
+    "comparison_rows": 27,
+    "competitor_records": 11,
+    "exhaustive_tracked_aggregate_fields": 767,
+    "exhaustive_tracked_sample_fields": 121,
+    "negative_results": 16,
+    "operations": 45,
+    "retained_process_samples": 10,
+    "reviewed_decision_rows": 43
+  },
+  "current_execution": {
+    "gpu_benchmarks_run": false,
+    "policy": "Historical values are reported only where present in tracked evidence; missing values remain null/empty.",
+    "reason": "No /dev/kfd, ROCm runtime/toolchain, Docker daemon, or archived /data/netra artifacts on this host."
+  },
+  "evidence_counts": {
+    "counts": {
+      "catalog_tactics": 37,
+      "external_artifact_references": 347,
+      "external_artifacts_available": 0,
+      "historical_json_files": 91,
+      "historical_numeric_fields": 5211,
+      "historical_sample_fields": 121,
+      "manifest_operations": 46,
+      "relevant_commits": 472,
+      "relevant_file_changes": 2292,
+      "relevant_reflog_entries": 406,
+      "relevant_refs": 45,
+      "tracked_evidence_files": 290
+    },
+    "format": "netra-gfx950-qwen36-retrospective-evidence-1",
+    "generated_at": "2026-08-21T05:30:59.109141+00:00",
+    "measurement_policy": {
+      "historical_numbers": "inventory_only; consult evidence path and checksum",
+      "missing_artifacts": "unverified, never reconstructed from prose",
+      "new_gpu_measurements": "not_run_no_dev_kfd"
+    },
+    "revisions": {
+      "netra-kernel": {
+        "branch": "analysis/gfx950-qwen36-retrospective-20260821",
+        "head": "9c5940cceaecb00a26f157a4894d1a8edad4e0d4",
+        "origin_main": "9c5940cceaecb00a26f157a4894d1a8edad4e0d4",
+        "path": "/home/rbisri/Projects/netra-qwen36-retrospective-20260821/netra-kernel",
+        "remotes": [
+          "origin\thttps://github.com/NetraRuntime/netra-kernel.git (fetch)",
+          "origin\thttps://github.com/NetraRuntime/netra-kernel.git (push)"
+        ],
+        "status_porcelain_v2": [
+          "# branch.oid 9c5940cceaecb00a26f157a4894d1a8edad4e0d4",
+          "# branch.head analysis/gfx950-qwen36-retrospective-20260821",
+          "# branch.upstream origin/main",
+          "# branch.ab +0 -0",
+          "? docs/retrospectives/",
+          "? tools/analysis/"
+        ]
+      },
+      "netra-server": {
+        "branch": null,
+        "head": "fae2865d9b3096c2cc518aa16d3797ac828f77cc",
+        "origin_main": "fae2865d9b3096c2cc518aa16d3797ac828f77cc",
+        "path": "/home/rbisri/Projects/netra-qwen36-retrospective-20260821/netra-server",
+        "remotes": [
+          "origin\thttps://github.com/NetraRuntime/netra-server.git (fetch)",
+          "origin\thttps://github.com/NetraRuntime/netra-server.git (push)"
+        ],
+        "status_porcelain_v2": [
+          "# branch.oid fae2865d9b3096c2cc518aa16d3797ac828f77cc",
+          "# branch.head (detached)"
+        ]
+      }
+    }
+  },
+  "novelty": {
+    "defensible_internal_engineering": [
+      "Byte-locked modular raw-kernel templates plus operation manifests and graph-safe bridges on gfx950.",
+      "Exact producer/reducer workspace contracts and evidence-locked tactic selection integrated into SGLang serving.",
+      "Systematic serving-gated promotion with retained negative results across kernel, graph, and natural-EOS tests."
+    ],
+    "research_novel_claims": []
+  },
+  "revisions": {
+    "kernel_anchor_and_latest_main": "9c5940cceaecb00a26f157a4894d1a8edad4e0d4",
+    "server_anchor_and_latest_main": "fae2865d9b3096c2cc518aa16d3797ac828f77cc"
+  },
+  "schema_version": "netra-gfx950-qwen36-retrospective-1",
+  "scope": [
+    "Qwen3.6-27B-FP8",
+    "Qwen3.6-35B-A3B-FP8",
+    "AMD MI350X/gfx950"
+  ],
+  "strongest_conclusions": [
+    "Netra wins come from exact operation contracts, gfx950-specialized kernels, graph-safe integration, and deployment locking together; isolated kernel speed is insufficient.",
+    "The most reproducible accepted mechanisms reduce cache traffic, state traffic, launch/dispatch work, or materialization at exact serving shapes.",
+    "AITER remains the production winner for several dense and fallback paths because locally faster Netra candidates failed serving gates.",
+    "The negative-result ledger is central evidence: at least four sizable microbenchmark wins were flat or negative in matched serving."
+  ],
+  "uncertain_claims": [
+    "No current-run comparison against pinned upstream competitors was possible.",
+    "Raw /data samples, profiler databases, and several cited code objects could not be rehashed.",
+    "Input-1K coverage and a complete matched metric set (TTFT, TPOT, p50/p95, memory) are not retained in tracked evidence.",
+    "No potentially research-novel claim is asserted without a broader literature and implementation search plus reproducible current measurements."
+  ],
+  "validation": {
+    "gpu_tests": "not run: no /dev/kfd or ROCm runtime",
+    "kernel_tools_ci_check": "passed: 97 tests plus repository, tactic-library, and example-compilation checks",
+    "server_dependency_free_unittest": "passed: 17 tests in test_qwen36_exact_cases.py",
+    "server_pytest_suite": "not run: pytest is absent from the audit host"
+  }
+}

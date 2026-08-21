@@ -1,0 +1,17 @@
+model,experiment,kernel_only_result,end_to_end_result,decision_reason,status,evidence
+35B,raw M1 MoE eager integration,raw kernels individually correct/fast,serving -6.01%,Python/dispatch overhead outside graph erased kernel gain,rejected,docs/notes/gfx950-qwen36-fp8-results.json
+35B,router BF16 piecewise path,eager/full gains,control correctness failed,upstream control/graph semantics differed,rejected; full path retained,docs/notes/gfx950-qwen36-fp8-kernels.md
+35B,dense M1 assembly,10.00 vs AITER 17.92 us,wall -4.51%; generation -4.73%,launch/graph/dataflow interaction dominated isolated GEMM,rejected,docs/notes/gfx950-qwen36-fp8-kernels.md
+35B,Gemma add-RMSNorm assembly,raw/AITER latency ratio .98016,serving throughput -0.1639%,sub-threshold isolated win did not survive serving noise/gate,rejected,netra-server:docs/mi350x-gfx950/notes/20260730_gemma_add_rmsnorm_raw_negative.md
+35B,full-state GDN M12 variant,correct,wrote about 805 MiB and slowed serving,state traffic dominated,rejected,docs/notes/gfx950-qwen36-gdn-m12-k0.md
+35B,FMoE block64 fallback,isolated +24.4%,serving +0.045%,operation was not decisive at natural C64 / integration costs remained,rejected promotion,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
+35B,historical raw M64 MoE pipeline,236.423 us,AITER deployed 226.843 us,raw pipeline 4.22% slower,rejected,netra-server:docs/mi350x-gfx950/notes/20260801_qwen36_fmoe_m64_paired_raw_pipeline.json
+35B,target attention two-head grouping,correctness/performance experiment,inferior retained candidate,less KV reuse than four-query-head grouping,superseded,docs/notes/gfx950-qwen36-target-attention-gqa8-fp8kv.md
+35B,broad M<=16 attention dispatch,fast on target,incorrectly selected extension-only piecewise prefill,dispatch predicate violated semantic contract,rejected,docs/notes/gfx950-qwen36-target-attention-gqa8-fp8kv.md
+27B,QKVZ+conv T8 assembly,33.941 vs 44.141 us,serving -1.05/-1.45% acceptance-normalized,fusion changed downstream timing/dataflow despite exact replay,verified; promotion rejected,docs/notes/gfx950-qwen36-27b-fp8.md
+27B,projection-view elimination,warmed long request +2.36%,natural C192 +0.026%,48 cats removed but natural workload bottleneck mix masked gain,rejected and code removed,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
+27B,dense M768 QKVZ assembly,115.441 to 110.121 us,serving -6.40%,local kernel win disrupted end-to-end schedule/critical path,rejected,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
+27B,M8192 causal convolution,135.161 to 90.321 us,long serving -5.60%,layout/materialization and pipeline interactions dominated,rejected,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
+27B,frozen dense verification assembly,correct,matched ABBA -0.94%,no serving benefit,rejected,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
+27B/35B,custom AITER compute-source tiles,not run,architecture-ineligible,source family did not target gfx950 exact environment,ineligible,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md
+both,compare_scalar 338.8 ms attribution,profiler event,excluded,host synchronization overlapped later same-stream kernels; not GPU work attribution,measurement artifact,docs/notes/gfx950-qwen36-prefill-profile-2026-08-21.md

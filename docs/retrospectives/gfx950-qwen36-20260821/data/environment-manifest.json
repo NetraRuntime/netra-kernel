@@ -1,0 +1,110 @@
+{
+  "captured_at": "2026-08-21T05:30:58.890096+00:00",
+  "gpu_device_nodes": {
+    "/dev/dri": [
+      "by-path",
+      "card1",
+      "renderD128"
+    ],
+    "/dev/kfd": false
+  },
+  "hostname": "rbisri",
+  "limitations": [
+    "No MI350X/gfx950 benchmark can be executed when /dev/kfd is absent.",
+    "Historical /data artifacts can only be verified when their filesystem is mounted."
+  ],
+  "mi350x_capable": false,
+  "platform": "Linux-7.1.4-1-cachyos-x86_64-with-glibc2.43",
+  "python": "3.14.6",
+  "relevant_environment": {
+    "NETRA_RETRO_SERVER_ROOT": "/home/rbisri/Projects/netra-qwen36-retrospective-20260821/netra-server"
+  },
+  "tools": [
+    {
+      "available": false,
+      "command": "amd-smi",
+      "path": null,
+      "version": null
+    },
+    {
+      "available": false,
+      "command": "rocm-smi",
+      "path": null,
+      "version": null
+    },
+    {
+      "available": false,
+      "command": "rocminfo",
+      "path": null,
+      "version": null
+    },
+    {
+      "available": false,
+      "command": "rocprofv3",
+      "path": null,
+      "version": null
+    },
+    {
+      "available": false,
+      "command": "rocprof-compute",
+      "path": null,
+      "version": null
+    },
+    {
+      "available": false,
+      "command": "hipcc",
+      "path": null,
+      "version": null
+    },
+    {
+      "available": true,
+      "command": "clang",
+      "path": "/usr/bin/clang",
+      "version": [
+        "clang version 22.1.8",
+        "Target: x86_64-pc-linux-gnu",
+        "Thread model: posix",
+        "InstalledDir: /usr/bin"
+      ]
+    },
+    {
+      "available": true,
+      "command": "llvm-objdump",
+      "path": "/usr/bin/llvm-objdump",
+      "version": [
+        "LLVM (http://llvm.org/):",
+        "  LLVM version 22.1.8",
+        "  Optimized build.",
+        "",
+        "",
+        "  Registered Targets:",
+        "    aarch64     - AArch64 (little endian)",
+        "    aarch64_32  - AArch64 (little endian ILP32)"
+      ]
+    },
+    {
+      "available": true,
+      "command": "python3",
+      "path": "/usr/bin/python3",
+      "version": [
+        "Python 3.14.6"
+      ]
+    },
+    {
+      "available": true,
+      "command": "docker",
+      "path": "/usr/bin/docker",
+      "version": [
+        "Docker version 29.6.2, build dfc4efb1e2"
+      ]
+    }
+  ],
+  "uname": [
+    "Linux",
+    "rbisri",
+    "7.1.4-1-cachyos",
+    "#1 SMP PREEMPT_DYNAMIC Sun, 19 Jul 2026 22:34:37 +0000",
+    "x86_64",
+    ""
+  ]
+}

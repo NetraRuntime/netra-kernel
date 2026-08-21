@@ -1,0 +1,34 @@
+{
+  "netra-kernel": {
+    "branch": "analysis/gfx950-qwen36-retrospective-20260821",
+    "head": "9c5940cceaecb00a26f157a4894d1a8edad4e0d4",
+    "origin_main": "9c5940cceaecb00a26f157a4894d1a8edad4e0d4",
+    "path": "/home/rbisri/Projects/netra-qwen36-retrospective-20260821/netra-kernel",
+    "remotes": [
+      "origin\thttps://github.com/NetraRuntime/netra-kernel.git (fetch)",
+      "origin\thttps://github.com/NetraRuntime/netra-kernel.git (push)"
+    ],
+    "status_porcelain_v2": [
+      "# branch.oid 9c5940cceaecb00a26f157a4894d1a8edad4e0d4",
+      "# branch.head analysis/gfx950-qwen36-retrospective-20260821",
+      "# branch.upstream origin/main",
+      "# branch.ab +0 -0",
+      "? docs/retrospectives/",
+      "? tools/analysis/"
+    ]
+  },
+  "netra-server": {
+    "branch": null,
+    "head": "fae2865d9b3096c2cc518aa16d3797ac828f77cc",
+    "origin_main": "fae2865d9b3096c2cc518aa16d3797ac828f77cc",
+    "path": "/home/rbisri/Projects/netra-qwen36-retrospective-20260821/netra-server",
+    "remotes": [
+      "origin\thttps://github.com/NetraRuntime/netra-server.git (fetch)",
+      "origin\thttps://github.com/NetraRuntime/netra-server.git (push)"
+    ],
+    "status_porcelain_v2": [
+      "# branch.oid fae2865d9b3096c2cc518aa16d3797ac828f77cc",
+      "# branch.head (detached)"
+    ]
+  }
+}
