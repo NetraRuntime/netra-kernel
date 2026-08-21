@@ -152,9 +152,52 @@ with SHA-256
 `ed34b53f83733f37678fded570c9d2a01e6375d1e5a0cb730ad33b7feb0e1786`.
 
 No accepted Qwen3.6-35B tactic matches these five projection shapes. The 27B
-engine therefore retains `framework.aiter` for all dense projections and
-records embedding, vision, unsupported GDN, unsupported attention, MTP, and
-sampling boundaries as explicit fallbacks. No 35B tactic or rank is changed.
+engine therefore records embedding, vision, unsupported dense projections,
+unsupported GDN, unsupported attention, MTP, and sampling boundaries as
+explicit fallbacks. No 35B tactic or rank is changed.
+
+## Fixed dense verification assembly
+
+Four high-concurrency block-8 verification projections now have separate raw
+gfx950 assembly contracts:
+
+- M=1536, N=5120, K=6144
+- M=1536, N=5120, K=17408
+- M=1536, N=14336, K=5120
+- M=1536, N=16384, K=5120
+
+The first two use the model-neutral 128 by 256 by 128 schedule in
+`kernels/gfx950/templates/dense/verify/`. The other two use the model-neutral
+192 by 256 by 128 schedule. The generated symbols contain only operation,
+dtype, dimensions, and target. The contracts fix FP8 E4M3 inputs, FP32 1 by
+128 scales, BF16 output, accumulation and rounding, row-major activation and
+output layouts, the 16 by 16 preshuffled weight layout, launch dimensions,
+LDS, workspace, and the 88-byte kernarg ABI. They apply only to profile
+`verify_m8_b129_192`. Other shapes retain `framework.aiter`.
+
+Build the four artifacts and their graph-safe bridge with:
+
+```bash
+python3 tools/build/build_gfx950_dense_verify_assembly.py \
+  --output build/gfx950-dense-verify-assembly
+```
+
+The build validates the extracted instruction bytes, gfx950, wave64, kernarg
+size, fixed launch dimensions, VGPR, SGPR, AGPR, LDS, and private segment for
+every artifact. Two independent engine compilations were byte-identical. The
+engine ID was `ne_b3c79ffec4fea49fca79c1d5`, with 323 operations, 56 selected
+assembly kernels, and 267 explicit fallbacks.
+
+Direct random-input tests for all four shapes were bitwise identical to the
+originating profiled functions. A two-sample ABBA natural-EOS GSM8K screen at
+TP1, DP1, dFlash block 8, BF16 recurrent state, full graphs through 192, and
+concurrency 192 measured 6412.26 output tokens/s for the raw assembly bridge
+and 6472.88 output tokens/s for the tuned AITER control. The raw bridge was
+0.94 percent slower. It remains a `verified`, disabled-by-default diagnostic
+and is not part of the best serving configuration. Evidence is under
+`/data/netra/benchmarks/gfx950_qwen36_27b/20260821-dense-assembly-r49`; the
+ABBA summary SHA-256 is
+`a9b2d6dcc29f948a4f76194ec945a4804a0f72b0c2526ffa1974e7ce612bb2ed`.
 
 ## Fixed assembly fusion ownership
 
@@ -242,10 +285,11 @@ python3 tools/checkpoint/inspect_qwen36_27b_fp8.py \
 ## Validation status
 
 All eight required profiles compiled and passed static validation on gfx950.
-The block-8 verification engine contains 52 exact fixed assembly operations
+The block-8 verification engine contains 56 exact fixed assembly operations
 and 267 explicit framework fallbacks. Two independent c192 builds produced 76
-byte-identical semantic files. Both `engine.json` files have SHA-256
-`6bcd01b9d0e2345b3931be40f648b15d8ec06685e66c00115d93eccfeb7c71d8`.
+byte-identical semantic files before the four dense contracts were added. Two
+independent builds of the expanded engine were also byte-identical and had
+engine ID `ne_b3c79ffec4fea49fca79c1d5`.
 
 The seven modular group-quant artifacts built on the supplied 256-compute-unit
 MI350X with all locked executable-text hashes identical. Metadata validation

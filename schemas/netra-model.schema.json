@@ -117,6 +117,7 @@
           "uniqueItems": true,
           "items": {"type": "integer", "minimum": 1}
         },
+        "row_constant": {"type": "string", "pattern": "^NETRA_[A-Z0-9_]+$"},
         "constants": {
           "type": "object",
           "additionalProperties": {"type": "integer"}

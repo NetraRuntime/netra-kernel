@@ -71,11 +71,11 @@ class Qwen3627BTest(unittest.TestCase):
         graph, model = load_model(MODEL)
         self.assertEqual(
             stable_hash(model),
-            "75965a9c8a63e5fb3bd0fba4ebbb0a43c960e03326cb6a5d44a6073ed564942e",
+            "4441b80be89c2479037dab4c6893ace94dc6a790ee2f8fccf8550c0b7547e7d8",
         )
         self.assertEqual(
             stable_hash(graph.to_dict()),
-            "7f701dfa58f02bf0f302ed177aeac03f74c50b32e8fc4587871d8780cd3b0516",
+            "0dc6ccefefbee7000f1997f423233d05dc807f214fc991cb5d35a7bb08cc9440",
         )
         dense = [operation for operation in graph.operations if operation.kind == "dense"]
         self.assertEqual(len(dense), 256)
@@ -83,13 +83,14 @@ class Qwen3627BTest(unittest.TestCase):
             operation for operation in graph.operations
             if operation.kind == "fixed_kernel"
         ]
-        self.assertEqual(len(fixed), 52)
+        self.assertEqual(len(fixed), 56)
         self.assertEqual(
             {operation.attributes["operation"] for operation in fixed},
             {
                 "add_rmsnorm_group_quant",
                 "silu_mul_group_quant",
                 "gated_rmsnorm_group_quant",
+                "dense",
             },
         )
         self.assertEqual(
@@ -192,18 +193,18 @@ class Qwen3627BTest(unittest.TestCase):
     def test_engine_is_byte_deterministic_and_deduplicated(self) -> None:
         with tempfile.TemporaryDirectory() as first, tempfile.TemporaryDirectory() as second:
             a, b = Path(first), Path(second)
-            compile_engine(MODEL, "gfx950", "verify_m8", a, checkpoint_hash=TREE_HASH)
-            compile_engine(MODEL, "gfx950", "verify_m8", b, checkpoint_hash=TREE_HASH)
+            compile_engine(MODEL, "gfx950", "verify_m8_b129_192", a, checkpoint_hash=TREE_HASH)
+            compile_engine(MODEL, "gfx950", "verify_m8_b129_192", b, checkpoint_hash=TREE_HASH)
             self.assertEqual(semantic_file_hashes(a), semantic_file_hashes(b))
             contracts = json.loads((a / "contracts.json").read_text())["contracts"]
             engine = json.loads((a / "engine.json").read_text())
-            self.assertEqual(len(contracts), 57)
-            self.assertEqual(len(engine["operations"]), 319)
-            self.assertEqual(len(engine["kernel_symbols"]), 52)
-            self.assertEqual(len(set(engine["kernel_symbols"])), 52)
+            self.assertEqual(len(contracts), 61)
+            self.assertEqual(len(engine["operations"]), 323)
+            self.assertEqual(len(engine["kernel_symbols"]), 56)
+            self.assertEqual(len(set(engine["kernel_symbols"])), 56)
             self.assertEqual(len(engine["fallbacks"]), 267)
             result = validate_engine_directory(a)
-            self.assertEqual(result["kernel_operations"], 52)
+            self.assertEqual(result["kernel_operations"], 56)
             self.assertEqual(result["fallback_operations"], 267)
 
     def test_profiles_reject_unobserved_shapes(self) -> None:
