@@ -150,13 +150,8 @@ def qwen_graph(model: dict[str, Any]) -> Graph:
         if divisor <= 0:
             raise ValidationError("fixed operation launch-grid divisor must be positive")
         constants = dict(template.get("constants", {}))
-        row_constant = str(template.get("row_constant", "NETRA_ROWS"))
-        if not row_constant.startswith("NETRA_") or not row_constant.replace("_", "").isalnum():
-            raise ValidationError("fixed operation row constant must be a NETRA_ identifier")
-        if row_constant in constants:
-            raise ValidationError(
-                f"{row_constant} is populated by fixed template expansion"
-            )
+        if "NETRA_ROWS" in constants:
+            raise ValidationError("NETRA_ROWS is populated by fixed template expansion")
         for row_count in rows:
             if row_count % divisor:
                 raise ValidationError(
@@ -186,7 +181,7 @@ def qwen_graph(model: dict[str, Any]) -> Graph:
             attributes = {
                 "family": str(template["family"]),
                 "operation": str(template["operation"]),
-                "constants": {**constants, row_constant: row_count},
+                "constants": {**constants, "NETRA_ROWS": row_count},
                 "semantics": dict(template["semantics"]),
                 "launch_grid": resolved_grid,
                 "dynamic_lds_bytes": int(template.get("dynamic_lds_bytes", 0)),

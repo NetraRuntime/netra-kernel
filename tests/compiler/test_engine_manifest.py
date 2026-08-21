@@ -91,28 +91,7 @@ class EngineManifestTest(unittest.TestCase):
             result = validate_engine_directory(a)
             self.assertEqual(result["fallback_operations"], 10)
             validation = json.loads((a / "validation_plan.json").read_text())
-            self.assertTrue(validation["candidates"])
-            for candidate in validation["candidates"]:
-                generated = a / candidate["source"]
-                golden = a / candidate["golden_source_artifact"]
-                self.assertTrue(candidate["generated_from_template"])
-                self.assertEqual(candidate["maturity"], "rejected")
-                self.assertEqual(
-                    candidate["golden_source_revision"],
-                    "052c539e0794aedb71761bbffe816930817ac5b3",
-                )
-                self.assertNotEqual(generated.read_bytes(), golden.read_bytes())
-                self.assertEqual(
-                    candidate["golden_source_sha256"],
-                    hashlib.sha256(golden.read_bytes()).hexdigest(),
-                )
-                for relative, digest in candidate["template_files"].items():
-                    include = a / relative
-                    self.assertTrue(include.is_file())
-                    self.assertEqual(
-                        digest,
-                        hashlib.sha256(include.read_bytes()).hexdigest(),
-                    )
+            self.assertEqual(validation["candidates"], [])
 
     def test_gemma_compiles_with_explicit_unvalidated_fallbacks(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -153,8 +132,8 @@ class EngineManifestTest(unittest.TestCase):
             output = Path(directory)
             compile_engine(ROOT / "manifests/gfx950/models/qwen36-dense.json", "gfx950", "decode_m1", output)
             explanation = (output / "explain.json").read_text()
-            self.assertIn("matched serving wall/generation regressed", explanation)
-            self.assertIn("maturity is rejected", explanation)
+            self.assertIn("gfx950.aiter_blockscale_dense_m1.compat", explanation)
+            self.assertNotIn("raw_dense_m1", explanation)
 
 
 if __name__ == "__main__": unittest.main()

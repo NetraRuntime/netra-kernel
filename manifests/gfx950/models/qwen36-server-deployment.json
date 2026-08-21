@@ -9,7 +9,7 @@
   "tensor_parallel": 1,
   "quantization": {"format":"fp8_e4m3","activation":"dynamic_per_128","weight_block":[128,128],"kv_cache":"fp8_e4m3"},
   "optimized_profile": {"graph_mode":"piecewise","dflash":true,"dflash_block_size":12,"dflash_mamba_cache_steps":0,"cuda_graph_batch_sizes":[1,2,4,8,16,32,64]},
-  "dense_m1": {"shape":[1,2048,4096],"deployed":"framework.aiter","raw_candidates":["gfx950.raw_dense_m1_one_wave","gfx950.raw_dense_m1_four_wave_lds"],"raw_maturity":"rejected","server_default":false},
+  "dense_m1": {"shape":[1,2048,4096],"deployed":"framework.aiter","raw_candidates":[],"server_default":false},
   "server_owned_stack": [
     "raw_moe_gate_up_m1", "raw_moe_silu_quant_m1", "raw_moe_down_reduce_two_wave_m1",
     "batched_decode_and_skip_sorting", "router_bf16", "extend_attention_gqa4",

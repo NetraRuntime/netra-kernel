@@ -388,8 +388,22 @@ def load_fixed_tactic_catalog(
             closure_digest = _closure_hash(closure)
             if closure_digest != entry["source_closure_sha256"]:
                 raise ValueError(f"source closure hash mismatch for {entry['id']}")
-            required: dict[str, tuple[int, ...]] = {}
+            explicit_contracts = entry.get("contract_constants", {})
+            if not isinstance(explicit_contracts, Mapping):
+                raise ValueError(
+                    f"contract_constants must be an object for {entry['id']}"
+                )
+            required: dict[str, tuple[int, ...]] = {
+                str(name): _values(value)
+                for name, value in explicit_contracts.items()
+            }
             for name, expected in _REQUIRE_EQ.findall(closure_text):
+                # A shared template can contain mutually exclusive assembler
+                # branches. Its catalog entry closes those public constants
+                # explicitly, so unreachable branch guards must not create an
+                # ambiguous inferred contract.
+                if name in required:
+                    continue
                 if name in _TARGET_CONSTANTS:
                     continue
                 value = (int(expected),)

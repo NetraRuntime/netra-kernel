@@ -44,15 +44,15 @@
   "components": [
     {
       "path": "manifests/gfx950/models/qwen36-27b-fp8.json",
-      "sha256": "37e0c820ebdaad9e8c76336858b7c55bb1a7d122dbc638199887f9088c78a528"
+      "sha256": "c0f2e12a3b24db8de826f192317efbcd3a388033a4f20d35ac0ce579a3eb07bd"
     },
     {
       "path": "manifests/gfx950/tactics/fixed_assembly.json",
-      "sha256": "db8747b8929a3619d818beb2cfb9afd299d3c21bfe3685344a50260e7780dd27"
+      "sha256": "8604567ed48603b7fa6ef1d2d6b0b5575e2f06895cfe3548f3473c5c6ff213a4"
     },
     {
       "path": "manifests/gfx950/tactics/gdn_hv48_assembly.json",
-      "sha256": "e5b9cd75d7352531fb9307c8ef84c84cf692e60fa5168433d4c5718521c86952"
+      "sha256": "9e22da3b896787a9bab731301a0187afba67256941b16da5b587976dce79e88f"
     },
     {
       "path": "manifests/gfx950/tuning/a8w8_blockscale_bpreshuffle.csv",

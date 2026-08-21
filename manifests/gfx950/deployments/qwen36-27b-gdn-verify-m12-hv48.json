@@ -18,6 +18,7 @@
           "tactic": "gdn_verify_precompute_m12_qk_hv48",
           "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
           "definitions": {
+            "NETRA_GDN_QK_ONLY": 1,
             "NETRA_GDN_PRECOMPUTE_VARIANT": 8,
             "NETRA_TOKENS": 12
           }
@@ -56,6 +57,7 @@
           "tactic": "gdn_verify_precompute_m12_hv48_gates",
           "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
           "definitions": {
+            "NETRA_GDN_QK_ONLY": 0,
             "NETRA_GDN_PRECOMPUTE_VARIANT": 7,
             "NETRA_TOKENS": 12
           }
@@ -95,6 +97,7 @@
           "tactic": "gdn_verify_precompute_m12_qk_hv48",
           "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
           "definitions": {
+            "NETRA_GDN_QK_ONLY": 1,
             "NETRA_GDN_PRECOMPUTE_VARIANT": 8,
             "NETRA_TOKENS": 8
           }
@@ -133,6 +136,7 @@
           "tactic": "gdn_verify_precompute_m12_hv48_gates",
           "symbol": "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950",
           "definitions": {
+            "NETRA_GDN_QK_ONLY": 0,
             "NETRA_GDN_PRECOMPUTE_VARIANT": 7,
             "NETRA_TOKENS": 8
           }

@@ -17,7 +17,9 @@
         {
           "tactic": "gdn_qkvz_conv_t8_d10240",
           "symbol": "netra_gdn_qkvz_conv_t8_d10240_gfx950",
-          "definitions": {}
+          "definitions": {
+            "NETRA_GDN_QKVZ_GRID_2D": 1
+          }
         }
       ]
     }

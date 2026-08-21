@@ -35,14 +35,18 @@
   "tactics": [
     {
       "id": "gdn_verify_precompute_m12_qk_hv48",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
       "operation": "gdn_verify_precompute",
       "maturity": "verified",
       "acceptance_scope": "hardware_verified_exact_contract",
-      "template": "kernels/gfx950/templates/gdn/verify/precompute_qk_hv48.inc",
+      "template": "kernels/gfx950/templates/gdn/verify/precompute.inc",
       "symbols": [
         "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950"
       ],
       "compile_definitions": {
+        "NETRA_GDN_QK_ONLY": 1,
         "NETRA_GDN_PRECOMPUTE_VARIANT": 8,
         "NETRA_TOKENS": [
           8,
@@ -69,17 +73,20 @@
       "locked_hsaco_sha256": [
         "06ec9fcf7cdba0bf481f2f0f821a458a58c64adc99553bb805004618c95db65f"
       ],
-      "instantiation_macro": "NETRA_GDN_VERIFY_PRECOMPUTE_QK_HV48",
-      "template_sha256": "f532acf17b15fb16fa630baabc04d8ddd05c1abf6dc87559b3a2ba65bc56ece8",
-      "source_closure_sha256": "1308b14f915c5c051cb9bfde94f643a0860fa9da009b6a25e155b09cdfa37177",
+      "instantiation_macro": "NETRA_GDN_VERIFY_PRECOMPUTE",
+      "template_sha256": "3689888e21a6797346692d204c6d0c18625874c5596c8829cc8030f75776e81b",
+      "source_closure_sha256": "9c9ce9a399f04e6dc0a9c46acf4d830ddc84b296292d3a54db71c10e1778a085",
       "family": "gdn.verify_precompute"
     },
     {
       "id": "gdn_verify_core_m12_bv16_hv48_k0",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
       "operation": "gdn_verify",
       "maturity": "verified",
       "acceptance_scope": "hardware_verified_exact_contract",
-      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
       "symbols": [
         "qwen36_27b_gdn_verify_m12_batched_precomputed_bv16_gfx950"
       ],
@@ -117,21 +124,25 @@
       "locked_hsaco_sha256": [
         "da370e1674edf1c5ea0793bfbbaf62348323e012112444daad9358c056df05bc"
       ],
-      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
-      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
-      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
       "family": "gdn.recurrent_bv16"
     },
     {
       "id": "gdn_verify_precompute_m12_hv48_gates",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
       "operation": "gdn_verify_precompute",
       "maturity": "verified",
       "acceptance_scope": "hardware_verified_exact_contract",
-      "template": "kernels/gfx950/templates/gdn/verify/precompute_hv48_gates.inc",
+      "template": "kernels/gfx950/templates/gdn/verify/precompute.inc",
       "symbols": [
         "qwen36_27b_gdn_verify_m12_batched_precompute_gfx950"
       ],
       "compile_definitions": {
+        "NETRA_GDN_QK_ONLY": 0,
         "NETRA_GDN_PRECOMPUTE_VARIANT": 7,
         "NETRA_TOKENS": [
           8,
@@ -158,17 +169,20 @@
       "locked_hsaco_sha256": [
         "6ae434c8b5b345578fa3b38178c3070c2be6a505816af877149b7382c051c508"
       ],
-      "instantiation_macro": "NETRA_GDN_VERIFY_PRECOMPUTE_HV48_GATES",
-      "template_sha256": "af0f59e0837b06f856a16aa9debfff85f859621f9d796b846795b9752bce96e5",
-      "source_closure_sha256": "bd06c346ed844904d465e29dfc683980a4d66c18f8587ee9577368d01e917acf",
+      "instantiation_macro": "NETRA_GDN_VERIFY_PRECOMPUTE",
+      "template_sha256": "3689888e21a6797346692d204c6d0c18625874c5596c8829cc8030f75776e81b",
+      "source_closure_sha256": "9c9ce9a399f04e6dc0a9c46acf4d830ddc84b296292d3a54db71c10e1778a085",
       "family": "gdn.verify_precompute"
     },
     {
       "id": "gdn_state_replay_m12_bv16_hv48_fp32",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
       "operation": "gdn_state_replay",
       "maturity": "verified",
       "acceptance_scope": "hardware_verified_exact_contract",
-      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
       "symbols": [
         "qwen36_27b_gdn_state_replay_m12_fp32_gfx950"
       ],
@@ -207,18 +221,21 @@
       "locked_hsaco_sha256": [
         "e114878b3b52c042880310e3e7450ec27aa747a885b0077f37be6b5525f62e40"
       ],
-      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
-      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
-      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
       "family": "gdn.recurrent_bv16"
     },
     {
       "id": "gdn_verify_core_t8_bv16_hv48_k0_bf16_state",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
       "operation": "gdn_verify",
       "maturity": "verified",
       "acceptance_scope": "hardware_verified_operator_and_five_process_serving",
       "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
-      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
       "symbols": [
         "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_gfx950"
       ],
@@ -250,18 +267,21 @@
       "locked_hsaco_sha256": [
         "1bb7c660e3579115b0364831c4bf97d206237caa6f59e8db416910ae13ed8ed1"
       ],
-      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
-      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
-      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
       "family": "gdn.recurrent_bv16"
     },
     {
       "id": "gdn_state_replay_t8_bv16_hv48_bf16_state",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
       "operation": "gdn_state_replay",
       "maturity": "verified",
       "acceptance_scope": "hardware_verified_operator_and_five_process_serving",
       "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
-      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
       "symbols": [
         "netra_gdn_state_replay_t8_bv16_hv48_bf16_state_gfx950"
       ],
@@ -294,18 +314,21 @@
       "locked_hsaco_sha256": [
         "c695b47a2765b8b1955c1090459df070c9cf1eb7adf1480a5a67870c7b99a862"
       ],
-      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
-      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
-      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
       "family": "gdn.recurrent_bv16"
     },
     {
       "id": "gdn_verify_core_t8_bv16_hv48_k0_bf16_state_waves4",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
       "operation": "gdn_verify",
       "maturity": "experiment",
       "acceptance_scope": "unmeasured_wavegroup_schedule",
       "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
-      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
       "symbols": [
         "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_waves4_gfx950"
       ],
@@ -335,18 +358,21 @@
       "deterministic": true,
       "fallback": "framework.gdn_verify",
       "locked_hsaco_sha256": [],
-      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
-      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
-      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
       "family": "gdn.recurrent_bv16"
     },
     {
       "id": "gdn_verify_core_t8_bv16_hv48_k0_bf16_state_waves8",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
       "operation": "gdn_verify",
       "maturity": "experiment",
       "acceptance_scope": "unmeasured_wavegroup_schedule",
       "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
-      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
       "symbols": [
         "netra_gdn_verify_t8_bv16_hv48_k0_bf16_state_waves8_gfx950"
       ],
@@ -376,18 +402,21 @@
       "deterministic": true,
       "fallback": "framework.gdn_verify",
       "locked_hsaco_sha256": [],
-      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
-      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
-      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
       "family": "gdn.recurrent_bv16"
     },
     {
       "id": "gdn_state_replay_t8_bv16_hv48_bf16_state_waves4",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
       "operation": "gdn_state_replay",
       "maturity": "experiment",
       "acceptance_scope": "unmeasured_wavegroup_schedule",
       "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
-      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
       "symbols": [
         "netra_gdn_state_replay_t8_bv16_hv48_bf16_state_waves4_gfx950"
       ],
@@ -418,18 +447,21 @@
       "deterministic": true,
       "fallback": "framework.gdn_state_replay",
       "locked_hsaco_sha256": [],
-      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
-      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
-      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
       "family": "gdn.recurrent_bv16"
     },
     {
       "id": "gdn_state_replay_t8_bv16_hv48_bf16_state_waves8",
+      "contract_constants": {
+        "NETRA_VALUE_HEADS": 48
+      },
       "operation": "gdn_state_replay",
       "maturity": "experiment",
       "acceptance_scope": "unmeasured_wavegroup_schedule",
       "evidence_set": "gfx950_hv48_bf16_state_candidate_20260820",
-      "template": "kernels/gfx950/templates/gdn/verify/recurrent_bv16_hv48_core.inc",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
       "symbols": [
         "netra_gdn_state_replay_t8_bv16_hv48_bf16_state_waves8_gfx950"
       ],
@@ -460,22 +492,29 @@
       "deterministic": true,
       "fallback": "framework.gdn_state_replay",
       "locked_hsaco_sha256": [],
-      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_HV48_CORE",
-      "template_sha256": "1d82f2787bed1f4633ab8bc21aa98003d53aa3d4b726ee890f9af949273fd828",
-      "source_closure_sha256": "23c897f23c51486d331ad65ab676c80187d617cc4ffc78b953c5a385272c056d",
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
       "family": "gdn.recurrent_bv16"
     },
     {
       "id": "gdn_qkvz_conv_t8_d10240",
+      "contract_constants": {
+        "NETRA_K": 2048,
+        "NETRA_N": 16384,
+        "NETRA_TOKENS": 8
+      },
       "operation": "gdn_qkvz_conv",
       "maturity": "verified",
       "acceptance_scope": "hardware_verified_operator_serving_rejected",
       "evidence_set": "gfx950_qkvz_t8_verified_20260820",
-      "template": "kernels/gfx950/templates/gdn/verify/qkvz_causal_conv_t8.inc",
+      "template": "kernels/gfx950/templates/gdn/verify/qkvz_causal_conv.inc",
       "symbols": [
         "netra_gdn_qkvz_conv_t8_d10240_gfx950"
       ],
-      "compile_definitions": {},
+      "compile_definitions": {
+        "NETRA_GDN_QKVZ_GRID_2D": 1
+      },
       "rank": 140,
       "kernarg_size": 64,
       "launch_block": 256,
@@ -496,9 +535,9 @@
       "locked_hsaco_sha256": [
         "1bfd6e5df75f32dbf309b262e13a425323d3b7fecdd7585d7a4d029d2bc74ba3"
       ],
-      "instantiation_macro": "NETRA_GDN_QKVZ_CAUSAL_CONV_T8",
-      "template_sha256": "4d4af12382dfc26178255adfd695fc71183ca0984075b30ded35d0d0c9d5787e",
-      "source_closure_sha256": "7972112e28646f96da895f3a98267c848e6046d671653c4337da712f648c57af",
+      "instantiation_macro": "NETRA_GDN_QKVZ_CAUSAL_CONV",
+      "template_sha256": "f00ae305ee34386de392aa5018c2c73a4aaaef86362f9cd7186ccf93780f8d44",
+      "source_closure_sha256": "756d157f29e56d2d117610bd85959322c84b722f46cbf135dc92fb79f18bea11",
       "family": "gdn.causal_conv"
     }
   ]

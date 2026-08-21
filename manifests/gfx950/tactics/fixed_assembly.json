@@ -25,11 +25,6 @@
       "lock_name": "validation.json",
       "lock_sha256": "0059b4b1e88fa57d1791356ae6bf5bed79c7c5ac19f70a9a2dcc8d0174ccc762",
       "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260821-bf16-norm-r16/operator-validation"
-    },
-    "gfx950_dense_verify_profiled_20260821": {
-      "lock_name": "abba-summary.json",
-      "lock_sha256": "a9b2d6dcc29f948a4f76194ec945a4804a0f72b0c2526ffa1974e7ce612bb2ed",
-      "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_27b/20260821-dense-assembly-r49"
     }
   },
   "policy": {
@@ -487,7 +482,12 @@
       "symbols": [
         "qwen36_gdn_verify_m12_batched_precompute_gfx950"
       ],
+      "contract_constants": {
+        "NETRA_TOKENS": 12,
+        "NETRA_VALUE_HEADS": 32
+      },
       "compile_definitions": {
+        "NETRA_GDN_QK_ONLY": 0,
         "NETRA_GDN_PRECOMPUTE_VARIANT": 7
       },
       "kernarg_size": 96,
@@ -507,8 +507,8 @@
         "b93c9bbc6926a4decc0b342cc77b2567d4bdf87e9000ba29987904906063ac5a"
       ],
       "instantiation_macro": "NETRA_GDN_VERIFY_PRECOMPUTE",
-      "template_sha256": "e4c5015541d5a0fd167f134f75900c5493192e0e8d04f9cccf19d8cd67ae3497",
-      "source_closure_sha256": "7c1ccbba78383916b7307903231f034d93047a93f648241c6d9707e50c734925",
+      "template_sha256": "3689888e21a6797346692d204c6d0c18625874c5596c8829cc8030f75776e81b",
+      "source_closure_sha256": "9c9ce9a399f04e6dc0a9c46acf4d830ddc84b296292d3a54db71c10e1778a085",
       "family": "gdn.verify_precompute"
     },
     {
@@ -516,13 +516,17 @@
       "operation": "gdn_verify",
       "maturity": "accepted",
       "acceptance_scope": "locked_exact_contract",
-      "template": "kernels/gfx950/templates/gdn/verify/recurrent_packed_pair.inc",
+      "template": "kernels/gfx950/templates/gdn/common/recurrent_bv16_core.inc",
       "golden_source": "kernels/gfx950/linear_attention/verify/qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950.s",
       "source_revision": "91d154134d0e9fe2816d8a2622fbaed765e0bdca",
       "source_sha256": "b9c49665c305436e7f447c6791c41600fda51d3c50ea4ee2fd3ddf81bf473f7d",
       "symbols": [
         "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950"
       ],
+      "contract_constants": {
+        "NETRA_TOKENS": 12,
+        "NETRA_VALUE_HEADS": 32
+      },
       "compile_definitions": {
         "NETRA_GDN_CORE_VARIANT": 17,
         "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
@@ -551,9 +555,9 @@
         "e900f66d428f4d7098a5ec4ad34cccc831f9023fd5efde9dff6326f147bac04d",
         "139398c28578a08074a04824a937ac5c79283530e412fe073ccfb016e1883333"
       ],
-      "instantiation_macro": "NETRA_GDN_RECURRENT_PACKED_PAIR",
-      "template_sha256": "8fed170784121fc2c0ddbdf826fcf152b5552efed128a65d3576b4e8d1ae3fa2",
-      "source_closure_sha256": "029cfda042bc273f50c73680383fdc435a11c59a235db3aa2f949921e9dd0e70",
+      "instantiation_macro": "NETRA_GDN_RECURRENT_BV16_CORE",
+      "template_sha256": "e7410c76e851c26f188147677cf0a8c491ea4dc5bdf7f75245ee1dd05f235dcd",
+      "source_closure_sha256": "07865de676c9e132d5daa4bf09cb4c3e1ca1f6ba116d32ee6d0c679131779bc0",
       "family": "gdn.recurrent_bv16"
     },
     {
@@ -568,6 +572,10 @@
       "symbols": [
         "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950"
       ],
+      "contract_constants": {
+        "NETRA_TOKENS": 12,
+        "NETRA_VALUE_HEADS": 32
+      },
       "compile_definitions": {
         "NETRA_GDN_CORE_VARIANT": 13,
         "NETRA_GDN_K0_NO_INTERMEDIATE": 1,
@@ -599,7 +607,7 @@
       ],
       "instantiation_macro": "NETRA_GDN_RECURRENT_FUSED_REPLAY",
       "template_sha256": "a513cd51154934dfc47a3bd23497d8cd46f4f937beb9d58c17049320f9e1bf3c",
-      "source_closure_sha256": "85151958ca36a8d16798ea54a141c0f57a8e75be8814499741631732c8691ae7",
+      "source_closure_sha256": "6e9ef6f51213cc778cdd0a10afefe6d2d268695a84a84db2ba6261ec051ee07b",
       "family": "gdn.recurrent_bv16"
     },
     {
@@ -614,7 +622,14 @@
       "symbols": [
         "qwen36_gdn_qkvz_conv_m12_gfx950"
       ],
-      "compile_definitions": {},
+      "contract_constants": {
+        "NETRA_K": 2048,
+        "NETRA_N": 12288,
+        "NETRA_TOKENS": 12
+      },
+      "compile_definitions": {
+        "NETRA_GDN_QKVZ_GRID_2D": 0
+      },
       "kernarg_size": 64,
       "launch_block": 256,
       "semantics": {
@@ -632,8 +647,8 @@
         "292c4c59c2681fa3161f40dd506304829ee6d1c0a3e80b4ddb6baf08655cf0af"
       ],
       "instantiation_macro": "NETRA_GDN_QKVZ_CAUSAL_CONV",
-      "template_sha256": "3dbf73c67dec17862438413bd60a4b61c20787dc1461b496a42b1d10011851aa",
-      "source_closure_sha256": "3cbefbd7e4d85c57576a34cd15529c28d8b5e5ffc3b34f1c4db395a92d009148",
+      "template_sha256": "f00ae305ee34386de392aa5018c2c73a4aaaef86362f9cd7186ccf93780f8d44",
+      "source_closure_sha256": "756d157f29e56d2d117610bd85959322c84b722f46cbf135dc92fb79f18bea11",
       "family": "gdn.causal_conv"
     },
     {
@@ -906,70 +921,6 @@
       "template_sha256": "5d8064b0a6d7a217bc283fa2fa638fb629dc285e9676f9d998d55285ec8d4ebc",
       "source_closure_sha256": "20357fc5d9fc4e18ffd5bcd50b2bafd4f5968643b9f31cfa88355cf8d468f3e2",
       "family": "norm.gated_rmsnorm_group_quant"
-    },
-    {
-      "id": "dense_fp8_blockscale_bf16_tile128x256_k128",
-      "operation": "dense",
-      "maturity": "verified",
-      "acceptance_scope": "bitwise_operator_exact_serving_regressed_opt_in_only",
-      "evidence_set": "gfx950_dense_verify_profiled_20260821",
-      "template": "kernels/gfx950/templates/dense/verify/fp8_blockscale_bf16_tile128x256_k128.inc",
-      "source_revision": "9127c94a18e4398e1eba91f6639e910f0994ad02",
-      "source_sha256": "1747631d0a39a186de6c2e41c409e66e80fa8315d7afa4e70ae0ab81d93b3bcc",
-      "symbols": ["netra_dense_fp8_blockscale_bf16_tile128x256_k128_gfx950"],
-      "compile_definitions": {"NETRA_K": [6144, 17408]},
-      "kernarg_size": 88,
-      "launch_block": 512,
-      "semantics": {
-        "abi": "dense.blockscale.ptr5_i32x12.v1",
-        "dtypes": "fp8e4m3_fp8e4m3_f32scales_to_bf16.v1",
-        "quantization": "fp8e4m3_activation_k128_weight_n128k128.v1",
-        "layouts": "row_major_activation_aq_kgroup_major_preshuffled_n16k16_weight_bq_n128kgroup_row_major_output.v1",
-        "numerical": "fp32_mfma_kblock_ascending_rne_bf16.v1"
-      },
-      "workspace": {"bytes": 0, "alignment": 256},
-      "graph_capture": true,
-      "deterministic": true,
-      "fallback": "framework.aiter_blockscale_dense",
-      "rank": 220,
-      "locked_text_sha256": "f556625f230816c4772e6b724a9c65549cc708b12abbcac467219f2f06db54d8",
-      "machine_text_sha256": "4d14c9bdcb8aedc23380aa9455a34209d36e67fe7899144a404ef94de7ff74e2",
-      "instantiation_macro": "NETRA_DENSE_FP8_BLOCKSCALE_BF16_TILE128X256_K128",
-      "template_sha256": "e85a31f3da3b50839c80132e688da6e9ea899486444c8d3853b2517786072a56",
-      "source_closure_sha256": "d216d857f06b4328861e458f7893a89979c3dbbcd7dc2757e6d64e41b2cc3169",
-      "family": "dense.fp8_blockscale.verify_8wave"
-    },
-    {
-      "id": "dense_fp8_blockscale_bf16_tile192x256_k128",
-      "operation": "dense",
-      "maturity": "verified",
-      "acceptance_scope": "bitwise_operator_exact_serving_regressed_opt_in_only",
-      "evidence_set": "gfx950_dense_verify_profiled_20260821",
-      "template": "kernels/gfx950/templates/dense/verify/fp8_blockscale_bf16_tile192x256_k128.inc",
-      "source_revision": "9127c94a18e4398e1eba91f6639e910f0994ad02",
-      "source_sha256": "b8c192a24851ecc2664fac83cd07cdfbee8fdea96bc312a00bc42836aeadce34",
-      "symbols": ["netra_dense_fp8_blockscale_bf16_tile192x256_k128_gfx950"],
-      "compile_definitions": {"NETRA_N": [14336, 16384]},
-      "kernarg_size": 88,
-      "launch_block": 512,
-      "semantics": {
-        "abi": "dense.blockscale.ptr5_i32x12.v1",
-        "dtypes": "fp8e4m3_fp8e4m3_f32scales_to_bf16.v1",
-        "quantization": "fp8e4m3_activation_k128_weight_n128k128.v1",
-        "layouts": "row_major_activation_aq_kgroup_major_preshuffled_n16k16_weight_bq_n128kgroup_row_major_output.v1",
-        "numerical": "fp32_mfma_kblock_ascending_rne_bf16.v1"
-      },
-      "workspace": {"bytes": 0, "alignment": 256},
-      "graph_capture": true,
-      "deterministic": true,
-      "fallback": "framework.aiter_blockscale_dense",
-      "rank": 219,
-      "locked_text_sha256": "49da12ebf7d27ee788c3f47a12d59b254040c01388d55d26cb394d111d92897c",
-      "machine_text_sha256": "55e26f6979ce1b72179c5ea016fb6263b22c1adf214c359046939fdbdbdff3a0",
-      "instantiation_macro": "NETRA_DENSE_FP8_BLOCKSCALE_BF16_TILE192X256_K128",
-      "template_sha256": "cbffc7baf50dc803b6cf65e74b7e7ab9cb193a8f8b3be8d957cdb190d8894e49",
-      "source_closure_sha256": "0f16c93fd334ffe90e7678a265cce4b7c2409416c62dbc0f205b60551d85f67f",
-      "family": "dense.fp8_blockscale.verify_8wave"
     }
   ]
 }

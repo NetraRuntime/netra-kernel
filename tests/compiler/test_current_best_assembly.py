@@ -93,14 +93,15 @@ class CurrentBestAssemblyTest(unittest.TestCase):
             self.assertIn(
                 "NETRA_VALUE_HEADS mismatch", tactic.rejection_reasons(hv32_request)
             )
-        # The locked 35B verify tactics keep their own templates untouched.
+        # Both head geometries instantiate the same model-independent family
+        # source while retaining distinct exact computational contracts.
         self.assertEqual(
             tactics["gfx950.gdn_verify_precompute_m12"].template,
-            "kernels/gfx950/templates/gdn/verify/precompute.inc",
+            precompute.template,
         )
         self.assertEqual(
             tactics["gfx950.gdn_verify_core_m12_packed_pair_interleaved"].template,
-            "kernels/gfx950/templates/gdn/verify/recurrent_packed_pair.inc",
+            core.template,
         )
 
     def test_27b_t8_qkvz_convolution_is_separate_from_accepted_35b(self) -> None:
@@ -115,8 +116,9 @@ class CurrentBestAssemblyTest(unittest.TestCase):
         )
         self.assertEqual(
             accepted_35b.template_sha256,
-            "3dbf73c67dec17862438413bd60a4b61c20787dc1461b496a42b1d10011851aa",
+            "f00ae305ee34386de392aa5018c2c73a4aaaef86362f9cd7186ccf93780f8d44",
         )
+        self.assertEqual(qkvz_27b.template, accepted_35b.template)
         self.assertIs(qkvz_27b.maturity, Maturity.VERIFIED)
         self.assertEqual(
             qkvz_27b.acceptance_scope,
@@ -144,7 +146,10 @@ class CurrentBestAssemblyTest(unittest.TestCase):
             "semantics": qkvz_27b.semantics.to_dict(),
             "constants": {
                 name: values[0]
-                for name, values in qkvz_27b.contract_constants
+                for name, values in (
+                    *qkvz_27b.contract_constants,
+                    *qkvz_27b.compile_definitions,
+                )
             },
             "launch_grid": (40, 128, 1),
         }

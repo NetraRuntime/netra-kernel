@@ -70,7 +70,7 @@
       "name": "qwen36_gdn_verify_m12_batched_precompute_gfx950",
       "locked_text_sha256": "127b0a994f30728b7abe171d4a862babb9f45706428c68bb31c4ed5787b1192a",
       "locked_hsaco_sha256": "b93c9bbc6926a4decc0b342cc77b2567d4bdf87e9000ba29987904906063ac5a",
-      "members": [{"tactic": "gdn_verify_precompute_m12", "symbol": "qwen36_gdn_verify_m12_batched_precompute_gfx950", "definitions": {"NETRA_GDN_PRECOMPUTE_VARIANT": 7}}]
+      "members": [{"tactic": "gdn_verify_precompute_m12", "symbol": "qwen36_gdn_verify_m12_batched_precompute_gfx950", "definitions": {"NETRA_GDN_PRECOMPUTE_VARIANT": 7, "NETRA_GDN_QK_ONLY": 0}}]
     },
     {
       "name": "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950",
@@ -112,7 +112,7 @@
       "name": "qwen36_gdn_qkvz_conv_m12_gfx950",
       "locked_text_sha256": "e012ff4a34e0d7ff333675c5cdefb2443df0bd329d6749c6f840fa8fb08c9c7c",
       "locked_hsaco_sha256": "292c4c59c2681fa3161f40dd506304829ee6d1c0a3e80b4ddb6baf08655cf0af",
-      "members": [{"tactic": "gdn_qkvz_conv_m12", "symbol": "qwen36_gdn_qkvz_conv_m12_gfx950", "definitions": {}}]
+      "members": [{"tactic": "gdn_qkvz_conv_m12", "symbol": "qwen36_gdn_qkvz_conv_m12_gfx950", "definitions": {"NETRA_GDN_QKVZ_GRID_2D": 0}}]
     },
     {
       "name": "qwen36_gdn_h_m8192_bv16_gfx950",

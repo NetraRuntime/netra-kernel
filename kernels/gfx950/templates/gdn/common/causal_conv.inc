@@ -55,13 +55,20 @@
 	v_cvt_pk_bf16_f32 v28, v18, v18
 	global_store_short v2, v28, s[16:17]
 
-	// Roll the FP32-exact BF16 state and advance token/window byte offsets.
+	// Roll the FP32-exact BF16 state and advance the contract-fixed row and
+	// speculative-window byte offsets.
 	v_mov_b32_e32 v4, v5
 	v_mov_b32_e32 v5, v6
 	v_mov_b32_e32 v6, v11
+	.if NETRA_GDN_QKVZ_GRID_2D == 0
 	v_add_u32_e32 v1, 0x6000, v1
 	v_add_u32_e32 v2, 0x4000, v2
 	v_add_u32_e32 v3, 0xc000, v3
+	.else
+	v_add_u32_e32 v1, 0x8000, v1
+	v_add_u32_e32 v2, 0x5000, v2
+	v_add_u32_e32 v3, 0xf000, v3
+	.endif
 	.endm
 
 	.endif
