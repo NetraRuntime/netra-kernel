@@ -57,7 +57,7 @@ def stats(tensor: torch.Tensor) -> dict[str, float | int]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--build-dir", type=Path, required=True)
-    parser.add_argument("--batch", type=int, choices=(1, 128), required=True)
+    parser.add_argument("--batch", type=int, choices=(1, 128, 256), required=True)
     parser.add_argument("--iterations", type=int, default=20)
     parser.add_argument("--precompute-name", default="precompute.hsaco")
     parser.add_argument("--core-name", default="core.hsaco")
