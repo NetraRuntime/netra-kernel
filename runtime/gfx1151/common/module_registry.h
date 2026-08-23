@@ -190,13 +190,15 @@ struct ModuleRegistry {
 
   hipError_t status{hipSuccess};
   std::string error;
+  std::string hsaco_dir{NETRA_HSACO_DIR};
+  bool initialization_started{false};
   int owner_device{-1};
   hipCtx_t owner_context{};
 
   void load(LoadedKernel& kernel) {
     if (status != hipSuccess) return;
     const KernelDescriptor& descriptor = *kernel.descriptor;
-    std::string path{NETRA_HSACO_DIR};
+    std::string path{hsaco_dir};
     path.push_back('/');
     path.append(descriptor.hsaco_filename);
     status = hipModuleLoad(&kernel.module, path.c_str());
@@ -249,6 +251,7 @@ struct ModuleRegistry {
   }
 
   void initialize() {
+    initialization_started = true;
     load(gate);
     load(gate_block64);
     load(gate_block64_reduce);
@@ -294,6 +297,17 @@ static ModuleRegistry module_registry;
 static std::once_flag module_registry_once;
 
 NETRA_GFX1151_ALWAYS_INLINE ModuleRegistry& runtime() { return module_registry; }
+
+NETRA_GFX1151_ALWAYS_INLINE hipError_t set_hsaco_dir(const char* path) {
+  if (path == nullptr || path[0] == '\0') return hipErrorInvalidValue;
+  if (module_registry.initialization_started) return hipErrorInvalidValue;
+  module_registry.hsaco_dir.assign(path);
+  while (module_registry.hsaco_dir.size() > 1 &&
+         module_registry.hsaco_dir.back() == '/') {
+    module_registry.hsaco_dir.pop_back();
+  }
+  return hipSuccess;
+}
 
 NETRA_GFX1151_ALWAYS_INLINE void ensure_initialized() {
   std::call_once(module_registry_once, [] { module_registry.initialize(); });

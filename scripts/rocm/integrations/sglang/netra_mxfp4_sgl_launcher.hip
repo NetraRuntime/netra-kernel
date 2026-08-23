@@ -12,6 +12,12 @@
 #include "runtime/gfx1151/mxfp4/verify/runtime.h"
 #include "runtime/gfx1151/mxfp4/norm/runtime.h"
 
+extern "C" uint32_t netra_mxfp4_sgl_abi_version() { return 1; }
+
+extern "C" int netra_mxfp4_sgl_set_hsaco_dir(const char* path) {
+  return static_cast<int>(netra::gfx1151::set_hsaco_dir(path));
+}
+
 extern "C" int netra_mxfp4_sgl_init() {
   netra::gfx1151::ensure_initialized();
   return static_cast<int>(netra::gfx1151::runtime().status);
