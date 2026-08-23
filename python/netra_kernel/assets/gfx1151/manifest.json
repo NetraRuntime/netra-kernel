@@ -1,0 +1,10 @@
+{
+  "format": "netra-native-assets-1",
+  "target": "gfx1151",
+  "wave_size": 32,
+  "runtime_abi": 1,
+  "rocm_build": "7.2.1",
+  "library": "libnetra_mxfp4_sgl.so",
+  "artifacts": [],
+  "status": "source-tree-placeholder"
+}

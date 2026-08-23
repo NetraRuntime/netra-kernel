@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netra-kernel"
+version = "0.3.0.dev0"
+description = "Relocatable AMDGCN kernels and an out-of-tree SGLang integration"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [{name = "NetraRuntime"}]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+]
+
+[project.optional-dependencies]
+sglang = ["torch>=2.8"]
+test = ["pytest>=8", "build>=1.2"]
+
+[project.scripts]
+netra-sglang = "netra_kernel.cli:main"
+
+[project.entry-points."sglang.srt.plugins"]
+netra = "netra_kernel.sglang.plugin:register"
+
+[tool.setuptools]
+package-dir = {"" = "python"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["python"]
+include = ["netra_kernel*"]
+
+[tool.setuptools.package-data]
+netra_kernel = [
+  "assets/**/*.json",
+  "assets/**/*.so",
+  "assets/**/*.hsaco",
+  "assets/**/*.patch",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/package"]
+addopts = "-ra"

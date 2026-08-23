@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: MIT
 #pragma once
 
+#include <stdint.h>
+
 #define NETRA_GFX1151_EXPORT __attribute__((visibility("default")))
 
 extern "C" {
 
+// Control-plane ABI. The HSACO directory must be configured before init.
+NETRA_GFX1151_EXPORT uint32_t netra_mxfp4_sgl_abi_version();
+NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_set_hsaco_dir(const char* path);
 NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_init();
 NETRA_GFX1151_EXPORT const char* netra_mxfp4_sgl_error();
 NETRA_GFX1151_EXPORT int netra_mxfp4_sgl_decode(
