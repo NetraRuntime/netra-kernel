@@ -47,7 +47,9 @@ This directory is the complete serving overlay for SGLang commit
   `SGLANG_NETRA_ENABLE_BF16_SHARED_DOWN=0` restores rocBLAS for that path.
 - `experiments/` retains integration patches for rejected design oracles.
 - The raw GDN bridge is graph-safe and retains Triton for all other shapes.
-- `netra_gfx1151_sglang.py` is copied into SGLang's quantization package.
+- `netra_gfx1151_sglang.py` is copied into SGLang's quantization package after
+  the `netra-kernel` wheel is installed in that SGLang environment. The shim
+  imports the wheel's canonical adapter and reports that prerequisite directly.
 - `netra_mxfp4_sgl_launcher.hip` is launch-only host code for the raw HSACOs.
 - `launch.sh` enables the accepted BF16 LM-head, QKV, attention-output, router,
   and shared-expert gate/up+SiLU kernels by default after all modules have been built and the SGLang overlay applied; the exact C ABI and

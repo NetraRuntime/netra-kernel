@@ -19,3 +19,11 @@ else
   echo "package build requires pip for $python_bin or the uv executable" >&2
   exit 127
 fi
+
+deployment_wheel=$(find "$output_dir" -maxdepth 1 -type f \
+  -name 'netra_kernel-*.whl' -print -quit)
+if [[ -z "$deployment_wheel" ]]; then
+  echo "package build did not produce a netra-kernel wheel" >&2
+  exit 1
+fi
+"$python_bin" "$repo_root/tools/ci/smoke_package.py" "$deployment_wheel"

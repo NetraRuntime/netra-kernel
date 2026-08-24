@@ -153,9 +153,11 @@ is deliberately reported as incompatible and remains on the framework path.
 
 The complete existing gfx1151 overlay is packaged in the wheel. Its source
 contract is SGLang commit `1eee8fbdcc25b44e13bc097d5ff6ac24e8c24af4`.
-First run a read-only preflight:
+Install the wheel in the Python environment that will run the patched SGLang,
+then run a read-only preflight from that same environment:
 
 ```bash
+python -m pip install /path/to/netra-kernel
 netra-sglang integrate --target gfx1151 --sglang-root /path/to/sglang
 ```
 
@@ -171,8 +173,11 @@ netra-sglang integrate \
 
 Dirty SGLang checkouts are refused. A nearby fork may work through Git's
 three-way application, but the full preflight must pass. The generated source
-shim imports the adapter from the installed `netra-kernel` package, eliminating
-the former manual copy of a 1,300-line Python file.
+shim imports the adapter from the installed `netra-kernel` package. Running the
+patched SGLang from an environment without that wheel now fails with a direct
+installation error instead of an ambiguous missing-module traceback. This
+eliminates the former manual copy of a 1,300-line Python file while keeping one
+canonical adapter implementation.
 
 ## Reproduce the serving gate
 

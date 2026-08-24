@@ -138,10 +138,14 @@ The consolidated patch was checked against a clean archive of SGLang commit
 
 ```bash
 cd /root/work/sglang-main
+python -m pip install /root/netra-mxfp4-gfx1151
 git apply /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/sglang-gfx1151-integration.patch
 cp /root/netra-mxfp4-gfx1151/scripts/rocm/integrations/sglang/netra_gfx1151_sglang.py \
   python/sglang/srt/layers/quantization/netra_gfx1151.py
 ```
+
+The copied file is a compatibility shim; the wheel must remain installed in
+the Python environment used to launch SGLang.
 
 The verified deployment command included both the isolated environment and
 ROCm tools in `PATH`:

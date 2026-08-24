@@ -13,8 +13,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MARKDOWN_LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
-BUILD_SCRIPT = re.compile(
-    r"(?:scripts/rocm/)?tools/build/[A-Za-z0-9_.-]+\.sh"
+SCRIPT_DEPENDENCY = re.compile(
+    r"(?:scripts/rocm/)?tools/(?:build|compiler)/[A-Za-z0-9_.-]+\.(?:py|sh)"
 )
 REQUIRED = (
     "README.md",
@@ -27,6 +27,9 @@ REQUIRED = (
     "compiler/pyproject.toml",
     "schemas/netra-engine.schema.json",
     "manifests/gfx950/tactics/fixed_assembly.json",
+    "tools/compiler/build_gfx950_tactic_catalog.py",
+    "tools/compiler/build_gfx950_tactic_catalog.sh",
+    "tools/compiler/validate_gfx950_tactic_catalog.py",
 )
 
 
@@ -41,9 +44,12 @@ def tracked_files(pattern: str | None = None) -> list[Path]:
 def main() -> int:
     errors: list[str] = []
     files = tracked_files()
+    tracked = {relative.as_posix() for relative in files}
 
     for relative in REQUIRED:
-        if not (ROOT / relative).is_file():
+        if relative not in tracked:
+            errors.append(f"required project file is not Git-tracked: {relative}")
+        elif not (ROOT / relative).is_file():
             errors.append(f"missing required project file: {relative}")
 
     generated_suffixes = {".hsaco", ".o", ".pyc"}
@@ -94,8 +100,10 @@ def main() -> int:
         if not path.stat().st_mode & stat.S_IXUSR:
             errors.append(f"shell entry point is not executable: {relative}")
         text = path.read_text(encoding="utf-8")
-        for dependency in BUILD_SCRIPT.findall(text):
-            if not (ROOT / dependency).is_file():
+        for dependency in SCRIPT_DEPENDENCY.findall(text):
+            if dependency not in tracked:
+                errors.append(f"{relative} references untracked builder {dependency}")
+            elif not (ROOT / dependency).is_file():
                 errors.append(f"{relative} references missing builder {dependency}")
 
     if errors:

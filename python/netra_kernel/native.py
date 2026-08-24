@@ -51,38 +51,56 @@ def _repo_candidates() -> Iterator[Path]:
             break
 
 
-def native_library_candidates() -> tuple[Path, ...]:
+def _is_path_reference(value: str) -> bool:
+    """Return whether *value* names a filesystem path rather than a soname."""
+
+    return os.sep in value or (os.altsep is not None and os.altsep in value)
+
+
+def native_library_candidates() -> tuple[str, ...]:
     """Return ordered, de-duplicated native-library candidates."""
 
-    candidates: list[Path] = []
+    candidates: list[str] = []
     explicit = os.getenv(LIBRARY_ENV)
     if explicit:
-        candidates.append(Path(explicit).expanduser())
+        expanded = (
+            str(Path(explicit).expanduser())
+            if _is_path_reference(explicit)
+            else explicit
+        )
+        candidates.append(expanded)
     try:
-        candidates.append(package_asset_root() / LIBRARY_NAME)
+        candidates.append(str(package_asset_root() / LIBRARY_NAME))
     except NativeLibraryError:
         pass
-    candidates.extend(_repo_candidates())
+    candidates.extend(str(path) for path in _repo_candidates())
     located = ctypes.util.find_library("netra_mxfp4_sgl")
-    if located and "/" in located:
-        candidates.append(Path(located))
+    if located:
+        # ``find_library`` normally returns an ELF soname (for example,
+        # ``libnetra_mxfp4_sgl.so``), which the dynamic linker can resolve even
+        # though it is not an absolute filesystem path.
+        candidates.append(located)
 
-    result: list[Path] = []
-    seen: set[Path] = set()
+    result: list[str] = []
+    seen: set[str] = set()
     for candidate in candidates:
-        candidate = candidate.resolve(strict=False)
-        if candidate not in seen:
-            seen.add(candidate)
-            result.append(candidate)
+        normalized = (
+            str(Path(candidate).resolve(strict=False))
+            if _is_path_reference(candidate)
+            else candidate
+        )
+        if normalized not in seen:
+            seen.add(normalized)
+            result.append(normalized)
     return tuple(result)
 
 
-def find_native_library() -> Path:
+def find_native_library() -> str:
     """Find a Netra runtime library without loading it."""
 
     candidates = native_library_candidates()
     for candidate in candidates:
-        if candidate.is_file():
+        if not _is_path_reference(candidate) or Path(candidate).is_file():
             return candidate
     rendered = ", ".join(str(path) for path in candidates) or "<none>"
     raise NativeLibraryError(
@@ -91,23 +109,29 @@ def find_native_library() -> Path:
     )
 
 
-def resolve_asset_root(library_path: Path) -> Path:
+def resolve_asset_root(library_path: str | Path) -> Path:
     explicit = os.getenv(ASSET_ROOT_ENV)
-    return (
-        Path(explicit).expanduser().resolve()
-        if explicit
-        else library_path.resolve().parent
-    )
+    if explicit:
+        return Path(explicit).expanduser().resolve()
+    reference = os.fspath(library_path)
+    if _is_path_reference(reference):
+        return Path(reference).resolve().parent
+    # A soname has no meaningful parent directory. Installed wheels still
+    # provide a stable asset root; a system-only installation can leave the
+    # native runtime's compiled default untouched.
+    return package_asset_root()
 
 
 def load_native_library() -> ctypes.CDLL:
     """Load and configure the gfx1151 library before kernel initialization."""
 
-    library_path = find_native_library()
+    library_reference = find_native_library()
     try:
-        library = ctypes.CDLL(str(library_path))
+        library = ctypes.CDLL(library_reference)
     except OSError as error:
-        raise NativeLibraryError(f"failed to load {library_path}: {error}") from error
+        raise NativeLibraryError(
+            f"failed to load {library_reference}: {error}"
+        ) from error
 
     if hasattr(library, "netra_mxfp4_sgl_abi_version"):
         library.netra_mxfp4_sgl_abi_version.restype = ctypes.c_uint32
@@ -115,16 +139,23 @@ def load_native_library() -> ctypes.CDLL:
         if actual != ABI_VERSION:
             raise NativeLibraryError(
                 f"Netra runtime ABI {actual} is incompatible with Python ABI "
-                f"{ABI_VERSION}: {library_path}"
+                f"{ABI_VERSION}: {library_reference}"
             )
 
     if hasattr(library, "netra_mxfp4_sgl_set_hsaco_dir"):
         library.netra_mxfp4_sgl_set_hsaco_dir.argtypes = [ctypes.c_char_p]
         library.netra_mxfp4_sgl_set_hsaco_dir.restype = ctypes.c_int
-        root = resolve_asset_root(library_path)
-        status = library.netra_mxfp4_sgl_set_hsaco_dir(os.fsencode(root))
-        if status:
-            raise NativeLibraryError(
-                f"native runtime rejected HSACO directory {root} with status {status}"
-            )
+        try:
+            root = resolve_asset_root(library_reference)
+        except NativeLibraryError:
+            # A system runtime selected by soname may carry its own compiled
+            # HSACO location. Do not replace it with the process cwd. Users can
+            # set NETRA_HSACO_DIR when the system package stores assets elsewhere.
+            root = None
+        if root is not None:
+            status = library.netra_mxfp4_sgl_set_hsaco_dir(os.fsencode(root))
+            if status:
+                raise NativeLibraryError(
+                    f"native runtime rejected HSACO directory {root} with status {status}"
+                )
     return library

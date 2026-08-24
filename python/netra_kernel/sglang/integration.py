@@ -114,7 +114,14 @@ def _write_adapter_shim(root: Path) -> None:
         raise IntegrationError(f"adapter destination already exists: {destination}")
     destination.write_text(
         '"""Netra gfx1151 adapter supplied by the netra-kernel package."""\n'
-        "from netra_kernel.sglang.adapter import *  # noqa: F401,F403\n",
+        "try:\n"
+        "    from netra_kernel.sglang.adapter import *  # noqa: F401,F403\n"
+        "except ModuleNotFoundError as error:\n"
+        "    if error.name == 'netra_kernel':\n"
+        "        raise ModuleNotFoundError(\n"
+        "            'the Netra SGLang overlay requires netra-kernel to be installed'\n"
+        "        ) from error\n"
+        "    raise\n",
         encoding="utf-8",
     )
 

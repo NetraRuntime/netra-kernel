@@ -168,7 +168,10 @@ For gfx950, `netra-sglang bundle` resolves accepted artifacts by filename and
 SHA-256, packages them behind one mount, and the SGLang entry-point plugin
 activates their paths before graph capture. For the pinned gfx1151 base SGLang
 revision, `netra-sglang integrate` preflights the complete source overlay in a
-disposable worktree before changing the checkout. See the
+disposable worktree before changing the checkout. Run both the integration
+command and SGLang from the same environment where `netra-kernel` is installed;
+the generated compatibility shim deliberately imports the wheel's canonical
+adapter. See the
 [SGLang deployment guide](docs/sglang-plugin.md) for fork, base-image, Docker,
 compatibility, and benchmark instructions.
 
