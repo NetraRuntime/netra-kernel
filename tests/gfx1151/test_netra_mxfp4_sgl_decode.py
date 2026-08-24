@@ -3,7 +3,6 @@
 
 import ctypes
 import json
-import math
 import os
 from pathlib import Path
 

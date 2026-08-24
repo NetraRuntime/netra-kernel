@@ -77,7 +77,6 @@ def _doctor(bundle_path: Path | None) -> dict:
     expected_source_snapshot = None
     bundle_result = None
     if bundle_path is not None:
-        payload = load_bundle(bundle_path)
         integration = integration_configuration(bundle_path, "sglang")
         required = tuple(integration.get("required_modules", ()))
         expected_source_snapshot = integration.get("source_snapshot")

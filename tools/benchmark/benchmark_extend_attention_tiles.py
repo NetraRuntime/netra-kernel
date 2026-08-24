@@ -96,8 +96,11 @@ def main() -> None:
                 "max_abs_vs_64x64": max_abs,
                 "normalized_l2_vs_64x64": normalized_l2,
             })
-        del q, k, v, k_buffer, v_buffer, reference
-
+        # Drop the closure before its captured tensors so the next prefix does
+        # not temporarily retain two full attention fixtures.
+        call = output = None
+        q = k = v = k_buffer = v_buffer = reference = None
+        torch.cuda.empty_cache()
     module._get_block_sizes_for_extend_attention = original_blocks
     result = {
         "target": "gfx1151",

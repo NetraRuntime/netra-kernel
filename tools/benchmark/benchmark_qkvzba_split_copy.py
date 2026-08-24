@@ -154,7 +154,10 @@ def main() -> None:
                 "bit_mismatches_qkv_z_b_a": mismatches,
             }
         )
-        del raw_tensors, triton_tensors
+        # The launch closures capture the tensors; release them first so
+        # empty_cache can return storage before the next token shape.
+        launch_raw = launch_triton = None
+        raw_tensors = triton_tensors = None
         torch.cuda.empty_cache()
 
     report = {

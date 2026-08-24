@@ -93,12 +93,12 @@ def main() -> None:
     if status:
         raise RuntimeError(f"launch failed: {status}")
     torch.cuda.synchronize()
+    output = output_groups.view(-1, n)[:m].to(torch.bfloat16)
     if os.environ.get("NETRA_ARGS_DEBUG") == "1":
         print(output.view(torch.int32).cpu()[0, :8].tolist())
         return
 
     weight64 = dequant(packed_cpu, scales_cpu)
-    output = output_groups.view(-1, n)[:m].to(torch.bfloat16)
     reference = activation.cpu().to(torch.float64) @ weight64.t()
     ref_bf16 = reference.to(torch.bfloat16)
     got = output.cpu()

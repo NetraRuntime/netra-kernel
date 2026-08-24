@@ -37,7 +37,7 @@ The raw path delivered the expected ~1.07 s host benefit, but pair-b changed its
 The retained raw ASM and harness are:
 
 - `kernels/gfx1151/gdn/experiments/causal_conv1d_stream64_gfx1151.s`
-- `kernels/gfx1151/gdn/experiments/causal_conv1d_state_update_gfx1151.s`
+- `kernels/gfx1151/gdn/causal_conv1d_state_update_gfx1151.s`
 - `harness/gfx1151/gdn/causal_conv1d_stream64_launcher.hip`
 - `tools/benchmark/benchmark_causal_conv1d_stream64.py`
 
