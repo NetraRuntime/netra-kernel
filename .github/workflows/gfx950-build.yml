@@ -40,7 +40,7 @@ jobs:
           ROCM_DIR: ${{ inputs.rocm_dir }}
         run: |
           cmake -S . -B build/gfx950-engine-sdk \
-            -DCMAKE_HIP_COMPILER="$ROCM_DIR/bin/hipcc" \
+            -DCMAKE_HIP_COMPILER="$ROCM_DIR/llvm/bin/clang++" \
             -DCMAKE_HIP_ARCHITECTURES=gfx950 \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$PWD/build/gfx950-engine-install"

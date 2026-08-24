@@ -48,7 +48,10 @@ def register() -> None:
             payload["profile"],
             len(configured),
         )
-    except (BundleError, RuntimeError):
+    except (BundleError, RuntimeError) as error:
         logger.exception("Netra plugin activation failed")
         if strict:
-            raise
+            # SGLang intentionally catches Exception around third-party plugin
+            # hooks. An explicitly selected, invalid NETRA_BUNDLE must stop the
+            # process instead of silently serving through a different path.
+            raise SystemExit(f"strict Netra bundle activation failed: {error}") from error

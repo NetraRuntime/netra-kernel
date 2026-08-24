@@ -328,6 +328,15 @@ def _normalize_bundle(payload: dict) -> dict:
         raise BundleError(f"unsupported bundle format {format_name!r}")
     normalized = dict(payload)
     normalized["format"] = BUNDLE_FORMAT
+    normalized["artifacts"] = []
+    for artifact in payload.get("artifacts", ()):
+        record = dict(artifact)
+        filename = record.get("filename", "")
+        record.setdefault(
+            "kind",
+            "runtime_library" if filename.endswith(".so") else "code_object",
+        )
+        normalized["artifacts"].append(record)
     normalized["integrations"] = {
         "sglang": {
             "required_modules": list(payload.get("required_sglang_modules", ())),

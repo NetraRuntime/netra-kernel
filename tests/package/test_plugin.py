@@ -62,7 +62,7 @@ def test_plugin_fails_closed_when_integration_is_missing(
         True, "1", "/sglang", True, False, ("sglang.netra_test",)
     )
     with patch("netra_kernel.sglang.plugin.probe", return_value=report):
-        with pytest.raises(RuntimeError, match="incompatible"):
+        with pytest.raises(SystemExit, match="incompatible"):
             register()
 
 
@@ -74,5 +74,5 @@ def test_plugin_rejects_corrupt_bundle(
     monkeypatch.setenv("NETRA_BUNDLE", str(root))
     report = CompatibilityReport(True, "1", "/sglang", True, True, ())
     with patch("netra_kernel.sglang.plugin.probe", return_value=report):
-        with pytest.raises(RuntimeError, match="hash mismatch"):
+        with pytest.raises(SystemExit, match="hash mismatch"):
             register()

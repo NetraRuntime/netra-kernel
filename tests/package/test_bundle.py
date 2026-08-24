@@ -255,3 +255,30 @@ def test_bundle_rejects_symlink_escape(tmp_path: Path) -> None:
         )
     )
     assert validate_bundle(tmp_path)["ok"] is False
+
+
+def test_legacy_bundle_infers_artifact_kind(tmp_path: Path) -> None:
+    library = tmp_path / "bridge.so"
+    library.write_bytes(b"bridge")
+    (tmp_path / "bundle.json").write_text(
+        json.dumps(
+            {
+                "format": "netra-sglang-bundle-1",
+                "profile": "legacy",
+                "profile_revision": "legacy@1",
+                "target": "gfx950",
+                "wave_size": 64,
+                "runtime_root": "/opt/netra",
+                "artifacts": [
+                    {
+                        "name": "bridge",
+                        "filename": library.name,
+                        "path": library.name,
+                        "sha256": _hash(library),
+                    }
+                ],
+                "environment": {},
+            }
+        )
+    )
+    assert validate_bundle(tmp_path)["ok"] is True

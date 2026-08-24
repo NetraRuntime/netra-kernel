@@ -264,7 +264,7 @@ Build the reusable HIP engine runtime:
 
 ```bash
 cmake -S . -B build/gfx950-engine-sdk \
-  -DCMAKE_HIP_COMPILER=/opt/rocm/bin/hipcc \
+  -DCMAKE_HIP_COMPILER=/opt/rocm/llvm/bin/clang++ \
   -DCMAKE_HIP_ARCHITECTURES=gfx950 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=/opt/netra
