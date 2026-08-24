@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import shutil
 from collections.abc import Mapping
 from pathlib import Path
@@ -16,7 +15,7 @@ from .library import KernelLibrary
 from .memory import BufferRequest, checked_mul, plan_buffers
 from .planner import Plan, plan_graph
 from .profiles import ShapeProfile
-from .types import canonical_json, stable_hash, write_json
+from .types import stable_hash, write_json
 
 
 FORMAT_VERSION = "netra-engine-1"

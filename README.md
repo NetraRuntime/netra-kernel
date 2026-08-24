@@ -110,6 +110,44 @@ stream. Direct fixed launches remain available when graph capture is disabled.
 The installed SDK exports `libnetra_engine.so.1`, `<netra/engine.h>`, CMake and
 pkg-config metadata, plus a framework-neutral `netra_kernel.Engine` binding.
 
+## Repository layout
+
+The public integration surface is separated from target-specific kernels and
+inference-engine adapters:
+
+```text
+netra-kernel/
+├── compiler/netra_compiler/   # AOT compiler, IR, planners, frontends, backends
+│   ├── backends/gfx950/       # Target-specific compiler implementation
+│   └── library_data/          # Packaged kernels, manifests, and schemas
+├── python/netra_kernel/       # Bundle, runtime, CLI, and adapter APIs
+│   ├── runtime/               # Framework-neutral Python FFI
+│   ├── sglang/                # SGLang adapter and startup plugin only
+│   └── assets/                # Deployment profiles and packaged overlays
+├── include/netra/engine.h     # Stable framework-neutral C ABI
+├── runtime/                   # Native runtime implementations
+├── examples/reference_engine/ # Minimal C consumer with no framework dependency
+├── kernels/                   # Architecture-specific kernel sources
+├── manifests/                 # Model, deployment, and tactic contracts
+├── schemas/                   # Public JSON schemas
+├── docker/sglang/             # Thin-plugin and accepted-source images
+├── tools/                     # Build, compiler, benchmark, and CI tooling
+├── tests/                     # Compiler, package, and GPU validation
+└── docs/                      # Integration guides and acceptance evidence
+```
+
+`netra-compiler` and `netra-kernel` are separate installable distributions.
+The compiler emits a deterministic engine directory; `libnetra_engine.so.1`
+loads and launches it; an optional adapter translates only the surrounding
+inference-engine boundary. New engines integrate through the
+`netra.inference_engines` entry-point group without importing SGLang code.
+
+The top-level `kernels/gfx950`, `manifests`, and `schemas` paths point to the
+same canonical data packaged in the wheels. This preserves convenient
+source-tree commands without maintaining duplicate catalogs that can drift.
+Architecture-specific harnesses, profiling scripts, and historical results
+remain outside the public SDK surface.
+
 ## Supported today
 
 | Capability | Current support |

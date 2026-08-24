@@ -10,7 +10,7 @@ from __future__ import annotations
 import ctypes
 import ctypes.util
 import os
-from importlib.resources import as_file, files
+from importlib.resources import files
 from pathlib import Path
 from typing import Iterator
 

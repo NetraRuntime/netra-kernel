@@ -18,7 +18,7 @@ classifiers = [
 
 [project.optional-dependencies]
 sglang = ["torch>=2.8"]
-test = ["pytest>=8", "build>=1.2"]
+test = ["pytest>=8", "build>=1.2", "ruff>=0.16"]
 
 [project.scripts]
 netra-kernel = "netra_kernel.kernel_cli:main"

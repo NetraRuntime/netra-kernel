@@ -10,7 +10,6 @@ import argparse
 import ctypes
 import os
 import signal
-import sys
 import time
 
 DEFAULT_LIBRARY = (
