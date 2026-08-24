@@ -1,0 +1,5 @@
+ARG SGLANG_BASE_IMAGE
+FROM ${SGLANG_BASE_IMAGE}
+
+COPY netra_kernel-*.whl /tmp/netra-wheel/
+RUN python3 -m pip install --no-deps /tmp/netra-wheel/netra_kernel-*.whl

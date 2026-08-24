@@ -1,0 +1,94 @@
+{
+  "format": "netra-sglang-plugin-serving-gate-1",
+  "date": "2026-08-23",
+  "status": "passed",
+  "hardware": "1x AMD Instinct MI350X gfx950",
+  "profile": "qwen36-35b-20260817-best",
+  "benchmark": {
+    "requests_per_run": 384,
+    "input_tokens_per_request": 1024,
+    "output_tokens_per_request": 1024,
+    "max_concurrency": 128,
+    "fresh_processes": 5,
+    "seed": 20260809
+  },
+  "baseline": {
+    "source": "/data/netra/benchmarks/gfx950_qwen36_optimization/CURRENT_BEST.json",
+    "mean_output_tokens_per_second": 10004.950748929123,
+    "minimum_output_tokens_per_second": 9709.52040621129,
+    "mean_accept_length": 5.541299542328082
+  },
+  "candidate": {
+    "output_tokens_per_second": [
+      10648.040549384838,
+      10046.70396609009,
+      10085.608463461786,
+      9641.235525977383,
+      10364.078880013218
+    ],
+    "mean_output_tokens_per_second": 10157.133476985462,
+    "standard_deviation_output_tokens_per_second": 376.58908436667855,
+    "minimum_output_tokens_per_second": 9641.235525977383,
+    "maximum_output_tokens_per_second": 10648.040549384838,
+    "mean_accept_length": 5.545551906248171,
+    "ratio_to_baseline_mean": 1.0152107423489944,
+    "percent_above_baseline_mean": 1.5210742348994444,
+    "completed_requests": 1920,
+    "expected_requests": 1920,
+    "total_input_tokens": 1966080,
+    "total_output_tokens": 1966080,
+    "nonempty_errors": 0
+  },
+  "stock_base_validation": {
+    "date": "2026-08-24",
+    "source_delivery": "accepted source snapshot baked into the stock SGLang image; no SGLang source bind mount",
+    "fresh_processes": 1,
+    "output_tokens_per_second": 10316.860979146128,
+    "mean_accept_length": 5.5495736872217805,
+    "ratio_to_baseline_mean": 1.0311755887704286,
+    "percent_above_baseline_mean": 3.1175588770428586,
+    "completed_requests": 384,
+    "expected_requests": 384,
+    "total_input_tokens": 393216,
+    "total_output_tokens": 393216,
+    "exact_input_lengths": true,
+    "exact_output_lengths": true,
+    "nonempty_errors": 0,
+    "source_commit": "c131cc0a1044ddf3a30b2e5096d56000e629993d",
+    "source_archive_sha256": "4ed92be66adef50c3a5cb1ceb2cd8cd9ee06ce7f132dcc5be4e5c1e205c69128",
+    "base_image_id": "sha256:89941358dc6ace8e2d5d0f1251a4bb07473dfec360917a44ddcea48bc21cd6c9",
+    "candidate_image_id": "sha256:12a91fe0999bad551269821573e62daa80cda94ebd4289dc683d235e5c96770d",
+    "benchmarked_wheel_sha256": "1445923ebf8f0c29651edb47c2c2219fdde6a586ec586a32dcffc91097d3ac41",
+    "release_wheel_sha256": "12e79306543a55898748f08ed9570dba9b4544697086e5a3a2c7c05360a8093e",
+    "release_delta": "post-benchmark changes are source/bundle validation, source-env ergonomics, CI wiring, and documentation; the embedded accepted source archive, locked profiles, plugin activation, Docker runtime paths, and kernel bundle are unchanged",
+    "bundle_manifest_sha256": "f2834729989688ec1a0923a6ed08ee9b185b341938a85de11af9b3b756c36d4e",
+    "result_sha256": "b85aaeaecbed49cfb14e97c5c09494abb8a1f87eae87e43df1479d081e6878bd",
+    "container_inspect_sha256": "131d692087318e5ad3a398501f0dc15185380ab4d44ba6008b3637d5937be0f0",
+    "result_directory": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260824-netra-stock-base-v3-single-gpu7-rep1",
+    "performance_passed": true,
+    "completion_passed": true,
+    "error_passed": true,
+    "source_mount_absent": true
+  },
+  "provenance": {
+    "base_image_id": "sha256:89941358dc6ace8e2d5d0f1251a4bb07473dfec360917a44ddcea48bc21cd6c9",
+    "plugin_image_id": "sha256:821ef8e78660b4e8d7ed1b2a4494a78632d966e6899bc9dd754cc7fc9c651804",
+    "wheel_sha256": "dd7a8116df6abb4e3d0cef99c02b69966f310b895aa3354796a0a9dca3ffe4b3",
+    "bundle_manifest_sha256": "f2834729989688ec1a0923a6ed08ee9b185b341938a85de11af9b3b756c36d4e",
+    "server_commit": "c131cc0a1044ddf3a30b2e5096d56000e629993d",
+    "inspect_template": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260817T040000Z-generic-deterministic-single-gpu7/locked-best-container-template.json",
+    "result_sha256": [
+      "545190fc4045fdc9c91ab201265156d26317c1c1beb89c707c3797c90c0a7678",
+      "48da7794de8763527ebd6b5a70b74368cb9d993a4c71fc4b289d0277d0e3bc34",
+      "a4c1f14d1af7d6be70a5b361631f64870bc9307f250108640f1b61995e8c7fb4",
+      "8a165438cb507b679f49ce8a47ddea117e3337cd2ec7eb02dd4e209921361da0",
+      "741f88fa37295ed52212de1a86e80829ac878b1b14a9357f66890a349d2965fe"
+    ]
+  },
+  "gate": {
+    "criterion": "candidate mean output throughput >= accepted baseline mean with exact request/token completion and zero errors",
+    "performance_passed": true,
+    "completion_passed": true,
+    "error_passed": true
+  }
+}

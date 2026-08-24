@@ -1,0 +1,13 @@
+ARG SGLANG_BASE_IMAGE
+FROM ${SGLANG_BASE_IMAGE}
+
+ARG NETRA_SOURCE_PROFILE=qwen36-35b-20260817-best
+COPY netra_kernel-*.whl /tmp/netra-wheel/
+RUN python3 -m pip install --no-deps /tmp/netra-wheel/netra_kernel-*.whl \
+    && netra-sglang source \
+        --profile "${NETRA_SOURCE_PROFILE}" \
+        --output /opt/netra-sglang
+
+ENV PYTHONPATH=/opt/netra-sglang/python \
+    AITER_CONFIG_GEMM_BF16=/opt/netra-sglang/scripts/rocm/mi350x/qwen36_best_bf16.csv \
+    AITER_CONFIG_FMOE=/opt/netra-sglang/scripts/rocm/mi350x/qwen36_best_fmoe.csv

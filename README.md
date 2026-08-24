@@ -153,9 +153,30 @@ cd netra-kernel
 
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install -e ./compiler
+python -m pip install -e ./compiler -e '.[test]'
 make check
 ```
+
+Install the SGLang deployment plugin and inspect the locked profiles:
+
+```bash
+python -m pip install -e '.[sglang]'
+netra-sglang profiles
+```
+
+For gfx950, `netra-sglang bundle` resolves accepted artifacts by filename and
+SHA-256, packages them behind one mount, and the SGLang entry-point plugin
+activates their paths before graph capture. For the pinned gfx1151 base SGLang
+revision, `netra-sglang integrate` preflights the complete source overlay in a
+disposable worktree before changing the checkout. See the
+[SGLang deployment guide](docs/sglang-plugin.md) for fork, base-image, Docker,
+compatibility, and benchmark instructions.
+
+Users of stock SGLang can materialize the hash-checked, performance-accepted
+gfx950 source snapshot with `netra-sglang source`, or build it directly into a
+base image with `docker/sglang/Dockerfile.base`. This keeps their checkout
+untouched while reproducing the source and tuning tables used by the serving
+gate.
 
 List the available gfx950 tactics:
 
@@ -265,6 +286,7 @@ part of the acceptance contract.
 - [Adding a model](docs/compiler/adding-a-model.md)
 - [Adding a tactic](docs/compiler/adding-a-tactic.md)
 - [Validation and promotion](docs/compiler/validation.md)
+- [Installable SGLang deployment](docs/sglang-plugin.md)
 
 ## Contributing
 
