@@ -213,3 +213,12 @@ These two numbers are not a comparison with vanilla SGLang. The named
 baseline is the previously accepted Netra deployment. A stock/base image here
 means that the accepted Netra source snapshot was layered over the stock
 SGLang image; it does not mean Netra kernels were disabled.
+
+The generic SDK refactor was revalidated on August 24 with five additional
+fresh processes using the same accepted profile and serving protocol. It
+averaged 10,204.40 output tokens/s: 1.99% above the accepted baseline and
+0.47% above the previous five-run plugin mean. All 1,920 requests completed
+with exact token counts and zero errors. The same revision also passed a real
+gfx950 compiler-to-HSACO-to-C-runtime smoke test, the installed CMake reference
+consumer, and a fail-closed invalid-bundle test. See the
+[generic SDK validation record](notes/generic-kernel-sdk-gfx950-validation-20260824.json).

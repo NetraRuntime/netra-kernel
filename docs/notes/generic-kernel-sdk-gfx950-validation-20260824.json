@@ -1,0 +1,100 @@
+{
+  "format": "netra-generic-kernel-sdk-validation-1",
+  "date": "2026-08-24",
+  "status": "passed",
+  "hardware": "1x AMD Instinct MI350X gfx950",
+  "source": {
+    "commit": "015ccfe2238328066c3ec0074ef88985db516766",
+    "tree": "b9163be486b1a52efd2b7aefe16518989ba435c7"
+  },
+  "native_sdk": {
+    "compiler": "/opt/rocm/llvm/bin/clang++",
+    "cmake_build": "passed",
+    "cmake_install": "passed",
+    "installed_soname": "libnetra_engine.so.1",
+    "reference_consumer": "passed",
+    "reported_version": "0.3.0",
+    "reported_abi": 1
+  },
+  "compiler_runtime": {
+    "fixture": "tests/compiler/fixtures/llama-moe-gate-up-exact.json",
+    "compile": "passed",
+    "build_validation": "passed",
+    "runtime_load_profile_guard_smoke": "passed",
+    "engine_id": "ne_20f12f6e9ed522565910566b",
+    "engine_manifest_sha256": "b4e71e8dfe037acbd24a188e99b66221847be52a2316468780e7050691ad86da",
+    "hsaco_sha256": "ea0c0831a1197241974ab703c60f632a6bbcbd8e8bfb950ba382351556809153",
+    "manifest_digest_matches_hsaco": true,
+    "fallback_operations": 0,
+    "validated_m_range": [1, 1]
+  },
+  "package_integration": {
+    "wheel_sha256": "8567a24df103b5e129cfe09739697cecc314ff160ea392a1dda6a3886ae03b5c",
+    "base_image_id": "sha256:89941358dc6ace8e2d5d0f1251a4bb07473dfec360917a44ddcea48bc21cd6c9",
+    "candidate_image_id": "sha256:4b130375ca9f7f1f1d8b9842655b44c43ce42f384d2c3ecaf8a48cddd005b204",
+    "bundle_manifest_sha256": "f2834729989688ec1a0923a6ed08ee9b185b341938a85de11af9b3b756c36d4e",
+    "bundle_artifacts": 28,
+    "strict_invalid_bundle_exit_code": 1,
+    "strict_invalid_bundle_log_sha256": "22726d9cfea11a5320a227ffeb2a3edfe57de10b9b4342f5563053be3ae03946",
+    "fail_closed": true
+  },
+  "serving_benchmark": {
+    "profile": "qwen36-35b-20260817-best",
+    "model": "Qwen3.6-35B-A3B-FP8",
+    "requests_per_run": 384,
+    "input_tokens_per_request": 1024,
+    "output_tokens_per_request": 1024,
+    "max_concurrency": 128,
+    "fresh_processes": 5,
+    "seed": 20260809,
+    "output_tokens_per_second": [
+      9877.90164787454,
+      10009.112727772605,
+      10284.512405641983,
+      10608.298247414168,
+      10242.171608171044
+    ],
+    "mean_output_tokens_per_second": 10204.399327374867,
+    "standard_deviation_output_tokens_per_second": 280.94340124756656,
+    "minimum_output_tokens_per_second": 9877.90164787454,
+    "maximum_output_tokens_per_second": 10608.298247414168,
+    "completed_requests": 1920,
+    "expected_requests": 1920,
+    "total_input_tokens": 1966080,
+    "total_output_tokens": 1966080,
+    "nonempty_errors": 0,
+    "result_sha256": [
+      "eebe1b874944298a207ba9b83da69184b06cf62e5d01b8207effdbf37c8b074e",
+      "6e422557c6cf9af63053e9d594dd80936c67f691b3c0631b46a75ed9d88f3d41",
+      "ad5f16d1fffead53e8a0040ac77bc390d85eff5568e1cc8b2e96dc3a5a33a27a",
+      "a5abf32fbcdc81a4cb1af58b613e7868b1e55eda7e5644d3954166dd727926b0",
+      "a9d78b16a7888d269f0d0deef0ea264e0901f9b4a9ede8eaa2282356ed0a485e"
+    ],
+    "result_directories": [
+      "/data/netra/benchmarks/gfx950_qwen36_optimization/20260824-generic-sdk-015ccfe-gpu7-rep1",
+      "/data/netra/benchmarks/gfx950_qwen36_optimization/20260824-generic-sdk-015ccfe-gpu7-rep2",
+      "/data/netra/benchmarks/gfx950_qwen36_optimization/20260824-generic-sdk-015ccfe-gpu7-rep3",
+      "/data/netra/benchmarks/gfx950_qwen36_optimization/20260824-generic-sdk-015ccfe-gpu7-rep4",
+      "/data/netra/benchmarks/gfx950_qwen36_optimization/20260824-generic-sdk-015ccfe-gpu7-rep5"
+    ],
+    "last_container_inspect_sha256": "dacfcd89fec5b48b241ae58dbd7be09bf275d723df4dccba9f977abd4ce52125"
+  },
+  "comparison": {
+    "accepted_baseline_mean_output_tokens_per_second": 10004.950748929123,
+    "ratio_to_accepted_baseline": 1.0199349885322617,
+    "percent_above_accepted_baseline": 1.9934988532261722,
+    "previous_plugin_mean_output_tokens_per_second": 10157.133476985462,
+    "ratio_to_previous_plugin_mean": 1.0046534635482052,
+    "percent_above_previous_plugin_mean": 0.4653463548205172
+  },
+  "gate": {
+    "criterion": "candidate five-run mean output throughput >= accepted baseline and previous plugin five-run mean, with exact request/token completion and zero errors",
+    "accepted_baseline_performance_passed": true,
+    "previous_plugin_performance_passed": true,
+    "completion_passed": true,
+    "error_passed": true,
+    "native_sdk_passed": true,
+    "compiler_runtime_passed": true,
+    "strict_activation_passed": true
+  }
+}
