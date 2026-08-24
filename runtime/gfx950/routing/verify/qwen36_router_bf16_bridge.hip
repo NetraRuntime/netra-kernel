@@ -82,8 +82,8 @@ extern "C" int netra_qwen36_router_bf16_launch(
   if (output_logits_bf16 == nullptr || hidden_bf16 == nullptr ||
       router_weight_bf16 == nullptr)
     return fail_message("router launch pointers must be nonnull");
-  if (rows != 1 && rows != 16)
-    return fail_message("router rows must be 1 or 16");
+  if (rows != 1 && rows != 12 && rows != 16 && rows != 32 && rows != 64)
+    return fail_message("router rows must be 1, 12, 16, 32, or 64");
 
   void* hidden_pointer = const_cast<void*>(hidden_bf16);
   void* weight_pointer = const_cast<void*>(router_weight_bf16);

@@ -1,0 +1,39 @@
+{
+  "architecture": "gfx950",
+  "device": "AMD Instinct MI350X",
+  "status": "rejected_not_integrated",
+  "quantization": "FP8 E4M3 weights with 128x128 scales; FP8 E4M3 target KV cache",
+  "isolated_m768": {
+    "active_experts": 191,
+    "repetitions": 100,
+    "raw_complete_median_us": 187.482,
+    "aiter_64x256_median_us": 182.60199576616287,
+    "raw_slowdown_percent": 2.6725,
+    "raw_structural_bf16_mismatches": 1191581,
+    "compared_bf16_elements": 1572864,
+    "raw_structural_max_abs": 0.00084421,
+    "raw_structural_cosine": 0.999973
+  },
+  "serving_c64_1024_256": {
+    "candidate_output_tok_s": 4059.4394664011693,
+    "production_control_output_tok_s": 4380.448547913276,
+    "candidate_delta_percent": -7.32822399352292,
+    "matching_output_hashes": 31,
+    "requests": 512,
+    "candidate_acceptance_rate": 0.16393084206901087,
+    "control_acceptance_rate": 0.1660874415411679,
+    "candidate_first_hash": "5dd67f745671caaacfed6a12a8f81560f95f80cd1dcbffb6dab78656c7df5efe",
+    "control_first_hash": "1d1c4778a78e5a246f979f6b74ed9387b7a47bd8612356cdd1862e9173a7fc42"
+  },
+  "short_correctness": {
+    "input16_output2_repetitions": 3,
+    "input16_output2_hash": "ab777d10ffa6693511a599f130f9a480b564093e7e231494afd17aa6eede6cba",
+    "input210_output128_repetitions": 3,
+    "input210_output128_hash": "8cf5682c0ab5307cb04b6d7292da155ddf14c7936f39fe10e849595e5967ea57"
+  },
+  "artifacts": {
+    "serving_ab": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260801T094500Z-fmoe-m64-raw-serving-gpu4",
+    "m768_capture": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260801T100600Z-fmoe-m768-capture-gpu4",
+    "bridge_build": "/data/netra/repos/netra-kernel/build/gfx950-qwen36-moe-m64-verify-r1"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "status": "accepted_incremental_replacement",
+  "target": "gfx950",
+  "wavefront_size": 64,
+  "shape": {
+    "batch": 64,
+    "tokens_per_sequence": 12,
+    "dim": 8192,
+    "width": 4,
+    "dtype": "bfloat16"
+  },
+  "quantization_contract": {
+    "weights": "FP8 E4M3 128x128 blocks",
+    "kv_cache": "FP8 E4M3"
+  },
+  "correctness": {
+    "output_bit_exact_elements": 6291456,
+    "final_state_bit_exact_elements": 1572864,
+    "intermediate_window_bit_exact_elements": 18874368,
+    "token_hash_candidate": "8cf5682c0ab5307cb04b6d7292da155ddf14c7936f39fe10e849595e5967ea57",
+    "token_hash_control": "8cf5682c0ab5307cb04b6d7292da155ddf14c7936f39fe10e849595e5967ea57",
+    "gsm8k_5shot_200_candidate": 0.96,
+    "gsm8k_5shot_200_control": 0.965
+  },
+  "hip_event_us": {
+    "triton": {
+      "median": 44.8599997907877,
+      "mean": 45.23205004632473,
+      "p90": 47.839999198913574
+    },
+    "raw_gfx950": {
+      "median": 21.700499579310417,
+      "mean": 21.930610053241253,
+      "p90": 22.280000150203705
+    },
+    "speedup": 2.067238
+  },
+  "serving_c64_output_tokens_per_second": {
+    "candidate": 4382.684,
+    "control": 4375.158,
+    "improvement_percent": 0.172016
+  },
+  "code_object": {
+    "vgpr": 33,
+    "sgpr": 34,
+    "agpr": 0,
+    "lds_bytes": 0,
+    "scratch_bytes": 0
+  },
+  "rocprofv3_medians": {
+    "SQ_WAVES": 8192,
+    "SQ_INSTS_VALU": 4268032,
+    "SQ_INSTS_VMEM": 434176,
+    "TCC_READ_SECTORS_sum": 531808,
+    "TCC_WRITE_SECTORS_sum": 2949120,
+    "OccupancyPercent": 34.04429,
+    "MemUnitStalled": 0.128994356
+  },
+  "artifacts": [
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T051000Z-gdn-conv-m12-liveabi-raw-gpu1",
+    "/data/netra/benchmarks/gfx950_qwen36_optimization/20260802T052000Z-gdn-causal-conv-m12-serving-v3-gpu1"
+  ]
+}

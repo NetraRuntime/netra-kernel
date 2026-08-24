@@ -88,8 +88,8 @@ extern "C" int netra_qwen36_shared_gate_append_launch(
       hidden_bf16 == nullptr || shared_gate_weight_bf16 == nullptr ||
       routed_ids_i32 == nullptr || routed_weights_f32 == nullptr)
     return fail_message("shared-gate/append launch pointers must be nonnull");
-  if (rows != 1 && rows != 16)
-    return fail_message("shared-gate/append rows must be 1 or 16");
+  if (rows != 1 && rows != 16 && rows != 32 && rows != 64)
+    return fail_message("shared-gate/append rows must be 1, 16, 32, or 64");
 
   void* hidden_pointer = const_cast<void*>(hidden_bf16);
   void* shared_gate_weight_pointer =

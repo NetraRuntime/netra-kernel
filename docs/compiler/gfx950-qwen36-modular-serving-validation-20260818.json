@@ -1,0 +1,66 @@
+{
+  "baseline": {
+    "current_best_lock": "/data/netra/benchmarks/gfx950_qwen36_optimization/CURRENT_BEST.json",
+    "current_best_lock_sha256": "2823d64410ba4a87223ede5429c90677cc76aea628244dd3c4a1c810af76557a",
+    "mean_output_tokens_per_second": 78748.14957276912,
+    "samples_output_tokens_per_second": [
+      81331.5123,
+      77157.6947,
+      76374.3168,
+      79048.3894,
+      79828.8346
+    ]
+  },
+  "build_equivalence": {
+    "artifact_count": 18,
+    "full_hsaco_identical_count": 0,
+    "normalized_amdhsa_metadata_identical_count": 18,
+    "text_identical_count": 18
+  },
+  "candidate": {
+    "assembly_source": "generated_from_model_independent_tactic_catalog",
+    "mean_dflash_acceptance": 5.526359099047894,
+    "mean_output_tokens_per_second": 78498.65788300121,
+    "median_output_tokens_per_second": 78287.20721893503,
+    "samples_output_tokens_per_second": [
+      75145.37628045461,
+      81468.59642687217,
+      80546.85611703763,
+      78287.20721893503,
+      77045.25337170661
+    ]
+  },
+  "correctness": {
+    "all_cache_checks_passed": true,
+    "all_dflash_checks_passed": true,
+    "all_error_checks_passed": true,
+    "all_input_checks_passed": true,
+    "all_output_checks_passed": true,
+    "all_request_checks_passed": true,
+    "all_token_checks_passed": true,
+    "requests_per_run": 3072,
+    "runs_passed": 5
+  },
+  "format": "netra-serving-validation-1",
+  "limitations": [
+    "Generated assembly artifacts were substituted at all active catalogued boundaries; existing compatibility bridge libraries were retained.",
+    "Full HSACO byte identity is not expected because debug and source provenance differs.",
+    "This result is a no-regression compatibility gate and is not a speedup claim."
+  ],
+  "result": {
+    "approximate_95_percent_delta_interval_output_tokens_per_second": [
+      -3661.1467,
+      3162.1633
+    ],
+    "gate": "passed_statistically_indistinguishable",
+    "relative_mean_delta": -0.00316822,
+    "statistically_distinguishable_regression": false,
+    "welch_degrees_of_freedom": 7.5548,
+    "welch_standard_error": 1457.9722,
+    "welch_t": -0.1711224
+  },
+  "target": "gfx950",
+  "wave_size": 64,
+  "evidence_root": "/data/netra/benchmarks/netra-engine-foundation-20260818/kernel-modular-v2",
+  "aggregate": "/data/netra/benchmarks/netra-engine-foundation-20260818/kernel-modular-v2/qwen36-modular-five-run-aggregate.json"
+}

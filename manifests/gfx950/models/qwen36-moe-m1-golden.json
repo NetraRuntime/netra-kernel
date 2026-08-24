@@ -1,0 +1,176 @@
+{
+  "format": "netra-model-1",
+  "name": "qwen3.6-35b-a3b-fp8-server-compatibility-engine",
+  "family": "qwen3.6",
+  "configuration": {
+    "architecture": "Qwen3_5MoeForConditionalGeneration",
+    "checkpoint": "Qwen3.6-35B-A3B-FP8",
+    "checkpoint_revision": "95a723d08a9490559dae23d0cff1d9466213d989",
+    "hidden_size": 2048,
+    "layers": 40,
+    "tensor_parallel": 1,
+    "data_parallel_workers": 8,
+    "quantization": "fp8_block128",
+    "target": "gfx950",
+    "wave_size": 64,
+    "deployment_graph_mode": "piecewise",
+    "dflash_block_size": 12,
+    "required_environment": {
+      "SGLANG_NETRA_QWEN36_GFX950_MOE_SILU_QUANT": "1",
+      "SGLANG_NETRA_QWEN36_GFX950_MOE_GATE_UP": "1",
+      "SGLANG_NETRA_QWEN36_GFX950_MOE_DOWN_REDUCE": "1",
+      "SGLANG_NETRA_QWEN36_GFX950_MOE_SKIP_SORTING": "1"
+    }
+  },
+  "golden_operations": [
+    {
+      "name": "moe.gate_up",
+      "golden_artifact": {
+        "target": "gfx950",
+        "wave_size": 64,
+        "operation": "qwen36_moe_gate_up_m1",
+        "tactic": "gfx950.qwen36_moe_gate_up_m1.golden",
+        "maturity": "accepted",
+        "symbol": "qwen36_moe_gate_up_fp8_mfma_gfx950",
+        "hsaco_name": "qwen36_moe_gate_up_fp8_mfma_gfx950.hsaco",
+        "hsaco_sha256": "f7d083273843b0a751f7e16b95f1e6e1d646272a56f1221104c7a1c748e661b7",
+        "kernarg_size": 48,
+        "launch": {"grid": [576, 1, 1], "block": [64, 1, 1], "lds_bytes": 0, "dynamic_lds_bytes": 0},
+        "graph_capture": true,
+        "deterministic": true,
+        "fallback": "sglang.aiter.ck_moe_stage1_fwd",
+        "source_refs": ["kernels/gfx950/fp8/moe/decode/qwen36_moe_gate_up_fp8_mfma_gfx950.s"],
+        "evidence_refs": ["docs/notes/gfx950-qwen36-fp8-kernels.md"],
+        "arguments": [
+          {"name": "hidden_fp8", "kind": "pointer", "access": "read", "tensor": {"name": "hidden_fp8", "shape": [1, 2048], "dtype": "fp8_e4m3", "layout": "row_major_fp8_block128", "role": "input"}},
+          {"name": "hidden_scale", "kind": "pointer", "access": "read", "tensor": {"name": "hidden_scale", "shape": [1, 16], "dtype": "fp32", "layout": "row_major", "role": "input"}},
+          {"name": "w13_fp8", "kind": "pointer", "access": "read", "tensor": {"name": "w13_fp8", "shape": [257, 1024, 2048], "dtype": "fp8_e4m3", "layout": "qwen36_moe_w13_aiter", "role": "weight"}},
+          {"name": "w13_scale", "kind": "pointer", "access": "read", "tensor": {"name": "w13_scale", "shape": [257, 8, 16], "dtype": "fp32", "layout": "expert_n128_k128", "role": "weight"}},
+          {"name": "topk_ids", "kind": "pointer", "access": "read", "tensor": {"name": "topk_ids", "shape": [1, 9], "dtype": "int32", "layout": "row_major", "role": "input"}},
+          {"name": "gate_up_f32", "kind": "pointer", "access": "write", "runtime_storage": "caller_binding", "tensor": {"name": "gate_up_f32", "shape": [9, 1024], "dtype": "fp32", "layout": "routed_expert_row_major", "role": "temporary"}}
+        ]
+      }
+    },
+    {
+      "name": "moe.silu_mul_quant",
+      "golden_artifact": {
+        "target": "gfx950",
+        "wave_size": 64,
+        "operation": "qwen36_moe_silu_mul_quant_m1",
+        "tactic": "gfx950.qwen36_moe_silu_mul_quant_m1.golden",
+        "maturity": "accepted",
+        "symbol": "qwen36_moe_silu_mul_quant_fp8_gfx950",
+        "hsaco_name": "qwen36_moe_silu_mul_quant_fp8_gfx950.hsaco",
+        "hsaco_sha256": "6d87114b3bcc5028d9bad3e219c584be7e34bd79baa9010b76a1466c38fecd91",
+        "kernarg_size": 32,
+        "launch": {"grid": [9, 1, 1], "block": [64, 1, 1], "lds_bytes": 0, "dynamic_lds_bytes": 0},
+        "graph_capture": true,
+        "deterministic": true,
+        "fallback": "sglang.aiter.fused_moe.activation_then_quant",
+        "source_refs": ["kernels/gfx950/fp8/moe/decode/qwen36_moe_silu_mul_quant_fp8_gfx950.s"],
+        "evidence_refs": ["docs/notes/gfx950-qwen36-fp8-kernels.md"],
+        "arguments": [
+          {"name": "gate_up_f32", "kind": "pointer", "access": "read", "runtime_storage": "caller_binding", "tensor": {"name": "gate_up_f32", "shape": [9, 1024], "dtype": "fp32", "layout": "routed_expert_row_major", "role": "temporary"}},
+          {"name": "activation_fp8", "kind": "pointer", "access": "write", "runtime_storage": "caller_binding", "tensor": {"name": "activation_fp8", "shape": [9, 512], "dtype": "fp8_e4m3", "layout": "routed_expert_row_major", "role": "temporary"}},
+          {"name": "activation_scale", "kind": "pointer", "access": "write", "runtime_storage": "caller_binding", "tensor": {"name": "activation_scale", "shape": [9, 4], "dtype": "fp32", "layout": "routed_expert_block128", "role": "temporary"}},
+          {"name": "routed_rows", "kind": "u32_constant", "access": "value", "value": 9}
+        ]
+      }
+    },
+    {
+      "name": "moe.down_reduce",
+      "golden_artifact": {
+        "target": "gfx950",
+        "wave_size": 64,
+        "operation": "qwen36_moe_down_reduce_m1",
+        "tactic": "gfx950.qwen36_moe_down_reduce_m1_2wave.golden",
+        "maturity": "accepted",
+        "symbol": "qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950",
+        "hsaco_name": "qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.hsaco",
+        "hsaco_sha256": "ae8adf9d49d05d40fc396ea11db6bbde95ebc299a82085a335cab040939ccce7",
+        "kernarg_size": 56,
+        "launch": {"grid": [128, 1, 1], "block": [128, 1, 1], "lds_bytes": 1024, "dynamic_lds_bytes": 0},
+        "graph_capture": true,
+        "deterministic": true,
+        "fallback": "sglang.aiter.ck_moe_stage2_fwd",
+        "source_refs": ["kernels/gfx950/fp8/moe/decode/qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.s"],
+        "evidence_refs": ["docs/notes/gfx950-qwen36-fp8-kernels.md"],
+        "arguments": [
+          {"name": "activation_fp8", "kind": "pointer", "access": "read", "runtime_storage": "caller_binding", "tensor": {"name": "activation_fp8", "shape": [9, 512], "dtype": "fp8_e4m3", "layout": "routed_expert_row_major", "role": "temporary"}},
+          {"name": "activation_scale", "kind": "pointer", "access": "read", "runtime_storage": "caller_binding", "tensor": {"name": "activation_scale", "shape": [9, 4], "dtype": "fp32", "layout": "routed_expert_block128", "role": "temporary"}},
+          {"name": "w2_fp8", "kind": "pointer", "access": "read", "tensor": {"name": "w2_fp8", "shape": [257, 2048, 512], "dtype": "fp8_e4m3", "layout": "qwen36_moe_w2_aiter", "role": "weight"}},
+          {"name": "w2_scale", "kind": "pointer", "access": "read", "tensor": {"name": "w2_scale", "shape": [257, 16, 4], "dtype": "fp32", "layout": "expert_n128_k128", "role": "weight"}},
+          {"name": "topk_weights", "kind": "pointer", "access": "read", "tensor": {"name": "topk_weights", "shape": [1, 9], "dtype": "fp32", "layout": "row_major", "role": "input"}},
+          {"name": "topk_ids", "kind": "pointer", "access": "read", "tensor": {"name": "topk_ids", "shape": [1, 9], "dtype": "int32", "layout": "row_major", "role": "input"}},
+          {"name": "output_bf16", "kind": "pointer", "access": "write", "tensor": {"name": "output_bf16", "shape": [1, 2048], "dtype": "bf16", "layout": "row_major", "role": "output"}}
+        ]
+      }
+    }
+  ],
+  "fallback_operations": [
+    {
+      "name": "moe.dispatch_policy",
+      "operation": "qwen36_moe_batched_decode_and_skip_sorting",
+      "fallback": "sglang.netra.raw_moe_dispatch",
+      "external_status": "accepted_external_dispatch",
+      "profile_constraints": {"decode_m": [1, 32], "topk": 9, "experts": 257},
+      "evidence_refs": ["docs/notes/gfx950-qwen36-fp8-kernels.md"]
+    },
+    {
+      "name": "moe.router_bf16",
+      "operation": "qwen36_router_bf16",
+      "fallback": "sglang.netra.raw_router_bf16",
+      "external_status": "accepted_external_dispatch",
+      "profile_constraints": {"hidden": 2048, "experts": 256},
+      "evidence_refs": ["docs/notes/gfx950-qwen36-fp8-kernels.md"]
+    },
+    {
+      "name": "attention.extend_gqa4",
+      "operation": "qwen36_extend_attention_gqa4",
+      "fallback": "sglang.netra.raw_extend_attention_gqa4",
+      "external_status": "accepted_external_dispatch",
+      "profile_constraints": {"q_heads": 32, "kv_heads": 8, "head_dim": 128, "max_extend": 16},
+      "evidence_refs": ["docs/notes/gfx950-qwen36-extend-attention-gqa4.md"]
+    },
+    {
+      "name": "attention.target_gqa8_fp8kv",
+      "operation": "qwen36_target_attention_gqa8_fp8kv",
+      "fallback": "sglang.netra.raw_target_attention_gqa8_fp8kv",
+      "external_status": "accepted_external_dispatch",
+      "profile_constraints": {"q_heads": 32, "kv_heads": 4, "head_dim": 256, "max_m": 16, "kv_dtype": "fp8_e4m3"},
+      "evidence_refs": ["docs/notes/gfx950-qwen36-target-attention-gqa8-fp8kv.md"]
+    },
+    {
+      "name": "gdn.verify_m12_k0",
+      "operation": "qwen36_gdn_verify_m12_batched_k0",
+      "fallback": "sglang.netra.raw_gdn_verify_m12_batched_k0",
+      "external_status": "accepted_external_dispatch",
+      "profile_constraints": {"m": 12, "batch_max": 64, "dflash_cache_steps": 0},
+      "evidence_refs": ["docs/notes/gfx950-qwen36-gdn-m12-k0.md"]
+    },
+    {
+      "name": "gdn.causal_conv_m12",
+      "operation": "qwen36_gdn_causal_conv_m12",
+      "fallback": "sglang.netra.raw_gdn_causal_conv_m12",
+      "external_status": "accepted_external_dispatch",
+      "profile_constraints": {"m": 12, "width": 4, "channels": 8192},
+      "evidence_refs": ["docs/notes/gfx950-qwen36-gdn-causal-conv-m12.md"]
+    },
+    {
+      "name": "gdn.state_replay_m12",
+      "operation": "qwen36_gdn_state_replay_m12",
+      "fallback": "sglang.netra.raw_gdn_state_replay_m12",
+      "external_status": "accepted_external_dispatch",
+      "profile_constraints": {"m": 12, "batch_max": 64, "dflash_cache_steps": 0},
+      "evidence_refs": ["docs/notes/gfx950-qwen36-gdn-m12-k0.md"]
+    },
+    {
+      "name": "attention.verify_triton",
+      "operation": "qwen36_verification_attention",
+      "fallback": "sglang.triton.verification_attention",
+      "external_status": "framework_fallback",
+      "profile_constraints": {"m": 12, "graph_mode": "piecewise"},
+      "evidence_refs": ["manifests/gfx950/models/qwen36-server-deployment.json"]
+    }
+  ]
+}

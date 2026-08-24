@@ -57,8 +57,8 @@ int main(int argc, char** argv) {
     const int iterations = argc >= 4 ? std::stoi(argv[3]) : 1000;
     const int rows = argc == 5 ? std::stoi(argv[4]) : 1;
     if (iterations <= 0) throw std::runtime_error("iterations must be positive");
-    if (rows != 1 && rows != 16)
-      throw std::runtime_error("rows must be 1 or 16");
+    if (rows != 1 && rows != 12 && rows != 16 && rows != 32 && rows != 64)
+      throw std::runtime_error("rows must be 1, 12, 16, 32, or 64");
 
     int device = 0;
     HIP_CHECK(hipGetDevice(&device));

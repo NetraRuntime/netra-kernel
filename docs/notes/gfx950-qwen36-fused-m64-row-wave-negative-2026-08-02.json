@@ -1,0 +1,58 @@
+{
+  "status": "validated_negative_not_integrated",
+  "target": "gfx950",
+  "gpu": "AMD Instinct MI350X",
+  "wavefront_size": 64,
+  "weight_quantization": "FP8_E4M3_block_128x128",
+  "capture": {
+    "rows": 1024,
+    "hidden": 2048,
+    "intermediate": 512,
+    "output_hidden": 2048
+  },
+  "variants": {
+    "persistent_row_wave_paired": {
+      "complete_median_us": 417.844,
+      "w13_silu_quant_median_us": 251.262,
+      "structural_max_abs": 0.000849761,
+      "structural_cosine": 0.999968,
+      "aiter_max_abs": 0.000976562,
+      "aiter_cosine": 0.999961,
+      "slower_than_aiter_percent": 87.11
+    },
+    "split_k4": {
+      "complete_median_us": 428.304,
+      "w13_silu_quant_median_us": 179.222,
+      "structural_max_abs": 0.00125727,
+      "structural_cosine": 0.999948,
+      "aiter_max_abs": 0.0012207,
+      "aiter_cosine": 0.99994,
+      "slower_than_aiter_percent": 91.79
+    },
+    "packaged_aiter_oracle": {
+      "complete_median_us": 223.323,
+      "metadata": {
+        "workgroup_size": 256,
+        "lds_bytes": 65536,
+        "vgpr_count": 512,
+        "sgpr_count": 102,
+        "scratch_bytes": 0
+      }
+    }
+  },
+  "sampled_activation_validation": {
+    "fp8_byte_mismatches": 393,
+    "fp8_elements": 27136,
+    "mismatch_percent": 1.44826
+  },
+  "decision": {
+    "integrated": false,
+    "reason": "Row-wave serializes W2 output-N work; split-K4 restores W13 parallelism but adds partial-output atomics and remains slower and less accurate than the packaged oracle.",
+    "next_design": "wave-N, high-VGPR/AGPR, four retained M16 row tiles per wave"
+  },
+  "artifact_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260801T190500Z-fused-m64n256-atomic-r1-gpu6",
+  "builds": {
+    "persistent_row_wave_paired": "/data/netra/repos/netra-kernel/build/gfx950-qwen36-fused-m64n2048-r7-paired",
+    "split_k4": "/data/netra/repos/netra-kernel/build/gfx950-qwen36-fused-m64-splitk4-r9"
+  }
+}

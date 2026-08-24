@@ -1,0 +1,1 @@
+{"format":"netra-profile-1","name":"small_prefill_m64","guards":{"m":{"min":64,"max":64},"batch":{"min":1,"max":64},"sequence":{"min":0,"max":1048576}},"quantization":"fp8_block128","tensor_parallel":"deployment","priority":10}
