@@ -2,7 +2,8 @@
 
 This library loads deterministic `netra-engine-1` manifests during
 initialization, verifies gfx950/wave64 ownership, the declared minimum ROCm
-runtime, and code-object ABI, rejects non-normalized HSACO paths, allocates any
+runtime, code-object ABI, and every locked HSACO SHA-256, rejects
+non-normalized HSACO paths, allocates any
 declared static workspace, loads selected HSACOs, resolves every `hipFunction_t`,
 and builds fixed numeric profile records. Bindings use numeric
 operation/argument indices. Optional HIP graphs are captured only after stable

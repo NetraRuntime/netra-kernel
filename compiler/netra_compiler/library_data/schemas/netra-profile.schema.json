@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netra.ai/schemas/netra-profile.schema.json",
+  "title": "Netra target shape profile",
+  "type": "object",
+  "required": ["format", "name", "guards", "quantization", "tensor_parallel", "priority"],
+  "properties": {
+    "format": {"const": "netra-profile-1"},
+    "name": {"type": "string", "minLength": 1},
+    "guards": {"type": "object"},
+    "quantization": {"type": "string", "minLength": 1},
+    "tensor_parallel": {"oneOf": [{"const": "deployment"}, {"type": "integer", "minimum": 1}]},
+    "priority": {"type": "integer"}
+  }
+}

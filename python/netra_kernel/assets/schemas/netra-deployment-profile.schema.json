@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netra.ai/schemas/netra-deployment-profile.schema.json",
+  "title": "Netra deployment profile",
+  "type": "object",
+  "required": ["format"],
+  "properties": {
+    "format": {"const": "netra-deployment-profile-1"},
+    "extends": {"type": "string", "minLength": 1},
+    "revision": {"type": "string", "minLength": 1},
+    "accepted": {"type": "boolean"},
+    "abstract": {"type": "boolean"},
+    "target": {"type": "string", "minLength": 1},
+    "wave_size": {"type": "integer", "minimum": 1},
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "filename": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["code_object", "runtime_library", "data"]},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "remove": {"type": "boolean"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "integrations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "required_modules": {"type": "array", "items": {"type": "string"}},
+          "source_snapshot": {"type": "string"},
+          "environment": {
+            "type": "object",
+            "additionalProperties": {"type": "string"}
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

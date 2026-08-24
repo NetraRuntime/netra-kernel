@@ -5,11 +5,9 @@ import json
 import sys
 from pathlib import Path
 
-from .backends.gfx950.build import build_sources
-from .backends.gfx950.catalog import load_fixed_tactic_catalog
+from .backends import get_backend
 from .engine import compile_engine
 from .errors import NetraCompilerError
-from .tactics import gfx950_registry
 from .types import canonical_json
 from .validation import validate_engine_directory
 
@@ -40,11 +38,11 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         if args.command == "list-tactics":
-            if args.target != "gfx950": raise NetraCompilerError("only gfx950 is registered")
+            backend = get_backend(args.target)
             from .library import KernelLibrary
             repo_root = KernelLibrary.discover(args.library_root).root
-            registered = [t.to_dict() for t in gfx950_registry()]
-            registered.extend(t.to_dict() for t in load_fixed_tactic_catalog(repo_root, args.target))
+            registered = [t.to_dict() for t in backend.tactics()]
+            registered.extend(t.to_dict() for t in backend.fixed_tactics(repo_root))
             registered.sort(key=lambda tactic: tactic["name"])
             print(canonical_json({"target": args.target, "tactics": registered}), end="")
         elif args.command == "compile":
@@ -61,7 +59,9 @@ def main(argv: list[str] | None = None) -> int:
             print((args.engine / "explain.json").read_text(encoding="utf-8"), end="")
         elif args.command == "validate":
             result = validate_engine_directory(args.engine, library_root=args.library_root)
-            if args.build: result["built"] = build_sources(args.engine)
+            if args.build:
+                engine = json.loads((args.engine / "engine.json").read_text())
+                result["built"] = get_backend(str(engine["target"])).build(args.engine)
             print(canonical_json(result), end="")
         return 0
     except (NetraCompilerError, OSError, ValueError) as exc:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from importlib.resources import files
 from pathlib import Path
 from typing import Iterable
 
@@ -46,6 +47,9 @@ class KernelLibrary:
         if explicit is not None:
             return cls(explicit)
         candidates: list[Path] = []
+        packaged = Path(str(files("netra_compiler").joinpath("library_data")))
+        if packaged.is_dir():
+            candidates.append(packaged)
         for anchor in (*anchors, Path.cwd(), Path(__file__)):
             path = anchor.expanduser().resolve()
             if path.is_file():
@@ -59,9 +63,9 @@ class KernelLibrary:
             if all((candidate / required).exists() for required in _REQUIRED_PATHS):
                 return cls(candidate)
         raise ValidationError(
-            "cannot locate the Netra kernel library; pass library_root or "
-            "--library-root pointing at a checkout/artifact containing schemas, "
-            "manifests, and kernels/gfx950/templates"
+            "cannot locate the Netra kernel library; install a compiler wheel "
+            "containing library_data, or pass library_root/--library-root pointing "
+            "at schemas, manifests, and kernel templates"
         )
 
     def schema(self, name: str) -> Path:

@@ -44,9 +44,15 @@ netra-sglang validate /srv/netra/qwen36-35b
 The output contains:
 
 - `bundle.json`: profile, artifact provenance, hashes, and SGLang environment;
-- `artifacts/`: the resolved bridges and code objects;
-- `docker.env`: container paths rooted at `/opt/netra`;
-- `env.sh`: host paths rooted at the bundle's actual location.
+- `artifacts/`: the resolved bridges and code objects.
+
+Environment output is generated on demand, so the bundle has one canonical
+manifest rather than mutable duplicate files:
+
+```bash
+netra-sglang env /srv/netra/qwen36-35b
+netra-sglang env /srv/netra/qwen36-35b --format docker
+```
 
 `--copy` produces a fully independent directory. The default tries hardlinks
 first and falls back to copying, which is useful when assembling a bundle next
@@ -202,3 +208,8 @@ mount. It completed all 384 requests and exact 1,024/1,024 token lengths at
 10,316.86 output tokens/s, 3.12% above the same locked baseline. The result,
 image, wheel, source archive, bundle, and container-inspect hashes are recorded
 in the same machine-readable evidence.
+
+These two numbers are not a comparison with vanilla SGLang. The named
+baseline is the previously accepted Netra deployment. A stock/base image here
+means that the accepted Netra source snapshot was layered over the stock
+SGLang image; it does not mean Netra kernels were disabled.

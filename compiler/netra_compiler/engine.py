@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from .backends.gfx950.codegen import emit_specialized_candidates
+from .backends import CompilerBackend, get_backend
 from .contracts import FixedKernelContract
 from .errors import ValidationError
 from .frontends import load_model
@@ -15,8 +15,7 @@ from .layouts import plan_scale_layout, plan_weight_layout
 from .library import KernelLibrary
 from .memory import BufferRequest, checked_mul, plan_buffers
 from .planner import Plan, plan_graph
-from .profiles import ShapeProfile, load_profile_registry
-from .tactics import gfx950_registry
+from .profiles import ShapeProfile
 from .types import canonical_json, stable_hash, write_json
 
 
@@ -24,7 +23,9 @@ FORMAT_VERSION = "netra-engine-1"
 COMPILER_VERSION = "0.2.0"
 
 
-def _compiler_source_hash(repo_root: Path, template_hashes: dict[str, str]) -> str:
+def _compiler_source_hash(
+    repo_root: Path, template_hashes: dict[str, str], backend: CompilerBackend
+) -> str:
     # Hash the actually imported package, not an assumed checkout-relative
     # copy.  The logical labels deliberately exclude installation paths.
     package_root = Path(__file__).resolve().parent
@@ -35,15 +36,18 @@ def _compiler_source_hash(repo_root: Path, template_hashes: dict[str, str]) -> s
     return stable_hash({
         "compiler_version": COMPILER_VERSION,
         "python_sources": sources,
-        "tactics": [tactic.to_dict() for tactic in gfx950_registry()],
+        "backend": backend.target,
+        "tactics": [tactic.to_dict() for tactic in backend.tactics()],
         "templates": template_hashes,
     })
 
 
-def _profile(repo_root: Path, target: str, name: str, tensor_parallel: int) -> ShapeProfile:
+def _profile(
+    repo_root: Path, backend: CompilerBackend, name: str, tensor_parallel: int
+) -> ShapeProfile:
     profiles = {
         profile.name: profile
-        for profile in load_profile_registry(repo_root, target, tensor_parallel)
+        for profile in backend.profiles(repo_root, tensor_parallel)
     }
     if name not in profiles:
         raise ValidationError(f"unknown profile {name!r}; choose from {', '.join(sorted(profiles))}")
@@ -375,22 +379,23 @@ def compile_engine(model_path: Path, target: str, profile_name: str, output: Pat
                    allow_experimental: bool = False,
                    golden_artifact_root: Path | None = None,
                    library_root: Path | None = None) -> dict[str, Any]:
-    if target != "gfx950":
-        raise ValidationError("the first Netra engine backend is gfx950 only")
+    backend = get_backend(target)
     library = KernelLibrary.discover(library_root, anchors=(model_path,))
     repo_root = library.root
     graph, model = load_model(model_path, library=library)
     tensor_parallel = int(model.get("configuration", {}).get("tensor_parallel", 1))
-    profile = _profile(repo_root, target, profile_name, tensor_parallel)
+    profile = _profile(repo_root, backend, profile_name, tensor_parallel)
     plan = plan_graph(
         graph,
         profile,
         target,
         allow_experimental=allow_experimental,
+        registry=backend.tactics(),
+        fixed_registry=backend.fixed_tactics(repo_root),
         library_root=repo_root,
     )
     output.mkdir(parents=True, exist_ok=True)
-    candidates = emit_specialized_candidates(plan, output, repo_root)
+    candidates = backend.emit(plan, output, repo_root)
 
     contract_map = {
         p.contract.stable_id: p.contract.to_dict() for p in plan.operations if p.contract is not None
@@ -470,9 +475,10 @@ def compile_engine(model_path: Path, target: str, profile_name: str, output: Pat
         for candidate in candidates
         for relative, digest in candidate.get("template_files", {}).items()
     }
-    source_hash = _compiler_source_hash(repo_root, template_hashes)
+    source_hash = _compiler_source_hash(repo_root, template_hashes, backend)
     engine = {
-        "format_version": FORMAT_VERSION, "target": target, "wave_size": 64,
+        "format_version": FORMAT_VERSION, "target": target,
+        "wave_size": backend.wave_size,
         "required_rocm": {"minimum": "7.0", "code_object_version": 6},
         "model_configuration_hash": model_hash, "checkpoint_hash": checkpoint_hash,
         "deployment_guards": deployment_guards,

@@ -10,8 +10,11 @@ import torch
 from safetensors import safe_open
 
 
-MODEL = Path("/root/models/qwen36-mxfp4")
-LIB = "/root/netra-mxfp4-gfx1151/build/sglang/libnetra_mxfp4_sgl.so"
+ROOT = Path(__file__).resolve().parents[2]
+MODEL = Path(os.environ.get("NETRA_TEST_MODEL_DIR", ROOT / "models/qwen36-mxfp4"))
+LIB = os.environ.get(
+    "NETRA_MXFP4_SGL_LIB", str(ROOT / "build/sglang/libnetra_mxfp4_sgl.so")
+)
 KEY = "model.language_model.layers.0.linear_attn.in_proj_qkv.weight"
 
 

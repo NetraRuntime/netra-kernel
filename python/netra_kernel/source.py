@@ -40,7 +40,7 @@ def _sha256(path: Path) -> str:
 
 
 def _snapshot(profile: Mapping) -> tuple[str, dict]:
-    name = profile.get("sglang_source_snapshot")
+    name = profile.get("integrations", {}).get("sglang", {}).get("source_snapshot")
     if not name:
         raise BundleError("profile does not declare an accepted SGLang source snapshot")
     try:

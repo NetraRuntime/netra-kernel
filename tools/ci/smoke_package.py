@@ -55,15 +55,24 @@ def main() -> int:
         )
         if "qwen36-35b-current-best" not in profiles:
             raise RuntimeError("installed netra-sglang CLI did not list its profile")
+        integrations = _run(
+            [str(root / "venv/bin/netra-kernel"), "integrations"],
+            cwd=root,
+            environment=environment,
+        )
+        if integrations.strip() != "sglang":
+            raise RuntimeError("installed netra-kernel CLI did not discover SGLang")
         probe = """
 from importlib.metadata import distribution
 from pathlib import Path
 import netra_kernel.cli
+import netra_kernel.kernel_cli
 import netra_kernel.sglang.plugin
 
 dist = distribution("netra-kernel")
 entry_points = {ep.name: ep for ep in dist.entry_points}
 assert entry_points["netra-sglang"].load() is netra_kernel.cli.main
+assert entry_points["netra-kernel"].load() is netra_kernel.kernel_cli.main
 plugin = entry_points["netra"].load()
 assert plugin is netra_kernel.sglang.plugin.register
 plugin()

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ...errors import BuildUnavailable, ValidationError
-from ...types import write_json
+from ...types import stable_hash, write_json
 from .metadata import validate_readobj_metadata
 
 
@@ -215,6 +215,25 @@ def build_sources(engine_dir: Path, *, rocm_dir: Path | None = None) -> list[dic
     built_by_source = {
         record.get("source"): record for record in records if record.get("source")
     }
+    built_by_symbol = {
+        candidate["symbol"]: built_by_source[candidate["source"]]
+        for candidate in validation_plan.get("candidates", [])
+        if candidate.get("source") in built_by_source and candidate.get("symbol")
+    }
+    for operation in engine["operations"]:
+        if operation.get("execution") != "kernel":
+            continue
+        if operation.get("artifact_kind") == "golden_external_hsaco":
+            continue
+        built = built_by_symbol.get(operation.get("kernel_symbol"))
+        if built is None:
+            raise ValidationError(
+                f"selected kernel was not built: {operation.get('kernel_symbol')}"
+            )
+        operation["hsaco_sha256"] = built["sha256"]
+    engine.pop("engine_id", None)
+    engine["engine_id"] = "ne_" + stable_hash(engine)[:24]
+    write_json(engine_dir / "engine.json", engine)
     for candidate in validation_plan.get("candidates", []):
         built = built_by_source.get(candidate.get("source"))
         if built and built.get("equivalence"):

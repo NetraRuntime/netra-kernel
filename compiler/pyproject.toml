@@ -36,4 +36,10 @@ where = ["."]
 include = ["netra_compiler*"]
 
 [tool.setuptools.package-data]
-netra_compiler = ["py.typed"]
+netra_compiler = [
+  "py.typed",
+  "library_data/**/*.json",
+  "library_data/**/*.inc",
+  "library_data/**/*.csv",
+  "library_data/**/*.md",
+]

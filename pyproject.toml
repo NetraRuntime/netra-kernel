@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "netra-kernel"
 version = "0.3.0.dev0"
-description = "Relocatable AMDGCN kernels and an out-of-tree SGLang integration"
+description = "Relocatable AMDGCN kernels with pluggable inference-engine adapters"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -21,7 +21,11 @@ sglang = ["torch>=2.8"]
 test = ["pytest>=8", "build>=1.2"]
 
 [project.scripts]
+netra-kernel = "netra_kernel.kernel_cli:main"
 netra-sglang = "netra_kernel.cli:main"
+
+[project.entry-points."netra.inference_engines"]
+sglang = "netra_kernel.sglang.engine:adapter"
 
 [project.entry-points."sglang.srt.plugins"]
 netra = "netra_kernel.sglang.plugin:register"

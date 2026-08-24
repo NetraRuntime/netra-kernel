@@ -1,0 +1,180 @@
+{
+  "format": "netra-deployment-profile-1",
+  "revision": "qwen36-35b-dp8-current-best@052c539e0794aedb71761bbffe816930817ac5b3",
+  "target": "gfx950",
+  "wave_size": 64,
+  "artifacts": [
+    {
+      "name": "moe-bridge",
+      "filename": "libqwen36_moe_silu_mul_quant_fp8_gfx950_bridge.so"
+    },
+    {
+      "name": "moe-silu-quant",
+      "filename": "qwen36_moe_silu_mul_quant_fp8_gfx950.hsaco",
+      "sha256": "6d87114b3bcc5028d9bad3e219c584be7e34bd79baa9010b76a1466c38fecd91"
+    },
+    {
+      "name": "moe-gate-up",
+      "filename": "qwen36_moe_gate_up_fp8_mfma_gfx950.hsaco",
+      "sha256": "f7d083273843b0a751f7e16b95f1e6e1d646272a56f1221104c7a1c748e661b7"
+    },
+    {
+      "name": "moe-down",
+      "filename": "qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.hsaco",
+      "sha256": "ae8adf9d49d05d40fc396ea11db6bbde95ebc299a82085a335cab040939ccce7"
+    },
+    {
+      "name": "router-bridge",
+      "filename": "libqwen36_router_bf16_bridge.so"
+    },
+    {
+      "name": "router",
+      "filename": "qwen36_router_bf16_gemv_gfx950.hsaco",
+      "sha256": "f69299027223f2f2f0f2cb76dfe102c5773ae0eadc6bbad0b4f92987efa991c6"
+    },
+    {
+      "name": "gqa4-bridge",
+      "filename": "libqwen36_extend_attention_m16_gqa4_fp8kv_bridge.so"
+    },
+    {
+      "name": "gqa4",
+      "filename": "qwen36_extend_attention_m16_gqa4_fp8kv_gfx950.hsaco",
+      "sha256": "494a9daafdb059b64bf6e95c857c74fdb365bde788af38b45152fbe61fd4e361"
+    },
+    {
+      "name": "gqa8-bridge",
+      "filename": "libqwen36_extend_attention_m16_gqa8_fp8kv_bridge.so"
+    },
+    {
+      "name": "gqa8",
+      "filename": "qwen36_extend_attention_m16_gqa8_fp8kv_gfx950.hsaco",
+      "sha256": "cb482ce544c27dd4449320c7fe64d3024a75643bdfa1658cefa2e576f4d7bfe6"
+    },
+    {
+      "name": "full-attention-bridge",
+      "filename": "libqwen36_full_attention_verify_m16_bridge.so"
+    },
+    {
+      "name": "full-attention-prepare",
+      "filename": "qwen36_full_attention_verify_prepare_m16_gfx950.hsaco",
+      "sha256": "1e32570eeeb9d845b9820dbf599a03d4e16a490f6b0ee4c5acbdc95646337d55"
+    },
+    {
+      "name": "full-attention-stage1",
+      "filename": "qwen36_full_attention_verify_m16_stage1_gfx950.hsaco",
+      "sha256": "959dc8c88b50bd19bdd150aceac086adab5c85c3cb2df07a5be52ec8253d24df"
+    },
+    {
+      "name": "full-attention-stage2",
+      "filename": "qwen36_full_attention_verify_m16_stage2_gfx950.hsaco",
+      "sha256": "aa9fdf9ada8cdb754caa5885f728a314c2031378c476ef313386261e3a38333e"
+    },
+    {
+      "name": "gdn-verify-bridge",
+      "filename": "libqwen36_gdn_verify_m12_batched_bridge.so"
+    },
+    {
+      "name": "gdn-precompute",
+      "filename": "qwen36_gdn_verify_m12_batched_precompute_gfx950.hsaco",
+      "sha256": "b93c9bbc6926a4decc0b342cc77b2567d4bdf87e9000ba29987904906063ac5a"
+    },
+    {
+      "name": "gdn-core",
+      "filename": "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950.hsaco",
+      "sha256": "fdf48bb6482ab2dee4d948ec1dba3b756343e85ac41fa00e1365bc8867c68d6b"
+    },
+    {
+      "name": "gdn-core-waves4",
+      "filename": "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950_waves4.hsaco",
+      "sha256": "e900f66d428f4d7098a5ec4ad34cccc831f9023fd5efde9dff6326f147bac04d"
+    },
+    {
+      "name": "gdn-core-waves8",
+      "filename": "qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950_waves8.hsaco",
+      "sha256": "139398c28578a08074a04824a937ac5c79283530e412fe073ccfb016e1883333e"
+    },
+    {
+      "name": "gdn-replay-bridge",
+      "filename": "libqwen36_gdn_state_replay_m12_bridge.so"
+    },
+    {
+      "name": "gdn-replay-waves1",
+      "filename": "qwen36_gdn_state_replay_m12_waves1_gfx950.hsaco",
+      "sha256": "cdf7271652bad2d8dc0ec760c0467af973a6923db94e61ed7b4223ceebe1fb53"
+    },
+    {
+      "name": "gdn-replay-waves4",
+      "filename": "qwen36_gdn_state_replay_m12_waves4_gfx950.hsaco",
+      "sha256": "b3f34b1f0e2858b29823659b5d8d1d75d34281a10d304a7ee4f330161bc46fb5"
+    },
+    {
+      "name": "gdn-replay-waves8",
+      "filename": "qwen36_gdn_state_replay_m12_waves8_gfx950.hsaco",
+      "sha256": "165a045e651837409097d9669df35d799ab2c96f4f6f1df408ac046dad6c9d06"
+    },
+    {
+      "name": "gdn-h-bridge",
+      "filename": "libqwen36_gdn_h_m8192_bv16_bridge.so"
+    },
+    {
+      "name": "gdn-h",
+      "filename": "qwen36_gdn_h_m8192_bv16_gfx950.hsaco",
+      "sha256": "24cbcd44e47150c6d3b0e10b5d22229825c2fe5f7d5d18136264785282aa51d7"
+    }
+  ],
+  "abstract": true,
+  "integrations": {
+    "sglang": {
+      "required_modules": [
+        "sglang.srt.layers.moe.netra_gfx950_qwen36",
+        "sglang.srt.layers.moe.netra_gfx950_qwen36_router",
+        "sglang.srt.layers.attention.netra_gfx950_qwen36_extend_attention_fp8kv",
+        "sglang.srt.layers.attention.netra_gfx950_qwen36_target_attention",
+        "sglang.srt.layers.attention.netra_gfx950_qwen36_full_attention",
+        "sglang.srt.layers.attention.linear.netra_gfx950_qwen36_gdn_verify_m12_batched",
+        "sglang.srt.layers.attention.linear.netra_gfx950_qwen36_gdn_state_replay_m12"
+      ],
+      "environment": {
+        "SGLANG_NETRA_QWEN36_GFX950_MOE_SILU_QUANT": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_MOE_GATE_UP": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_MOE_DOWN_REDUCE": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_MOE_BATCHED_DECODE": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_MOE_SKIP_SORTING": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_MOE_BRIDGE": "{root}/artifacts/moe-bridge/libqwen36_moe_silu_mul_quant_fp8_gfx950_bridge.so",
+        "SGLANG_NETRA_QWEN36_GFX950_MOE_HSACO": "{root}/artifacts/moe-silu-quant/qwen36_moe_silu_mul_quant_fp8_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_MOE_GATE_UP_HSACO": "{root}/artifacts/moe-gate-up/qwen36_moe_gate_up_fp8_mfma_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_MOE_DOWN_HSACO": "{root}/artifacts/moe-down/qwen36_moe_down_reduce_fp8_mfma_2wave_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_ROUTER_BF16": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_ROUTER_BF16_BRIDGE": "{root}/artifacts/router-bridge/libqwen36_router_bf16_bridge.so",
+        "SGLANG_NETRA_QWEN36_GFX950_ROUTER_BF16_HSACO": "{root}/artifacts/router/qwen36_router_bf16_gemv_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_EXTEND_ATTENTION_GQA4_FP8KV": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_EXTEND_ATTENTION_GQA4_FP8KV_BRIDGE": "{root}/artifacts/gqa4-bridge/libqwen36_extend_attention_m16_gqa4_fp8kv_bridge.so",
+        "SGLANG_NETRA_QWEN36_GFX950_EXTEND_ATTENTION_GQA4_FP8KV_HSACO": "{root}/artifacts/gqa4/qwen36_extend_attention_m16_gqa4_fp8kv_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_EXTEND_ATTENTION_GQA8_FP8KV": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_EXTEND_ATTENTION_GQA8_FP8KV_BRIDGE": "{root}/artifacts/gqa8-bridge/libqwen36_extend_attention_m16_gqa8_fp8kv_bridge.so",
+        "SGLANG_NETRA_QWEN36_GFX950_EXTEND_ATTENTION_GQA8_FP8KV_HSACO": "{root}/artifacts/gqa8/qwen36_extend_attention_m16_gqa8_fp8kv_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_FULL_ATTENTION_VERIFY_SPLITSEQ": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_FULL_ATTENTION_VERIFY_SPLITSEQ_BRIDGE": "{root}/artifacts/full-attention-bridge/libqwen36_full_attention_verify_m16_bridge.so",
+        "SGLANG_NETRA_QWEN36_GFX950_FULL_ATTENTION_VERIFY_SPLITSEQ_PREPARE_HSACO": "{root}/artifacts/full-attention-prepare/qwen36_full_attention_verify_prepare_m16_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_FULL_ATTENTION_VERIFY_SPLITSEQ_STAGE1_HSACO": "{root}/artifacts/full-attention-stage1/qwen36_full_attention_verify_m16_stage1_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_FULL_ATTENTION_VERIFY_SPLITSEQ_STAGE2_HSACO": "{root}/artifacts/full-attention-stage2/qwen36_full_attention_verify_m16_stage2_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_VERIFY_M12_BATCHED_K0": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_VERIFY_M12_BATCHED_BRIDGE": "{root}/artifacts/gdn-verify-bridge/libqwen36_gdn_verify_m12_batched_bridge.so",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_VERIFY_M12_BATCHED_PRECOMPUTE_HSACO": "{root}/artifacts/gdn-precompute/qwen36_gdn_verify_m12_batched_precompute_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_VERIFY_M12_BATCHED_CORE_HSACO": "{root}/artifacts/gdn-core/qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_VERIFY_M12_BATCHED_CORE_WAVES4_HSACO": "{root}/artifacts/gdn-core-waves4/qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950_waves4.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_VERIFY_M12_BATCHED_CORE_WAVES8_HSACO": "{root}/artifacts/gdn-core-waves8/qwen36_gdn_verify_m12_batched_precomputed_bv16_gfx950_waves8.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_STATE_REPLAY_M12": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_REPLAY_STRIDED_INPUT": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_STATE_REPLAY_M12_BRIDGE": "{root}/artifacts/gdn-replay-bridge/libqwen36_gdn_state_replay_m12_bridge.so",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_STATE_REPLAY_M12_PRECOMPUTE_HSACO": "{root}/artifacts/gdn-precompute/qwen36_gdn_verify_m12_batched_precompute_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_STATE_REPLAY_M12_CORE_WAVES1_HSACO": "{root}/artifacts/gdn-replay-waves1/qwen36_gdn_state_replay_m12_waves1_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_STATE_REPLAY_M12_CORE_WAVES4_HSACO": "{root}/artifacts/gdn-replay-waves4/qwen36_gdn_state_replay_m12_waves4_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_STATE_REPLAY_M12_CORE_WAVES8_HSACO": "{root}/artifacts/gdn-replay-waves8/qwen36_gdn_state_replay_m12_waves8_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_H_M8192_BV16": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_H_M8192_BV16_BRIDGE": "{root}/artifacts/gdn-h-bridge/libqwen36_gdn_h_m8192_bv16_bridge.so",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_H_M8192_BV16_HSACO": "{root}/artifacts/gdn-h/qwen36_gdn_h_m8192_bv16_gfx950.hsaco"
+      }
+    }
+  }
+}

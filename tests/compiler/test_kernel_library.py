@@ -54,6 +54,31 @@ class KernelLibraryTest(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((output / "engine.json").is_file())
 
+    def test_compiler_package_contains_its_kernel_library(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            relocated = Path(directory)
+            package_root = relocated / "installed"
+            package_root.mkdir()
+            shutil.copytree(ROOT / "compiler/netra_compiler", package_root / "netra_compiler")
+            output = relocated / "engine"
+            environment = dict(os.environ)
+            environment["PYTHONPATH"] = str(package_root)
+            result = subprocess.run(
+                [
+                    sys.executable, "-m", "netra_compiler.cli", "compile",
+                    "--model", str(FIXTURE), "--target", "gfx950",
+                    "--profile", "decode_m1", "--output", str(output),
+                ],
+                cwd=relocated,
+                env=environment,
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((output / "engine.json").is_file())
+
     def test_shared_gdn_core_compiles_as_a_fixed_non_model_engine(self) -> None:
         fixture = ROOT / "tests/compiler/fixtures/generic-gdn-state-replay-exact.json"
         with tempfile.TemporaryDirectory() as directory:

@@ -20,6 +20,7 @@ high-throughput FP8 inference for large language models.
 [Get started](#get-started) ·
 [Explore the architecture](docs/compiler/architecture.md) ·
 [Read the engine format](docs/compiler/engine-format.md) ·
+[Integrate another engine](docs/integrating-an-inference-engine.md) ·
 [Contribute](CONTRIBUTING.md)
 
 ## What Netra delivers
@@ -106,6 +107,8 @@ timestamps or machine-specific build paths.
 The HIP runtime exposes a stable C ABI for loading an engine, querying profiles,
 binding persistent and boundary buffers, and launching on a caller-provided
 stream. Direct fixed launches remain available when graph capture is disabled.
+The installed SDK exports `libnetra_engine.so.1`, `<netra/engine.h>`, CMake and
+pkg-config metadata, plus a framework-neutral `netra_kernel.Engine` binding.
 
 ## Supported today
 
@@ -260,10 +263,18 @@ files. Unsupported row counts retain the framework MoE path.
 Build the reusable HIP engine runtime:
 
 ```bash
-ROCM_DIR=/opt/rocm \
-  bash tools/compiler/build_netra_engine_runtime_gfx950.sh \
-  build/gfx950-engine-runtime
+cmake -S . -B build/gfx950-engine-sdk \
+  -DCMAKE_HIP_COMPILER=/opt/rocm/bin/hipcc \
+  -DCMAKE_HIP_ARCHITECTURES=gfx950 \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=/opt/netra
+cmake --build build/gfx950-engine-sdk --parallel
+cmake --install build/gfx950-engine-sdk
 ```
+
+This installs the versioned runtime, public C header, CMake target, and
+pkg-config file. The compatibility shell builder remains available for
+in-tree hardware smoke scripts.
 
 Hardware correctness, determinism, graph replay, and performance promotion
 require a visible gfx950 device. Follow the

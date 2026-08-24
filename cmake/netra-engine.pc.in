@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: netra-engine
+Description: Versioned C runtime for Netra AMDGCN engine bundles
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lnetra_engine
+Cflags: -I${includedir}

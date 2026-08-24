@@ -11,7 +11,7 @@ import os
 from typing import List, Optional
 
 import torch
-from netra_kernel.native import load_native_library
+from netra_kernel.runtime import Gfx1151Runtime
 from sglang.srt.layers.parameter import ModelWeightParameter
 from sglang.srt.layers.quantization.base_config import LinearMethodBase
 from sglang.srt.utils.custom_op import register_custom_op
@@ -43,147 +43,19 @@ def _ptr(tensor: torch.Tensor) -> ctypes.c_void_p:
     return ctypes.c_void_p(tensor.data_ptr())
 
 
-class _Runtime:
-    def __init__(self) -> None:
-        self.lib = load_native_library()
-        self.lib.netra_mxfp4_sgl_init.restype = ctypes.c_int
-        self.lib.netra_mxfp4_sgl_error.restype = ctypes.c_char_p
-        self.lib.netra_mxfp4_sgl_decode.argtypes = [ctypes.c_void_p] * 15
-        self.lib.netra_mxfp4_sgl_decode.restype = ctypes.c_int
-        self.lib.netra_mxfp4_sgl_decode_block64.argtypes = [ctypes.c_void_p] * 16
-        self.lib.netra_mxfp4_sgl_decode_block64.restype = ctypes.c_int
-        self.lib.netra_mxfp4_sgl_prefill_repack.argtypes = [ctypes.c_void_p] * 3
-        self.lib.netra_mxfp4_sgl_prefill_repack.restype = ctypes.c_int
-        self.lib.netra_mxfp4_sgl_prefill_gate_up.argtypes = (
-            [ctypes.c_void_p] * 9
-            + [ctypes.c_uint, ctypes.c_void_p]
-        )
-        self.lib.netra_mxfp4_sgl_prefill_gate_up.restype = ctypes.c_int
-        self.lib.netra_mxfp4_sgl_prefill_down.argtypes = (
-            [ctypes.c_void_p] * 5
-            + [ctypes.c_uint, ctypes.c_void_p]
-        )
-        self.lib.netra_mxfp4_sgl_prefill_down.restype = ctypes.c_int
-        self.lib.netra_mxfp4_sgl_m12_gate_up.argtypes = (
-            [ctypes.c_void_p] * 9
-            + [ctypes.c_uint, ctypes.c_void_p]
-        )
-        self.lib.netra_mxfp4_sgl_m12_gate_up.restype = ctypes.c_int
-        self.lib.netra_mxfp4_sgl_m12_down.argtypes = (
-            [ctypes.c_void_p] * 5
-            + [ctypes.c_uint, ctypes.c_void_p]
-        )
-        self.lib.netra_mxfp4_sgl_m12_down.restype = ctypes.c_int
-        self.lib.netra_mxfp4_sgl_linear.argtypes = (
-            [ctypes.c_void_p] * 4
-            + [ctypes.c_uint] * 3
-            + [ctypes.c_void_p]
-        )
-        self.lib.netra_mxfp4_sgl_linear.restype = ctypes.c_int
-        self.lib.netra_mxfp4_linear_n2048_k4096_block128.argtypes = (
-            [ctypes.c_void_p] * 6
-        )
-        self.lib.netra_mxfp4_linear_n2048_k4096_block128.restype = ctypes.c_int
-        self.lib.netra_mxfp4_linear_n12800_k2048_block64.argtypes = (
-            [ctypes.c_void_p] * 6
-        )
-        self.lib.netra_mxfp4_linear_n12800_k2048_block64.restype = ctypes.c_int
-        self.lib.netra_bf16_qkv_decode.argtypes = [ctypes.c_void_p] * 4
-        self.lib.netra_bf16_qkv_decode.restype = ctypes.c_int
-        self.lib.netra_bf16_attention_output_decode.argtypes = [ctypes.c_void_p] * 4
-        self.lib.netra_bf16_attention_output_decode.restype = ctypes.c_int
-        self.lib.netra_bf16_router_decode.argtypes = [ctypes.c_void_p] * 4
-        self.lib.netra_bf16_router_decode.restype = ctypes.c_int
-        self.lib.netra_bf16_shared_gate_up_silu_decode.argtypes = [ctypes.c_void_p] * 4
-        self.lib.netra_bf16_shared_gate_up_silu_decode.restype = ctypes.c_int
-        self.lib.netra_bf16_shared_down_decode.argtypes = [ctypes.c_void_p] * 4
-        self.lib.netra_bf16_shared_down_decode.restype = ctypes.c_int
-        self.lib.netra_bf16_lm_head_decode.argtypes = [ctypes.c_void_p] * 4
-        self.lib.netra_bf16_lm_head_decode.restype = ctypes.c_int
-        self.lib.netra_qwen36_rmsnorm_decode.argtypes = (
-            [ctypes.c_void_p] * 3 + [ctypes.c_float, ctypes.c_void_p]
-        )
-        self.lib.netra_qwen36_rmsnorm_decode.restype = ctypes.c_int
-        self.lib.netra_qwen36_fused_add_rmsnorm_decode.argtypes = (
-            [ctypes.c_void_p] * 3 + [ctypes.c_float, ctypes.c_void_p]
-        )
-        self.lib.netra_qwen36_fused_add_rmsnorm_decode.restype = ctypes.c_int
-        self.lib.netra_mxfp4_sgl_linear_prefill.argtypes = (
-            [ctypes.c_void_p] * 4
-            + [ctypes.c_uint] * 3
-            + [ctypes.c_void_p]
-        )
-        self.lib.netra_mxfp4_sgl_linear_prefill.restype = ctypes.c_int
-        self.lib.netra_mxfp4_sgl_linear_prefill_repack.argtypes = (
-            [ctypes.c_void_p] * 2
-            + [ctypes.c_uint] * 2
-            + [ctypes.c_void_p]
-        )
-        self.lib.netra_mxfp4_sgl_linear_prefill_repack.restype = ctypes.c_int
-        self.lib.netra_qkvzba_split_copy.argtypes = (
-            [ctypes.c_void_p] * 6
-            + [ctypes.c_uint, ctypes.c_void_p]
-        )
-        self.lib.netra_qkvzba_split_copy.restype = ctypes.c_int
-        self.lib.netra_extend_attention.argtypes = (
-            [ctypes.c_void_p] * 8
-            + [ctypes.c_uint, ctypes.c_float, ctypes.c_void_p]
-        )
-        self.lib.netra_extend_attention.restype = ctypes.c_int
-        self.lib.netra_qk_norm_mrope_gate_kv_store.argtypes = (
-            [ctypes.c_void_p] * 11
-            + [ctypes.c_uint] * 2
-            + [ctypes.c_void_p]
-        )
-        self.lib.netra_qk_norm_mrope_gate_kv_store.restype = ctypes.c_int
-        self.lib.netra_gdn_chunk_o.argtypes = (
-            [ctypes.c_void_p] * 8
-            + [ctypes.c_float, ctypes.c_uint, ctypes.c_void_p]
-        )
-        self.lib.netra_gdn_chunk_o.restype = ctypes.c_int
-        self.lib.netra_gdn_recompute_w_u.argtypes = (
-            [ctypes.c_void_p] * 7
-            + [ctypes.c_uint, ctypes.c_void_p]
-        )
-        self.lib.netra_gdn_recompute_w_u.restype = ctypes.c_int
-        self.lib.netra_causal_conv1d.argtypes = [ctypes.c_void_p] * 7
-        self.lib.netra_causal_conv1d.restype = ctypes.c_int
-        self.lib.netra_expert_activation_pack.argtypes = (
-            [ctypes.c_void_p] * 4
-            + [ctypes.c_uint] * 2
-            + [ctypes.c_void_p]
-        )
-        self.lib.netra_expert_activation_pack.restype = ctypes.c_int
-        self.lib.netra_expert_weighted_reduce_fp64.argtypes = (
-            [ctypes.c_void_p] * 4
-            + [ctypes.c_uint, ctypes.c_void_p]
-        )
-        self.lib.netra_expert_weighted_reduce_fp64.restype = ctypes.c_int
-        status = self.lib.netra_mxfp4_sgl_init()
-        if status:
-            raise RuntimeError(self.lib.netra_mxfp4_sgl_error().decode())
-
-    @staticmethod
-    def stream() -> ctypes.c_void_p:
-        return ctypes.c_void_p(torch.cuda.current_stream().cuda_stream)
-
-    @staticmethod
-    def check(status: int, operation: str) -> None:
-        if status:
-            raise RuntimeError(f"{operation} failed with HIP status {status}")
-
-
-_runtime: _Runtime | None = None
+_runtime: Gfx1151Runtime | None = None
 _qk_mrope_capture_workspaces: dict[
     tuple[torch.device, torch.dtype, int, int],
     tuple[torch.Tensor, torch.Tensor, torch.Tensor],
 ] = {}
 
 
-def _get_runtime() -> _Runtime:
+def _get_runtime() -> Gfx1151Runtime:
     global _runtime
     if _runtime is None:
-        _runtime = _Runtime()
+        _runtime = Gfx1151Runtime(
+            lambda: torch.cuda.current_stream().cuda_stream
+        )
     return _runtime
 
 

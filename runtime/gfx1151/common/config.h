@@ -4,7 +4,7 @@
 #define NETRA_GFX1151_ALWAYS_INLINE inline __attribute__((always_inline))
 
 #ifndef NETRA_HSACO_DIR
-#define NETRA_HSACO_DIR "/root/netra-mxfp4-gfx1151/build/sglang"
+#define NETRA_HSACO_DIR "/usr/local/share/netra/gfx1151"
 #endif
 
 #ifndef NETRA_EXTEND_ATTENTION_GRID_Y

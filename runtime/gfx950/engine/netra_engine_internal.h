@@ -2,6 +2,7 @@
 #pragma once
 
 #include "netra_engine.h"
+#include <hip/hip_runtime_api.h>
 
 #include <array>
 #include <atomic>

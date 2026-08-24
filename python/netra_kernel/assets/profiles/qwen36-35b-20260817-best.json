@@ -1,47 +1,140 @@
 {
-  "format": "netra-sglang-profile-1",
-  "extends": "qwen36-35b-current-best",
+  "format": "netra-deployment-profile-1",
+  "extends": "qwen36-35b-profile-base",
   "revision": "CURRENT_BEST@2026-08-17T04:55:00Z",
-  "sglang_source_snapshot": "sglang-c131cc0-qwen36-gfx950",
-  "required_sglang_modules": [
-    "sglang.srt.layers.moe.netra_gfx950_qwen36",
-    "sglang.srt.layers.moe.netra_gfx950_qwen36_router",
-    "sglang.srt.layers.attention.netra_gfx950_qwen36_extend_attention_fp8kv",
-    "sglang.srt.layers.attention.netra_gfx950_qwen36_target_attention",
-    "sglang.srt.layers.attention.linear.netra_gfx950_qwen36_gdn_verify_m12_batched",
-    "sglang.srt.layers.attention.linear.netra_gfx950_qwen36_gdn_state_replay_m12"
-  ],
   "artifacts": [
-    {"name": "moe-bridge", "sha256": "bdc9c50359300b3619cc8373542d2bcd24c89da9cf429c0743d0cdb6492dbb0e"},
-    {"name": "moe-silu-quant", "sha256": "7cd82259b2ae3a8d92a99361e9ba9dc7dfc96b50a9cb10b586cd694de78c51fb"},
-    {"name": "moe-gate-up", "sha256": "1be3f8ae06d3ef29808682df8f1eaf6ee55a789f0037c7fecba7f6591656d377"},
-    {"name": "moe-down", "sha256": "0c2644c20f2057ddd8f6d2accf9343222c74e700e4763b2e4b9b5421342572d5"},
-    {"name": "router-bridge", "sha256": "c2f6fb16133f99e06d0180a8c81e4bcb1d686cfee0beda00500e9427ad3e4705"},
-    {"name": "router", "sha256": "d377838e50d8d838eb8aceeb22d41c2b0a532138e0b7bfa78428c76c0330e776"},
-    {"name": "gqa4-bridge", "sha256": "08289a591c5a55a280d4c4405dcfc859a8f645ff2c75bdda877c1fb17b92457f"},
-    {"name": "gqa4", "sha256": "1a84d68eb5d9823d7b045f0209528de4c244eeb0eb361e23ca5b869dac0dfbef"},
-    {"name": "gqa8-bridge", "sha256": "09a01ef33abca30575623abaf28611edeca74902e12a9a73bfe3cf0117058df6"},
-    {"name": "gqa8", "sha256": "e73e9e443f426d436a8c76936d46f8584c2ad99826a97c25ccf0aa57e64fd253"},
-    {"name": "full-attention-bridge", "sha256": "8fd98d238be5ee272c6c9cec7138bc7b03affbb665f7ece22e2ed92813e4413e"},
-    {"name": "full-attention-prepare", "sha256": "e18e1aae8198128d2e6cfb7f966ad97fd5b5f43119fb2270aa49950eed20e8eb"},
-    {"name": "full-attention-stage1", "sha256": "5dcbd5448869b231648662d425b37c8da6b7facfb040ecac77ca8b3c54af4386"},
-    {"name": "full-attention-stage2", "sha256": "a465dbf015b51c9d04ef65c6fd368b92375d36fda7f815e069aabe14207e7687"},
-    {"name": "gdn-verify-bridge", "sha256": "49313d9a8d656b46aa47fc3d6ff0b44d4f30b9798f9888776746e44127868f67"},
-    {"name": "gdn-precompute", "sha256": "5a664cf0f53a3386de2dcc19e3fb3b51e2ac2eee09b0182f1f94cf2105deedf8"},
-    {"name": "gdn-core", "sha256": "6043d40273f87e9f58424728583668ba975ffbd6af182adf506b58b035e05a45"},
-    {"name": "gdn-core-waves4", "sha256": "c1d19d2443a4afb2403831986b45e86cd4e0b0dec4786335093119e624ab064d"},
-    {"name": "gdn-core-waves8", "sha256": "bae9843d0f618590d806035d7405dc9d616822efc9997ce94fbfc5e235ab7354"},
-    {"name": "gdn-replay-bridge", "sha256": "216c29ffbdfa6da7a99146f75abddae922d7730cd4eca6e2b5587c835f8fd4b4"},
-    {"name": "gdn-replay-precompute", "filename": "qwen36_gdn_verify_m12_batched_precompute_gfx950.hsaco", "sha256": "b93c9bbc6926a4decc0b342cc77b2567d4bdf87e9000ba29987904906063ac5a"},
-    {"name": "gdn-qkvz-conv-bridge", "filename": "libqwen36_gdn_qkvz_conv_m12_bridge.so", "sha256": "f926221be1a718037cfbb33bbb907fe0ccf457615c860c5782f4105b9712214e"},
-    {"name": "gdn-qkvz-conv", "filename": "qwen36_gdn_qkvz_conv_m12_gfx950.hsaco", "sha256": "fd091d0504183e0738da10860117daafe0a4ce06731d3399cf176db018163ff2"},
-    {"name": "gdn-h-bridge", "sha256": "26ef1a85ced73407c2dc07993affab41a213b6b35d3a51b379f5581ef3aa3869"},
-    {"name": "gdn-h", "sha256": "cf781dbaccdb3e80ce5913bcfdd83baaf356413d133e2bd6bb57a3c329be0386"}
+    {
+      "name": "moe-bridge",
+      "sha256": "bdc9c50359300b3619cc8373542d2bcd24c89da9cf429c0743d0cdb6492dbb0e"
+    },
+    {
+      "name": "moe-silu-quant",
+      "sha256": "7cd82259b2ae3a8d92a99361e9ba9dc7dfc96b50a9cb10b586cd694de78c51fb"
+    },
+    {
+      "name": "moe-gate-up",
+      "sha256": "1be3f8ae06d3ef29808682df8f1eaf6ee55a789f0037c7fecba7f6591656d377"
+    },
+    {
+      "name": "moe-down",
+      "sha256": "0c2644c20f2057ddd8f6d2accf9343222c74e700e4763b2e4b9b5421342572d5"
+    },
+    {
+      "name": "router-bridge",
+      "sha256": "c2f6fb16133f99e06d0180a8c81e4bcb1d686cfee0beda00500e9427ad3e4705"
+    },
+    {
+      "name": "router",
+      "sha256": "d377838e50d8d838eb8aceeb22d41c2b0a532138e0b7bfa78428c76c0330e776"
+    },
+    {
+      "name": "gqa4-bridge",
+      "sha256": "08289a591c5a55a280d4c4405dcfc859a8f645ff2c75bdda877c1fb17b92457f"
+    },
+    {
+      "name": "gqa4",
+      "sha256": "1a84d68eb5d9823d7b045f0209528de4c244eeb0eb361e23ca5b869dac0dfbef"
+    },
+    {
+      "name": "gqa8-bridge",
+      "sha256": "09a01ef33abca30575623abaf28611edeca74902e12a9a73bfe3cf0117058df6"
+    },
+    {
+      "name": "gqa8",
+      "sha256": "e73e9e443f426d436a8c76936d46f8584c2ad99826a97c25ccf0aa57e64fd253"
+    },
+    {
+      "name": "full-attention-bridge",
+      "sha256": "8fd98d238be5ee272c6c9cec7138bc7b03affbb665f7ece22e2ed92813e4413e"
+    },
+    {
+      "name": "full-attention-prepare",
+      "sha256": "e18e1aae8198128d2e6cfb7f966ad97fd5b5f43119fb2270aa49950eed20e8eb"
+    },
+    {
+      "name": "full-attention-stage1",
+      "sha256": "5dcbd5448869b231648662d425b37c8da6b7facfb040ecac77ca8b3c54af4386"
+    },
+    {
+      "name": "full-attention-stage2",
+      "sha256": "a465dbf015b51c9d04ef65c6fd368b92375d36fda7f815e069aabe14207e7687"
+    },
+    {
+      "name": "gdn-verify-bridge",
+      "sha256": "49313d9a8d656b46aa47fc3d6ff0b44d4f30b9798f9888776746e44127868f67"
+    },
+    {
+      "name": "gdn-precompute",
+      "sha256": "5a664cf0f53a3386de2dcc19e3fb3b51e2ac2eee09b0182f1f94cf2105deedf8"
+    },
+    {
+      "name": "gdn-core",
+      "sha256": "6043d40273f87e9f58424728583668ba975ffbd6af182adf506b58b035e05a45"
+    },
+    {
+      "name": "gdn-core-waves4",
+      "sha256": "c1d19d2443a4afb2403831986b45e86cd4e0b0dec4786335093119e624ab064d"
+    },
+    {
+      "name": "gdn-core-waves8",
+      "sha256": "bae9843d0f618590d806035d7405dc9d616822efc9997ce94fbfc5e235ab7354"
+    },
+    {
+      "name": "gdn-replay-bridge",
+      "sha256": "216c29ffbdfa6da7a99146f75abddae922d7730cd4eca6e2b5587c835f8fd4b4"
+    },
+    {
+      "name": "gdn-replay-precompute",
+      "filename": "qwen36_gdn_verify_m12_batched_precompute_gfx950.hsaco",
+      "sha256": "b93c9bbc6926a4decc0b342cc77b2567d4bdf87e9000ba29987904906063ac5a"
+    },
+    {
+      "name": "gdn-qkvz-conv-bridge",
+      "filename": "libqwen36_gdn_qkvz_conv_m12_bridge.so",
+      "sha256": "f926221be1a718037cfbb33bbb907fe0ccf457615c860c5782f4105b9712214e"
+    },
+    {
+      "name": "gdn-qkvz-conv",
+      "filename": "qwen36_gdn_qkvz_conv_m12_gfx950.hsaco",
+      "sha256": "fd091d0504183e0738da10860117daafe0a4ce06731d3399cf176db018163ff2"
+    },
+    {
+      "name": "gdn-h-bridge",
+      "sha256": "26ef1a85ced73407c2dc07993affab41a213b6b35d3a51b379f5581ef3aa3869"
+    },
+    {
+      "name": "gdn-h",
+      "sha256": "cf781dbaccdb3e80ce5913bcfdd83baaf356413d133e2bd6bb57a3c329be0386"
+    }
   ],
-  "environment": {
-    "SGLANG_NETRA_QWEN36_GFX950_GDN_STATE_REPLAY_M12_PRECOMPUTE_HSACO": "{root}/artifacts/gdn-replay-precompute/qwen36_gdn_verify_m12_batched_precompute_gfx950.hsaco",
-    "SGLANG_NETRA_QWEN36_GFX950_GDN_QKVZ_CONV_M12": "1",
-    "SGLANG_NETRA_QWEN36_GFX950_GDN_QKVZ_CONV_M12_BRIDGE": "{root}/artifacts/gdn-qkvz-conv-bridge/libqwen36_gdn_qkvz_conv_m12_bridge.so",
-    "SGLANG_NETRA_QWEN36_GFX950_GDN_QKVZ_CONV_M12_HSACO": "{root}/artifacts/gdn-qkvz-conv/qwen36_gdn_qkvz_conv_m12_gfx950.hsaco"
+  "accepted": true,
+  "abstract": false,
+  "evidence": {
+    "report": "docs/notes/sglang-plugin-gfx950-benchmark-20260823.json",
+    "baseline_output_tokens_per_second": 10004.95,
+    "plugin_output_tokens_per_second_mean": 10157.13,
+    "plugin_runs": 5,
+    "stock_base_output_tokens_per_second": 10316.86,
+    "stock_base_runs": 1,
+    "comparison": "accepted-netra-baseline-not-vanilla-sglang"
+  },
+  "integrations": {
+    "sglang": {
+      "source_snapshot": "sglang-c131cc0-qwen36-gfx950",
+      "required_modules": [
+        "sglang.srt.layers.moe.netra_gfx950_qwen36",
+        "sglang.srt.layers.moe.netra_gfx950_qwen36_router",
+        "sglang.srt.layers.attention.netra_gfx950_qwen36_extend_attention_fp8kv",
+        "sglang.srt.layers.attention.netra_gfx950_qwen36_target_attention",
+        "sglang.srt.layers.attention.linear.netra_gfx950_qwen36_gdn_verify_m12_batched",
+        "sglang.srt.layers.attention.linear.netra_gfx950_qwen36_gdn_state_replay_m12"
+      ],
+      "environment": {
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_STATE_REPLAY_M12_PRECOMPUTE_HSACO": "{root}/artifacts/gdn-replay-precompute/qwen36_gdn_verify_m12_batched_precompute_gfx950.hsaco",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_QKVZ_CONV_M12": "1",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_QKVZ_CONV_M12_BRIDGE": "{root}/artifacts/gdn-qkvz-conv-bridge/libqwen36_gdn_qkvz_conv_m12_bridge.so",
+        "SGLANG_NETRA_QWEN36_GFX950_GDN_QKVZ_CONV_M12_HSACO": "{root}/artifacts/gdn-qkvz-conv/qwen36_gdn_qkvz_conv_m12_gfx950.hsaco"
+      }
+    }
   }
 }

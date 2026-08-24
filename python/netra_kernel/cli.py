@@ -15,6 +15,8 @@ from netra_kernel.bundle import (
     activate_bundle,
     available_profiles,
     build_bundle,
+    integration_configuration,
+    integration_environment,
     load_bundle,
     shlex_quote,
     validate_bundle,
@@ -76,8 +78,9 @@ def _doctor(bundle_path: Path | None) -> dict:
     bundle_result = None
     if bundle_path is not None:
         payload = load_bundle(bundle_path)
-        required = tuple(payload.get("required_sglang_modules", ()))
-        expected_source_snapshot = payload.get("sglang_source_snapshot")
+        integration = integration_configuration(bundle_path, "sglang")
+        required = tuple(integration.get("required_modules", ()))
+        expected_source_snapshot = integration.get("source_snapshot")
         bundle_result = validate_bundle(bundle_path)
     compatibility = probe(required)
     source_result = None
@@ -134,20 +137,21 @@ def main(argv: list[str] | None = None) -> int:
             payload = load_bundle(args.bundle)
             root = args.bundle.expanduser().resolve()
             runtime_root = payload.get("runtime_root", "/opt/netra")
+            environment = integration_environment(root, "sglang")
             if args.format == "docker":
                 print(f"{BUNDLE_ENV}={runtime_root}")
-                for key, value in sorted(payload["environment"].items()):
+                integration = integration_configuration(root, "sglang")
+                for key, value in sorted(integration.get("environment", {}).items()):
                     print(f"{key}={value}")
             else:
                 print(f"export {BUNDLE_ENV}={shlex_quote(str(root))}")
-                for key, value in sorted(payload["environment"].items()):
-                    host_value = value.replace(runtime_root, str(root))
-                    print(f"export {key}={shlex_quote(host_value)}")
+                for key, value in sorted(environment.items()):
+                    print(f"export {key}={shlex_quote(value)}")
         elif args.command == "run":
             command = args.argv[1:] if args.argv[:1] == ["--"] else args.argv
             if not command:
                 raise BundleError("run requires a command after --")
-            activate_bundle(args.bundle)
+            activate_bundle(args.bundle, integration="sglang")
             return subprocess.run(command, env=os.environ.copy()).returncode
         elif args.command == "integrate":
             report = integrate(args.sglang_root, apply=args.apply)

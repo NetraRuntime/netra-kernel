@@ -26,4 +26,11 @@ if [[ -z "$deployment_wheel" ]]; then
   echo "package build did not produce a netra-kernel wheel" >&2
   exit 1
 fi
+compiler_wheel=$(find "$output_dir" -maxdepth 1 -type f \
+  -name 'netra_compiler-*.whl' -print -quit)
+if [[ -z "$compiler_wheel" ]]; then
+  echo "package build did not produce a netra-compiler wheel" >&2
+  exit 1
+fi
+"$python_bin" "$repo_root/tools/ci/smoke_compiler_package.py" "$compiler_wheel"
 "$python_bin" "$repo_root/tools/ci/smoke_package.py" "$deployment_wheel"

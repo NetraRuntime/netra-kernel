@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netra.ai/schemas/netra-model.schema.json",
+  "title": "Netra model description",
+  "type": "object",
+  "required": ["format", "name", "family", "configuration"],
+  "properties": {
+    "format": {"const": "netra-model-1"},
+    "name": {"type": "string", "minLength": 1},
+    "family": {"type": "string", "minLength": 1},
+    "synthetic": {"type": "boolean"},
+    "configuration": {"type": "object"},
+    "dense_operations": {"type": "array", "items": {"$ref": "#/$defs/dense"}},
+    "layer_dense_operations": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/layer_dense"}
+    },
+    "golden_operations": {"type": "array", "items": {"$ref": "#/$defs/golden"}},
+    "fixed_operation_templates": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/fixed_operation_template"}
+    },
+    "fallback_operations": {"type": "array", "items": {"$ref": "#/$defs/fallback"}},
+    "graph": {"$ref": "#/$defs/graph"}
+  },
+  "$defs": {
+    "dense": {
+      "type": "object",
+      "required": ["name", "n", "k"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "n": {"type": "integer", "minimum": 1},
+        "k": {"type": "integer", "minimum": 1},
+        "weight_binding": {"type": "string", "minLength": 1},
+        "checkpoint_tensors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "checkpoint_scale_tensors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "checkpoint_scale_dtype": {"enum": ["bf16", "fp32"]},
+        "kernel_scale_dtype": {"enum": ["bf16", "fp32"]},
+        "checkpoint_layout": {"type": "string", "minLength": 1},
+        "kernel_weight_layout": {"type": "string", "minLength": 1},
+        "activation_scale_layout": {"type": "string", "minLength": 1},
+        "weight_scale_layout": {"type": "string", "minLength": 1},
+        "epilogue": {"enum": ["identity", "bias", "silu", "gelu", "gated_silu"]}
+      }
+    },
+    "layer_dense": {
+      "type": "object",
+      "required": ["name", "layers", "n", "k"],
+      "properties": {
+        "name": {"type": "string", "pattern": "\\{layer\\}"},
+        "layers": {"enum": ["all", "linear_attention", "full_attention"]},
+        "n": {"type": "integer", "minimum": 1},
+        "k": {"type": "integer", "minimum": 1},
+        "weight_binding": {"type": "string", "pattern": "\\{layer\\}"},
+        "checkpoint_tensors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "pattern": "\\{layer\\}"},
+          "uniqueItems": true
+        },
+        "checkpoint_scale_tensors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "pattern": "\\{layer\\}"},
+          "uniqueItems": true
+        },
+        "checkpoint_scale_dtype": {"enum": ["bf16", "fp32"]},
+        "kernel_scale_dtype": {"enum": ["bf16", "fp32"]},
+        "checkpoint_layout": {"type": "string", "minLength": 1},
+        "kernel_weight_layout": {"type": "string", "minLength": 1},
+        "activation_scale_layout": {"type": "string", "minLength": 1},
+        "weight_scale_layout": {"type": "string", "minLength": 1},
+        "epilogue": {"enum": ["identity", "bias", "silu", "gelu", "gated_silu"]}
+      },
+      "additionalProperties": true
+    },
+    "golden": {
+      "type": "object",
+      "required": ["name", "golden_artifact"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "golden_artifact": {
+          "type": "object",
+          "required": ["operation", "tactic", "maturity", "symbol", "hsaco_name", "hsaco_sha256", "kernarg_size", "launch", "arguments"],
+          "properties": {
+            "maturity": {"const": "accepted"},
+            "hsaco_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "kernarg_size": {"type": "integer", "minimum": 1},
+            "arguments": {"type": "array", "minItems": 1, "maxItems": 16}
+          }
+        }
+      }
+    },
+    "fixed_operation_template": {
+      "type": "object",
+      "required": [
+        "name", "family", "operation", "rows", "constants", "semantics",
+        "launch_grid", "fallback", "profile_names", "arguments"
+      ],
+      "properties": {
+        "name": {"type": "string", "pattern": "\\{rows\\}"},
+        "family": {"type": "string", "minLength": 1},
+        "operation": {"type": "string", "minLength": 1},
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 1}
+        },
+        "constants": {
+          "type": "object",
+          "additionalProperties": {"type": "integer"}
+        },
+        "semantics": {
+          "type": "object",
+          "required": ["abi", "dtypes", "quantization", "layouts", "numerical"],
+          "additionalProperties": {"type": "string", "minLength": 1}
+        },
+        "launch_grid": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {"anyOf": [{"type": "integer", "minimum": 1}, {"const": "rows"}]}
+        },
+        "launch_grid_rows_divisor": {"type": "integer", "minimum": 1},
+        "dynamic_lds_bytes": {"type": "integer", "minimum": 0},
+        "fallback": {"type": "string", "minLength": 1},
+        "profile_names": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "binding_scope": {"type": "string", "minLength": 1},
+        "arguments": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "required": ["name", "kind", "access", "offset"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "kind": {"enum": ["pointer", "u32_constant"]},
+              "access": {"enum": ["read", "write", "read_write", "value"]},
+              "offset": {"type": "integer", "minimum": 0},
+              "value": {"anyOf": [{"type": "integer", "minimum": 0}, {"enum": ["rows", "rows_div_48"]}]},
+              "source": {"enum": ["binding"]}
+            },
+            "additionalProperties": false
+          }
+        },
+        "graph_capture": {"type": "boolean"},
+        "deterministic": {"type": "boolean"},
+        "numerical": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "fallback": {
+      "type": "object",
+      "required": ["name", "operation", "fallback", "external_status"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "operation": {"type": "string", "minLength": 1},
+        "fallback": {"type": "string", "minLength": 1},
+        "external_status": {"enum": ["accepted_external_dispatch", "framework_fallback"]},
+        "profile_constraints": {"type": "object"},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "tensor": {
+      "type": "object",
+      "required": ["name", "shape", "dtype", "layout"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "shape": {"type": "array", "minItems": 1, "items": {"type": ["integer", "string"]}},
+        "dtype": {"enum": ["fp8_e4m3", "fp16", "bf16", "fp32", "int32"]},
+        "layout": {"type": "string", "minLength": 1},
+        "role": {"enum": ["input", "output", "state", "weight", "temporary"]},
+        "alias_of": {"type": ["string", "null"]},
+        "persistent": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "operation": {
+      "type": "object",
+      "required": ["name", "kind", "inputs", "outputs"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "kind": {"type": "string", "minLength": 1},
+        "inputs": {"type": "array", "items": {"type": "string"}},
+        "outputs": {"type": "array", "items": {"type": "string"}},
+        "attributes": {"type": "object"},
+        "numerical": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "graph": {
+      "type": "object",
+      "required": ["format", "name", "tensors", "operations", "inputs", "outputs"],
+      "properties": {
+        "format": {"const": "netra-ir-1"},
+        "name": {"type": "string", "minLength": 1},
+        "tensors": {"type": "array", "items": {"$ref": "#/$defs/tensor"}},
+        "operations": {"type": "array", "items": {"$ref": "#/$defs/operation"}},
+        "inputs": {"type": "array", "items": {"type": "string"}},
+        "outputs": {"type": "array", "items": {"type": "string"}},
+        "state": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

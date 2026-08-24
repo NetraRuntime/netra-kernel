@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "netra_engine_internal.h"
+#include "sha256.h"
 
 #include <hip/hip_runtime.h>
 
@@ -246,6 +247,14 @@ netra_status_t launch_one(netra_engine* engine, netra_operation_record& op,
 
 }  // namespace
 
+extern "C" uint32_t netra_engine_abi_version(void) {
+  return NETRA_ENGINE_ABI_VERSION;
+}
+
+extern "C" const char* netra_engine_version(void) {
+  return "0.3.0";
+}
+
 extern "C" netra_status_t netra_engine_create(
     const char* directory, const netra_engine_options_t* options,
     netra_engine_t** output) {
@@ -342,7 +351,14 @@ extern "C" netra_status_t netra_engine_create(
         if (!op.fallback) {
           const Json& hsaco = operation.at("hsaco"); const Json& symbol = operation.at("kernel_symbol");
           const std::string relative_hsaco = checked_hsaco_path(text(hsaco,"hsaco"));
-          error = hipModuleLoad(&op.module, (engine->directory + "/" + relative_hsaco).c_str());
+          const std::string expected_sha256 = text(
+              operation.at("hsaco_sha256"), "hsaco_sha256");
+          if (!netra_detail::valid_sha256(expected_sha256))
+            throw std::runtime_error("hsaco_sha256 must be lowercase hexadecimal");
+          const std::string hsaco_path = engine->directory + "/" + relative_hsaco;
+          if (netra_detail::sha256_file(hsaco_path) != expected_sha256)
+            throw std::runtime_error("HSACO digest mismatch: " + relative_hsaco);
+          error = hipModuleLoad(&op.module, hsaco_path.c_str());
           if (error != hipSuccess) throw std::runtime_error(std::string("hipModuleLoad: ")+hipGetErrorString(error));
           error = hipModuleGetFunction(&op.function, op.module, text(symbol,"kernel_symbol").c_str());
           if (error != hipSuccess) throw std::runtime_error(std::string("hipModuleGetFunction: ")+hipGetErrorString(error));
@@ -433,7 +449,8 @@ extern "C" netra_status_t netra_engine_finalize_bindings(netra_engine_t* engine)
   return NETRA_STATUS_OK;
 }
 extern "C" netra_status_t netra_engine_prepare_profile(netra_engine_t* engine,
-    uint32_t profile_id, hipStream_t stream) {
+    uint32_t profile_id, netra_stream_t caller_stream) {
+  hipStream_t stream = static_cast<hipStream_t>(caller_stream);
   if (!engine || profile_id>=engine->profiles.size()) return NETRA_STATUS_INVALID_ARGUMENT;
   auto& profile=engine->profiles[profile_id]; if (!engine->graph_enabled) return NETRA_STATUS_OK;
   if (profile.graph_prepared) return NETRA_STATUS_OK;
@@ -448,7 +465,8 @@ extern "C" netra_status_t netra_engine_prepare_profile(netra_engine_t* engine,
   profile.graph_prepared=true; return NETRA_STATUS_OK;
 }
 extern "C" netra_status_t netra_engine_launch(netra_engine_t* engine, uint32_t profile_id,
-    const netra_launch_shape_t* shape, hipStream_t stream) {
+    const netra_launch_shape_t* shape, netra_stream_t caller_stream) {
+  hipStream_t stream = static_cast<hipStream_t>(caller_stream);
   if (!engine || !shape || profile_id>=engine->profiles.size()) return NETRA_STATUS_INVALID_ARGUMENT;
   int device=-1; hipError_t error=hipGetDevice(&device); if(error!=hipSuccess)return hip_fail(engine,"hipGetDevice",error);
   if(device!=engine->device_id)return fail(engine,NETRA_STATUS_UNSUPPORTED_TARGET,"caller stream/device does not belong to engine device");
@@ -466,7 +484,8 @@ extern "C" netra_status_t netra_engine_launch(netra_engine_t* engine, uint32_t p
 }
 extern "C" netra_status_t netra_engine_launch_operation(
     netra_engine_t* engine, uint32_t profile_id, uint32_t operation_index,
-    const netra_launch_shape_t* shape, hipStream_t stream) {
+    const netra_launch_shape_t* shape, netra_stream_t caller_stream) {
+  hipStream_t stream = static_cast<hipStream_t>(caller_stream);
   if (!engine || !shape || profile_id >= engine->profiles.size() ||
       operation_index >= engine->profiles[profile_id].operations.size())
     return NETRA_STATUS_INVALID_ARGUMENT;
@@ -499,7 +518,8 @@ extern "C" netra_status_t netra_engine_launch_operation_bound(
     netra_engine_t* engine, uint32_t profile_id, uint32_t operation_index,
     const netra_launch_shape_t* shape,
     const netra_pointer_binding_t* bindings, uint32_t binding_count,
-    hipStream_t stream) {
+    netra_stream_t caller_stream) {
+  hipStream_t stream = static_cast<hipStream_t>(caller_stream);
   if (!engine || !shape || profile_id >= engine->profiles.size() ||
       operation_index >= engine->profiles[profile_id].operations.size() ||
       (binding_count && !bindings) || binding_count > 16)

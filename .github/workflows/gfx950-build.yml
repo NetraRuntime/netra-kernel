@@ -35,7 +35,21 @@ jobs:
         env:
           ROCM_DIR: ${{ inputs.rocm_dir }}
         run: bash tools/compiler/build_gfx950_tactic_catalog.sh build/gfx950-tactic-catalog
-      - name: Build engine runtime
+      - name: Build and install engine SDK
         env:
           ROCM_DIR: ${{ inputs.rocm_dir }}
-        run: bash tools/compiler/build_netra_engine_runtime_gfx950.sh build/gfx950-engine-runtime
+        run: |
+          cmake -S . -B build/gfx950-engine-sdk \
+            -DCMAKE_HIP_COMPILER="$ROCM_DIR/bin/hipcc" \
+            -DCMAKE_HIP_ARCHITECTURES=gfx950 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$PWD/build/gfx950-engine-install"
+          cmake --build build/gfx950-engine-sdk --parallel
+          cmake --install build/gfx950-engine-sdk
+      - name: Build framework-independent reference consumer
+        run: |
+          cmake -S examples/reference_engine -B build/reference-engine \
+            -DCMAKE_PREFIX_PATH="$PWD/build/gfx950-engine-install"
+          cmake --build build/reference-engine --parallel
+          LD_LIBRARY_PATH="$PWD/build/gfx950-engine-install/lib" \
+            build/reference-engine/netra-reference-engine

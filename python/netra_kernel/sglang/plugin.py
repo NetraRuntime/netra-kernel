@@ -6,7 +6,13 @@ import logging
 import os
 from pathlib import Path
 
-from netra_kernel.bundle import BUNDLE_ENV, BundleError, activate_bundle, load_bundle
+from netra_kernel.bundle import (
+    BUNDLE_ENV,
+    BundleError,
+    activate_bundle,
+    integration_configuration,
+    load_bundle,
+)
 from netra_kernel.sglang.compat import probe
 
 
@@ -23,7 +29,8 @@ def register() -> None:
     strict = os.environ.get("NETRA_STRICT_COMPATIBILITY", "1") != "0"
     try:
         payload = load_bundle(Path(value))
-        required = tuple(payload.get("required_sglang_modules", ()))
+        integration = integration_configuration(Path(value), "sglang")
+        required = tuple(integration.get("required_modules", ()))
         report = probe(required)
         if not report.usable:
             detail = ", ".join(report.missing_modules) or "SGLang plugin API"
@@ -33,7 +40,9 @@ def register() -> None:
             logger.warning(message)
         # NETRA_BUNDLE is an explicit deployment selection.  It must win over
         # stale per-artifact variables inherited from a base image or launcher.
-        configured = activate_bundle(Path(value), overwrite=True)
+        configured = activate_bundle(
+            Path(value), integration="sglang", overwrite=True
+        )
         logger.info(
             "Activated Netra profile %s (%d environment values configured)",
             payload["profile"],

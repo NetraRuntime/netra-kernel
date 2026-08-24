@@ -16,5 +16,8 @@ fi
 mkdir -p "$out_dir"
 "$hipcc" --offload-arch=gfx950 -std=c++17 -O3 -fPIC -shared \
   "$repo_dir/runtime/gfx950/engine/netra_engine.hip" \
-  -o "$out_dir/libnetra_engine_gfx950.so"
-echo "$out_dir/libnetra_engine_gfx950.so"
+  -Wl,-soname,libnetra_engine.so.1 \
+  -o "$out_dir/libnetra_engine.so.1.0.0"
+ln -sfn libnetra_engine.so.1.0.0 "$out_dir/libnetra_engine.so.1"
+ln -sfn libnetra_engine.so.1 "$out_dir/libnetra_engine.so"
+echo "$out_dir/libnetra_engine.so.1.0.0"
