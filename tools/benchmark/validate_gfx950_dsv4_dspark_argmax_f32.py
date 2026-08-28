@@ -14,7 +14,7 @@ import torch
 
 COLS = 129280
 CHUNKS = 16
-TIMING_ROWS = 384
+TIMING_ROW_SHAPES = (64, 128, 256, 384)
 
 
 class Bridge:
@@ -150,19 +150,6 @@ def main() -> None:
         )
         del logits, output, partials, reference
 
-    timing_logits = torch.randn(
-        (TIMING_ROWS, COLS), dtype=torch.float32, device=device
-    )
-    raw_output = torch.empty((TIMING_ROWS,), dtype=torch.int64, device=device)
-    torch_output = torch.empty_like(raw_output)
-    partials = torch.empty(
-        (TIMING_ROWS, CHUNKS, 2), dtype=torch.int32, device=device
-    )
-    for _ in range(20):
-        bridge.launch(raw_output, partials, timing_logits)
-        torch.argmax(timing_logits, dim=-1, out=torch_output)
-    torch.cuda.synchronize()
-
     def elapsed_us(fn, iterations: int) -> float:
         begin = torch.cuda.Event(enable_timing=True)
         end = torch.cuda.Event(enable_timing=True)
@@ -173,23 +160,50 @@ def main() -> None:
         end.synchronize()
         return begin.elapsed_time(end) * 1000.0 / iterations
 
-    raw_mean_us = elapsed_us(
-        lambda: bridge.launch(raw_output, partials, timing_logits),
-        args.iterations,
-    )
-    torch_mean_us = elapsed_us(
-        lambda: torch.argmax(timing_logits, dim=-1, out=torch_output),
-        args.iterations,
-    )
-    torch.cuda.synchronize()
-    timing_exact = torch.equal(raw_output, torch_output)
+    timings = []
+    timing_exact = True
+    for timing_rows in TIMING_ROW_SHAPES:
+        timing_logits = torch.randn(
+            (timing_rows, COLS), dtype=torch.float32, device=device
+        )
+        raw_output = torch.empty(
+            (timing_rows,), dtype=torch.int64, device=device
+        )
+        torch_output = torch.empty_like(raw_output)
+        partials = torch.empty(
+            (timing_rows, CHUNKS, 2), dtype=torch.int32, device=device
+        )
+        for _ in range(20):
+            bridge.launch(raw_output, partials, timing_logits)
+            torch.argmax(timing_logits, dim=-1, out=torch_output)
+        torch.cuda.synchronize()
+        raw_mean_us = elapsed_us(
+            lambda: bridge.launch(raw_output, partials, timing_logits),
+            args.iterations,
+        )
+        torch_mean_us = elapsed_us(
+            lambda: torch.argmax(timing_logits, dim=-1, out=torch_output),
+            args.iterations,
+        )
+        torch.cuda.synchronize()
+        exact = torch.equal(raw_output, torch_output)
+        timing_exact &= exact
+        timings.append(
+            {
+                "rows": timing_rows,
+                "raw_mean_us": raw_mean_us,
+                "torch_mean_us": torch_mean_us,
+                "speedup": torch_mean_us / raw_mean_us,
+                "exact": exact,
+            }
+        )
     passed = timing_exact and all(bool(result["pass"]) for result in case_results)
     result = {
         "target": target,
         "dtype": "torch.float32",
         "cols": COLS,
         "chunks": CHUNKS,
-        "timing_rows": TIMING_ROWS,
+        "timing_row_shapes": list(TIMING_ROW_SHAPES),
         "case_count": len(case_results),
         "random_seeds_per_row_shape": args.random_seeds,
         "row_shapes": [1, 6, 64, 384],
@@ -198,9 +212,7 @@ def main() -> None:
         ),
         "timing_exact": timing_exact,
         "iterations": args.iterations,
-        "raw_mean_us": raw_mean_us,
-        "torch_mean_us": torch_mean_us,
-        "speedup": torch_mean_us / raw_mean_us,
+        "timings": timings,
         "pass": passed,
         "cases": case_results,
     }
