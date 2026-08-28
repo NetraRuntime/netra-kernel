@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "status": "accepted_target_verify_only",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "wavefront_size": 64,
+  "shape": {
+    "columns": 129280,
+    "dtype": "float32",
+    "contiguous": true,
+    "profiled_target_rows": 384,
+    "supported_rows": "positive uint32"
+  },
+  "assembly": {
+    "path": "kernels/gfx950/sampling/verify/dsv4_dspark_argmax_f32_gfx950.s",
+    "sha256": "7d200b0041172906633b4f7e06c9dfa8a5aefc70dbe3b87419bc90601b4e8cf5",
+    "hsaco_sha256": "734a315ea1da89ee910b477160098fd304650ca4d9ffdfd3510a37c47d9f1f06",
+    "bridge_sha256": "d7935c0d3d399ccee223d3f220e16e0659d1579a0fb3f8dd026658a816738047",
+    "chunks": 16,
+    "chunk_columns": 8080,
+    "subchunks": 4,
+    "stage1_function_bytes": 3432,
+    "stage2_function_bytes": 556,
+    "combined_function_bytes": 3988,
+    "stage1_sgpr_count": 21,
+    "stage2_sgpr_count": 20,
+    "vgpr_count": 52,
+    "agpr_count": 0,
+    "lds_bytes": 0,
+    "scratch_bytes": 0,
+    "selected_server_workspace_bytes": 196608
+  },
+  "correctness": {
+    "oracle_cases": 69,
+    "failed_cases": 0,
+    "row_shapes": [1, 6, 64, 384],
+    "random_seeds_per_row_shape": 16,
+    "special_cases": [
+      "ties_across_chunks",
+      "signed_zero",
+      "infinities",
+      "first_nan",
+      "subnormal"
+    ],
+    "exact": true
+  },
+  "isolated_hip_events": {
+    "iterations": 2000,
+    "rows": 384,
+    "raw_mean_microseconds": 39.6107177734375,
+    "torch_mean_microseconds": 47.484737396240234,
+    "speedup": 1.1987850780144904
+  },
+  "selected_serving_profile": {
+    "case": "input1_output128_concurrency64",
+    "raw_stage1_calls": 95,
+    "raw_stage2_calls": 95,
+    "raw_stage1_mean_microseconds": 26.373115789473683,
+    "raw_stage2_mean_microseconds": 4.321136842105263,
+    "raw_combined_mean_microseconds": 30.694252631578946,
+    "pytorch_mean_microseconds": 42.74875789473684,
+    "speedup": 1.3927280906958914,
+    "microseconds_saved_per_target_verification": 12.054505263157896
+  },
+  "selected_server": {
+    "qualification_passed": true,
+    "aggregate_accept_length": 3.022222222222222,
+    "matrix_cells": 18,
+    "failed_requests": 0
+  },
+  "rejected_broad_dispatch": {
+    "scope": "target verification plus five folded draft argmax operations",
+    "profile_raw_pairs": 606,
+    "profile_pytorch_argmax_calls": 0,
+    "decode_b64_repeat_output_tok_s_mean": 1765.9955713369584,
+    "prior_selected_decode_b64_output_tok_s": 1881.98,
+    "delta_percent": -6.162884994778508,
+    "promoted": false
+  }
+}
