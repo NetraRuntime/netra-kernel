@@ -114,6 +114,8 @@ def main() -> None:
     bridge.netra_qwen36_gdn_h_m8192_bv16_load.restype = ctypes.c_int
     bridge.netra_qwen36_gdn_h_m8192_bv16_launch.argtypes = [
         *([ctypes.c_void_p] * 10),
+        ctypes.c_uint32,
+        ctypes.c_uint32,
         ctypes.c_void_p,
     ]
     bridge.netra_qwen36_gdn_h_m8192_bv16_launch.restype = ctypes.c_int
@@ -146,6 +148,8 @@ def main() -> None:
             pointer(initial_indices),
             pointer(cu_seqlens),
             pointer(chunk_offsets),
+            ctypes.c_uint32(k.shape[1]),
+            ctypes.c_uint32(initial_indices.numel()),
             ctypes.c_void_p(stream.cuda_stream),
         )
         if status:

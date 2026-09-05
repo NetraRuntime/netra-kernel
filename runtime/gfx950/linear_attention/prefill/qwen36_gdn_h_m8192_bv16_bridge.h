@@ -5,8 +5,9 @@
 
 #include <cstdint>
 
-// Exact-shape development bridge for Qwen3.6 GDN prefill:
-// B=1, T=8192, H=32, Hg=16, K=V=128, BT=64, BV=16.
+// Variable-length Qwen3.6 GDN prefill bridge. The raw module fixes
+// H=32, Hg=16, K=V=128, BT=64, and BV=16; the launch supplies the flattened
+// token count and number of sequences.
 extern "C" int netra_qwen36_gdn_h_m8192_bv16_load(
     const char* hsaco_path,
     const char* kernel_name);
@@ -22,6 +23,8 @@ extern "C" int netra_qwen36_gdn_h_m8192_bv16_launch(
     const void* initial_state_indices_i32,
     const void* cu_seqlens_i32,
     const void* chunk_offsets_i64,
+    uint32_t tokens,
+    uint32_t num_sequences,
     hipStream_t stream);
 
 extern "C" int netra_qwen36_gdn_h_m8192_bv16_unload(void);

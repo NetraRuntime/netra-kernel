@@ -13,10 +13,10 @@
 namespace {
 
 constexpr uint32_t kGridX = 8;
-constexpr uint32_t kGridY = 32;
 constexpr uint32_t kBlockX = 256;
 constexpr uint32_t kDynamicLdsBytes = 103296;
-constexpr uint32_t kTokens = 8192;
+constexpr uint32_t kHeads = 32;
+constexpr uint32_t kMaxSequences = 64;
 
 std::mutex module_mutex;
 hipModule_t module = nullptr;
@@ -100,6 +100,8 @@ extern "C" int netra_qwen36_gdn_h_m8192_bv16_launch(
     const void* initial_state_indices_i32,
     const void* cu_seqlens_i32,
     const void* chunk_offsets_i64,
+    uint32_t tokens,
+    uint32_t num_sequences,
     hipStream_t stream) {
   if (function == nullptr) return fail_message("GDN M8192 module is not loaded");
   const std::array<const void*, 10> pointers = {
@@ -109,6 +111,10 @@ extern "C" int netra_qwen36_gdn_h_m8192_bv16_launch(
     if (pointer == nullptr)
       return fail_message("GDN M8192 launch pointers must be nonnull");
   }
+  if (tokens == 0)
+    return fail_message("GDN h launch token count must be nonzero");
+  if (num_sequences == 0 || num_sequences > kMaxSequences)
+    return fail_message("GDN h launch sequence count must be in [1, 64]");
 
   void* k_pointer = const_cast<void*>(k_bf16);
   void* v_pointer = const_cast<void*>(v_bf16);
@@ -118,7 +124,6 @@ extern "C" int netra_qwen36_gdn_h_m8192_bv16_launch(
       const_cast<void*>(initial_state_indices_i32);
   void* cu_pointer = const_cast<void*>(cu_seqlens_i32);
   void* chunk_offsets_pointer = const_cast<void*>(chunk_offsets_i64);
-  uint32_t tokens = kTokens;
   // Triton's gfx950 ABI appends global/profile scratch pointers.  The captured
   // object reports zero scratch for both, so stable null values are sufficient.
   void* global_scratch = nullptr;
@@ -139,7 +144,8 @@ extern "C" int netra_qwen36_gdn_h_m8192_bv16_launch(
       &profile_scratch,
   };
   hipError_t error = hipModuleLaunchKernel(
-      function, kGridX, kGridY, 1, kBlockX, 1, 1, kDynamicLdsBytes, stream,
+      function, kGridX, num_sequences * kHeads, 1, kBlockX, 1, 1,
+      kDynamicLdsBytes, stream,
       arguments, nullptr);
   if (error != hipSuccess) return fail("hipModuleLaunchKernel", error);
   last_error.clear();
