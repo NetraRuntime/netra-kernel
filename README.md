@@ -44,19 +44,36 @@ specialized.
 
 ## Proven on Qwen3.6-35B
 
-The initial production target is Qwen3.6-35B-A3B-FP8 serving on eight AMD
-MI350X GPUs.
+The initial production target is Qwen3.6-35B-A3B-FP8 serving on AMD MI350X,
+from one self-contained GPU to eight independent DP1 workers.
 
 | Deployment | Result |
 |---|---:|
-| 8× MI350X, DP8, dFlash | **78,498.66 output tokens/s mean** |
-| Exact request/input/output/token/cache checks | **15,360 / 15,360 passed** |
+| 8× MI350X, DP8, dFlash, locked production profile | **81,331.51 output tokens/s** |
+| 1× MI350X, exact 1K/1K C128, dFlash | **11,161 output tokens/s** |
+| 1× MI350X, exact 1K/8K C128, dFlash | **12,367.93 output tokens/s mean** |
+| DP8 exact request/input/output/token/cache checks | **15,360 / 15,360 passed** |
 | Generated versus locked kernel `.text` | **18 / 18 identical** |
 
-The modular engine result was within 0.32% of the locked 78,748.15 tokens/s
-baseline and passed the no-regression statistical gate. These numbers describe
-this exact checkpoint, hardware topology, graph configuration, request set,
-and five-run measurement; they are not a universal performance claim.
+The separately rebuilt modular DP8 engine passed the routed compatibility and
+no-regression gate against the locked production path. The DP1 1K/1K value is
+the retained-best result; the 1K/8K value is a fresh three-process mean. Every
+number describes its exact checkpoint, topology,
+graph configuration, request set, and repetition policy rather than a
+universal performance claim.
+
+On the matched single-GPU 1K/1K contract, the retained-best profile was 1.52×
+base SGLang, 1.97× stock SGLang DFlash, and 2.38× vLLM. At exact
+1K/8K, the Netra three-process mean was 2.67× a fresh stock SGLang DFlash
+control. See the [Qwen3.6 AMD MI350X inference benchmark](docs/blog/2026-08-22-qwen36-amd-mi350x-sglang-vllm-benchmark.md)
+and its [machine-readable control summary](docs/blog/data/mi350x-1k-controls-20260822.json).
+
+On the matched DP8 1K/1K sweep at global concurrency 1,024, Netra reached
+70,584.86 output tokens/s: 2.98× default SGLang, 1.87× vLLM, and 15.3% above
+the 61,222.80 output-token/s **tuned stock-SGLang** profile. The 62K-class
+SGLang result is tuned, not vanilla. See the
+[SGLang vs vLLM benchmark on AMD MI350X](docs/blog/2026-08-22-qwen36-amd-mi350x-sglang-vllm-benchmark.md) and its
+[machine-readable result record](docs/blog/data/mi350x-dp8-results-20260822.json).
 
 See the
 [machine-readable serving validation](docs/compiler/gfx950-qwen36-modular-serving-validation-20260818.json)
@@ -259,6 +276,8 @@ part of the acceptance contract.
 
 ## Documentation
 
+- [Qwen3.6 inference on AMD MI350X: 81.33K TPS, SGLang vs vLLM](docs/blog/2026-08-22-qwen36-amd-mi350x-sglang-vllm-benchmark.md)
+- [Qwen3.6 MI350X retrospective](docs/retrospectives/gfx950-qwen36-20260821/REPORT.md)
 - [Compiler architecture](docs/compiler/architecture.md)
 - [Kernel contracts](docs/compiler/kernel-contracts.md)
 - [Engine directory format](docs/compiler/engine-format.md)

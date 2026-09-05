@@ -1,0 +1,47 @@
+<svg viewBox="0 0 760 330" role="img" xmlns="http://www.w3.org/2000/svg" aria-label="Routed MoE pipeline. Router logits select top-9 routes and produce a stable route order and row map. BF16 activations are quantized to FP8 for gate and up projection, SiLU gate times up is fused with a second FP8 quantization, the down projection runs in FP8, and route-weighted expert outputs reduce to BF16.">
+<text x="16" y="22" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#57534e">Routed MoE: keep routing stable, fuse the activation boundary</text>
+<g font-family="Inter, sans-serif" font-size="11" fill="#57534e">
+<text x="16" y="54" fill="#78716c">routing</text>
+<rect x="92" y="38" width="132" height="34" rx="4" fill="none" stroke="#a8a29e"/>
+<text x="158" y="59" text-anchor="middle">router logits</text>
+<path d="M224 55h26" stroke="#a8a29e"/><path d="M246 51l8 4-8 4z" fill="#a8a29e"/>
+<rect x="256" y="38" width="132" height="34" rx="4" fill="none" stroke="#a8a29e"/>
+<text x="322" y="52" text-anchor="middle">top-9 routes</text><text x="322" y="66" text-anchor="middle" fill="#78716c">ids + weights</text>
+<path d="M388 55h26" stroke="#a8a29e"/><path d="M410 51l8 4-8 4z" fill="#a8a29e"/>
+<rect x="420" y="38" width="188" height="34" rx="4" fill="#f5f5f4" stroke="#78716c"/>
+<text x="514" y="52" text-anchor="middle">route order / row map</text><text x="514" y="66" text-anchor="middle" fill="#78716c">one ordering for both projections</text>
+<path d="M608 55h68" stroke="#78716c" stroke-dasharray="4 3"/><path d="M672 51l8 4-8 4z" fill="#78716c"/>
+<text x="688" y="59" fill="#78716c">reduction</text>
+
+<text x="16" y="121" fill="#78716c">experts</text>
+<rect x="92" y="102" width="88" height="40" rx="4" fill="none" stroke="#a8a29e"/>
+<text x="136" y="118" text-anchor="middle">BF16 rows</text><text x="136" y="133" text-anchor="middle" fill="#78716c">token input</text>
+<path d="M180 122h18" stroke="#a8a29e"/><path d="M194 118l8 4-8 4z" fill="#a8a29e"/>
+<rect x="204" y="102" width="96" height="40" rx="4" fill="none" stroke="#a8a29e"/>
+<text x="252" y="118" text-anchor="middle">BF16 → FP8</text><text x="252" y="133" text-anchor="middle" fill="#78716c">block scales</text>
+<path d="M300 122h18" stroke="#a8a29e"/><path d="M314 118l8 4-8 4z" fill="#a8a29e"/>
+<rect x="324" y="102" width="100" height="40" rx="4" fill="#f5f5f4" stroke="#78716c"/>
+<text x="374" y="118" text-anchor="middle">gate / up</text><text x="374" y="133" text-anchor="middle" fill="#78716c">FP8 projection</text>
+<path d="M424 122h18" stroke="#dc2626"/><path d="M438 118l8 4-8 4z" fill="#dc2626"/>
+<rect x="448" y="94" width="134" height="56" rx="4" fill="#fef2f2" stroke="#dc2626"/>
+<text x="515" y="113" text-anchor="middle" fill="#dc2626" font-weight="600">SiLU(gate) × up</text>
+<text x="515" y="128" text-anchor="middle" fill="#dc2626">+ BF16 → FP8</text>
+<text x="515" y="143" text-anchor="middle" fill="#78716c">one fused launch</text>
+<path d="M582 122h18" stroke="#a8a29e"/><path d="M596 118l8 4-8 4z" fill="#a8a29e"/>
+<rect x="606" y="102" width="100" height="40" rx="4" fill="#f5f5f4" stroke="#78716c"/>
+<text x="656" y="118" text-anchor="middle">down</text><text x="656" y="133" text-anchor="middle" fill="#78716c">FP8 projection</text>
+
+<path d="M656 142v48H514" stroke="#a8a29e" fill="none"/><path d="M518 186l-8 4 8 4z" fill="#a8a29e"/>
+<path d="M514 72v105" stroke="#78716c" stroke-dasharray="4 3"/><path d="M510 173l4 8 4-8z" fill="#78716c"/>
+<rect x="324" y="184" width="186" height="42" rx="4" fill="none" stroke="#a8a29e"/>
+<text x="417" y="201" text-anchor="middle">route-weighted reduction</text><text x="417" y="216" text-anchor="middle" fill="#78716c">selected experts → BF16</text>
+<path d="M324 205h-52" stroke="#a8a29e"/><path d="M276 201l-8 4 8 4z" fill="#a8a29e"/>
+<rect x="142" y="184" width="126" height="42" rx="4" fill="#44403c"/>
+<text x="205" y="209" text-anchor="middle" fill="#fafaf9" font-weight="600">BF16 token output</text>
+</g>
+<g font-family="Inter, sans-serif" font-size="11.5" fill="#57534e">
+<text x="16" y="266" font-weight="600">What changed:</text>
+<text x="16" y="288">1. Route order is built once and reused by gate/up, down, and the weighted reduction.</text>
+<text x="16" y="308">2. SiLU(gate) × up feeds FP8 quantization directly, so the BF16 activation never makes an HBM round trip.</text>
+</g>
+</svg>

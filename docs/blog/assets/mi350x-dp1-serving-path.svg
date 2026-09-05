@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="820" viewBox="0 0 1600 820" role="img" aria-labelledby="title desc">
+  <title id="title">One AMD Instinct MI350X owns the complete Qwen3.6 serving path</title>
+  <desc id="desc">A topology diagram shows a client entering the SGLang scheduler, then one MI350X running prefill, DFlash draft and target verification, sampling, local model and request state, before returning an incremental token stream. The engine uses tensor parallel one and data parallel one with no distributed collectives.</desc>
+  <defs>
+    <marker id="arrow-dark" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#57534e"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0a9d82"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6e2ab0"/>
+    </marker>
+    <filter id="shadow" x="-12%" y="-18%" width="124%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#292524" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <style>
+    .title { font: 700 26px Inter, Arial, sans-serif; fill: #57534e; }
+    .sub { font: 500 19px Inter, Arial, sans-serif; fill: #716d66; }
+    .eyebrow { font: 700 14px Inter, Arial, sans-serif; letter-spacing: 2px; fill: #78716c; }
+    .box-title { font: 700 22px Inter, Arial, sans-serif; fill: #292524; }
+    .box-sub { font: 500 16px Inter, Arial, sans-serif; fill: #716d66; }
+    .small { font: 600 14px Inter, Arial, sans-serif; fill: #57534e; }
+    .gpu-label { font: 700 19px Inter, Arial, sans-serif; fill: #087d6a; }
+    .chip { font: 600 15px Inter, Arial, sans-serif; fill: #44403c; }
+    .absent { font: 600 15px Inter, Arial, sans-serif; fill: #57534e; }
+  </style>
+
+  <rect width="1600" height="820" fill="#ffffff"/>
+  <text x="64" y="68" class="title">One MI350X owns the complete serving path</text>
+  <text x="64" y="106" class="sub">Qwen3.6 target, draft model, KV cache, recurrent state, and graph workspaces stay local in TP1 / DP1.</text>
+
+  <rect x="54" y="148" width="1492" height="490" rx="28" fill="#ffffff" stroke="#dedad3" stroke-width="2"/>
+
+  <g>
+    <rect x="82" y="265" width="176" height="116" rx="20" fill="#f5f5f4" stroke="#a8a29e" stroke-width="2"/>
+    <circle cx="170" cy="300" r="15" fill="#57534e"/>
+    <path d="M 139 349 C 139 326, 201 326, 201 349" fill="none" stroke="#57534e" stroke-width="9" stroke-linecap="round"/>
+    <text x="170" y="373" class="box-title" text-anchor="middle">Client</text>
+  </g>
+
+  <path d="M 274 323 H 326" fill="none" stroke="#57534e" stroke-width="3" marker-end="url(#arrow-dark)"/>
+  <text x="300" y="305" class="small" text-anchor="middle">request</text>
+
+  <g>
+    <rect x="342" y="236" width="248" height="174" rx="20" fill="#e0f2fe" stroke="#1681b8" stroke-width="3"/>
+    <text x="466" y="279" class="box-title" text-anchor="middle">SGLang scheduler</text>
+    <rect x="370" y="302" width="192" height="34" rx="17" fill="#ffffff" stroke="#91c7e3"/>
+    <text x="466" y="324" class="small" text-anchor="middle">admission and batching</text>
+    <rect x="370" y="348" width="192" height="34" rx="17" fill="#ffffff" stroke="#91c7e3"/>
+    <text x="466" y="370" class="small" text-anchor="middle">graph-shape selection</text>
+  </g>
+
+  <path d="M 606 323 H 658" fill="none" stroke="#0a9d82" stroke-width="4" marker-end="url(#arrow-green)"/>
+  <text x="632" y="304" class="small" fill="#087d6a" text-anchor="middle">batch</text>
+
+  <rect x="674" y="182" width="682" height="394" rx="24" fill="#f2faf8" stroke="#0a9d82" stroke-width="3"/>
+  <rect x="674" y="182" width="682" height="60" rx="24" fill="#e2f4ef"/>
+  <path d="M 674 218 V 242 H 1356 V 218" fill="#e2f4ef"/>
+  <text x="706" y="220" class="gpu-label">AMD Instinct MI350X</text>
+  <text x="1324" y="220" class="small" fill="#087d6a" text-anchor="end">gfx950  ·  TP1  ·  DP1</text>
+
+  <g>
+    <rect x="714" y="278" width="142" height="108" rx="18" fill="#ffffff" stroke="#1681b8" stroke-width="3"/>
+    <text x="785" y="324" class="box-title" text-anchor="middle">Prefill</text>
+    <text x="785" y="353" class="box-sub" text-anchor="middle">build local state</text>
+  </g>
+
+  <path d="M 872 332 H 910" fill="none" stroke="#57534e" stroke-width="3" marker-end="url(#arrow-dark)"/>
+
+  <g>
+    <rect x="926" y="264" width="260" height="180" rx="20" fill="#f4f0fb" stroke="#6e2ab0" stroke-width="3"/>
+    <text x="1056" y="300" class="eyebrow" fill="#6e2ab0" text-anchor="middle">DFLASH LOOP</text>
+    <rect x="952" y="316" width="208" height="42" rx="13" fill="#ffffff" stroke="#b694d0"/>
+    <text x="1056" y="343" class="chip" text-anchor="middle">Draft proposes tokens</text>
+    <path d="M 1056 366 V 379" fill="none" stroke="#6e2ab0" stroke-width="3" marker-end="url(#arrow-purple)"/>
+    <rect x="952" y="388" width="208" height="42" rx="13" fill="#ffffff" stroke="#b694d0"/>
+    <text x="1056" y="415" class="chip" text-anchor="middle">Target verifies once</text>
+    <path d="M 1171 409 C 1212 409, 1212 337, 1171 337" fill="none" stroke="#6e2ab0" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arrow-purple)"/>
+    <text x="1206" y="377" class="small" fill="#6e2ab0" text-anchor="end">accepted prefix</text>
+  </g>
+
+  <path d="M 1188 332 H 1224" fill="none" stroke="#57534e" stroke-width="3" marker-end="url(#arrow-dark)"/>
+
+  <g>
+    <rect x="1240" y="278" width="84" height="108" rx="18" fill="#fff7e5" stroke="#de9d00" stroke-width="3"/>
+    <text x="1282" y="326" class="box-title" text-anchor="middle">Sample</text>
+    <text x="1282" y="353" class="box-sub" text-anchor="middle">select</text>
+  </g>
+
+  <text x="714" y="479" class="eyebrow">LOCAL MODEL AND REQUEST STATE</text>
+  <g transform="translate(714 496)">
+    <rect width="138" height="38" rx="19" fill="#ffffff" stroke="#9ed8ca"/><text x="69" y="25" class="chip" text-anchor="middle">target weights</text>
+    <rect x="150" width="132" height="38" rx="19" fill="#ffffff" stroke="#9ed8ca"/><text x="216" y="25" class="chip" text-anchor="middle">draft weights</text>
+    <rect x="294" width="100" height="38" rx="19" fill="#ffffff" stroke="#9ed8ca"/><text x="344" y="25" class="chip" text-anchor="middle">KV cache</text>
+    <rect x="406" width="150" height="38" rx="19" fill="#ffffff" stroke="#9ed8ca"/><text x="481" y="25" class="chip" text-anchor="middle">recurrent state</text>
+    <rect x="568" width="74" height="38" rx="19" fill="#ffffff" stroke="#9ed8ca"/><text x="605" y="25" class="chip" text-anchor="middle">graphs</text>
+  </g>
+
+  <path d="M 1372 323 H 1412" fill="none" stroke="#0a9d82" stroke-width="4" marker-end="url(#arrow-green)"/>
+
+  <g>
+    <rect x="1428" y="265" width="88" height="116" rx="20" fill="#e2f4ef" stroke="#0a9d82" stroke-width="3"/>
+    <path d="M 1454 301 H 1490 M 1454 317 H 1490 M 1454 333 H 1480" stroke="#0a9d82" stroke-width="5" stroke-linecap="round"/>
+    <text x="1472" y="370" class="box-title" text-anchor="middle">Stream</text>
+  </g>
+
+  <text x="64" y="690" class="eyebrow">DISTRIBUTED WORK REMOVED FROM THIS ENGINE</text>
+  <g transform="translate(64 716)">
+    <rect width="260" height="52" rx="16" fill="#f5f5f4" stroke="#d6d3d1"/><text x="130" y="32" class="absent" text-anchor="middle">no all-reduce</text>
+    <rect x="278" width="260" height="52" rx="16" fill="#f5f5f4" stroke="#d6d3d1"/><text x="408" y="32" class="absent" text-anchor="middle">no expert all-to-all</text>
+    <rect x="556" width="260" height="52" rx="16" fill="#f5f5f4" stroke="#d6d3d1"/><text x="686" y="32" class="absent" text-anchor="middle">no pipeline bubbles</text>
+    <rect x="834" width="300" height="52" rx="16" fill="#f5f5f4" stroke="#d6d3d1"/><text x="984" y="32" class="absent" text-anchor="middle">no inter-rank graph capture</text>
+    <rect x="1152" width="330" height="52" rx="16" fill="#f5f5f4" stroke="#d6d3d1"/><text x="1317" y="32" class="absent" text-anchor="middle">no replica router in the path</text>
+  </g>
+</svg>

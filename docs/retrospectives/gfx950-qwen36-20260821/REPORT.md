@@ -1,6 +1,6 @@
 # Qwen3.6-27B/35B optimization on AMD MI350X/gfx950
 
-Date: 2026-08-21
+Date: 2026-08-22
 
 Status: retrospective and MI350X campaign complete with explicit correctness and coverage gaps
 
@@ -27,6 +27,12 @@ isolated MI350X campaign adds exact-output Netra-versus-SGLang/AITER serving
 controls, fixed-concurrency diagnostics, standalone GDN attempts, and
 rocprofv3 counter passes. Failed repeatability and cross-arm output gates are
 retained but never promoted as wins.
+
+A post-audit service-level restoration on 2026-08-22 adds matched complete-
+engine 1K/1K controls for Netra, base SGLang, stock SGLang DFlash, and vLLM,
+plus a stock-DFlash 1K/8K control. These results extend the deployment-level
+comparison; they do not relax the exact-output requirements used to attribute
+a gain to an individual kernel.
 
 ## Evidence boundary and audit method
 
@@ -330,6 +336,54 @@ samples, and counter summaries are in
 [current-gdn-microbenchmark-aggregates.csv](current-gdn-microbenchmark-aggregates.csv),
 and [current-profiler-counters.csv](current-profiler-counters.csv).
 
+### Post-audit retained-best and stock-DFlash controls
+
+On 2026-08-22, a separate DP1 campaign reran the complete serving stacks on
+one otherwise-idle MI350X. The 1K/1K contract used 384 requests at concurrency
+128, exactly 1,024 input and 1,024 output tokens per request, greedy sampling,
+ignored EOS, seed 20260809, and disabled prefix caching.
+
+| Complete engine | Output tok/s | Duration | Mean TTFT | Mean TPOT |
+| --- | ---: | ---: | ---: | ---: |
+| **Netra SGLang + DFlash, retained best** | **10,599.51** | 37.0976 s | 757.85 ms | **9.25 ms** |
+| Base SGLang 0.5.16 | 7,330.23 | 53.6430 s | 1,036.62 ms | 16.43 ms |
+| Stock SGLang 0.5.16 + DFlash | 5,658.28 | 69.4940 s | 806.92 ms | 19.09 ms |
+| vLLM 0.26.0 | 4,684.51 | 83.9397 s | 1,274.65 ms | 26.05 ms |
+
+All four arms completed 384/384 requests, reported exactly 393,216 input and
+393,216 output tokens, and had zero client errors. Netra delivered 1.45x base
+SGLang throughput, 1.87x stock SGLang DFlash throughput, and 2.26x vLLM
+throughput on this matched request contract. vLLM accepted text prompts through
+its benchmark adapter rather than SGLang's raw token-ID transport, but its
+server-side accounting reported the same 1,024/1,024 lengths for every
+request.
+
+The Netra arm was reconstructed from the retained lock rather than the current
+launcher defaults. Its image, complete environment, server command, mount
+layout, active kernel SHA-256 values, and live loaded-bridge map matched the
+historical best. This matters because a preceding 8.87K diagnostic had drifted
+to a newer server worktree, the wrong replay bridge, disabled router and
+QKVZ/conv paths, a denser graph-batch set, and a different stream interval.
+That diagnostic is excluded. The fresh exact restoration reached 10,599.51
+output tok/s; the original five-fresh-process promotion mean remains
+10,004.95 output tok/s.
+
+The matched stock SGLang DFlash long-output control used 128 requests at
+concurrency 128 with exactly 1K input and 8K output tokens. It reached 4,628.61
+output tok/s in 226.5421 seconds, completed all requests, produced exactly
+1,048,576 output tokens, and reported zero client errors. The retained Netra
+three-process mean on the same request contract is 12,367.93 output tok/s,
+or 2.67x the fresh stock-DFlash control. Netra's historical 14,431.74 output
+tok/s observation remains labeled as a peak because it did not recur in the
+three-process reproduction.
+
+These runs establish service-level throughput under exact request-length and
+completion checks. They are not paired output-equivalence experiments and do
+not replace the operation-level correctness gates in the preceding section.
+The machine-readable values, result hashes, image IDs, source locks, ratios,
+and retained host evidence roots are in
+[the 2026-08-22 control summary](../../blog/data/mi350x-1k-controls-20260822.json).
+
 ## Operation and competitor inventory
 
 The [operation inventory](operation-inventory.csv) contains 45 reviewed rows
@@ -598,10 +652,14 @@ underfill or traffic; layout/compiler/graph discipline makes those wins
 reachable and safe; deployment locks make them reproducible. The rejection
 ledger demonstrates that any one layer without the others is unreliable.
 
-Current exact evidence establishes only the narrow qualified results above.
-Uncertain or ineligible: concurrent cross-arm dFlash output equivalence; the
-35B 1K Netra and 8K control cases that failed repeatability; performance from
-the legacy standalone GDN harness; independent-process confidence intervals
-for current concurrency throughput; uniform current competitor/counter
-coverage for every operation; and any claim of research novelty. These are
-explicit gaps, not hidden assumptions or inferred wins.
+The post-audit controls establish complete-engine throughput for their exact
+request contracts: 10,599.51 output tok/s for the fresh retained-best 1K/1K
+restoration and a 12,367.93 output tok/s three-process mean at 1K/8K. They do
+not establish cross-arm token identity or isolate any one kernel's causal
+contribution. Uncertain or ineligible: concurrent cross-arm dFlash output
+equivalence; the separate 35B 1K Netra and 8K control cases that failed
+repeatability; performance from the legacy standalone GDN harness;
+independent-process confidence intervals for the new single-run competitor
+controls; uniform current competitor/counter coverage for every operation;
+and any claim of research novelty. These are explicit gaps, not hidden
+assumptions or inferred wins.

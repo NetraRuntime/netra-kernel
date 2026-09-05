@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="790" viewBox="0 0 1600 790" role="img" aria-labelledby="title desc">
+  <title id="title">Kernel tactic promotion funnel</title>
+  <desc id="desc">A kernel moves from contract validation through warm replay, serving, and quality gates; several locally fast candidates leave the path before promotion.</desc>
+  <rect width="1600" height="790" fill="#ffffff"/>
+  <style>
+    .title { font: 700 26px Inter, Arial, sans-serif; fill: #57534e; }
+    .sub { font: 500 18px Inter, Arial, sans-serif; fill: #716d66; }
+    .step { font: 700 21px Inter, Arial, sans-serif; fill: #20201e; }
+    .small { font: 500 16px Inter, Arial, sans-serif; fill: #625e58; }
+    .reject { font: 700 18px Inter, Arial, sans-serif; fill: #9a6500; }
+    .ship { font: 700 25px Inter, Arial, sans-serif; fill: #067764; }
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#9b968e"/></marker></defs>
+  <text x="72" y="68" class="title">A fast kernel is only a candidate</text>
+  <text x="72" y="106" class="sub">Promotion follows the request path: exact contract, stable replay, serving impact, then quality.</text>
+
+  <g transform="translate(70 172)">
+    <rect x="0" y="0" width="245" height="124" rx="22" fill="#e5f1f8" stroke="#1681b8" stroke-width="3"/>
+    <text x="122" y="44" class="step" text-anchor="middle">Exact contract</text><text x="122" y="76" class="small" text-anchor="middle">shape · layout · state</text><text x="122" y="101" class="small" text-anchor="middle">numerical oracle</text>
+    <path d="M255 62h55" stroke="#9b968e" stroke-width="4" marker-end="url(#arrow)"/>
+
+    <rect x="320" y="0" width="245" height="124" rx="22" fill="#e5f1f8" stroke="#1681b8" stroke-width="3"/>
+    <text x="442" y="44" class="step" text-anchor="middle">Warm + replay</text><text x="442" y="76" class="small" text-anchor="middle">first call separated</text><text x="442" y="101" class="small" text-anchor="middle">graph-safe ABI</text>
+    <path d="M575 62h55" stroke="#9b968e" stroke-width="4" marker-end="url(#arrow)"/>
+
+    <rect x="640" y="0" width="245" height="124" rx="22" fill="#e9e5f4" stroke="#6e2ab0" stroke-width="3"/>
+    <text x="762" y="44" class="step" text-anchor="middle">Matched serving</text><text x="762" y="76" class="small" text-anchor="middle">fresh process · A/B</text><text x="762" y="101" class="small" text-anchor="middle">complete requests</text>
+    <path d="M895 62h55" stroke="#9b968e" stroke-width="4" marker-end="url(#arrow)"/>
+
+    <rect x="960" y="0" width="245" height="124" rx="22" fill="#fff3d9" stroke="#de9d00" stroke-width="3"/>
+    <text x="1082" y="44" class="step" text-anchor="middle">Quality + stability</text><text x="1082" y="76" class="small" text-anchor="middle">tokens · task quality</text><text x="1082" y="101" class="small" text-anchor="middle">hashes · GPU health</text>
+    <path d="M1215 62h55" stroke="#9b968e" stroke-width="4" marker-end="url(#arrow)"/>
+
+    <rect x="1280" y="0" width="180" height="124" rx="22" fill="#e2f4ef" stroke="#0a9d82" stroke-width="4"/>
+    <text x="1370" y="56" class="ship" text-anchor="middle">Promoted</text><text x="1370" y="87" class="small" text-anchor="middle">bounded tactic</text>
+  </g>
+
+  <text x="72" y="375" class="step">Where locally fast candidates left the path</text>
+  <g transform="translate(70 410)">
+    <rect x="0" y="0" width="420" height="118" rx="18" fill="#fff8e9" stroke="#de9d00" stroke-width="2"/>
+    <text x="24" y="37" class="reject">Oracle failure</text><text x="24" y="68" class="small">xBF16 MoE exceeded its FP8 mismatch bound.</text><text x="24" y="94" class="small">Broad attention phase predicate was semantically wrong.</text>
+
+    <rect x="490" y="0" width="420" height="118" rx="18" fill="#fff8e9" stroke="#de9d00" stroke-width="2"/>
+    <text x="514" y="37" class="reject">Serving reversal</text><text x="514" y="68" class="small">1.30× QKVZ/conv became slower end to end.</text><text x="514" y="94" class="small">1.496× M8192 convolution lost 5.60%.</text>
+
+    <rect x="980" y="0" width="480" height="118" rx="18" fill="#fff8e9" stroke="#de9d00" stroke-width="2"/>
+    <text x="1004" y="37" class="reject">No material system effect</text><text x="1004" y="68" class="small">24.4% FMoE micro win became +0.045% serving.</text><text x="1004" y="94" class="small">48 removed materializations became +0.026%.</text>
+  </g>
+
+  <rect x="70" y="580" width="1460" height="120" rx="22" fill="#ffffff" stroke="#dedad3" stroke-width="2"/>
+  <text x="100" y="625" class="step">The fallback is part of the design</text>
+  <text x="100" y="660" class="sub">When a predicate misses or a gate fails, SGLang/AITER remains selected. Narrow specialization is safe because it never claims an unproved contract.</text>
+  <text x="800" y="756" class="sub" text-anchor="middle">Operation speedups explain mechanisms; only matched serving establishes the shipped effect.</text>
+</svg>

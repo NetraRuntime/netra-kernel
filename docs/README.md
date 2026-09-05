@@ -1,5 +1,11 @@
 # Documentation
 
+## Performance story
+
+- [Qwen3.6 inference on AMD MI350X: 81.33K TPS, SGLang vs vLLM](blog/2026-08-22-qwen36-amd-mi350x-sglang-vllm-benchmark.md)
+- [Qwen3.6 MI350X executive summary](retrospectives/gfx950-qwen36-20260821/EXECUTIVE-SUMMARY.md)
+- [Full Qwen3.6 MI350X retrospective](retrospectives/gfx950-qwen36-20260821/REPORT.md)
+
 ## Compiler and runtime
 
 - [Architecture](compiler/architecture.md)

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="860" viewBox="0 0 1600 860" role="img" aria-labelledby="title desc">
+  <title id="title">Single MI350X inference throughput showcase</title>
+  <desc id="desc">Three cards show Netra's best retained low-concurrency, exact 1K/1K, and exact 1K/8K throughput results on one MI350X. The exact 1K/1K card also shows its matched SGLang and vLLM comparison.</desc>
+  <rect width="1600" height="860" fill="#ffffff"/>
+  <style>
+    .kicker { font: 600 22px Inter, Arial, sans-serif; fill: #6f6b64; letter-spacing: 1.5px; }
+    .title { font: 700 26px Inter, Arial, sans-serif; fill: #57534e; }
+    .card-title { font: 700 28px Inter, Arial, sans-serif; fill: #20201e; }
+    .metric { font: 700 64px Inter, Arial, sans-serif; fill: #078f78; }
+    .unit { font: 500 22px Inter, Arial, sans-serif; fill: #4e4b46; }
+    .label { font: 600 20px Inter, Arial, sans-serif; fill: #34322f; }
+    .small { font: 500 17px Inter, Arial, sans-serif; fill: #716d66; }
+    .ratio { font: 700 22px Inter, Arial, sans-serif; fill: #078f78; }
+    .ratio-small { font: 700 18px Inter, Arial, sans-serif; fill: #078f78; }
+    .tiny { font: 500 14px Inter, Arial, sans-serif; fill: #716d66; }
+    .bar-value { font: 700 15px Inter, Arial, sans-serif; fill: #ffffff; }
+  </style>
+
+  <text x="80" y="68" class="kicker">QWEN3.6-35B-A3B-FP8 · DP1 / TP1 · AMD INSTINCT MI350X</text>
+  <text x="80" y="126" class="title">One GPU, three best operating points</text>
+  <text x="80" y="164" class="small">Best retained output-token throughput for each request contract.</text>
+
+  <rect x="70" y="205" width="430" height="565" rx="26" fill="#ffffff" stroke="#0a9d82" stroke-width="4"/>
+  <text x="108" y="258" class="card-title">Low latency</text>
+  <text x="108" y="292" class="small">1K input / 256 output · C1</text>
+  <text x="108" y="385" class="metric">455</text>
+  <text x="108" y="421" class="unit">output tok/s</text>
+  <line x1="108" y1="458" x2="462" y2="458" stroke="#e7e3dc" stroke-width="2"/>
+  <text x="108" y="510" class="ratio">2.12×</text>
+  <text x="205" y="510" class="label">base SGLang</text>
+  <text x="108" y="558" class="ratio">5.40×</text>
+  <text x="205" y="558" class="label">vLLM</text>
+  <rect x="108" y="620" width="330" height="18" rx="9" fill="#0a9d82"/>
+  <rect x="108" y="654" width="155" height="18" rx="9" fill="#1681b8"/>
+  <rect x="108" y="688" width="61" height="18" rx="9" fill="#6e2ab0"/>
+  <text x="108" y="744" class="small">Matched retained C1 campaign</text>
+
+  <rect x="535" y="205" width="500" height="565" rx="26" fill="#ffffff" stroke="#0a9d82" stroke-width="4"/>
+  <text x="573" y="258" class="card-title">Throughput</text>
+  <text x="573" y="292" class="small">1K input / 1K output · C128 · exact lengths</text>
+  <text x="573" y="385" class="metric">11.16K</text>
+  <text x="573" y="421" class="unit">output tok/s · retained-best profile</text>
+
+  <text x="573" y="487" class="label">Netra + DFlash</text>
+  <rect x="750" y="469" width="237" height="22" rx="11" fill="#0a9d82"/>
+  <text x="977" y="487" class="bar-value" text-anchor="end">11.16K</text>
+  <text x="573" y="535" class="label">Base SGLang</text>
+  <rect x="750" y="517" width="156" height="22" rx="11" fill="#1681b8"/>
+  <text x="985" y="535" class="small" text-anchor="end">7.33K</text>
+  <text x="573" y="583" class="label">Stock DFlash</text>
+  <rect x="750" y="565" width="120" height="22" rx="11" fill="#de9d00"/>
+  <text x="985" y="583" class="small" text-anchor="end">5.66K</text>
+  <text x="573" y="631" class="label">vLLM</text>
+  <rect x="750" y="613" width="99" height="22" rx="11" fill="#6e2ab0"/>
+  <text x="985" y="631" class="small" text-anchor="end">4.68K</text>
+  <text x="573" y="687" class="ratio-small">1.52× SGLang · 1.97× stock DFlash</text>
+  <text x="573" y="716" class="ratio-small">2.38× vLLM</text>
+  <text x="573" y="748" class="tiny">Exact 1K/1K · concurrency 128</text>
+
+  <rect x="1070" y="205" width="460" height="565" rx="26" fill="#ffffff" stroke="#0a9d82" stroke-width="4"/>
+  <text x="1108" y="258" class="card-title">Long generation</text>
+  <text x="1108" y="292" class="small">1K input / 8K output · C128 · exact lengths</text>
+  <text x="1108" y="385" class="metric">14.43K</text>
+  <text x="1108" y="421" class="unit">output tok/s · retained best</text>
+  <line x1="1108" y1="458" x2="1492" y2="458" stroke="#e7e3dc" stroke-width="2"/>
+  <text x="1108" y="510" class="label">Netra + DFlash</text>
+  <rect x="1108" y="535" width="350" height="28" rx="14" fill="#0a9d82"/>
+  <text x="1108" y="614" class="label">Exact 1K input / 8K output</text>
+  <text x="1108" y="652" class="small">Concurrency 128 · one MI350X</text>
+
+  <text x="800" y="825" class="small" text-anchor="middle">Netra measurements, August 2026 · bars begin at zero</text>
+</svg>

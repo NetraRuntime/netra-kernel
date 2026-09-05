@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="880" viewBox="0 0 1600 880" role="img" aria-labelledby="title desc">
+  <title id="title">Netra DP8 serving topology</title>
+  <desc id="desc">Synchronized clients send requests through a stateless frontend to eight independent TP1 SGLang workers, each owning one complete model on one MI350X and local KV and recurrent state.</desc>
+  <rect width="1600" height="880" fill="#ffffff"/>
+  <style>
+    .title{font:700 26px Inter,Arial,sans-serif;fill:#57534e}.sub{font:500 18px Inter,Arial,sans-serif;fill:#716d66}.head{font:700 24px Inter,Arial,sans-serif;fill:#20201e}.body{font:500 16px Inter,Arial,sans-serif;fill:#55514b}.worker{font:700 18px Inter,Arial,sans-serif;fill:#20201e}.gpu{font:600 15px Inter,Arial,sans-serif;fill:#067764}.tag{font:700 17px Inter,Arial,sans-serif;fill:#067764}.note{font:600 17px Inter,Arial,sans-serif;fill:#6e2ab0}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0L0 6L9 3z" fill="#9b968e"/></marker></defs>
+  <text x="70" y="67" class="title">Eight replicas, no model-parallel collective</text>
+  <text x="70" y="106" class="sub">DP8 means eight complete DP1/TP1 engines. The scaling problem moves to routing, graph coverage, host placement, and the common measurement window.</text>
+
+  <rect x="70" y="170" width="265" height="220" rx="24" fill="#e9e5f4" stroke="#6e2ab0" stroke-width="3"/>
+  <text x="202" y="218" class="head" text-anchor="middle">Load generators</text>
+  <text x="202" y="257" class="body" text-anchor="middle">8 synchronized clients</text>
+  <text x="202" y="288" class="body" text-anchor="middle">one common start barrier</text>
+  <text x="202" y="319" class="body" text-anchor="middle">exact token-ID corpus</text>
+  <text x="202" y="350" class="body" text-anchor="middle">global completion window</text>
+  <path d="M345 280H466" stroke="#9b968e" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="480" y="170" width="300" height="220" rx="24" fill="#fff3d9" stroke="#de9d00" stroke-width="3"/>
+  <text x="630" y="218" class="head" text-anchor="middle">DP8 frontend</text>
+  <text x="630" y="257" class="body" text-anchor="middle">round-robin routing</text>
+  <text x="630" y="288" class="body" text-anchor="middle">keepalive pool 1,024</text>
+  <text x="630" y="319" class="body" text-anchor="middle">high file-descriptor limit</text>
+  <text x="630" y="350" class="body" text-anchor="middle">384 requests per worker</text>
+
+  <path d="M790 280H902" stroke="#9b968e" stroke-width="5" marker-end="url(#arrow)"/>
+  <path d="M895 280V196M895 280V364M895 196H940M895 364H940" stroke="#9b968e" stroke-width="3" fill="none"/>
+
+  <g transform="translate(940 154)">
+    <rect x="0" y="0" width="250" height="88" rx="17" fill="#e2f4ef" stroke="#0a9d82" stroke-width="3"/><text x="20" y="35" class="worker">Worker 0 · TP1</text><text x="20" y="63" class="gpu">MI350X 0 · local state</text>
+    <rect x="280" y="0" width="250" height="88" rx="17" fill="#e2f4ef" stroke="#0a9d82" stroke-width="3"/><text x="300" y="35" class="worker">Worker 1 · TP1</text><text x="300" y="63" class="gpu">MI350X 1 · local state</text>
+    <rect x="0" y="112" width="250" height="88" rx="17" fill="#e2f4ef" stroke="#0a9d82" stroke-width="3"/><text x="20" y="147" class="worker">Worker 2 · TP1</text><text x="20" y="175" class="gpu">MI350X 2 · local state</text>
+    <rect x="280" y="112" width="250" height="88" rx="17" fill="#e2f4ef" stroke="#0a9d82" stroke-width="3"/><text x="300" y="147" class="worker">Worker 3 · TP1</text><text x="300" y="175" class="gpu">MI350X 3 · local state</text>
+    <rect x="0" y="224" width="250" height="88" rx="17" fill="#e2f4ef" stroke="#0a9d82" stroke-width="3"/><text x="20" y="259" class="worker">Worker 4 · TP1</text><text x="20" y="287" class="gpu">MI350X 4 · local state</text>
+    <rect x="280" y="224" width="250" height="88" rx="17" fill="#e2f4ef" stroke="#0a9d82" stroke-width="3"/><text x="300" y="259" class="worker">Worker 5 · TP1</text><text x="300" y="287" class="gpu">MI350X 5 · local state</text>
+    <rect x="0" y="336" width="250" height="88" rx="17" fill="#e2f4ef" stroke="#0a9d82" stroke-width="3"/><text x="20" y="371" class="worker">Worker 6 · TP1</text><text x="20" y="399" class="gpu">MI350X 6 · local state</text>
+    <rect x="280" y="336" width="250" height="88" rx="17" fill="#e2f4ef" stroke="#0a9d82" stroke-width="3"/><text x="300" y="371" class="worker">Worker 7 · TP1</text><text x="300" y="399" class="gpu">MI350X 7 · local state</text>
+  </g>
+
+  <rect x="70" y="645" width="1460" height="136" rx="24" fill="#fff" stroke="#dedad3" stroke-width="2"/>
+  <text x="105" y="692" class="head">What is independent</text><text x="105" y="726" class="body">model weights · KV cache · recurrent state · HIP graph replay · scheduler queue</text>
+  <text x="835" y="692" class="head">What is shared</text><text x="835" y="726" class="body">HTTP frontend · request corpus · start barrier · wall-clock denominator</text>
+  <text x="105" y="758" class="tag">No RCCL, no XGMI collectives, no expert exchange.</text><text x="835" y="758" class="note">One slow shard still extends the global tail.</text>
+  <text x="800" y="842" class="sub" text-anchor="middle">The unit of scaling is a complete serving engine, not a fraction of one model execution.</text>
+</svg>

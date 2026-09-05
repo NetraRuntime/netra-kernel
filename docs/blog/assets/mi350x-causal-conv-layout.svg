@@ -1,0 +1,40 @@
+<svg viewBox="0 0 760 390" role="img" xmlns="http://www.w3.org/2000/svg" aria-label="Physical tensor layout for the M12 causal convolution. Input has shape 64 by 8192 by 12 and strides 98304, 1, 8192. State has shape 64 by 8192 by 3 and strides 24576, 3, 1. Window has shape 64 by 12 by 8192 by 3 and strides 294912, 24576, 3, 1. The kernel loads three contiguous history values and one strided input value for each four-tap convolution.">
+<text x="16" y="22" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#57534e">M12 causal convolution: the logical time axis is not contiguous</text>
+<g font-family="Inter, sans-serif" font-size="10.5" fill="#57534e">
+<rect x="16" y="42" width="224" height="112" rx="4" fill="none" stroke="#a8a29e"/>
+<text x="28" y="62" font-size="11.5" font-weight="600">input</text>
+<text x="28" y="80" font-family="ui-monospace, monospace">[64, 8192, 12]</text>
+<text x="28" y="97" font-family="ui-monospace, monospace">stride [98304, 1, 8192]</text>
+<rect x="28" y="112" width="122" height="12" rx="2" fill="#44403c"/><text x="156" y="122">channels: +1</text>
+<rect x="28" y="132" width="54" height="12" rx="2" fill="#fee2e2"/><text x="88" y="142" fill="#dc2626">next time: +8192</text>
+
+<rect x="268" y="42" width="224" height="112" rx="4" fill="none" stroke="#a8a29e"/>
+<text x="280" y="62" font-size="11.5" font-weight="600">state</text>
+<text x="280" y="80" font-family="ui-monospace, monospace">[64, 8192, 3]</text>
+<text x="280" y="97" font-family="ui-monospace, monospace">stride [24576, 3, 1]</text>
+<rect x="280" y="112" width="46" height="24" rx="2" fill="#d6d3d1"/><rect x="328" y="112" width="46" height="24" rx="2" fill="#a8a29e"/><rect x="376" y="112" width="46" height="24" rx="2" fill="#78716c"/>
+<text x="303" y="128" text-anchor="middle">h0</text><text x="351" y="128" text-anchor="middle" fill="#fafaf9">h1</text><text x="399" y="128" text-anchor="middle" fill="#fafaf9">h2</text><text x="430" y="128">stride 1</text>
+
+<rect x="520" y="42" width="224" height="112" rx="4" fill="none" stroke="#a8a29e"/>
+<text x="532" y="62" font-size="11.5" font-weight="600">window</text>
+<text x="532" y="80" font-family="ui-monospace, monospace">[64, 12, 8192, 3]</text>
+<text x="532" y="97" font-family="ui-monospace, monospace">stride [294912, 24576, 3, 1]</text>
+<rect x="532" y="112" width="188" height="12" rx="2" fill="#44403c"/><text x="532" y="143" fill="#78716c">history is the innermost dimension</text>
+
+<text x="16" y="190" font-size="11.5" font-weight="600">One output position follows the deployed address map directly</text>
+<rect x="26" y="212" width="82" height="42" rx="4" fill="#f5f5f4" stroke="#a8a29e"/><text x="67" y="230" text-anchor="middle">state h0</text><text x="67" y="245" text-anchor="middle" fill="#78716c">offset 0</text>
+<rect x="118" y="212" width="82" height="42" rx="4" fill="#f5f5f4" stroke="#a8a29e"/><text x="159" y="230" text-anchor="middle">state h1</text><text x="159" y="245" text-anchor="middle" fill="#78716c">offset 1</text>
+<rect x="210" y="212" width="82" height="42" rx="4" fill="#f5f5f4" stroke="#a8a29e"/><text x="251" y="230" text-anchor="middle">state h2</text><text x="251" y="245" text-anchor="middle" fill="#78716c">offset 2</text>
+<rect x="302" y="212" width="92" height="42" rx="4" fill="#fef2f2" stroke="#dc2626"/><text x="348" y="230" text-anchor="middle" fill="#dc2626">input x<tspan baseline-shift="sub">t</tspan></text><text x="348" y="245" text-anchor="middle" fill="#dc2626">time-strided</text>
+<path d="M394 233h34" stroke="#a8a29e"/><path d="M424 229l8 4-8 4z" fill="#a8a29e"/>
+<rect x="434" y="204" width="138" height="58" rx="4" fill="#44403c"/><text x="503" y="228" text-anchor="middle" fill="#fafaf9" font-weight="600">width-4 convolution</text><text x="503" y="246" text-anchor="middle" fill="#d6d3d1">physical-stride loads</text>
+<path d="M572 233h34" stroke="#a8a29e"/><path d="M602 229l8 4-8 4z" fill="#a8a29e"/>
+<rect x="612" y="212" width="122" height="42" rx="4" fill="none" stroke="#a8a29e"/><text x="673" y="230" text-anchor="middle">output + state</text><text x="673" y="245" text-anchor="middle" fill="#78716c">BF16 writes</text>
+</g>
+<g font-family="Inter, sans-serif" font-size="11.5" fill="#57534e">
+<text x="16" y="302" font-weight="600">Address calculation replaces layout conversion:</text>
+<text x="16" y="324">1. Channels map across waves because channel stride is one in the input.</text>
+<text x="16" y="344">2. The three state taps are adjacent, while each new time position is 8,192 values away.</text>
+<text x="16" y="364">3. Output and recurrent state land in their consumer layouts, with no transpose or contiguous copy.</text>
+</g>
+</svg>

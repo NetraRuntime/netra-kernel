@@ -1,0 +1,80 @@
+{
+  "date_utc": "2026-08-22",
+  "hardware": "1x AMD Instinct MI350X (gfx950)",
+  "model": "Qwen3.6-35B-A3B-FP8",
+  "common_1k1k_contract": {
+    "requests": 384,
+    "concurrency": 128,
+    "input_tokens_per_request": 1024,
+    "output_tokens_per_request": 1024,
+    "temperature": 0,
+    "ignore_eos": true,
+    "seed": 20260809,
+    "prefix_cache": false
+  },
+  "results_1k1k": {
+    "netra_sglang_dflash_retained_best": {
+      "output_tokens_per_second": 11161.0,
+      "duration_seconds": 35.23125167995699,
+      "completed_requests": 384,
+      "total_input_tokens": 393216,
+      "total_output_tokens": 393216,
+      "client_errors": 0
+    },
+    "base_sglang_0_5_16": {
+      "output_tokens_per_second": 7330.233723924766,
+      "duration_seconds": 53.643037154,
+      "mean_ttft_ms": 1036.62,
+      "mean_tpot_ms": 16.43,
+      "completed_requests": 384,
+      "total_input_tokens": 393216,
+      "total_output_tokens": 393216,
+      "client_errors": 0
+    },
+    "stock_sglang_0_5_16_dflash": {
+      "output_tokens_per_second": 5658.276286963567,
+      "duration_seconds": 69.49395541287959,
+      "mean_ttft_ms": 806.9204261264531,
+      "mean_tpot_ms": 19.087676272935862,
+      "completed_requests": 384,
+      "total_input_tokens": 393216,
+      "total_output_tokens": 393216,
+      "client_errors": 0,
+      "image_id": "sha256:54ac680bad1832b8acd469533ae66f608b525cec3449bbd5f3d0238351e9b965",
+      "result_sha256": "3e06ea676bde66f8a2973dcfc168f444361a3a4a492ee36c22bae13797d8aa77"
+    },
+    "vllm_0_26_0": {
+      "output_tokens_per_second": 4684.507271550659,
+      "duration_seconds": 83.93967117695138,
+      "mean_ttft_ms": 1274.65,
+      "mean_tpot_ms": 26.046,
+      "completed_requests": 384,
+      "total_input_tokens": 393216,
+      "total_output_tokens": 393216,
+      "client_errors": 0
+    }
+  },
+  "matched_1k1k_ratios": {
+    "netra_over_base_sglang": 1.5225981081029103,
+    "netra_over_stock_sglang_dflash": 1.972508840848666,
+    "netra_over_vllm": 2.3825344594471085
+  },
+  "stock_sglang_dflash_1k8k": {
+    "requests": 128,
+    "concurrency": 128,
+    "input_tokens_per_request": 1024,
+    "output_tokens_per_request": 8192,
+    "output_tokens_per_second": 4628.614797009886,
+    "duration_seconds": 226.5420748940669,
+    "mean_ttft_ms": 1078.1424519354914,
+    "mean_tpot_ms": 16.020814146695617,
+    "completed_requests": 128,
+    "total_input_tokens": 131072,
+    "total_output_tokens": 1048576,
+    "client_errors": 0,
+    "result_sha256": "14cb2e9b63e2165b8a865b2c375787f9a4696e0407580bf1934ac73bcdde811f",
+    "host_evidence_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260822T012141Z-stock-sglang-dflash-dp1"
+  },
+  "netra_1k8k_repeat_controlled_mean_tokens_per_second": 12367.9256432475,
+  "netra_1k8k_over_stock_sglang_dflash": 2.672057664257837
+}

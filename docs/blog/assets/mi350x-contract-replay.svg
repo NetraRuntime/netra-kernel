@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="940" viewBox="0 0 1600 940" role="img" aria-labelledby="title desc">
+  <title id="title">From a Qwen3.6 checkpoint to graph-safe gfx950 replay</title>
+  <desc id="desc">A systems diagram shows the model frontend expanding a checkpoint into an operation contract, the tactic catalog selecting either a validated Netra kernel or a safe SGLang and AITER fallback, and the fixed ABI bridge preparing stable resources before graph replay.</desc>
+  <defs>
+    <marker id="arrow-dark" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#57534e"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0a9d82"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c78300"/>
+    </marker>
+    <marker id="arrow-light" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#d6d3d1"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-15%" width="120%" height="135%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#292524" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <style>
+    .title { font: 700 26px Inter, Arial, sans-serif; fill: #57534e; }
+    .sub { font: 500 19px Inter, Arial, sans-serif; fill: #716d66; }
+    .eyebrow { font: 700 14px Inter, Arial, sans-serif; letter-spacing: 2px; fill: #78716c; }
+    .box-title { font: 700 23px Inter, Arial, sans-serif; fill: #292524; }
+    .box-sub { font: 500 16px Inter, Arial, sans-serif; fill: #716d66; }
+    .chip { font: 600 14px Inter, Arial, sans-serif; fill: #44403c; }
+    .lane { font: 700 16px Inter, Arial, sans-serif; letter-spacing: 1.4px; fill: #57534e; }
+    .branch { font: 700 15px Inter, Arial, sans-serif; }
+    .hot { font: 700 17px Inter, Arial, sans-serif; fill: #ffffff; }
+    .hot-sub { font: 500 16px Inter, Arial, sans-serif; fill: #d6d3d1; }
+    .eyebrow-dark { font: 700 14px Inter, Arial, sans-serif; letter-spacing: 2px; fill: #a8a29e; }
+    .note { font: 600 16px Inter, Arial, sans-serif; fill: #57534e; }
+  </style>
+
+  <rect width="1600" height="940" fill="#ffffff"/>
+  <text x="64" y="68" class="title">From checkpoint structure to graph-safe replay</text>
+  <text x="64" y="106" class="sub">Specialization is selected by a complete operation contract, never by the model name alone.</text>
+
+  <rect x="56" y="145" width="1488" height="250" rx="26" fill="#ffffff" stroke="#dedad3" stroke-width="2"/>
+  <text x="86" y="183" class="eyebrow">MODEL EXPANSION</text>
+
+  <g>
+    <rect x="88" y="219" width="270" height="116" rx="18" fill="#f5f5f4" stroke="#a8a29e" stroke-width="2"/>
+    <text x="223" y="264" class="box-title" text-anchor="middle">Qwen3.6 checkpoint</text>
+    <text x="223" y="295" class="box-sub" text-anchor="middle">weights and model structure</text>
+  </g>
+
+  <path d="M 374 277 H 452" fill="none" stroke="#57534e" stroke-width="3" marker-end="url(#arrow-dark)"/>
+
+  <g>
+    <rect x="468" y="219" width="260" height="116" rx="18" fill="#e0f2fe" stroke="#1681b8" stroke-width="3"/>
+    <text x="598" y="264" class="box-title" text-anchor="middle">Model frontend</text>
+    <text x="598" y="295" class="box-sub" text-anchor="middle">expands model-neutral ops</text>
+  </g>
+
+  <path d="M 744 277 H 808" fill="none" stroke="#57534e" stroke-width="3" marker-end="url(#arrow-dark)"/>
+
+  <g>
+    <rect x="824" y="201" width="674" height="152" rx="18" fill="#f4f0fb" stroke="#6e2ab0" stroke-width="3"/>
+    <text x="854" y="241" class="box-title">Operation contract</text>
+    <text x="1466" y="241" class="box-sub" text-anchor="end">the complete dispatch key</text>
+    <g transform="translate(852 266)">
+      <rect width="106" height="32" rx="16" fill="#ffffff" stroke="#c4b5d4"/><text x="53" y="21" class="chip" text-anchor="middle">geometry</text>
+      <rect x="116" width="132" height="32" rx="16" fill="#ffffff" stroke="#c4b5d4"/><text x="182" y="21" class="chip" text-anchor="middle">representation</text>
+      <rect x="258" width="84" height="32" rx="16" fill="#ffffff" stroke="#c4b5d4"/><text x="300" y="21" class="chip" text-anchor="middle">layout</text>
+      <rect x="352" width="82" height="32" rx="16" fill="#ffffff" stroke="#c4b5d4"/><text x="393" y="21" class="chip" text-anchor="middle">phase</text>
+      <rect x="444" width="78" height="32" rx="16" fill="#ffffff" stroke="#c4b5d4"/><text x="483" y="21" class="chip" text-anchor="middle">state</text>
+      <rect x="532" width="58" height="32" rx="16" fill="#ffffff" stroke="#c4b5d4"/><text x="561" y="21" class="chip" text-anchor="middle">ABI</text>
+      <rect y="44" width="142" height="32" rx="16" fill="#ffffff" stroke="#c4b5d4"/><text x="71" y="65" class="chip" text-anchor="middle">numerical policy</text>
+      <rect x="152" y="44" width="170" height="32" rx="16" fill="#ffffff" stroke="#c4b5d4"/><text x="237" y="65" class="chip" text-anchor="middle">workspace ownership</text>
+      <rect x="332" y="44" width="170" height="32" rx="16" fill="#ffffff" stroke="#c4b5d4"/><text x="417" y="65" class="chip" text-anchor="middle">graph-capture role</text>
+    </g>
+  </g>
+
+  <rect x="56" y="420" width="1488" height="258" rx="26" fill="#ffffff" stroke="#dedad3" stroke-width="2"/>
+  <text x="86" y="458" class="eyebrow">BOUNDED DISPATCH</text>
+
+  <path d="M 900 354 V 438 H 258 V 476" fill="none" stroke="#57534e" stroke-width="3" marker-end="url(#arrow-dark)"/>
+
+  <g>
+    <rect x="108" y="492" width="300" height="122" rx="18" fill="#fff7e5" stroke="#de9d00" stroke-width="3"/>
+    <text x="258" y="538" class="box-title" text-anchor="middle">Tactic catalog</text>
+    <text x="258" y="570" class="box-sub" text-anchor="middle">prevalidated predicates only</text>
+    <text x="258" y="595" class="box-sub" text-anchor="middle">no request-time search</text>
+  </g>
+
+  <path d="M 424 532 H 648" fill="none" stroke="#0a9d82" stroke-width="4" marker-end="url(#arrow-green)"/>
+  <text x="536" y="516" class="branch" fill="#087d6a" text-anchor="middle">all predicates match</text>
+
+  <g>
+    <rect x="664" y="476" width="330" height="112" rx="18" fill="#e2f4ef" stroke="#0a9d82" stroke-width="3"/>
+    <text x="829" y="522" class="box-title" text-anchor="middle">Netra gfx950 tactic</text>
+    <text x="829" y="553" class="box-sub" text-anchor="middle">exact-shape specialized code</text>
+  </g>
+
+  <path d="M 424 590 C 650 590, 755 630, 1038 630" fill="none" stroke="#c78300" stroke-width="3" stroke-dasharray="9 8" marker-end="url(#arrow-amber)"/>
+  <text x="610" y="621" class="branch" fill="#9a6700" text-anchor="middle">any predicate misses</text>
+
+  <rect x="1054" y="476" width="424" height="112" rx="20" fill="#f5f5f4" stroke="#a8a29e" stroke-width="2"/>
+  <text x="1084" y="514" class="lane">WHY THE BRANCH IS SAFE</text>
+  <circle cx="1092" cy="548" r="5" fill="#0a9d82"/><text x="1110" y="554" class="note">A narrow tactic claims only proven shapes</text>
+  <circle cx="1092" cy="576" r="5" fill="#6e2ab0"/><text x="1110" y="582" class="note">The general path remains authoritative</text>
+
+  <g>
+    <rect x="1054" y="606" width="424" height="48" rx="16" fill="#fff7e5" stroke="#de9d00" stroke-width="2"/>
+    <text x="1266" y="637" class="box-title" text-anchor="middle">SGLang / AITER fallback</text>
+  </g>
+
+  <rect x="56" y="703" width="1488" height="181" rx="26" fill="#20201e"/>
+  <text x="86" y="741" class="eyebrow-dark">FIXED ABI BRIDGE  /  CAPTURE ONCE, REPLAY MANY</text>
+
+  <path d="M 829 588 V 715" fill="none" stroke="#0a9d82" stroke-width="4" marker-end="url(#arrow-green)"/>
+
+  <g transform="translate(100 766)">
+    <rect width="190" height="72" rx="16" fill="#34322f" stroke="#78716c" stroke-width="2"/>
+    <text x="95" y="31" class="hot" text-anchor="middle">Preload symbols</text>
+    <text x="95" y="54" class="hot-sub" text-anchor="middle">fixed code object</text>
+
+    <path d="M 206 36 H 264" fill="none" stroke="#d6d3d1" stroke-width="3" marker-end="url(#arrow-light)"/>
+
+    <rect x="280" width="222" height="72" rx="16" fill="#34322f" stroke="#78716c" stroke-width="2"/>
+    <text x="391" y="31" class="hot" text-anchor="middle">Allocate workspace</text>
+    <text x="391" y="54" class="hot-sub" text-anchor="middle">persistent addresses</text>
+
+    <path d="M 518 36 H 576" fill="none" stroke="#d6d3d1" stroke-width="3" marker-end="url(#arrow-light)"/>
+
+    <rect x="592" width="226" height="72" rx="16" fill="#34322f" stroke="#78716c" stroke-width="2"/>
+    <text x="705" y="31" class="hot" text-anchor="middle">Capture caller stream</text>
+    <text x="705" y="54" class="hot-sub" text-anchor="middle">fixed launch ABI</text>
+
+    <path d="M 834 36 H 892" fill="none" stroke="#0a9d82" stroke-width="4" marker-end="url(#arrow-green)"/>
+
+    <rect x="908" y="-8" width="424" height="88" rx="18" fill="#0a9d82"/>
+    <text x="1120" y="31" class="hot" text-anchor="middle">gfx950 graph replay</text>
+    <text x="1120" y="56" class="hot-sub" text-anchor="middle">no allocation, late lookup, or host sync</text>
+  </g>
+
+  <text x="800" y="918" class="sub" text-anchor="middle">The hot path replays stable functions, pointers, argument widths, and code objects.</text>
+</svg>

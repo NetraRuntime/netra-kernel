@@ -1,0 +1,11 @@
+<svg viewBox="0 0 760 250" role="img" xmlns="http://www.w3.org/2000/svg" aria-label="Horizontal throughput chart on eight AMD MI350X GPUs. Base SGLang reaches 23.72 thousand output tokens per second, vLLM 37.67 thousand, SGLang after Netra tuning 61.22 thousand, and the full Netra path 81.33 thousand.">
+<text x="16" y="22" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#57534e">Qwen3.6-35B-A3B-FP8, eight MI350X GPUs, 1K/1K</text>
+<g font-family="Inter, sans-serif" font-size="11.5" fill="#57534e">
+<text x="178" y="58" text-anchor="end">base SGLang</text><rect x="188" y="45" width="164" height="17" rx="2" fill="#a8a29e"/><text x="360" y="58" font-weight="600">23.72K</text>
+<text x="178" y="94" text-anchor="end">vLLM</text><rect x="188" y="81" width="260" height="17" rx="2" fill="#78716c"/><text x="456" y="94" font-weight="600">37.67K</text>
+<text x="178" y="130" text-anchor="end">SGLang after our tuning</text><rect x="188" y="117" width="423" height="17" rx="2" fill="#57534e"/><text x="619" y="130" font-weight="600">61.22K</text>
+<text x="178" y="166" text-anchor="end" font-weight="600">Netra</text><rect x="188" y="153" width="562" height="17" rx="2" fill="#dc2626"/><text x="742" y="148" text-anchor="end" font-weight="600" fill="#dc2626">81.33K</text>
+<text x="188" y="204" font-weight="600">3.43× base SGLang · 2.16× vLLM · 32.8% above SGLang after our tuning</text>
+<text x="188" y="228" font-size="10.5" fill="#78716c">Output tokens/s through the complete serving path.</text>
+</g>
+</svg>

@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "title": "Qwen3.6-35B-A3B-FP8 DP8 serving results on AMD Instinct MI350X",
+  "date": "2026-08-22",
+  "units": "output_tokens_per_second",
+  "public_reporting_note": "Speculative acceptance statistics are intentionally omitted. Every performance number remains attached to its measured request contract.",
+  "matched_sweep": {
+    "contract": {
+      "topology": "8 independent DP1/TP1 workers behind one frontend",
+      "input_tokens_per_request": 1024,
+      "output_tokens_per_request": 1024,
+      "concurrency": [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024],
+      "prefix_cache": false,
+      "all_points_passed_exactness_checks": true,
+      "measured_requests_per_stack": 16376,
+      "measured_input_tokens_per_stack": 16769024,
+      "measured_output_tokens_per_stack": 16769024
+    },
+    "series": {
+      "netra": [491.015, 954.868, 1833.089, 3177.760, 5761.782, 9648.515, 16376.256, 26458.687, 38756.502, 58693.743, 70584.856],
+      "sglang_default": [234.564, 486.399, 971.144, 1919.930, 3382.999, 6091.657, 10642.220, 16986.056, 21842.432, 23384.740, 23718.359],
+      "sglang_tuned_stock": [230.286, 476.573, 953.451, 1890.038, 3295.481, 6025.596, 10698.464, 16779.245, 25946.414, 39009.479, 61222.801],
+      "vllm": [82.316, 164.670, 329.127, 657.627, 1318.397, 2557.731, 4653.055, 8178.613, 14112.170, 23635.336, 37673.896]
+    },
+    "endpoint_ratios_at_concurrency_1024": {
+      "netra_over_sglang_default": 2.9759586656,
+      "netra_over_sglang_tuned_stock": 1.1529177830,
+      "netra_over_vllm": 1.8735746364,
+      "sglang_tuned_stock_over_sglang_default": 2.5812410125
+    },
+    "evidence_root": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260817T235543Z-dp8-bs1-bs1024-three-stack-sweep",
+    "report_sha256": "1f40a5c9ee6dbff43258e01a75795ce1c8d4fc265bb685a522046aca49c06f60",
+    "summary_sha256": "689b3f3c33f759dc7335c3873bc53a1685c2c7d3b079cc76d92ea6812155c07b"
+  },
+  "earlier_direct_comparison": {
+    "contract": {
+      "input_tokens_per_request": 1024,
+      "output_tokens_per_request": 1024,
+      "global_requests": 3072,
+      "global_concurrency": 1024,
+      "total_input_tokens": 3145728,
+      "total_output_tokens": 3145728,
+      "seed": 20260809,
+      "temperature": 0.0,
+      "prefix_cache": false
+    },
+    "netra": 69607.4215,
+    "sglang_tuned_stock": 62536.956629035056,
+    "vllm": 38027.43099408649,
+    "attribution_note": "The 62.54K SGLang result used the tuned stock configuration; it is not a vanilla/default-SGLang result.",
+    "comparison_warning": "This older direct campaign is retained as corroborating evidence and is not mixed with the later concurrency sweep or production lock."
+  },
+  "locked_production_profile": {
+    "contract": {
+      "topology": "routed DP8/TP1",
+      "input_tokens_per_request": 1024,
+      "output_tokens_per_request": 1024,
+      "global_requests": 3072,
+      "global_concurrency": 1024,
+      "routing": "round_robin",
+      "fresh_process_repetitions": 5
+    },
+    "retained_peak": 81331.5123,
+    "current_best_lock_sha256": "2823d64410ba4a87223ede5429c90677cc76aea628244dd3c4a1c810af76557a",
+    "comparison_warning": "This locked campaign is not a point from the matched multi-stack sweep and is not used to calculate cross-stack ratios."
+  },
+  "routed_frontend_study": {
+    "contract": {
+      "input_tokens_per_request": 1024,
+      "output_tokens_per_request": 1024,
+      "global_requests": 3072,
+      "global_concurrency": 1024,
+      "requests_per_worker": 384
+    },
+    "direct_worker_aggregate_ceiling": 81570.362652,
+    "single_client_routed": 75206.338640,
+    "eight_client_routed_samples": [79053.013494, 80091.097382, 76366.689063, 80575.965867, 80855.646354],
+    "eight_client_routed_mean": 79388.482432,
+    "eight_client_route_efficiency": 0.9732515567,
+    "eight_client_uplift_over_single_client": 0.0556089270,
+    "all_runs_passed": true
+  },
+  "long_generation_response_path": {
+    "contract": {
+      "input_tokens_per_request": 1024,
+      "output_tokens_per_request": 8192,
+      "global_requests": 1024,
+      "global_concurrency": 1024,
+      "total_output_tokens": 8388608
+    },
+    "original_cumulative_public_throughput": 55143,
+    "incremental_interval_1_public_throughput": 68454,
+    "incremental_interval_4_public_throughput": 68948,
+    "original_cumulative_loopback_bytes": 119111548478,
+    "incremental_interval_1_loopback_bytes": 6722980291,
+    "incremental_interval_4_loopback_bytes": 1824834171,
+    "interval_4_byte_reduction": 0.9846796201,
+    "interval_4_throughput_uplift": 0.2503490924
+  },
+  "modular_rebuild_no_regression_gate": {
+    "result": "passed_statistically_indistinguishable",
+    "requests_per_run": 3072,
+    "runs_passed": 5,
+    "claim_boundary": "Compatibility and no-regression evidence, not a speedup claim."
+  }
+}

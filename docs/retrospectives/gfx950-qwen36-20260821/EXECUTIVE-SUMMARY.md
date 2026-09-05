@@ -17,6 +17,23 @@ or 1.029x. Both arms produced identical output hashes in all 20 repeats. At
 35B input-16/output-1, the control won: 23.828 versus 24.951 ms, so Netra was
 4.71% slower. That negative is retained.
 
+A separate 2026-08-22 service-level campaign restored the retained-best 35B
+deployment byte for byte and compared complete engines on an exact 1K/1K
+contract. Netra reached **10,599.51 output tok/s**, versus 7,330.23 for base
+SGLang, 5,658.28 for stock SGLang DFlash, and 4,684.51 for vLLM: **1.45x,
+1.87x, and 2.26x**, respectively. Every arm completed 384/384 requests with
+exactly 393,216 input and 393,216 output tokens and zero client errors. The
+original Netra promotion remains the stronger repetition estimate at
+10,004.95 output tok/s across five fresh processes; 10,599.51 is a fresh
+hash-exact restoration, not a new multi-run mean.
+
+On exact 1K/8K, the retained Netra three-process mean was **12,367.93 output
+tok/s**, versus **4,628.61** for a fresh stock SGLang DFlash control, a
+**2.67x** ratio. All Netra repetitions and the stock control completed 128/128
+requests with exactly 1,048,576 output tokens. These are whole-server serving
+results, not evidence that any one kernel caused the complete delta; the
+stricter exact-output paired tests below continue to govern kernel promotion.
+
 The concurrent results are diagnostics, not production claims. Apparent Netra
 output-throughput deltas were +14.58% at 27B C128, +10.27% at C192, and +1.06%
 at 35B C64, but concurrent dFlash output hashes diverged across arms. The 35B

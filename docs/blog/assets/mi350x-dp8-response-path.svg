@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="830" viewBox="0 0 1600 830" role="img" aria-labelledby="title desc">
+  <title id="title">Optimizing the DP8 response path for 1K input and 8K output</title>
+  <desc id="desc">Incremental streaming and a stream interval of four reduce loopback traffic from 119.1 gigabytes to 1.82 gigabytes and raise public throughput from 55.14 to 68.95 thousand output tokens per second.</desc>
+  <rect width="1600" height="830" fill="#ffffff"/>
+  <style>.title{font:700 26px Inter,Arial,sans-serif;fill:#57534e}.sub{font:500 18px Inter,Arial,sans-serif;fill:#716d66}.step{font:700 25px Inter,Arial,sans-serif;fill:#20201e}.metric{font:700 47px Inter,Arial,sans-serif}.unit{font:500 17px Inter,Arial,sans-serif;fill:#625e58}.arrow{font:700 23px Inter,Arial,sans-serif;fill:#078f78}.small{font:500 16px Inter,Arial,sans-serif;fill:#716d66}.call{font:700 27px Inter,Arial,sans-serif;fill:#078f78}</style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0L0 6L9 3z" fill="#9b968e"/></marker></defs>
+  <text x="70" y="66" class="title">At 8K output, bytes outside the GPU became the kernel</text>
+  <text x="70" y="105" class="sub">Exact 1K/8K · 1,024 requests · global concurrency 1,024 · public routed endpoint</text>
+
+  <g transform="translate(70 170)">
+    <rect x="0" y="0" width="420" height="430" rx="25" fill="#fff3d9" stroke="#de9d00" stroke-width="3"/>
+    <text x="35" y="58" class="step">Cumulative output IDs</text>
+    <text x="35" y="104" class="small">Every event repeats the growing list</text>
+    <text x="35" y="190" class="metric" fill="#9a6500">119.1 GB</text>
+    <text x="35" y="224" class="unit">loopback transfer</text>
+    <text x="35" y="310" class="metric" fill="#20201e">55.14K</text>
+    <text x="35" y="344" class="unit">output tok/s</text>
+    <text x="35" y="397" class="small">Serialization grows roughly quadratically</text>
+
+    <path d="M440 215H535" stroke="#9b968e" stroke-width="5" marker-end="url(#arrow)"/><text x="487" y="190" class="arrow" text-anchor="middle">incremental</text>
+    <rect x="550" y="0" width="420" height="430" rx="25" fill="#e5f1f8" stroke="#1681b8" stroke-width="3"/>
+    <text x="585" y="58" class="step">Incremental · interval 1</text>
+    <text x="585" y="104" class="small">Send only newly produced token IDs</text>
+    <text x="585" y="190" class="metric" fill="#1681b8">6.72 GB</text>
+    <text x="585" y="224" class="unit">loopback transfer</text>
+    <text x="585" y="310" class="metric" fill="#20201e">68.45K</text>
+    <text x="585" y="344" class="unit">output tok/s</text>
+    <text x="585" y="397" class="small">94.4% fewer bytes</text>
+
+    <path d="M990 215H1085" stroke="#9b968e" stroke-width="5" marker-end="url(#arrow)"/><text x="1037" y="190" class="arrow" text-anchor="middle">coalesce</text>
+    <rect x="1100" y="0" width="420" height="430" rx="25" fill="#e2f4ef" stroke="#0a9d82" stroke-width="4"/>
+    <text x="1135" y="58" class="step">Incremental · interval 4</text>
+    <text x="1135" y="104" class="small">Four decode steps per response event</text>
+    <text x="1135" y="190" class="metric" fill="#078f78">1.82 GB</text>
+    <text x="1135" y="224" class="unit">loopback transfer</text>
+    <text x="1135" y="310" class="metric" fill="#078f78">68.95K</text>
+    <text x="1135" y="344" class="unit">output tok/s</text>
+    <text x="1135" y="397" class="small">98.5% fewer bytes · 25.0% faster</text>
+  </g>
+  <rect x="70" y="645" width="1460" height="105" rx="22" fill="#fff" stroke="#dedad3" stroke-width="2"/>
+  <text x="105" y="689" class="call">The public path overtook the original direct-worker aggregate.</text>
+  <text x="105" y="722" class="small">The exact-token client reconstructs either stream representation. Interval 8 and larger notification batches were measured and rejected.</text>
+  <text x="800" y="802" class="sub" text-anchor="middle">Once GPU utilization is high, protocol complexity can dominate the next optimization step.</text>
+</svg>

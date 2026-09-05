@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1130" viewBox="0 0 1600 1130" role="img" aria-labelledby="title desc">
+  <title id="title">Where the baseline Qwen3.6 graph wasted work on AMD MI350X</title>
+  <desc id="desc">Four before-optimization panels show routed MoE materializing and requantizing an intermediate tensor, grouped-query attention rereading shared KV while a workgroup scans a long prefix, Gated DeltaNet writing candidate states that are later discarded, and row-wise argmax launching too few workgroups to fill the GPU.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#78716c"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c9574d"/>
+    </marker>
+    <pattern id="waste" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="10" height="10" fill="#fff1ef"/>
+      <rect width="3" height="10" fill="#f4c6c1"/>
+    </pattern>
+    <filter id="shadow" x="-10%" y="-15%" width="120%" height="135%">
+      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#292524" flood-opacity="0.07"/>
+    </filter>
+  </defs>
+  <style>
+    .title { font: 700 26px Inter, Arial, sans-serif; fill: #57534e; }
+    .sub { font: 500 19px Inter, Arial, sans-serif; fill: #716d66; }
+    .eyebrow { font: 700 14px Inter, Arial, sans-serif; letter-spacing: 2px; fill: #a44740; }
+    .panel-title { font: 700 24px Inter, Arial, sans-serif; fill: #292524; }
+    .panel-sub { font: 500 16px Inter, Arial, sans-serif; fill: #716d66; }
+    .box { font: 700 16px Inter, Arial, sans-serif; fill: #34322f; }
+    .tiny { font: 500 14px Inter, Arial, sans-serif; fill: #716d66; }
+    .problem { font: 700 16px Inter, Arial, sans-serif; fill: #a44740; }
+    .metric { font: 700 21px Inter, Arial, sans-serif; fill: #a44740; }
+    .footer { font: 600 19px Inter, Arial, sans-serif; fill: #57534e; }
+  </style>
+
+  <rect width="1600" height="1130" fill="#ffffff"/>
+  <text x="64" y="67" class="eyebrow">BEFORE OPTIMIZATION</text>
+  <text x="64" y="120" class="title">The baseline did the right math in the wrong shape</text>
+  <text x="64" y="158" class="sub">The main losses came from tensor boundaries, repeated reads, dead state writes, and too little parallel work.</text>
+
+  <g transform="translate(64 202)">
+    <rect width="716" height="388" rx="24" fill="#ffffff" stroke="#dedad3" stroke-width="2"/>
+    <text x="28" y="43" class="panel-title">1. Routed MoE materialized every handoff</text>
+    <text x="28" y="72" class="panel-sub">The expert GEMMs were separated by framework-visible tensors and routing work.</text>
+
+    <g transform="translate(30 112)">
+      <rect width="136" height="70" rx="14" fill="#e0f2fe" stroke="#1681b8" stroke-width="2"/>
+      <text x="68" y="31" class="box" text-anchor="middle">gate/up</text><text x="68" y="53" class="tiny" text-anchor="middle">FP8 MFMA</text>
+      <path d="M 148 35 H 185" fill="none" stroke="#78716c" stroke-width="3" marker-end="url(#arrow)"/>
+      <rect x="198" width="142" height="70" rx="14" fill="url(#waste)" stroke="#c9574d" stroke-width="2"/>
+      <text x="269" y="29" class="box" text-anchor="middle">write BF16</text><text x="269" y="52" class="tiny" text-anchor="middle">full activation</text>
+      <path d="M 352 35 H 389" fill="none" stroke="#c9574d" stroke-width="3" marker-end="url(#arrow-red)"/>
+      <rect x="402" width="142" height="70" rx="14" fill="url(#waste)" stroke="#c9574d" stroke-width="2"/>
+      <text x="473" y="29" class="box" text-anchor="middle">reload + quant</text><text x="473" y="52" class="tiny" text-anchor="middle">FP8 + scales</text>
+      <path d="M 556 35 H 593" fill="none" stroke="#78716c" stroke-width="3" marker-end="url(#arrow)"/>
+      <rect x="606" width="90" height="70" rx="14" fill="#e0f2fe" stroke="#1681b8" stroke-width="2"/>
+      <text x="651" y="31" class="box" text-anchor="middle">down</text><text x="651" y="53" class="tiny" text-anchor="middle">MFMA</text>
+    </g>
+
+    <path d="M 96 229 H 570" fill="none" stroke="#c9574d" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow-red)"/>
+    <text x="332" y="218" class="problem" text-anchor="middle">route maps and shared-expert metadata crossed the framework again</text>
+
+    <rect x="28" y="274" width="660" height="82" rx="16" fill="#fff1ef" stroke="#e8aca6"/>
+    <text x="50" y="306" class="problem">Cost exposed inside every captured decode graph</text>
+    <text x="50" y="334" class="metric">HBM round trip  +  extra launches  +  redundant routing</text>
+  </g>
+
+  <g transform="translate(820 202)">
+    <rect width="716" height="388" rx="24" fill="#ffffff" stroke="#dedad3" stroke-width="2"/>
+    <text x="28" y="43" class="panel-title">2. Attention repeated shared reads, then serialized the tail</text>
+    <text x="28" y="72" class="panel-sub">GQA shared KV logically, but the baseline schedule did not share the traffic.</text>
+
+    <g transform="translate(34 108)">
+      <g>
+        <rect x="0" y="0" width="58" height="32" rx="10" fill="#f4f0fb" stroke="#9b64c7"/><text x="29" y="21" class="box" text-anchor="middle">Q₀</text>
+        <rect x="0" y="42" width="58" height="32" rx="10" fill="#f4f0fb" stroke="#9b64c7"/><text x="29" y="63" class="box" text-anchor="middle">Q₁</text>
+        <rect x="0" y="84" width="58" height="32" rx="10" fill="#f4f0fb" stroke="#9b64c7"/><text x="29" y="105" class="box" text-anchor="middle">Q₂</text>
+        <rect x="0" y="126" width="58" height="32" rx="10" fill="#f4f0fb" stroke="#9b64c7"/><text x="29" y="147" class="box" text-anchor="middle">Q₃</text>
+      </g>
+      <g stroke="#c9574d" stroke-width="2" marker-end="url(#arrow-red)">
+        <path d="M 68 16 H 167"/><path d="M 68 58 H 167"/><path d="M 68 100 H 167"/><path d="M 68 142 H 167"/>
+      </g>
+      <rect x="180" y="0" width="166" height="158" rx="16" fill="url(#waste)" stroke="#c9574d" stroke-width="2"/>
+      <text x="263" y="55" class="box" text-anchor="middle">same FP8 K/V</text>
+      <text x="263" y="80" class="box" text-anchor="middle">loaded per head</text>
+      <text x="263" y="112" class="metric" text-anchor="middle">repeated HBM</text>
+      <text x="263" y="137" class="tiny" text-anchor="middle">despite one GQA group</text>
+
+      <path d="M 358 79 H 397" fill="none" stroke="#78716c" stroke-width="3" marker-end="url(#arrow)"/>
+      <rect x="410" y="0" width="238" height="158" rx="16" fill="#f5f5f4" stroke="#a8a29e" stroke-width="2"/>
+      <text x="529" y="42" class="box" text-anchor="middle">one workgroup</text>
+      <rect x="434" y="61" width="190" height="22" rx="8" fill="#d6d3d1"/>
+      <rect x="434" y="96" width="190" height="22" rx="8" fill="#d6d3d1"/>
+      <text x="529" y="144" class="problem" text-anchor="middle">49,152 positions in series</text>
+    </g>
+
+    <rect x="28" y="300" width="660" height="56" rx="16" fill="#fff1ef" stroke="#e8aca6"/>
+    <text x="50" y="336" class="metric">Long-prefix verification: 1.108661 ms</text>
+  </g>
+
+  <g transform="translate(64 622)">
+    <rect width="716" height="388" rx="24" fill="#ffffff" stroke="#dedad3" stroke-width="2"/>
+    <text x="28" y="43" class="panel-title">3. GDN wrote states that acceptance would discard</text>
+    <text x="28" y="72" class="panel-sub">Verification computed twelve candidate positions before knowing the accepted prefix.</text>
+
+    <g transform="translate(30 112)">
+      <rect width="150" height="74" rx="15" fill="#e0f2fe" stroke="#1681b8" stroke-width="2"/>
+      <text x="75" y="32" class="box" text-anchor="middle">M12 recurrence</text><text x="75" y="55" class="tiny" text-anchor="middle">temporary states</text>
+      <path d="M 162 37 H 202" fill="none" stroke="#c9574d" stroke-width="3" marker-end="url(#arrow-red)"/>
+      <rect x="215" width="236" height="74" rx="15" fill="url(#waste)" stroke="#c9574d" stroke-width="2"/>
+      <text x="333" y="31" class="box" text-anchor="middle">write all candidate states</text>
+      <text x="333" y="55" class="tiny" text-anchor="middle">global memory trajectory</text>
+      <path d="M 463 37 H 503" fill="none" stroke="#78716c" stroke-width="3" marker-end="url(#arrow)"/>
+      <rect x="516" width="150" height="74" rx="15" fill="#f5f5f4" stroke="#a8a29e" stroke-width="2"/>
+      <text x="591" y="31" class="box" text-anchor="middle">accept prefix</text><text x="591" y="55" class="tiny" text-anchor="middle">discard the rest</text>
+    </g>
+
+    <g transform="translate(64 228)">
+      <rect width="52" height="34" rx="8" fill="#e2f4ef" stroke="#0a9d82"/><text x="26" y="23" class="tiny" text-anchor="middle">S₁</text>
+      <rect x="62" width="52" height="34" rx="8" fill="#e2f4ef" stroke="#0a9d82"/><text x="88" y="23" class="tiny" text-anchor="middle">S₂</text>
+      <rect x="124" width="52" height="34" rx="8" fill="#e2f4ef" stroke="#0a9d82"/><text x="150" y="23" class="tiny" text-anchor="middle">S₃</text>
+      <rect x="186" width="52" height="34" rx="8" fill="url(#waste)" stroke="#c9574d"/><text x="212" y="23" class="tiny" text-anchor="middle">S₄</text>
+      <rect x="248" width="52" height="34" rx="8" fill="url(#waste)" stroke="#c9574d"/><text x="274" y="23" class="tiny" text-anchor="middle">S₅</text>
+      <text x="330" y="23" class="problem">… unaccepted states</text>
+    </g>
+
+    <rect x="28" y="300" width="660" height="56" rx="16" fill="#fff1ef" stroke="#e8aca6"/>
+    <text x="50" y="336" class="metric">About 805 MiB of dead global writes at the validated shape</text>
+  </g>
+
+  <g transform="translate(820 622)">
+    <rect width="716" height="388" rx="24" fill="#ffffff" stroke="#dedad3" stroke-width="2"/>
+    <text x="28" y="43" class="panel-title">4. Sampling exposed only sixteen workgroups</text>
+    <text x="28" y="72" class="panel-sub">Each row-wise argmax walked 248,320 logits while most of gfx950 waited.</text>
+
+    <g transform="translate(34 113)">
+      <g fill="#1681b8">
+        <rect width="18" height="18" rx="4"/><rect x="26" width="18" height="18" rx="4"/><rect x="52" width="18" height="18" rx="4"/><rect x="78" width="18" height="18" rx="4"/>
+        <rect y="26" width="18" height="18" rx="4"/><rect x="26" y="26" width="18" height="18" rx="4"/><rect x="52" y="26" width="18" height="18" rx="4"/><rect x="78" y="26" width="18" height="18" rx="4"/>
+        <rect y="52" width="18" height="18" rx="4"/><rect x="26" y="52" width="18" height="18" rx="4"/><rect x="52" y="52" width="18" height="18" rx="4"/><rect x="78" y="52" width="18" height="18" rx="4"/>
+        <rect y="78" width="18" height="18" rx="4"/><rect x="26" y="78" width="18" height="18" rx="4"/><rect x="52" y="78" width="18" height="18" rx="4"/><rect x="78" y="78" width="18" height="18" rx="4"/>
+      </g>
+      <text x="48" y="127" class="problem" text-anchor="middle">16 active</text>
+      <path d="M 116 48 H 165" fill="none" stroke="#78716c" stroke-width="3" marker-end="url(#arrow)"/>
+      <g fill="#e7e5e4">
+        <rect x="180" width="438" height="18" rx="8"/><rect x="180" y="30" width="438" height="18" rx="8"/><rect x="180" y="60" width="438" height="18" rx="8"/><rect x="180" y="90" width="438" height="18" rx="8"/>
+      </g>
+      <g fill="#c9574d">
+        <rect x="180" width="72" height="18" rx="8"/><rect x="180" y="30" width="72" height="18" rx="8"/><rect x="180" y="60" width="72" height="18" rx="8"/><rect x="180" y="90" width="72" height="18" rx="8"/>
+      </g>
+      <text x="399" y="138" class="problem" text-anchor="middle">long serial span per row</text>
+    </g>
+
+    <rect x="28" y="300" width="660" height="56" rx="16" fill="#fff1ef" stroke="#e8aca6"/>
+    <text x="50" y="336" class="metric">16 workgroups on 256 CUs: 56.304 µs</text>
+  </g>
+
+  <rect x="64" y="1040" width="1472" height="58" rx="18" fill="#f5f5f4" stroke="#d6d3d1"/>
+  <text x="800" y="1077" class="footer" text-anchor="middle">The kernels were correct. The waste lived between operators and in how work was exposed to the GPU.</text>
+</svg>

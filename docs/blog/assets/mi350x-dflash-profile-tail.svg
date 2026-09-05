@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="930" viewBox="0 0 1600 930" role="img" aria-labelledby="title desc">
+  <title id="title">DFlash profile selection and forced-length tail behavior</title>
+  <desc id="desc">Two clean timeline panels contrast a healthy speculative batch with a forced-length workload whose final requests form a long low-utilization tail.</desc>
+  <rect width="1600" height="930" fill="#ffffff"/>
+  <style>
+    .title { font: 700 26px Inter, Arial, sans-serif; fill: #57534e; }
+    .panel { font: 700 27px Inter, Arial, sans-serif; fill: #20201e; }
+    .label { font: 600 19px Inter, Arial, sans-serif; fill: #34322f; }
+    .small { font: 500 17px Inter, Arial, sans-serif; fill: #746f68; }
+    .axis { font: 600 18px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #746f68; }
+  </style>
+  <text x="70" y="70" class="title">DFlash is a profile, not a switch</text>
+  <text x="70" y="108" class="small">Useful batch width determines whether drafting repays verification and recurrent-state work.</text>
+
+  <rect x="60" y="145" width="1480" height="320" rx="24" fill="#ffffff" stroke="#dfdbd3" stroke-width="2"/>
+  <text x="95" y="193" class="panel">(a) Healthy batch: draft and verify stay amortized</text>
+  <text x="95" y="224" class="small">Natural stopping or a dense active batch keeps enough requests moving together.</text>
+  <text x="305" y="263" class="axis">+0 ms</text>
+  <text x="710" y="263" class="axis">+25 ms</text>
+  <text x="1115" y="263" class="axis">+50 ms</text>
+  <line x1="305" y1="274" x2="1465" y2="274" stroke="#ece8e1" stroke-width="2"/>
+  <g>
+    <text x="95" y="306" class="label">requests</text>
+    <rect x="305" y="289" width="1160" height="19" rx="6" fill="#e7e3dc"/>
+    <rect x="305" y="289" width="165" height="19" rx="6" fill="#1681b8"/><rect x="470" y="289" width="235" height="19" fill="#de9d00"/><rect x="705" y="289" width="160" height="19" fill="#6e2ab0"/><rect x="865" y="289" width="600" height="19" rx="6" fill="#0a9d82"/>
+    <rect x="305" y="321" width="1160" height="19" rx="6" fill="#e7e3dc"/>
+    <rect x="305" y="321" width="165" height="19" rx="6" fill="#1681b8"/><rect x="470" y="321" width="235" height="19" fill="#de9d00"/><rect x="705" y="321" width="160" height="19" fill="#6e2ab0"/><rect x="865" y="321" width="600" height="19" rx="6" fill="#0a9d82"/>
+    <rect x="305" y="353" width="1160" height="19" rx="6" fill="#e7e3dc"/>
+    <rect x="305" y="353" width="165" height="19" rx="6" fill="#1681b8"/><rect x="470" y="353" width="235" height="19" fill="#de9d00"/><rect x="705" y="353" width="160" height="19" fill="#6e2ab0"/><rect x="865" y="353" width="600" height="19" rx="6" fill="#0a9d82"/>
+    <rect x="305" y="385" width="1160" height="19" rx="6" fill="#e7e3dc"/>
+    <rect x="305" y="385" width="165" height="19" rx="6" fill="#1681b8"/><rect x="470" y="385" width="235" height="19" fill="#de9d00"/><rect x="705" y="385" width="160" height="19" fill="#6e2ab0"/><rect x="865" y="385" width="600" height="19" rx="6" fill="#0a9d82"/>
+  </g>
+  <text x="305" y="439" class="small">wide active batch</text>
+  <line x1="305" y1="420" x2="1465" y2="420" stroke="#0a9d82" stroke-width="5"/>
+
+  <rect x="60" y="495" width="1480" height="320" rx="24" fill="#ffffff" stroke="#dfdbd3" stroke-width="2"/>
+  <text x="95" y="543" class="panel">(b) Forced-length tail: the batch collapses before the work ends</text>
+  <text x="95" y="574" class="small">Most requests finish together; a few difficult continuations keep drafting at low occupancy.</text>
+  <text x="305" y="613" class="axis">+0 s</text>
+  <text x="710" y="613" class="axis">+30 s</text>
+  <text x="1115" y="613" class="axis">+60 s</text>
+  <line x1="305" y1="624" x2="1465" y2="624" stroke="#ece8e1" stroke-width="2"/>
+  <g>
+    <text x="95" y="656" class="label">requests</text>
+    <rect x="305" y="639" width="720" height="18" rx="6" fill="#1681b8"/><rect x="400" y="639" width="350" height="18" fill="#de9d00" opacity="0.92"/><rect x="750" y="639" width="140" height="18" fill="#6e2ab0"/><rect x="890" y="639" width="135" height="18" rx="6" fill="#0a9d82"/>
+    <rect x="305" y="669" width="770" height="18" rx="6" fill="#1681b8"/><rect x="420" y="669" width="345" height="18" fill="#de9d00"/><rect x="765" y="669" width="150" height="18" fill="#6e2ab0"/><rect x="915" y="669" width="160" height="18" rx="6" fill="#0a9d82"/>
+    <rect x="305" y="699" width="825" height="18" rx="6" fill="#1681b8"/><rect x="455" y="699" width="360" height="18" fill="#de9d00"/><rect x="815" y="699" width="145" height="18" fill="#6e2ab0"/><rect x="960" y="699" width="170" height="18" rx="6" fill="#0a9d82"/>
+    <rect x="305" y="729" width="1160" height="18" rx="6" fill="#e7e3dc"/>
+    <rect x="305" y="729" width="160" height="18" rx="6" fill="#1681b8"/><rect x="465" y="729" width="270" height="18" fill="#de9d00"/><rect x="735" y="729" width="170" height="18" fill="#6e2ab0"/>
+    <rect x="905" y="729" width="560" height="18" rx="6" fill="#0a9d82"/>
+    <rect x="305" y="759" width="1160" height="18" rx="6" fill="#e7e3dc"/>
+    <rect x="305" y="759" width="160" height="18" rx="6" fill="#1681b8"/><rect x="465" y="759" width="270" height="18" fill="#de9d00"/><rect x="735" y="759" width="170" height="18" fill="#6e2ab0"/>
+    <rect x="905" y="759" width="560" height="18" rx="6" fill="#0a9d82"/>
+  </g>
+  <text x="305" y="799" class="small">128 active</text>
+  <text x="1015" y="799" class="small">few active · long tail</text>
+  <line x1="305" y1="786" x2="930" y2="786" stroke="#0a9d82" stroke-width="5"/>
+  <line x1="930" y1="786" x2="1465" y2="786" stroke="#96928b" stroke-width="5" stroke-dasharray="10 10"/>
+
+  <rect x="95" y="853" width="22" height="22" rx="5" fill="#1681b8"/><text x="130" y="871" class="small">prefill</text>
+  <rect x="260" y="853" width="22" height="22" rx="5" fill="#de9d00"/><text x="295" y="871" class="small">draft</text>
+  <rect x="410" y="853" width="22" height="22" rx="5" fill="#6e2ab0"/><text x="445" y="871" class="small">verify</text>
+  <rect x="575" y="853" width="22" height="22" rx="5" fill="#0a9d82"/><text x="610" y="871" class="small">committed decode</text>
+  <line x1="850" y1="864" x2="955" y2="864" stroke="#0a9d82" stroke-width="5"/><text x="970" y="871" class="small">DFlash-favorable</text>
+  <line x1="1190" y1="864" x2="1295" y2="864" stroke="#96928b" stroke-width="5" stroke-dasharray="10 10"/><text x="1310" y="871" class="small">tail-sensitive</text>
+  <text x="800" y="912" class="small" text-anchor="middle">Schematic timeline; colors encode phases, not measured phase duration.</text>
+</svg>
