@@ -13,6 +13,7 @@ import torch
 
 
 COLS = 129280
+PADDED_COLS = 131072
 CHUNKS = 16
 TIMING_ROW_SHAPES = (64, 128, 256, 384)
 
@@ -30,6 +31,18 @@ class Bridge:
             ctypes.c_void_p,
         ]
         self.library.netra_dsv4_dspark_argmax_f32_launch.restype = ctypes.c_int
+        self.library.netra_dsv4_dspark_argmax_bf16_base_bias_launch_v1.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.c_uint32,
+            ctypes.c_uint32,
+            ctypes.c_uint32,
+            ctypes.c_void_p,
+        ]
+        self.library.netra_dsv4_dspark_argmax_bf16_base_bias_launch_v1.restype = ctypes.c_int
         self.library.netra_dsv4_dspark_argmax_f32_last_error.argtypes = []
         self.library.netra_dsv4_dspark_argmax_f32_last_error.restype = ctypes.c_char_p
         self.check(
@@ -61,6 +74,58 @@ class Bridge:
             ),
             "launch",
         )
+
+    def launch_two_input(
+        self,
+        output: torch.Tensor,
+        partials: torch.Tensor,
+        base: torch.Tensor,
+        bias: torch.Tensor,
+    ) -> None:
+        self.check(
+            self.two_input_status(output, partials, base, bias),
+            "launch_two_input",
+        )
+
+    def two_input_status(
+        self,
+        output: torch.Tensor,
+        partials: torch.Tensor,
+        base: torch.Tensor,
+        bias: torch.Tensor,
+        *,
+        valid_width: int = COLS,
+        padded_width: int | None = None,
+        base_row_stride: int | None = None,
+        rows: int | None = None,
+        base_pointer: int | None = None,
+    ) -> int:
+        stream = torch.cuda.current_stream(base.device)
+        return int(
+            self.library.netra_dsv4_dspark_argmax_bf16_base_bias_launch_v1(
+                ctypes.c_void_p(output.data_ptr()),
+                ctypes.c_void_p(partials.data_ptr()),
+                ctypes.c_void_p(
+                    base.data_ptr() if base_pointer is None else base_pointer
+                ),
+                ctypes.c_void_p(bias.data_ptr()),
+                ctypes.c_uint32(valid_width),
+                ctypes.c_uint32(
+                    base.shape[1] if padded_width is None else padded_width
+                ),
+                ctypes.c_uint32(
+                    base.stride(0)
+                    if base_row_stride is None
+                    else base_row_stride
+                ),
+                ctypes.c_uint32(base.shape[0] if rows is None else rows),
+                ctypes.c_void_p(stream.cuda_stream),
+            )
+        )
+
+    def error_text(self) -> str:
+        raw = self.library.netra_dsv4_dspark_argmax_f32_last_error()
+        return raw.decode() if raw else ""
 
 
 def special_cases(device: torch.device) -> list[tuple[str, torch.Tensor]]:
@@ -150,6 +215,129 @@ def main() -> None:
         )
         del logits, output, partials, reference
 
+    two_input_results = []
+    for rows in (1, 3, 7, 64, 384):
+        generator = torch.Generator(device=device).manual_seed(424242 + rows)
+        base_storage = None
+        if rows == 7:
+            base_storage = torch.randn(
+                (rows, 5, PADDED_COLS),
+                dtype=torch.bfloat16,
+                device=device,
+                generator=generator,
+            )
+            base = base_storage[:, 2, :]
+        elif rows == 3:
+            base = torch.randn(
+                (rows, COLS),
+                dtype=torch.bfloat16,
+                device=device,
+                generator=generator,
+            )
+        else:
+            base = torch.randn(
+                (rows, PADDED_COLS),
+                dtype=torch.bfloat16,
+                device=device,
+                generator=generator,
+            )
+        bias = torch.randn(
+            (rows, COLS),
+            dtype=torch.bfloat16,
+            device=device,
+            generator=generator,
+        )
+        # Padding contains tempting maxima and must never participate.
+        base[:, COLS:] = torch.inf
+        # Exact ties, signed zero, infinity, and NaN ordering across chunks.
+        base[:, 3] = 4
+        bias[:, 3] = 5
+        base[:, 120000] = 4
+        bias[:, 120000] = 5
+        if rows >= 3:
+            base[1, 17] = torch.inf
+            base[1, 100000] = torch.inf
+            base[2, 12000] = torch.nan
+            base[2, 12345] = torch.nan
+        if rows >= 64:
+            base[3, :COLS] = -100
+            bias[3, :] = 0
+            base[3, 0] = 10
+            base[3, COLS - 1] = 10
+            base[4, :COLS] = -100
+            bias[4, :] = 0
+            base[4, 8079] = 10
+            base[4, 8080] = 10
+            base[5, :COLS] = -torch.inf
+            bias[5, :] = 0
+            bias[5, COLS // 2] = torch.inf
+        reference_logits = base[:, :COLS].float() + bias.float()
+        reference = torch.argmax(reference_logits, dim=-1)
+        output = torch.empty((rows,), dtype=torch.int64, device=device)
+        partials = torch.empty((rows, CHUNKS, 2), dtype=torch.int32, device=device)
+        repeat_count = 100 if rows == 7 else 1
+        if rows == 3:
+            nondefault_stream = torch.cuda.Stream(device=device)
+            with torch.cuda.stream(nondefault_stream):
+                bridge.launch_two_input(output, partials, base, bias)
+            nondefault_stream.synchronize()
+        else:
+            for _ in range(repeat_count):
+                bridge.launch_two_input(output, partials, base, bias)
+        graph_replay = rows == 64
+        if graph_replay:
+            torch.cuda.synchronize()
+            graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                bridge.launch_two_input(output, partials, base, bias)
+            graph.replay()
+        torch.cuda.synchronize()
+        mismatch = torch.nonzero(output != reference).flatten().cpu().tolist()
+        two_input_results.append(
+            {
+                "rows": rows,
+                "base_row_stride": base.stride(0),
+                "nondefault_stream": rows == 3,
+                "repeat_count": repeat_count,
+                "graph_replay": graph_replay,
+                "mismatch_count": len(mismatch),
+                "mismatch_rows": mismatch,
+                "pass": not mismatch,
+            }
+        )
+
+    invalid_base = torch.zeros((1, COLS), dtype=torch.bfloat16, device=device)
+    invalid_bias = torch.zeros((1, COLS), dtype=torch.bfloat16, device=device)
+    invalid_output = torch.empty((1,), dtype=torch.int64, device=device)
+    invalid_partials = torch.empty((1, CHUNKS, 2), dtype=torch.int32, device=device)
+    invalid_specs = (
+        ("valid_width", {"valid_width": COLS - 1}),
+        ("padded_width", {"padded_width": COLS + 1}),
+        ("base_row_stride", {"base_row_stride": COLS - 1}),
+        ("unaligned_row_stride", {"base_row_stride": COLS + 1}),
+        ("row_address_overflow", {"base_row_stride": 0xFFFFFFFC, "rows": 2}),
+        ("rows_zero", {"rows": 0}),
+        ("null_base", {"base_pointer": 0}),
+        ("unaligned_base", {"base_pointer": invalid_base.data_ptr() + 2}),
+    )
+    invalid_results = []
+    for name, overrides in invalid_specs:
+        status = bridge.two_input_status(
+            invalid_output,
+            invalid_partials,
+            invalid_base,
+            invalid_bias,
+            **overrides,
+        )
+        invalid_results.append(
+            {
+                "name": name,
+                "status": status,
+                "error": bridge.error_text(),
+                "pass": status != 0,
+            }
+        )
+
     def elapsed_us(fn, iterations: int) -> float:
         begin = torch.cuda.Event(enable_timing=True)
         end = torch.cuda.Event(enable_timing=True)
@@ -197,7 +385,12 @@ def main() -> None:
                 "exact": exact,
             }
         )
-    passed = timing_exact and all(bool(result["pass"]) for result in case_results)
+    passed = (
+        timing_exact
+        and all(bool(result["pass"]) for result in case_results)
+        and all(bool(result["pass"]) for result in two_input_results)
+        and all(bool(result["pass"]) for result in invalid_results)
+    )
     result = {
         "target": target,
         "dtype": "torch.float32",
@@ -215,6 +408,8 @@ def main() -> None:
         "timings": timings,
         "pass": passed,
         "cases": case_results,
+        "two_input_cases": two_input_results,
+        "invalid_abi_cases": invalid_results,
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     if not passed:
