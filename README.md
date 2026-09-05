@@ -1,41 +1,52 @@
-# Netra MXFP4 kernels for gfx1151
+# Netra target-specific AMDGCN kernels
 
-Hand-written AMDGCN kernels for Qwen3.6-35B-A3B on the AMD Ryzen AI Max+
-PRO 395 (`gfx1151`). The repository is MXFP4-only. HIP and Python code is
-limited to launching, correctness checking, checkpoint conversion, profiling,
-and serving integration.
+Hand-written AMDGCN kernels organized by GPU architecture and checkpoint
+format. The retained `gfx1151/mxfp4` implementation targets Ryzen AI Max+
+wave32/RDNA. The new `gfx950/fp8` implementation targets AMD Instinct MI350X
+CDNA4 wave64 and the native Qwen3.6 FP8 E4M3 128×128-block checkpoint.
 
-All build, validation, profiling, and benchmark commands must run inside the
-`Netra` LXC.
+HIP and Python code is limited to module loading, dispatch, graph/workspace
+management, correctness checking, profiling, and serving integration. Targeted
+compute replacements are raw `.s` files.
+
+The gfx1151 work runs inside its `Netra` LXC. All gfx950 builds, validation,
+profiles, and benchmarks run on the MI350X server.
 
 ## Repository layout
 
 ```text
-kernels/gfx1151/mxfp4/
-  decode/        M=1 decode kernels and retained experiments
-  verify/        M=12 speculative-verification kernels
-  prefill/       WMMA prefill kernels, shared include, and experiments
-  lm_head/       MXFP4 LM-head kernels
-  serving/       SGLang ABI kernels
-  epilogue/      Raw assembly epilogues
-harness/gfx1151/mxfp4/
+kernels/
+  gfx1151/mxfp4/
+    decode/      M=1 decode kernels and retained experiments
+    verify/      M=12 speculative-verification kernels
+    prefill/     WMMA prefill kernels, shared include, and experiments
+    lm_head/     MXFP4 LM-head kernels
+    serving/     SGLang ABI kernels
+    epilogue/    Raw assembly epilogues
+  gfx950/fp8/
+    moe/decode/  MI350X Qwen FP8 decode experiments and accepted kernels
+harness/
+  gfx1151/mxfp4/
+  gfx950/fp8/
   ...            HIP launch, timing, and correctness harnesses
+runtime/
+  gfx950/fp8/    HIP module/dispatch bridges with allocation-free launches
 integrations/sglang/
   ...            SGLang bridge, launch script, and consolidated patch
 tools/
-  build/         Reproducible gfx1151 builds
+  build/         Reproducible architecture-specific builds
   benchmark/     Kernel and serving benchmarks
   checkpoint/    One-time real-checkpoint extraction and repacking
   profiling/     rocprofv3 request and trace analysis tools
   triton/        MXFP4 reference-baseline preparation
-tests/gfx1151/   Real-checkpoint integration correctness gates
+tests/gfx1151/   Retained gfx1151 real-checkpoint correctness gates
 docs/notes/      Measurements, negative results, and machine-readable data
 ```
 
 Files under an `experiments/` directory are retained measured negative results;
 they are built for reproducibility but are not selected as shipping kernels.
 
-## Build
+## Retained gfx1151 build
 
 Run inside Netra:
 
@@ -95,3 +106,33 @@ references using real checkpoint weights.
 
 Every reported performance number in those records is labeled measured or
 estimated and is specific to gfx1151.
+
+## MI350X / gfx950 Qwen FP8 work
+
+Builds, profiles, and benchmarks run only on the MI350X server:
+
+```bash
+bash tools/build/build_gfx950_qwen36_fp8_raw.sh
+(
+  cd build/gfx950-qwen36-fp8
+  ./qwen36_moe_silu_mul_quant_fp8_gfx950_harness \
+    5000 ./qwen36_moe_silu_mul_quant_fp8_gfx950.hsaco
+)
+```
+
+The first implementation is intentionally retained as an experiment until
+real-checkpoint layer/state, graph replay, and end-to-end gates pass. See
+[gfx950 Qwen FP8 kernel development](docs/notes/gfx950-qwen36-fp8-kernels.md)
+and its
+[machine-readable isolated results](docs/notes/gfx950-qwen36-fp8-results.json).
+
+After one controlled live-request tensor capture exists, use the fast
+assembly/correctness loop without reloading Qwen:
+
+```bash
+tools/benchmark/iterate_gfx950_qwen36_moe_silu_mul_quant.sh
+```
+
+It incrementally rebuilds only stale components and reuses a lightweight,
+persistent gfx950 validator container. Full SGLang launches are reserved for
+layer, graph, and end-to-end integration gates.

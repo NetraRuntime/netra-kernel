@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "status": "accepted_full_graph_counters_complete_piecewise_rejected",
+  "hardware": {
+    "gpu": "AMD Instinct MI350X",
+    "architecture": "gfx950",
+    "wavefront_size": 64,
+    "gpu_count_used_for_timing": 1
+  },
+  "checkpoint_contract": {
+    "model": "Qwen3.6-35B-A3B-FP8",
+    "weight_format": "FP8 E4M3",
+    "weight_block_shape": [
+      128,
+      128
+    ],
+    "converted_quantization": false
+  },
+  "shape": {
+    "batch": 1,
+    "tokens": 16,
+    "heads": 16,
+    "value_heads": 32,
+    "key_dimension": 128,
+    "value_dimension": 128
+  },
+  "variants": {
+    "precompute": {
+      "name": "triton-exact",
+      "id": 7
+    },
+    "recurrent_core": {
+      "name": "fused-packed-exact",
+      "id": 13
+    }
+  },
+  "correctness": {
+    "real_checkpoint_layers": 30,
+    "all_layers_bit_exact": true,
+    "all_layers_graph_replay_exact": true,
+    "nondeterministic_iterations": 0,
+    "normalized_q_elements": 983040,
+    "normalized_k_elements": 983040,
+    "decay_elements": 15360,
+    "beta_elements": 15360,
+    "output_bf16_elements": 1966080,
+    "final_state_bf16_elements": 15728640,
+    "total_mismatches": 0,
+    "eight_gpu_repeatability_passed": true
+  },
+  "hip_event_microseconds": {
+    "scope": "isolated_single_gpu",
+    "iterations": 2000,
+    "precompute": {
+      "minimum": 5.92,
+      "median": 6.12,
+      "mean": 6.29442,
+      "p90": 6.36,
+      "maximum": 14.12
+    },
+    "recurrent_core": {
+      "minimum": 18.08,
+      "median": 18.44,
+      "mean": 18.6301,
+      "p90": 18.801,
+      "maximum": 30.04
+    },
+    "combined": {
+      "minimum": 24.04,
+      "median": 24.361,
+      "mean": 24.5384,
+      "p90": 24.641,
+      "maximum": 33.16
+    }
+  },
+  "code_objects": {
+    "precompute": {
+      "sha256": "ee599188d2d8562fc2a6b04b6048658a8abd1105c517e0e0da78c36ff02ed85c",
+      "vgpr_count": 44,
+      "sgpr_count": 48,
+      "lds_bytes": 0,
+      "private_segment_bytes": 0,
+      "workgroups": 256,
+      "workgroup_threads": 64
+    },
+    "recurrent_core": {
+      "sha256": "2d787febfe8b305334d2aa6a9976b1c35e77598b6820ab10fe317fac7664bf41",
+      "vgpr_count": 80,
+      "sgpr_count": 40,
+      "lds_bytes": 1024,
+      "private_segment_bytes": 0,
+      "workgroups": 256,
+      "workgroup_threads": 64
+    },
+    "bridge_sha256": "00a4f3b6654c406bc58c3e53ac8d41924f60eabe9a1020c675b471540393a732"
+  },
+  "serving": {
+    "graph_mode": "full",
+    "dflash_block_size": 16,
+    "gpu_count": 1,
+    "tensor_parallel_degree": 1,
+    "input16_output2": {
+      "candidate_repetitions": 50,
+      "hash_matches_control": true,
+      "control_median_latency_seconds": 0.063019749,
+      "candidate_median_latency_seconds": 0.0615565975,
+      "latency_speedup": 1.0237692068669002
+    },
+    "input210_output128": {
+      "candidate_repetitions": 20,
+      "hash_matches_control": true,
+      "matched_verify_call_latency_reduction_fraction": {
+        "minimum": 0.03133707477447678,
+        "maximum": 0.034340678453728235
+      },
+      "matched_verify_call_generation_throughput_speedup": {
+        "minimum": 1.0352009012367922,
+        "maximum": 1.0368772864974867
+      }
+    }
+  },
+  "rocprof_counters": {
+    "measurement_status": "profiler-instrumented",
+    "timing_usable": false,
+    "passes": 18,
+    "summary_sha256": "dfb39c825681a24584e612f484816afe454c7232cdb7cfbe19f3aa8c095d951b",
+    "precompute": {
+      "profiler_vgpr_count": 24,
+      "profiler_agpr_count": 0,
+      "profiler_sgpr_count": 48,
+      "lds_bytes": 0,
+      "scratch_bytes": 0,
+      "waves": 256,
+      "instructions": 62208,
+      "valu_instructions": 40192,
+      "vmem_instructions": 3072,
+      "lds_instructions": 0,
+      "mfma_instructions": 0,
+      "l2_read_sectors": 19712,
+      "l2_write_sectors": 10240,
+      "l2_hit_fraction": 0.7091584158415841,
+      "valu_utilization_percent": 56.125,
+      "lds_bank_conflict": 0.0,
+      "mem_unit_stalled": 0.00197597218
+    },
+    "recurrent_core": {
+      "profiler_vgpr_count": 40,
+      "profiler_agpr_count": 0,
+      "profiler_sgpr_count": 48,
+      "lds_bytes": 1024,
+      "scratch_bytes": 0,
+      "waves": 256,
+      "instructions": 1234944,
+      "valu_instructions": 1092608,
+      "vmem_instructions": 58368,
+      "lds_instructions": 24576,
+      "mfma_instructions": 0,
+      "l2_read_sectors": 207328,
+      "l2_write_sectors": 557056,
+      "l2_hit_fraction": 0.5125527976840207,
+      "valu_utilization_percent": 97.539831,
+      "lds_bank_conflict": 0.397389195,
+      "mem_unit_stalled": 0.0277906046
+    }
+  },
+  "piecewise_graph": {
+    "decision": "rejected_cross_mode_correctness_failure",
+    "raw_gdn_attribution": "not causal; matched control fails identically",
+    "candidate_repetitions": {
+      "input16_output2": 20,
+      "input210_output128": 20
+    },
+    "control_repetitions": {
+      "input16_output2": 10,
+      "input210_output128": 10
+    },
+    "input16_output2": {
+      "piecewise_hash": "ab777d10ffa6693511a599f130f9a480b564093e7e231494afd17aa6eede6cba",
+      "accepted_full_hash": "3eb632023967244c9991beff8a881c21ad15b4d0e48284e5f6ed14f4dfba2750",
+      "control_median_wall_seconds": 0.0297353315,
+      "candidate_median_wall_seconds": 0.02863678
+    },
+    "input210_output128": {
+      "piecewise_hash": "8cf5682c0ab5307cb04b6d7292da155ddf14c7936f39fe10e849595e5967ea57",
+      "accepted_full_hash": "6285266a2fb67a34940db360925b075d4f0c60efc8955bbf4a884558223025c3",
+      "control_median_wall_seconds": 0.1193529175,
+      "candidate_median_wall_seconds": 0.110027947,
+      "candidate_median_generation_tok_s_diagnostic_only": 1431.4110216030083,
+      "throughput_usable": false,
+      "reason": "piecewise output degenerates to repeated token 15"
+    }
+  },
+  "artifacts": {
+    "accepted_bundle": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_gdn_gfx950_accepted_bundle_20260730T210731Z",
+    "cross_layer": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_gdn_cross_layer_exact_20260730T204602Z",
+    "paired_candidate": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/dflash/full_specv1_block16_gdn_bv16_raw_packed_exact_20260730T205539Z",
+    "paired_control": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/dflash/full_specv1_block16_gdn_bv16_paired_control_20260730T201000Z",
+    "counter_profile": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/profiles/rocprof/isolated_gdn_verify_m16_20260731T234600Z",
+    "piecewise_candidate": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/dflash/piecewise_specv1_block16_gdn_verify_raw_candidate_20260731T235000Z",
+    "piecewise_control": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/dflash/piecewise_specv1_block16_gdn_verify_control_20260731T235500Z"
+  },
+  "remaining_gates": [
+    "rocprofv3 request trace",
+    "broader required serving cases",
+    "root-cause and repair upstream piecewise+dFlash cross-mode correctness"
+  ]
+}

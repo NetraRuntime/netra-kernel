@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "status": "accepted_full_graph_tp1_dflash_block16",
+  "target": "amdgcn-amd-amdhsa--gfx950",
+  "wavefront_size": 64,
+  "shape": {
+    "rows": 16,
+    "columns": 248320,
+    "dtype": "float32",
+    "contiguous": true
+  },
+  "assembly": {
+    "path": "kernels/gfx950/sampling/verify/qwen36_argmax_f32_gfx950.s",
+    "sha256": "ec6ca6391e53c38795622fad95ebcf968ab5f85bfb6b4fe9e635e10dcad1a4a7",
+    "hsaco_sha256": "6dcf075b0ada1ff795af9bcd71e60359654096aabc0901479eef72aa0dc57643",
+    "stage1_function_bytes": 3396,
+    "stage2_function_bytes": 588,
+    "combined_function_bytes": 3984,
+    "sgpr_count": 20,
+    "vgpr_count": 52,
+    "agpr_count": 0,
+    "lds_bytes": 0,
+    "scratch_bytes": 0
+  },
+  "correctness": {
+    "oracle_cases": 197,
+    "failed_cases": 0,
+    "row_shapes": [1, 16, 32],
+    "same_invocation_real_checkpoint_shadow_mismatches": 0,
+    "exact": true
+  },
+  "isolated_hip_events": {
+    "iterations": 1000,
+    "raw_mean_microseconds": 7.949,
+    "torch_mean_microseconds": 56.304,
+    "speedup": 7.083
+  },
+  "serving_profile": {
+    "deployed_mean_microseconds": 74.55,
+    "raw_stage1_mean_microseconds": 7.878,
+    "raw_stage2_mean_microseconds": 4.428,
+    "raw_combined_mean_microseconds": 12.306,
+    "speedup": 6.0580204778157,
+    "microseconds_saved_per_verification": 62.244
+  },
+  "end_to_end": {
+    "case": "uncached input210_output128",
+    "repetitions_per_variant": 20,
+    "control_milliseconds_per_verify_slope": 9.456968,
+    "candidate_milliseconds_per_verify_slope": 9.392771,
+    "microseconds_saved_per_verification": 64.197,
+    "slope_reduction_percent": 0.6788327929205251,
+    "control_r_squared": 0.9999938,
+    "candidate_r_squared": 0.9999923
+  },
+  "deployed_control": {
+    "kernel_id": 46,
+    "function_bytes": 21244,
+    "waves": 128,
+    "dynamic_lds_bytes": 512,
+    "code_object_sha256": "0255398727b6fdb7b8863662268088c41610ea1688948d3f05ce1398bed007d6"
+  },
+  "artifacts": {
+    "isolated_validation": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/kernel_experiments/qwen36_argmax_f32_v2_20260730T225500Z",
+    "counters": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/profiles/rocprof/isolated_argmax_f32_20260730T231500Z",
+    "disassembly": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/profiles/disassembly/argmax_deployed_vs_raw_20260730T231600Z",
+    "serving_control": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/performance/raw_argmax_control_full_fp8kv_20260730T230500Z",
+    "serving_candidate": "/data/netra/benchmarks/gfx950_qwen36_optimization/20260729T121623Z/performance/raw_argmax_candidate_full_fp8kv_20260730T230900Z"
+  }
+}
