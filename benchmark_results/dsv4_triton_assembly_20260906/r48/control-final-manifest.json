@@ -1,0 +1,20 @@
+{
+  "sources": {
+    "kernels/gfx950/control/dsv4/fill_compress_tail.s": "a59fdc3268af339d34d00efc673ef367b15ac3ccc4f389ce8d8eedb98b797ae8",
+    "kernels/gfx950/control/dsv4/gather_bonus.s": "639ab423c44572328b02357bfd33a5c0d2446002c3a83bfdc9c7363122e36dbe",
+    "kernels/gfx950/control/dsv4/compressed_metadata.s": "b253b8134003c6f83c17235e46f28b3840796bf45952880a3302b93e9636a60e",
+    "kernels/gfx950/control/dsv4/finalize_accept.s": "77f9888788e7e736ba3c1046278fd2df03d9553619eaffc3631e4e78bb55d77e",
+    "kernels/gfx950/control/dsv4/build_out_tokens.s": "62ad2bb85d7a47a3b903c17b3858c6693bc11edc4e195ae9e8d51ae6691d9121",
+    "kernels/gfx950/control/dsv4/prefill_lengths.s": "0d3b082eeaf6e835ddb85967869627b304b91636fb31cd5d36ea2e9e76c27f16",
+    "kernels/gfx950/control/dsv4/build_out_tokens_flat.s": "3e2d7e036c70b9537425d718eeaefe4cc6507483014428aa203342f2ea0a0206",
+    "kernels/gfx950/control/dsv4/swa_scatter.s": "213c93f2c27b29015069aa3a69f2eaec1d11338d3ed4ce9283173b562d778437",
+    "kernels/gfx950/control/dsv4/append_shared.s": "73645af80864171c210e2ea524bf45669adba34f5a10d5eadcd7330f8a0e9d24",
+    "kernels/gfx950/control/dsv4/prefill_indices.s": "407bb131733b699b29c8dcb7ad129954520636564e19fd7d6412983a07e5588d",
+    "kernels/gfx950/control/dsv4/scatter_loc.s": "27c3498b8e75c6eae495f312f63dfe483551c628b801e6644387ca89d653db1f",
+    "runtime/gfx950/control/dsv4/control.py": "1c2b203cb6c814411266d6a055ac06f98db6321c556b4eddbb179905e576a9fa",
+    "runtime/gfx950/control/dsv4/bridge.hip": "b2f7b870c650fa84f6c34255732c116638d230011ce8d9cca7d23732932170ba",
+    "tools/benchmark/dsv4_control/build.sh": "5e02a7cb3d26b035f7b21b1bdf88fbcf4aa277831baadae5d86a9bf692ab7ef2",
+    "tools/benchmark/dsv4_control/prepare_wave4.py": "e14af724f0cb13b89a7d83a53106ffbb1c84d6c0fe59e7823bcd10a295b6614b",
+    "tools/benchmark/dsv4_control/validate.py": "74c8c3dcfae588f7cf5f4077396e5b584216c71e20fd84279a877f9625253428"
+  }
+}

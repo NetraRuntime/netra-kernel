@@ -1,0 +1,50 @@
+{
+  "sources": {
+    "kernels/gfx950/control/dsv4/append_shared.s": "73645af80864171c210e2ea524bf45669adba34f5a10d5eadcd7330f8a0e9d24",
+    "kernels/gfx950/control/dsv4/build_out_tokens.s": "62ad2bb85d7a47a3b903c17b3858c6693bc11edc4e195ae9e8d51ae6691d9121",
+    "kernels/gfx950/control/dsv4/build_out_tokens_flat.s": "3e2d7e036c70b9537425d718eeaefe4cc6507483014428aa203342f2ea0a0206",
+    "kernels/gfx950/control/dsv4/compressed_metadata.s": "b253b8134003c6f83c17235e46f28b3840796bf45952880a3302b93e9636a60e",
+    "kernels/gfx950/control/dsv4/fill_compress_tail.s": "a59fdc3268af339d34d00efc673ef367b15ac3ccc4f389ce8d8eedb98b797ae8",
+    "kernels/gfx950/control/dsv4/finalize_accept.s": "77f9888788e7e736ba3c1046278fd2df03d9553619eaffc3631e4e78bb55d77e",
+    "kernels/gfx950/control/dsv4/gather_bonus.s": "639ab423c44572328b02357bfd33a5c0d2446002c3a83bfdc9c7363122e36dbe",
+    "kernels/gfx950/control/dsv4/prefill_indices.s": "407bb131733b699b29c8dcb7ad129954520636564e19fd7d6412983a07e5588d",
+    "kernels/gfx950/control/dsv4/prefill_lengths.s": "0d3b082eeaf6e835ddb85967869627b304b91636fb31cd5d36ea2e9e76c27f16",
+    "kernels/gfx950/control/dsv4/scatter_loc.s": "27c3498b8e75c6eae495f312f63dfe483551c628b801e6644387ca89d653db1f",
+    "kernels/gfx950/control/dsv4/swa_scatter.s": "213c93f2c27b29015069aa3a69f2eaec1d11338d3ed4ce9283173b562d778437",
+    "runtime/gfx950/control/dsv4/bridge.hip": "b2f7b870c650fa84f6c34255732c116638d230011ce8d9cca7d23732932170ba",
+    "runtime/gfx950/control/dsv4/control.py": "1c2b203cb6c814411266d6a055ac06f98db6321c556b4eddbb179905e576a9fa",
+    "tools/benchmark/dsv4_control/build.sh": "5e02a7cb3d26b035f7b21b1bdf88fbcf4aa277831baadae5d86a9bf692ab7ef2",
+    "tools/benchmark/dsv4_control/prepare_wave4.py": "e14af724f0cb13b89a7d83a53106ffbb1c84d6c0fe59e7823bcd10a295b6614b",
+    "tools/benchmark/dsv4_control/validate.py": "ecc999904dc25fa31575ab993fdf8bba03ed353bf0394b9e5cc03937e7752d56"
+  },
+  "build": {
+    "append_shared.o": "0dffd1b939d7825670ba1f349e4283bba3397413d9093f2c9db2ef528b359506",
+    "append_shared_w4.o": "e52d945818764f6545ea19957ae025ec93cc9e7efa69abdd3d93f29951670b0b",
+    "build_out_tokens.o": "04104ce7b9ae88c9911dd414b2f339b6c0f521e5e543c9064a6340751a5e7ae0",
+    "build_out_tokens_flat.o": "3eb487385dd342d3791478c7ca58503622aebf23a98fba08b1efd6dea8518c7b",
+    "build_out_tokens_flat_w4.o": "ef6589741ddedefe4eef6cfd679a676c4afad6e4b948b3179a14451fda011062",
+    "build_out_tokens_w4.o": "173acdad7100caba1dafea55ba7a936d219bdcf4f36e40d8a291174d0e60609a",
+    "compressed_metadata.o": "16d09a00f8174d462ab41d0675a25f19b6a4b25c0c972cc2be4f15b50e9b16d3",
+    "compressed_metadata_w4.o": "0e24cd3e26574a2187051861a866b4b2ab074c82b2ad5659d762625f1b1ff8b6",
+    "control.hsaco": "2404b80533da6ab79a714f8ce22e93e2cd996a3f2b49e4492bc224d990304e70",
+    "fill_compress_tail.o": "a61974c6781a3e9894104c7227aaa51b8b8bb8f442227d8495c62744c22c81c7",
+    "fill_compress_tail_w4.o": "05ce2d8e40abe21eb23118ca7e51249314050b31c0c599e88989b38a7e855c38",
+    "finalize_accept.o": "5ccd99ce2128acc2694365bc9cdec3b3c9a625603033cbc09335e5e6eacc19f6",
+    "finalize_accept_w4.o": "6fcd4f5fdcd8b28b59e15996dff078453345453ffaf9970c779aac466761d270",
+    "gather_bonus.o": "24f20ac44f348fc11eeddcc80e754103ade20b3903d32a93eda49f2692b10995",
+    "gather_bonus_w4.o": "53bf977d23e5d3bfc84ba4b80ecccc8b3c6f04afc2e59914f83416bfecc6981a",
+    "libnetra_control.so": "d64a5dc5069270f2031524813eec7226991f147ffc02f20ec298e2a0c928a40a",
+    "prefill_indices.o": "576c1724873008895d3bb3d4c64b527f9e05d25fde4a34912a959ff7a50f20c0",
+    "prefill_indices_w4.o": "a9a64b90cd2ac7e89fd314a046a5b9f35c22f0b5a68e6aeab13ead41aa379302",
+    "prefill_lengths.o": "4953bf71daab1f486819c0e367e353cb5a649004961a07b5f5bb2cd5d740e3f0",
+    "prefill_lengths_w4.o": "ccc8ed97cc1da648f500d30dc752d7847285704f6ad78c96765ec0ccd4c62eb9",
+    "scatter_loc.o": "db5fa77b7eddb214e0446dceb8e28af244786f8538290f7a4558950a6797039d",
+    "scatter_loc_w4.o": "5e8038109aab47b7f79e2677585601e04f80a2c46128499d59cffe8dae4a3e48",
+    "swa_scatter.o": "13fb427e89b1a61525144b6732b1c025c731c9c10bf1e394cd7235298fe47034",
+    "swa_scatter_w4.o": "c17ea6a8f52dbd3194ff04cb93429dc64b58f7794c60ccb875e64f369a19fb5c"
+  },
+  "clang": [
+    "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)",
+    "Target: x86_64-unknown-linux-gnu"
+  ]
+}

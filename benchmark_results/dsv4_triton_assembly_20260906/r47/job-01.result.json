@@ -1,0 +1,255 @@
+{
+  "state": "failed",
+  "device": "AMD Instinct MI350X",
+  "cases": [
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        1,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        1,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        1,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        1,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        3,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        3,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        3,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        3,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    }
+  ],
+  "started": 1788710109.210395,
+  "scope": "Isolated component tests, synthetic inputs; no serving TPS claim.",
+  "error": "AssertionError(('prefill_lengths', [3, 65, 'torch.int32'], 'wave1', 'value or canary mismatch', 2))",
+  "finished": 1788710111.3856945
+}

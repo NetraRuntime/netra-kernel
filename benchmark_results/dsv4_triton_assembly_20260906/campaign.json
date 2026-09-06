@@ -1,0 +1,521 @@
+{
+  "worker": "netra-dsv4-tp4dp2-c256-p48-unified-r36",
+  "architecture": "gfx950",
+  "serving_topology": "TP4xDP2",
+  "scope": "Compiled cache is a conservative inventory, not proof of execution in every current workload. Prior DP8 profiles establish observed target/draft names, not current TP4 timings. Additional entry points discovered during qualification must be added.",
+  "kernel_entries": [
+    {
+      "name": "_build_out_tokens_kernel",
+      "compiled_variants": 2,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_build_out_tokens_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/srt/speculative/dspark_components/kernels/dspark_verify_window.py",
+          "line": 858,
+          "sha256": "18ba1cdf7d1002c1c06ddc296d22731a72991582bca016223a4b636487e72534"
+        }
+      ],
+      "assembly_port": "build_out_tokens",
+      "status": "component_correctness_passed",
+      "evidence": "r47/job-06.result.json",
+      "production_promoted": false,
+      "additional_correctness_evidence": "r48/control-edges.result.json"
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "compiled_variants": 57,
+      "observed_prior_dp8_roles": [
+        "draft",
+        "target"
+      ],
+      "sources": [
+        {
+          "name": "_build_prefill_indices_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/attention/dsv4/unified_kv_kernels/runtime.py",
+          "line": 332,
+          "sha256": "eff745080c1c530b613465f8b8ce061e1cc74371984e41615cf9b42e8bc86969"
+        }
+      ],
+      "assembly_port": "prefill_indices",
+      "status": "component_correctness_passed",
+      "evidence": "r47/job-06.result.json",
+      "production_promoted": false,
+      "performance_status": "wide_page_cases_regress; tuning_required",
+      "additional_correctness_evidence": "r48/control-edges.result.json"
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "compiled_variants": 22,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_expand_prefill_causally_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/attention/dsv4_attn_metadata_kernels.py",
+          "line": 157,
+          "sha256": "4276de2afa328739ddcbecf7d8a48f273fddfa8d8a029e7024b82e7dacb91969"
+        }
+      ],
+      "assembly_port": "expand_prefill",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r48/job-04.result.json",
+      "performance_status": "measured; serving qualification pending"
+    },
+    {
+      "name": "_fill_compress_tail_kernel",
+      "compiled_variants": 0,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_fill_compress_tail_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/attention/dsv4/unified_kv_kernels/runtime.py",
+          "line": 187,
+          "sha256": "eff745080c1c530b613465f8b8ce061e1cc74371984e41615cf9b42e8bc86969"
+        }
+      ],
+      "assembly_port": "fill_compress_tail",
+      "status": "component_correctness_passed",
+      "evidence": "r47/job-06.result.json",
+      "production_promoted": false,
+      "performance_status": "wide_page_cases_regress; tuning_required",
+      "additional_correctness_evidence": "r48/control-edges.result.json"
+    },
+    {
+      "name": "_finalize_accept_lens_kernel",
+      "compiled_variants": 4,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_finalize_accept_lens_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/srt/speculative/dspark_components/kernels/dspark_accept.py",
+          "line": 756,
+          "sha256": "e13983e6b237d1ed885c94b026e1d7f1a9f21d5139d0e74459436dd636722e9c"
+        }
+      ],
+      "assembly_port": "finalize_accept",
+      "status": "component_correctness_passed",
+      "evidence": "r47/job-06.result.json",
+      "production_promoted": false,
+      "additional_correctness_evidence": "r48/control-edges.result.json"
+    },
+    {
+      "name": "_fused_append_shared_experts_kernel",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [
+        "draft",
+        "target"
+      ],
+      "sources": [
+        {
+          "name": "_fused_append_shared_experts_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/moe/fused_moe_triton_kernels.py",
+          "line": 1176,
+          "sha256": "6e78531952b60bbad3b521c8edd78b4ef5148f8946e831816c6a481febb076d5"
+        }
+      ],
+      "assembly_port": "append_shared",
+      "status": "component_correctness_passed",
+      "evidence": "r47/job-06.result.json",
+      "production_promoted": false,
+      "additional_correctness_evidence": "r48/control-edges.result.json"
+    },
+    {
+      "name": "_fused_rms_fp8_group_quant_kernel",
+      "compiled_variants": 3,
+      "observed_prior_dp8_roles": [
+        "target"
+      ],
+      "sources": [
+        {
+          "name": "_fused_rms_fp8_group_quant_kernel",
+          "source": "/sgl-workspace/aiter/aiter/ops/triton/_triton_kernels/quant/fused_fp8_quant.py",
+          "line": 152,
+          "sha256": "4804dc6727400b3c5b20d3919bcb0c6609e4d47be08291e9a44c53d96bacd3d2"
+        }
+      ],
+      "assembly_port": null,
+      "status": "pending_source_review"
+    },
+    {
+      "name": "_gather_two_level_bonus_kernel",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_gather_two_level_bonus_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/srt/speculative/dspark_components/kernels/dspark_accept.py",
+          "line": 182,
+          "sha256": "e13983e6b237d1ed885c94b026e1d7f1a9f21d5139d0e74459436dd636722e9c"
+        }
+      ],
+      "assembly_port": "gather_bonus",
+      "status": "component_correctness_passed",
+      "evidence": "r47/job-06.result.json",
+      "production_promoted": false,
+      "additional_correctness_evidence": "r48/control-edges.result.json"
+    },
+    {
+      "name": "_get_last_loc_safe_kernel",
+      "compiled_variants": 3,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_get_last_loc_safe_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/memory/common.py",
+          "line": 60,
+          "sha256": "a2377e0d262b8a527475477a7e76a3dd137ff8cd589f9af0067f5c23378a6aa3"
+        }
+      ],
+      "assembly_port": "get_last_loc",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r48/job-04.result.json",
+      "performance_status": "measured; serving qualification pending"
+    },
+    {
+      "name": "_gluon_deepgemm_fp8_paged_mqa_logits_preshuffle",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [
+        "target"
+      ],
+      "sources": [
+        {
+          "name": "_gluon_deepgemm_fp8_paged_mqa_logits_preshuffle",
+          "source": "/sgl-workspace/aiter/aiter/ops/triton/gluon/pa_mqa_logits.py",
+          "line": 343,
+          "sha256": "854dd4f5ec6bac5e7e15d719e69824616634bbc67a9ed6968a7f889e189862da"
+        },
+        {
+          "name": "_gluon_deepgemm_fp8_paged_mqa_logits_preshuffle",
+          "source": "/sgl-workspace/aiter/aiter/ops/triton/_triton_kernels/attention/pa_mqa_logits.py",
+          "line": 476,
+          "sha256": "57f07ff1caa383508dfe606820701c7b4365f0b890c1cf4aebb39b8d86e0ce9b"
+        }
+      ],
+      "assembly_port": null,
+      "status": "component_qualified_previous_turn"
+    },
+    {
+      "name": "_hash_topk_triton_kernel",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [
+        "target"
+      ],
+      "sources": [
+        {
+          "name": "_hash_topk_triton_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/jit_kernel/triton/hash_topk.py",
+          "line": 15,
+          "sha256": "ad764744fb1b569717dc6f6d2952326dc41a8fc05637c9d2232627e5907fb17d"
+        }
+      ],
+      "assembly_port": null,
+      "status": "pending_source_review"
+    },
+    {
+      "name": "_hc_head_kernel",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [
+        "target"
+      ],
+      "sources": [
+        {
+          "name": "_hc_head_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/layernorm/mhc_head.py",
+          "line": 32,
+          "sha256": "a82d40c36a0c9b40285116cf1701f5e449b895eb48f18b00ab6600ef53537826"
+        }
+      ],
+      "assembly_port": null,
+      "status": "pending_source_review"
+    },
+    {
+      "name": "_init_compressed_attn_metadata_kernel",
+      "compiled_variants": 4,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_init_compressed_attn_metadata_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/attention/dsv4/metadata_kernel.py",
+          "line": 9,
+          "sha256": "1b7d3f971c7dacb6e66d066deda9391ad502626bcbde74c8b0d5e769f371b7ea"
+        }
+      ],
+      "assembly_port": "compressed_metadata",
+      "status": "component_correctness_passed",
+      "evidence": "r47/job-06.result.json",
+      "production_promoted": false,
+      "additional_correctness_evidence": "r48/control-edges.result.json"
+    },
+    {
+      "name": "_online_combine_kernel",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_online_combine_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/srt/speculative/dspark_components/kernels/dspark_draft_model.py",
+          "line": 123,
+          "sha256": "2865ce6742b6de4d91a5eec01a194324c4f5480e9652908bff5755ec867d613f"
+        }
+      ],
+      "assembly_port": null,
+      "status": "pending_source_review"
+    },
+    {
+      "name": "_online_partial_kernel",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_online_partial_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/srt/speculative/dspark_components/kernels/dspark_draft_model.py",
+          "line": 87,
+          "sha256": "2865ce6742b6de4d91a5eec01a194324c4f5480e9652908bff5755ec867d613f"
+        }
+      ],
+      "assembly_port": null,
+      "status": "pending_source_review"
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "compiled_variants": 57,
+      "observed_prior_dp8_roles": [
+        "draft",
+        "target"
+      ],
+      "sources": [
+        {
+          "name": "_prefill_lengths_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/attention/dsv4/unified_kv_kernels/runtime.py",
+          "line": 298,
+          "sha256": "eff745080c1c530b613465f8b8ce061e1cc74371984e41615cf9b42e8bc86969"
+        }
+      ],
+      "assembly_port": "prefill_lengths",
+      "status": "component_correctness_passed",
+      "evidence": "r47/job-06.result.json",
+      "production_promoted": false,
+      "performance_status": "wide_page_cases_regress; tuning_required",
+      "additional_correctness_evidence": "r48/control-edges.result.json"
+    },
+    {
+      "name": "_router_triton_kernel",
+      "compiled_variants": 3,
+      "observed_prior_dp8_roles": [
+        "draft",
+        "target"
+      ],
+      "sources": [
+        {
+          "name": "_router_triton_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/jit_kernel/moe_fused_gate.py",
+          "line": 97,
+          "sha256": "62e12f93898dcfd2166897ccc69d4b83fe8cd35babcd50a9b4b7ae4778ae1a24"
+        }
+      ],
+      "assembly_port": null,
+      "status": "pending_source_review"
+    },
+    {
+      "name": "_scatter_loc_kernel",
+      "compiled_variants": 3,
+      "observed_prior_dp8_roles": [
+        "draft"
+      ],
+      "sources": [
+        {
+          "name": "_scatter_loc_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/attention/dsv4/unified_kv_kernels/runtime.py",
+          "line": 114,
+          "sha256": "eff745080c1c530b613465f8b8ce061e1cc74371984e41615cf9b42e8bc86969"
+        }
+      ],
+      "assembly_port": "scatter_loc",
+      "status": "component_correctness_passed",
+      "evidence": "r47/job-06.result.json",
+      "production_promoted": false,
+      "additional_correctness_evidence": "r48/control-edges.result.json"
+    },
+    {
+      "name": "_softmax_temp_kernel",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_softmax_temp_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/srt/speculative/dspark_components/kernels/dspark_accept.py",
+          "line": 324,
+          "sha256": "e13983e6b237d1ed885c94b026e1d7f1a9f21d5139d0e74459436dd636722e9c"
+        }
+      ],
+      "assembly_port": null,
+      "status": "pending_source_review"
+    },
+    {
+      "name": "_swa_scatter_kernel",
+      "compiled_variants": 6,
+      "observed_prior_dp8_roles": [
+        "target"
+      ],
+      "sources": [
+        {
+          "name": "_swa_scatter_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/attention/dsv4/unified_kv_kernels/runtime.py",
+          "line": 49,
+          "sha256": "eff745080c1c530b613465f8b8ce061e1cc74371984e41615cf9b42e8bc86969"
+        }
+      ],
+      "assembly_port": "swa_scatter",
+      "status": "component_correctness_passed",
+      "evidence": "r47/job-06.result.json",
+      "production_promoted": false,
+      "additional_correctness_evidence": "r48/control-edges.result.json"
+    },
+    {
+      "name": "_vocab_parallel_embedding_kernel",
+      "compiled_variants": 4,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "_vocab_parallel_embedding_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/embeddings/vocab_parallel_embedding.py",
+          "line": 9,
+          "sha256": "7766e50514e621317fec277fd5975adc469d70ab2951722a99d56afbb6dc16d4"
+        }
+      ],
+      "assembly_port": "vocab_embedding",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r48/job-04.result.json",
+      "performance_status": "measured; serving qualification pending"
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "compiled_variants": 19,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "alloc_extend_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/memory/allocator.py",
+          "line": 16,
+          "sha256": "ea84e0af085cf6821e6c4568516764da706aa9efd997f8d7a8dbaba8d97461a3"
+        }
+      ],
+      "assembly_port": "alloc_extend",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r48/job-04.result.json",
+      "performance_status": "some small shapes near parity or modest regression; tuning_required"
+    },
+    {
+      "name": "apply_rotary_emb_flat_kernel",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [
+        "draft",
+        "target"
+      ],
+      "sources": [
+        {
+          "name": "apply_rotary_emb_flat_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/attention/deepseek_v4_rope.py",
+          "line": 194,
+          "sha256": "85547063b543d57cb5469f50209020a4b662e6a89a7e3a25ef63cd6f7d519022"
+        }
+      ],
+      "assembly_port": null,
+      "status": "pending_source_review"
+    },
+    {
+      "name": "assign_extend_cache_locs",
+      "compiled_variants": 8,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "assign_extend_cache_locs",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/speculative/cache_locs.py",
+          "line": 330,
+          "sha256": "dac4983934f05e9ef3d7ae9b14fd9d9af0112a19cbf639253badc25e399714d8"
+        }
+      ],
+      "assembly_port": "assign_cache_locs",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r48/job-04.result.json",
+      "performance_status": "measured; serving qualification pending"
+    },
+    {
+      "name": "assign_req_to_token_pool",
+      "compiled_variants": 8,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "assign_req_to_token_pool",
+          "source": "/sgl-workspace/sglang/python/sglang/srt/mem_cache/allocation.py",
+          "line": 597,
+          "sha256": "f28613c407f73e141f083eee00f4fe86a4394670e1bb9bb9e0e2caaa9359809d"
+        }
+      ],
+      "assembly_port": "assign_cache_locs",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r48/job-04.result.json",
+      "performance_status": "measured; serving qualification pending"
+    },
+    {
+      "name": "compute_position_kernel",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "compute_position_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/attention/position.py",
+          "line": 33,
+          "sha256": "5b0c61b2bd74d4eeb1d3fa21dfb37c52838ce3533701c4f9f66f6031fdabfb17"
+        }
+      ],
+      "assembly_port": "compute_position",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r48/job-04.result.json",
+      "performance_status": "measured; serving qualification pending"
+    },
+    {
+      "name": "speculative_sampling_classic_kernel",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "speculative_sampling_classic_kernel",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/speculative/reject_sampling.py",
+          "line": 6,
+          "sha256": "9483b6d608e261fa8d5635e052589ce715b6a124aaa965337757c2d180c39b25"
+        }
+      ],
+      "assembly_port": null,
+      "status": "pending_source_review"
+    },
+    {
+      "name": "write_req_to_token_pool_triton",
+      "compiled_variants": 1,
+      "observed_prior_dp8_roles": [],
+      "sources": [
+        {
+          "name": "write_req_to_token_pool_triton",
+          "source": "/sgl-workspace/sglang/python/sglang/kernels/ops/memory/common.py",
+          "line": 9,
+          "sha256": "a2377e0d262b8a527475477a7e76a3dd137ff8cd589f9af0067f5c23378a6aa3"
+        }
+      ],
+      "assembly_port": "write_req_pool",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r48/job-04.result.json",
+      "performance_status": "some small prefix-write shapes regress; tuning_required"
+    }
+  ],
+  "state": "in_progress",
+  "completed_all": false,
+  "production_assembly_promoted": false
+}

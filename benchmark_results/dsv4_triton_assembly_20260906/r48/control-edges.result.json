@@ -1,0 +1,3777 @@
+{
+  "state": "passed",
+  "device": "AMD Instinct MI350X",
+  "cases": [
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        0,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        0,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        0,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        0,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        0,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        0,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        0,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        0,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        1,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        1,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        1,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        1,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1,
+        8,
+        2,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1,
+        63,
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        1,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        1,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        1,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        1,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1,
+        8,
+        2,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1,
+        63,
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        3,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        3,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        3,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        3,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        3,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        3,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        3,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        3,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        3,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        3,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        3,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        3,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        3,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        3,
+        8,
+        2,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        3,
+        63,
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        3,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        3,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        3,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        3,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        3,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        3,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        3,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        3,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        3,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        3,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        3,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        3,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        3,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        3,
+        8,
+        2,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        3,
+        63,
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        8,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        8,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        8,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        8,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        8,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        8,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        8,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        8,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        8,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        8,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        8,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        8,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        8,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        8,
+        8,
+        2,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        8,
+        63,
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        8,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        8,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        8,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        8,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        8,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        8,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        8,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        8,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        8,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        8,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        8,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        8,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        8,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        8,
+        8,
+        2,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        8,
+        63,
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        16,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        16,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        16,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        16,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        16,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        16,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        16,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        16,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        16,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        16,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        16,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        16,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        16,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        16,
+        8,
+        2,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        16,
+        63,
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        16,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        16,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        16,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        16,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        16,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        16,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        16,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        16,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        16,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        16,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        16,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        16,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        16,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        16,
+        8,
+        2,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        16,
+        63,
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        24,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        24,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        24,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        24,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        24,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        24,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        24,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        24,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        24,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        24,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        24,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        24,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        24,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        24,
+        8,
+        2,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        24,
+        63,
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        24,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        24,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        24,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        24,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        24,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        24,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        24,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        24,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        24,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        24,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        24,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        24,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        24,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        24,
+        8,
+        2,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        24,
+        63,
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        32,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        32,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        32,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        32,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        32,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        32,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        32,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        32,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        32,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        32,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        32,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        32,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        32,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        32,
+        8,
+        2,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        32,
+        63,
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        32,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        32,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        32,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        32,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        32,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        32,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        32,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        32,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        32,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        32,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        32,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        32,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        32,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        32,
+        8,
+        2,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        32,
+        63,
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        128,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        128,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        128,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        128,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        128,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        128,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        128,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        128,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        128,
+        65,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        128,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        128,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        128,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        128,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        128,
+        8,
+        2,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        128,
+        63,
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        128,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        128,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        128,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        128,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        128,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        128,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        128,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        128,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        128,
+        65,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        128,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        128,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        128,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        128,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        128,
+        8,
+        2,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        128,
+        63,
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        1024,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        1024,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        1024,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        1024,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1024,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1024,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1024,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1024,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1024,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1024,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1024,
+        8,
+        2,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1024,
+        63,
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        1024,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        1024,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        1024,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        1024,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1024,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1024,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1024,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1024,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1024,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1024,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1024,
+        8,
+        2,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        1024,
+        63,
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        4096,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        4096,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        4096,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        4096,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        4096,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        4096,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        4096,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        4096,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        4096,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        4096,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        4096,
+        8,
+        2,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        4096,
+        63,
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        4096,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        4096,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        4096,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        4096,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        4096,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        4096,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        4096,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        4096,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        4096,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        4096,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        4096,
+        8,
+        2,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        4096,
+        63,
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        49152,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        49152,
+        128,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        49152,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        49152,
+        512,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        49152,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        49152,
+        0,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        49152,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        49152,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        49152,
+        512,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        49152,
+        6,
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        49152,
+        8,
+        2,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        49152,
+        63,
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        49152,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        49152,
+        128,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "scatter_loc",
+      "shape": [
+        49152,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        49152,
+        512,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        49152,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        49152,
+        0,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        49152,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        49152,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        49152,
+        512,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        49152,
+        6,
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        49152,
+        8,
+        2,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "append_shared",
+      "shape": [
+        49152,
+        63,
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        1,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        1,
+        0,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        1,
+        65,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        1,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        1,
+        7,
+        8
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        1,
+        0,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        1,
+        65,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        3,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        3,
+        0,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        3,
+        65,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        3,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        3,
+        7,
+        8
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        3,
+        0,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        3,
+        65,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        8,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        8,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        8,
+        0,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        8,
+        65,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        8,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        8,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        8,
+        7,
+        8
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        8,
+        0,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        8,
+        65,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        16,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        16,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        16,
+        0,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        16,
+        65,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        16,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        16,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        16,
+        7,
+        8
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        16,
+        0,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        16,
+        65,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        24,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        24,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        24,
+        0,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        24,
+        65,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        24,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        24,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        24,
+        7,
+        8
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        24,
+        0,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        24,
+        65,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        32,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        32,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        32,
+        0,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        32,
+        65,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        32,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        32,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        32,
+        7,
+        8
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        32,
+        0,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        32,
+        65,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        128,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        128,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        128,
+        0,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        128,
+        65,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        128,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        128,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        128,
+        7,
+        8
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        128,
+        0,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        128,
+        65,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        1024,
+        0,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        1024,
+        4,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        1024,
+        7,
+        8
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        1024,
+        0,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        1024,
+        4,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        49152,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        49152,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        49152,
+        0,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        49152,
+        4,
+        "torch.int32",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "finalize_accept",
+      "shape": [
+        49152,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "gather_bonus",
+      "shape": [
+        49152,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        49152,
+        7,
+        8
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        49152,
+        0,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        49152,
+        4,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        16,
+        257,
+        "torch.int64",
+        1
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        16,
+        129,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        16,
+        65,
+        "torch.int64",
+        4
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        16,
+        33,
+        "torch.int64",
+        8
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        16,
+        6,
+        7
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        16,
+        4,
+        5
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "build_out_tokens",
+      "shape": [
+        16,
+        63,
+        64
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "fill_compress_tail_negative_pages",
+      "shape": [
+        1,
+        257
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compressed_metadata",
+      "shape": [
+        16,
+        4096,
+        "torch.int64",
+        2
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        16,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        16,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        16,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        128,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        128,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        128,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_lengths",
+      "shape": [
+        1024,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "prefill_indices",
+      "shape": [
+        1024,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "fill_compress_tail",
+      "shape": [
+        1024,
+        8192,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "swa_scatter",
+      "shape": [
+        32,
+        512,
+        "torch.int64",
+        false
+      ],
+      "exact_all_variants": true
+    }
+  ],
+  "started": 1788711831.1719882,
+  "scope": "Isolated component tests, synthetic inputs; no serving TPS claim.",
+  "wide_scatter_address_above_4_GiB": true,
+  "concurrent_streams": 2,
+  "finished": 1788711833.232473
+}

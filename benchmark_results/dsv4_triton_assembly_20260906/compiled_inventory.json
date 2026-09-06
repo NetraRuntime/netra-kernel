@@ -1,0 +1,1510 @@
+{
+  "root": "/root/.triton/cache",
+  "kernels": [
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/DE5BVVQSDCHFE54V3FHZMMNBQBDZF5TBPMVBFDMADYQN5NUUNL5Q/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/EDB2PU5F363ORV75JYSP5T235CJDKF5DPJF54BOP3JRCRKDG7MIQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/2PH5FT5TNNUF26DBIJUITGMGMLVV37RGQIAKDUERSNEYK4KG677Q/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "assign_req_to_token_pool",
+      "file": "/root/.triton/cache/XT73Z2227SIM6YG4ZC7YLY5DE7UAA2NRDQAGNZCKMZTJDETYVFXQ/assign_req_to_token_pool.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/R4LYOY4GRHTRYWJQNX53EHLL556YOWIKYQRY65FRSFIVGSGYMUEA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 8,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/FFJ5EFM3TZFY32VLU57SXSVJF6EDXW3TCUQ23SZYQPGGQTKN4DXQ/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 2048,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/DWSJNMVQSDZ53XGLEBHX2IPBDKPR3PINTKUKVJT7ZFJNKEXTDHYA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "speculative_sampling_classic_kernel",
+      "file": "/root/.triton/cache/B6PYYMKYZ6YXTIXNOV3BUDYC6AOBSJGYL4CHXBT4TYFL4S4SIXZA/speculative_sampling_classic_kernel.json",
+      "warps": 4,
+      "shared": 64,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/VXVY4TGAVKMGWNFZIMISD667SZYOILYILSJ5YVX5QXXWBVIQWFTA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/BT4AYC7MYLOU77YAJ4O2OODJJYPCMYHF2FUD33SSM4AOZEASUVFQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/25JWC2BP2FPYVIHTU74QGR73GGDIEF247Y2MNJCL5HP3P52IXSVA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/HKPJJW4ZBBUNGPBZH3DFQ76WIJ2NPUVPGLWJTJVN6ZESOT4QI7VQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/Q72HPWJFX4HZRQCKG2UBIIJFQNUWPH47CQ5IXIW4ITQ2BXZPOD2A/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_fused_append_shared_experts_kernel",
+      "file": "/root/.triton/cache/7V46NQ3KJOPAVTBAUSIY7ZARYRZECVUAZVJHOTEOW7ZIQL2JYNDA/_fused_append_shared_experts_kernel.json",
+      "warps": 1,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/W6XKIG2ISK4LQZXYVLVMNE4UKMIUMBHL63G7K3KN2UEY7AR3VXVQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_get_last_loc_safe_kernel",
+      "file": "/root/.triton/cache/XFUYOWYE7QSD4S6BEB7BY3TLDZQUFWATTARTNESUJ4UDVIEP56AQ/_get_last_loc_safe_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/LIJO7LPDQFUKXCDHMIJ76QVJWD47DBW6XWUHWMGCVE75BODW2HLA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/YJXVKRMBACRPBFSYYD3H3I4VY6UJDTV34IU5LMM7WINK263357GQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/MOG5HUULLZEODX6PS5264ECRF4RZ5SWHF7O5QKSGOS5O3S547K3A/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_hc_head_kernel",
+      "file": "/root/.triton/cache/FWSIMVKRQF72BIW3CC6P65NZU4PLLFYL6MXB3BOBBMIA2MHD2NXA/_hc_head_kernel.json",
+      "warps": 4,
+      "shared": 8192,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/IADDXEYAU7FYFJKLFEZH2GRWIP2C4HJJKT5YKU5EQHY27N5O3INQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_vocab_parallel_embedding_kernel",
+      "file": "/root/.triton/cache/Y64OPSYV6OUFW2FAMCNDEYYQMMGUJMVDBXQDJLWRKMFIAZPZTYFQ/_vocab_parallel_embedding_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/V4LVUB64Y25DHKYWMUHHNEBKUMUMAYENKYRIQWWFOUK2MYBTLS6Q/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/3IRLH73ZUGUWZ6V6YV5VQPUPDNB4P77GWKDHUP2TI47YDHZBA74Q/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 8,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/M3H7F7RILHZ5HJVU32TL7CCIJ6PBOVFFYYNBD36UULYVF7FP7NIA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_router_triton_kernel",
+      "file": "/root/.triton/cache/YA3ST5BS3JPBTFDSTHMUONY6GDPEGSLX7WZLDWPFGZEH2F67XXMQ/_router_triton_kernel.json",
+      "warps": 1,
+      "shared": 32,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/SSILYZL5PLOU7TICBPK7SHZTQZVPODL5MDIYH6TGGWUUZGTECREQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_swa_scatter_kernel",
+      "file": "/root/.triton/cache/DQNMCL7V3KPN6YJJW2VANPSMRYSDUHT7IAMC6X4OQLENIYODIFOQ/_swa_scatter_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/T3OFR4HI4BE447N6AGLJQXRDJUML6OD7QBPQHTRKUPVDJRUTHRAQ/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_online_combine_kernel",
+      "file": "/root/.triton/cache/3PUUTZ3GIB3LOXDXUVUZOSOAY7DTNJM2L4RZZQPXAZ7GI62TH3OQ/_online_combine_kernel.json",
+      "warps": 4,
+      "shared": 8,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/PWOQFU2UDSZVXD4TRCQLM2GDCHVE5VVB3QCUFVBNF3JKOZP5JZDQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/YNSUE6WCQSKYUNKS6FQRMF2N6OW5WKXSNCNVVRVO6RGNNS7TFQPA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_swa_scatter_kernel",
+      "file": "/root/.triton/cache/2XMH7OLW5S2C53P63JVNGCVZ7CHPNJKMZ6MER7VNTW7GAXIP57QQ/_swa_scatter_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/RY7EFM7RZKPCMKAGKMCOSNNVXLQWK2RYTCBVTJPPTAGNNAGQOOEA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/EWEL32RMHDLOMM2RWTYOPZ6RNJHWTMDYPNSDWQZNAIAMLL5V44SQ/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_online_partial_kernel",
+      "file": "/root/.triton/cache/RTF5U7JZZ4ROYGJ3DYGVZA6SLMGI5OVX5JXX33ILJJG7CLLFBGAA/_online_partial_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "assign_extend_cache_locs",
+      "file": "/root/.triton/cache/XVQTMDMUO7DK3UBDKB6DONDPIOPACSOHZJXHFLY2CPM5L7EBCDSQ/assign_extend_cache_locs.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/GWAMRHMVLEBAJ42NRRM4JPDSTS3PZS5FYLRX5334ACZZ57RCYFKA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_fused_rms_fp8_group_quant_kernel",
+      "file": "/root/.triton/cache/Q3PRF5RYXDQIDG6ADW7OXJ6BVLDHPHOBREQ5PZY76LTMT6S3ZIXQ/_fused_rms_fp8_group_quant_kernel.json",
+      "warps": 8,
+      "shared": 128,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/2H73LOWAOGXFHABLO3BWCTNEQGBFXXR5PDOG2ESAXGJZZNNFGOAQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/KET5JPOIST6K6KM6OW3ZBQTX6N45N6FF42TWFE3RZRUO7ETSYFNA/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/LET2ZKO3FYY5KO6HCFQLJGSPVAWOL2EKKK2HQFAHS2O57BQ5NUFQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/XUYLHMOER3DPV53ERCX4VVTKPLN32RFE7BSRD62LSM3WHQYP623A/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/O2SUASK6VTSZVZUCPRCQ7IBSO3TVJDKOIU4XPNK6INR5ZNADIZWQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/OQCWETLTTRBD32JEC2U7K5FXVFIKPVFSDCNNFDDLTUGB6Z34WX5Q/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_swa_scatter_kernel",
+      "file": "/root/.triton/cache/EJDDCCQT7E4LTM5KOFDWCUEL3J376ALSF2VJ5ZSPJCD3RKZ745RQ/_swa_scatter_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/U4IPDFWI7XT4ILSI5T7JDZHYALDOU22UQ7RPYSGUVEMEIK4PQENA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "assign_extend_cache_locs",
+      "file": "/root/.triton/cache/D6U32TBVN5DNALWSBGMCJF5OSPY2LO5T7WDIB2WSZREYMD5OM2LQ/assign_extend_cache_locs.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_req_to_token_pool",
+      "file": "/root/.triton/cache/VQTPON5TA3BU534D7P4R27ZKWOKSPKNMYVVDZDXWFQJ27XPN55NA/assign_req_to_token_pool.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/CNFJNW5LC4Q42RL4QZVGCACB5ZKFK2MZ7JCPYPPVHP3A5M54V7BA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/33OCSY2BSOQO5TRQNTDHLH5NLHFPK6VUSB5AOX3UDSRMKOWFX2BQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/5TOBRL64A4XBA77HOXCT3CFFZP2ZXCVVKFLPSI3MEGGOSHUOD4RA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/L3T6VO4OSGEZCOUIU2MSLHAGVPFFRD7XM3W5VO5RIKLRC76UJZNQ/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/T6L3EI7LJHAGDHWI5WTZI53V3SJMMQIFSJHV5VQ3OXMGGHDY3NHQ/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 8,
+      "n_regs": null
+    },
+    {
+      "name": "_init_compressed_attn_metadata_kernel",
+      "file": "/root/.triton/cache/RUI2MXQTF22N37VFSOVKABS6IHNI5TVJZAYQFYKTMY332FNXEVBQ/_init_compressed_attn_metadata_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/BNFU5ZYLJORDSTM2W3Q2LQ73KJKU2RH53LJ6K3KQ2EBXA43YP5LA/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/CGBZT2CHO4O5FPA6VV44OCDVDILUCDXAHUTQ63P5E3IQYXWPVE7Q/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_swa_scatter_kernel",
+      "file": "/root/.triton/cache/3WQYZSYP7G6BV25PKEFNVUXXRES7JREJLHQGVRP35K6RONTGKOHA/_swa_scatter_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/ZJ6L53QMJXEEDGZU5EVM4V6VS5VQWI2HAG4JAOWPFAWJA5JROPRQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/NCDKMPZ7QU4GWBFJWRFY4OGUL7WMGN2HX2GHCR3G3QNL24SOTKYA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_init_compressed_attn_metadata_kernel",
+      "file": "/root/.triton/cache/GIXS32CGZL23UR7IS764CP3JIV6XR7D7A3BMZPHS6JVTRNSPMITA/_init_compressed_attn_metadata_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/HEXSRWGQVU5QHUK6AQI6V5HRJQK4IUJV7CFVMFZCFT5I7NWG6RTQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/4YNU44SJWOKUDLBQE6JNQ4V3Z3I2QHFOKSJXGNRMEXWVZ4K757AA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/BL4ISUXUZUWXLQ2SAQGNKH36OLIWR2X7WK6UIYS3323LYGFBLTFA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/TEUMQSATO3ZYFIM4A3ND4XXUTGI4DHZKXQ5RVBMCZYBKGILGV6SQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/NOHZODXCQENJ5WXQIHZTW6QXLVTYBU7HQEVVTIPOOARSSKNN3SOA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/O56M4BOZXT6QD2D3WJYPTGRACOGTAVJKULAP7X5DVXWWRWOTXUGA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_router_triton_kernel",
+      "file": "/root/.triton/cache/RBSBBIM6BVC4UOJA73XCNJ4C74MQFIXHAKN2OIFXFXDLKE2AGALA/_router_triton_kernel.json",
+      "warps": 1,
+      "shared": 32,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/LNHALQ4DYYYJFEN6U2S4TGZIDARXFMAENLXXNML5TVG3ZTVI32PQ/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/BT2BFDJAYYXASVC656KJQB7D3WRHRQD3ZORCGPM4MEMEHPLPSVNA/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/AQIDRHLV4NGJTP2BIDSISOHSOFO5WLQGAGISUZPHQAAKJQO4YUPQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/DM4LQDCIS3OYZ4Z7JI3SMDL6BY7VZZQG5JNEVNIHMZLL2NGYYFBQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/IPW6QGNUPP6PUEF4Q6FXJDFMVPQOOZTICR3PJL6LG4AALE2KAYYQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/CIIWJSPCS4RR4PVGXI4LHUAMZ5ZD5GSLPALX5KIUYXFOJU4GCU6Q/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_extend_cache_locs",
+      "file": "/root/.triton/cache/BSSDGYZOSBDGI7J4G2HXK7WFCXVYYJZEBOLHKXSQDQVSPEBKDCAA/assign_extend_cache_locs.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/BAAXXQ5ZJJBGSZ55ZGEJFF22EUEH6QPTRGERS66AVO6LDLDH4LYA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/45KMK4Q5YLURWEBEG2LUFQ5F3T5CT5P7IO3ROLAT7RQ67XQJRYIQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/MTTCZHSEGJPICXQHLKITYT6NAG2HC67SEHYII3FNHZEMYSJRO4EA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/7HVV2YXA4HJD4MSZYG7HDGNH24UVK5DS4OD4QMTZUCSKBPGN4AIA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/KCHTVTIJEE2SB7IAIJNRXALOVJWAW4J6ETD5M4RJ5PQEIPQB7JFQ/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "apply_rotary_emb_flat_kernel",
+      "file": "/root/.triton/cache/H24RULVWD5Z7S4SXJGZ6TLBHZGZWVRIURLNNVWVYDDFCRXFC755A/apply_rotary_emb_flat_kernel.json",
+      "warps": 1,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/BX25WB3F7ES55YZTHDCCMMVZ5ZEOWD47UF2C26QU6H27QLRBC5GA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/LLNVCN7Z2QJXBKKCTDQDUMCR2XSIK3HN372JMENOLPORWUAZVOBQ/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/KQKYBU5AMDNPJ52STU5Z4SFASC5ZRLG3IU7QDX4N4YWTBEA44S3Q/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/JY674DQ5N62FOPSKROCFEJSBQUDBYC4VKO6BLUR5NVOHZBDTJO7A/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/3YFPIR4MQC4OG25ZXV2HWZBTZQAKW2FKLO6RU4S66LNUBXSHZF4A/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_finalize_accept_lens_kernel",
+      "file": "/root/.triton/cache/64TE2ASHIB5LBOF74ID2FITRRLF5YU75LXKPJW5W2K2IUCNQLAVQ/_finalize_accept_lens_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/TG6DZZPBTO2LCVFQWEF6MFGIED7MNILQMQ5QOKTKL7WZXIMGCVEQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/R6TO7M7PNBSJQHMDBYNUP7OQORYFHD45XNPJMJNUVIKD4E3622WA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_scatter_loc_kernel",
+      "file": "/root/.triton/cache/LO7KSNF5VVKRP6DKFZOQZW7MFAA3DSN4QY22OAPWDRNP4JEYTMIQ/_scatter_loc_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/5VICACV6FODTJ5RIHPS5BZTTHKMKEJDVNLVROWVEK2WMSYCQWKPA/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/E7DTPSPFYLITN6QPCI562S53KIWAB5RP43KPQ3IISFR4NI2UCEKA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_req_to_token_pool",
+      "file": "/root/.triton/cache/DXODZL3FQMPTRQFFEC5JGUQICU5HC3PSVSG6K37IKE2N6VIBFU2Q/assign_req_to_token_pool.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_req_to_token_pool",
+      "file": "/root/.triton/cache/ARAHVZ4PVIJPWWQRPV5GFPBHQOWXHWMQOIWVQZ6CSDT4QSPPXWPQ/assign_req_to_token_pool.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/C4XSCNA2LWTZVH2TIG7XDJH4BNVWCPGKBA7ZFVOPK6FLOLYM7RRQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/XWM27GBVFTKJGDKE3BESMXGJJC6QP4QSXVFIPVCNRTJUNVPOLJ4Q/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/Y3A5P5OBJ5N5OEBCVOOTLETK5YF2I7SWISBJZL5T6BPVMJYZDGTA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/BYAM36DCOWSKUYTQGOGLIXKDTYU5R3XUDW5QQPEJ34JVUGQQGQZA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/6B4SV32C2P424B2XUG742RK2ODTGBBD4R6FPULQ7XGHUO77R6KEA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/Y46XLIOGET7VV42SEPELOAWKYIBDLRXS5RJS3FMGCNYYNHJDTQ2Q/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/HDA7WSZT7HFGNPGZTXUV3ITW4B3LY3ZCXF4LPDGY2IZTVN5JNUXA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/3X2EKW6OWY5J66HI3RZQOOOZFYDD3ASJ4VCUHPW7YTZRCJMIUU6Q/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/3A3S4SHXHUFURUQUATV4NWTFUHDAE7XNOPJRUFROOFNTMSP3K7AQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/CO2BIFD4MEQ77DBSUM7KSLIDKKEMLIR7D3I3TCOU2GEXTXH2LBWA/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/B33ZAWMTK3YH6CRR7YHYDO7NK3HPDGXOCHJG6NWDFUKDAK43QXYQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/PV7ZHY6XIXMNJQT2VTFECXTXPXYEHQ4T5M5HAIM4APGYE64AIXTA/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/E2CJEDPQAWBNWL3VJUMVRBBBXKMKMR5OCA3NRW2YLS5AGUHMYEVA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/ZD63AXEQSI5TRNXAJLWIDTDJZO7PMZOSL2G24RKI45JC5XAOP2LQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_extend_cache_locs",
+      "file": "/root/.triton/cache/ISRGQLLX3EP5ZUHKF4EQG35XXN47GMEMBH56C4OKYZW6FBJJOMCQ/assign_extend_cache_locs.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/EMHOQ74Y6EEHBKH6ZNTTAAPHBT4MDINBO5BOHRHKL43W65X5CYRQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/5NVJFDUJ5NS6YABJJDM3L54ZVHGEVEMEHEWKCITYTUFWU3ISSYQQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 8,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/JWVEFJK4GC5IFCTB6V7FMDSTOY6OHV65X757QDTWQPA3ECJ5T6FQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_get_last_loc_safe_kernel",
+      "file": "/root/.triton/cache/VRBZXUDUVYKRR7LJTSPWFEJGMSIXG4NDQJXCER7KMCFIHAE7CSOQ/_get_last_loc_safe_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/H5GK3VTVYTZOMMJGMNTTHUO4FYNVTJBEKQI7PJ3EITHUJRDK3UTA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_vocab_parallel_embedding_kernel",
+      "file": "/root/.triton/cache/6UCJZVMBK5M4C3D7XWRBHLPVOSSEDR4GCROKKB2XKZXLLKD57WFQ/_vocab_parallel_embedding_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/WCRENNF67DEPYAXZA6N2VN3K43SWNCQGTM4SGXAXBGVKJCZF46YA/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/FRBEIARFQK2WYAFA54HJM3TSBQGLHYLEQMGUIG6T4E4YMTQEOEHQ/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_extend_cache_locs",
+      "file": "/root/.triton/cache/2GSENDNDDWI74TNX3NJG7Q7ARPN6HMD5M7T5SHJDHC6P2KQCFS3Q/assign_extend_cache_locs.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/6AFELJ5GEQFQHX6A4VK7Q725B2OWH2TLUYEFHQGHESCVGABQPIWQ/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/W2YM4NRW4KZ36M5JQLZ7OAFHZ6MOKVB7EXIVO7E5BR7YBB7BXTZA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_gather_two_level_bonus_kernel",
+      "file": "/root/.triton/cache/IBSASMYHY54LFDWCKHVFZX6QMN7CELESA4KNTGTCORRWECJMXBIQ/_gather_two_level_bonus_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/N7AU7FQMSKE2AWQSRX35CDHCEJLBTWZHRMKNY2DEDOVXQWP6N2YA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/3IHIT4FMLG6S77OAQJWASNHJUPQNOOTFG55UVEBMQLNXS7MU4MPA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/I7HOHB6AF5Q6IN6XZGF5DKQQX5AS2F3HSLXFFGRTF3B3GZYVHTBA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/SNJYY2PII5MHUL4QYZZ35TZ762BFHKRNOYGLGLDHK6AR5FLGNQ5A/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/WPJDDLXMFJLPRSPCLB7UPHYPFWX23S5AYVDBFNTKO5Q3WTX7J5WQ/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/4WTYVLNG5VM7CLKJVALTFI5GVANAJ3PSNOGRLA2UDSEM7Z7QAR7Q/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_req_to_token_pool",
+      "file": "/root/.triton/cache/E5EKWFIWWZO36N7KWVDYGAKMKXCQF4JBQ4GZX7HXU7TWMTST2KTA/assign_req_to_token_pool.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_softmax_temp_kernel",
+      "file": "/root/.triton/cache/DA3XMPCRS5727WK7K766F37R4ZOF7PLPQT6FH2V2XGYD47SNDORA/_softmax_temp_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/UXDHMMQKGOXGWJODI2CITO4KFCODIGIQ6GNX2E65R7NXQYM42UBQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/MGAOCLACR6IZQPNJJNCVR4TL52JJ3EUOCXLK7BZH22J7MMSHS6WQ/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/VTH2PRNBA753TOTBLN4AECQHTVKHHVTYCUIOVNT6XJ2NWSO7GITQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/N5SDMHTX7ZHWTZGIZDN5F6DQJ2ETERLDKJDXCZ4K4TMEC6CDNMRA/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/HJOBV7SS5FUACZ7RGK5WGIIARBBY6GIW4ZYL2USI5YH3JW65DXUA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/P76EPOKSYRWFPGPLDAZDTAUOV66M3SOBWCVMLVJBQXLCPU646RUQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/QO7DRHBDKZZYCXDTNNPXKBBX5OJQIYSVSUTBCUX6U3BS5HXRLF4A/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/G2W5DM7GYK6JB3CWA5KTM2UPDVXXTVHRU2XCBU7443WBAGGUHC3Q/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_req_to_token_pool",
+      "file": "/root/.triton/cache/IQCUGHZXKHVR4CJPTNQCQ4QWQYWYMVI3DNKBCVCSV6DTO3XJHKDA/assign_req_to_token_pool.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/2A4MI2I2HZRU57YW2MGQYCKXBK75MAZBX7HSV3VRVIJFF4DOLOKQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/Y4W5REGUF5QDV7MAPD5G7EQUQFWDMWQKMQ4JUKJNG46S4GAR3PGA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_gluon_deepgemm_fp8_paged_mqa_logits_preshuffle",
+      "file": "/root/.triton/cache/NDXAAABF4LYLCGSUD2FV3FCRVDGC6JY4W7NSYSXRREFCAV5V4FHA/_gluon_deepgemm_fp8_paged_mqa_logits_preshuffle.json",
+      "warps": 4,
+      "shared": 8192,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/JHKCMSNF3LSZHKVQQXXK6MHNV2EILV5DCTBB3VJGHUBBEQLBX2JA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/3NEEKIP7BMJ7OQEQ24ZFTSNYCDKOI4ZGTOOUQZRWQ37Z66MH6KKA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/E43LU5OM6GMQWRNAVMTBJC57Z5BXANWIER4LMNYEOEGZA2KPL6OQ/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/Y4OSVMCFSUZGV3NUS24FT7D2LM7BIAVAQBJHFHCWRDPU24DTV24A/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "write_req_to_token_pool_triton",
+      "file": "/root/.triton/cache/XEDBH3CDZ7VJSJ4O3KEFZCYUGIEXYHG5BYM3MCX3YNQZ46UPTOMQ/write_req_to_token_pool_triton.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/ABVF32TKDF5MHZUWH5YGD3YCYILIPOEV2FOPLPUB4LY5JKRV36OA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_finalize_accept_lens_kernel",
+      "file": "/root/.triton/cache/PNYIC37T7RXCNXWPB2RF5HKKKPG6ZO733SDOGWP342JAH7RFWQCQ/_finalize_accept_lens_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/4HHCTX2TTFVEM3XTRADWWIH7VRX3N4ZYGZDCAKVLEZ3ANMG6ZMKQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/SOXHNPJUCIMEQZZBSQZPFSG7W5TESTW7XLYICGRN6OFWXFDYDEYA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/MRRIUQWX6HSL7HZNCF6ZKMVAVBMZ4ETL43CZ7RXH7VZC5T7VFN5A/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/Z7M7GLRZ6MZYM6FOF73JNCYZLDUPU4EHH33FNBJ4FOLXJZ3NL74A/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/S53LQF2Y7WR6MENG47HPMG6P7BAQK6LPPLLDWEW7MIMYAYRGXFAA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/NFW73DAHWFEY2COHFGOQBT4LJXHSS7ZWXC4DINZGRZ4BSKTGCIJA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/6FYMKH2LWT7X3DC3UCDOHOKNK77MYNWNPAYD2VLUB5A2RYJPRXKA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_init_compressed_attn_metadata_kernel",
+      "file": "/root/.triton/cache/Y7RX5WUUQS7RT2FZCZPW32GIOHUTGL2ZAQMOBMM7BN7PKSS6HCVQ/_init_compressed_attn_metadata_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/WLHQY5JHCMZ7OU7RII4IJQHEGO2KQ5MKPQNFROMDU7CNALHYZ76Q/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/5YBNRHVEV75DQWQUHHWSX3TBY2UK724XYOVLXD3W5L23MKNVPWTA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_fused_rms_fp8_group_quant_kernel",
+      "file": "/root/.triton/cache/FOR2JNQ6LZLGXIR4K4QHKIHFE5YNWVHA44Y4LBMRHH26KRRWXIFA/_fused_rms_fp8_group_quant_kernel.json",
+      "warps": 8,
+      "shared": 128,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/6UVH63UL5UW6F5MNREBWYA5LLORTFBS6ITVYVPVTZSWY62LBKL7A/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/ISWVJI723F2EADMLUQ7D7D6QFPG52JOFWNZ7A4ID4AHY2ZFCIXIQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/UMHEQBIBMSYAALKCEZ3JNG6KV4NJKI5C2YQAKSCXXZ6AX3UMSSJA/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/IYAD7U6RGOWHLGRAQE2DKS3CPXHAMDQ6RN46HMQLKLQJWJRG3RBA/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_fused_rms_fp8_group_quant_kernel",
+      "file": "/root/.triton/cache/22HT27BXJTBWTGQU2TZDM5S7DOCQCWR6AV72RYLUNISLZ6UCUFZQ/_fused_rms_fp8_group_quant_kernel.json",
+      "warps": 8,
+      "shared": 128,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/332S5SJCHMDNRS3CVGZB2OKGR3YPT7BHJR3FBYDZH2RKOPTAYRNA/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_build_out_tokens_kernel",
+      "file": "/root/.triton/cache/ECYNIDAEM2U37KRQPO5ZXCQM2KPIMHXQOD2GTMCBNES3A62ZNTQA/_build_out_tokens_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/P2YB4IKZ5WNIEOV2VDWLO7FNVLFDYEIDZ2C7NCBI2MYOCW2JC7HQ/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_out_tokens_kernel",
+      "file": "/root/.triton/cache/4E7TFA3XCVG3X264YYKM4KHCJC7G5HRFW3MMPOPOSA5Q4FUUQLLQ/_build_out_tokens_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/PQWLLX45HAJ6Q5I5OFCU6JMTCVSZZAS3RRJMC6AG6MPGZY7PFRHQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_extend_cache_locs",
+      "file": "/root/.triton/cache/ZOQ3KLB6ZXUMTSQL4P4YLJQA55U5H55NVAW2LTPCMIEV7NQW7SQQ/assign_extend_cache_locs.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/BYOLOOUES7DCXYXPVBSLGZ5BHX33OYETMKGNSCEW63L64QRTRRFQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/IG3HSI5CUXXQJ7EFWDCF4DJBPHOMEAC5IQIBPLL5YFMRYJNHFN6Q/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_router_triton_kernel",
+      "file": "/root/.triton/cache/MMJXV6JEUKSTVPJEPJTLNT6KEW6NPBLFCWUFOOVXGGRHJL6LEKHQ/_router_triton_kernel.json",
+      "warps": 1,
+      "shared": 32,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/BFOJQ4XJG4Y4LZT2T75OEJTTWSSZ6IRPAHUHGSMGZHRIIKXAL6TQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/ZOJF73Y3VOOBY2Z5I7FA3JZBITP5BPKW3D2W2L6D334PLEJ3YJCA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/RNIAR3F226PV4QKMFNV6BAKTPRMHUHD6N45TIWQTMGZEVXYXLXWA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_extend_cache_locs",
+      "file": "/root/.triton/cache/HWQHRTOO6GYDWHHPZPQAVWH6FL4DOHUMFMAVNVQX53CO6BZWTS6Q/assign_extend_cache_locs.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/3BCFSIJEOIV4GSQLHJKY33KODLZFBWN6ZHLJN6CHOC5DDVVZFNYA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/5FBDA2JHGM4YZA75CT2PJ4NNPUKY7EV44YDJ3UTVJFEIEIQL3JAQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/KJA67IVJSOU2CBE7LKASFT5Z5QB4FHRXHWW4YTGJB2FOW7S27VBQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/ZXHTJGKCNTVKR2YHR7YECEFZERL5WAIRFQRQVK7LAUN4UYOEY3OQ/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_extend_cache_locs",
+      "file": "/root/.triton/cache/EY6VBKCXWXMZFXODZPFKHT6XQASZNE7NA2ZIJZYCT4IBDGZZLJYQ/assign_extend_cache_locs.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_finalize_accept_lens_kernel",
+      "file": "/root/.triton/cache/EEXPYGLKQ36Y2DFMGINVLQHP6SDIYKFXNKJC7NCJQEBL6NVTZ7QQ/_finalize_accept_lens_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/53VO6RKCB7I7EUJYZIUW6W7BMU26AM33KTVB6OVQRTOOKRZWQEOA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/K3OL243GQGZUZUG6HAQSYNNIX3APUKVUWC3HIUKAN3IX7XPSP4MA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_req_to_token_pool",
+      "file": "/root/.triton/cache/DGVDY7PNLRQJMJBZUQTUDSY4CJYHQSOLL72QV2HFL4UN3344IZFA/assign_req_to_token_pool.json",
+      "warps": 4,
+      "shared": 8,
+      "n_regs": null
+    },
+    {
+      "name": "_swa_scatter_kernel",
+      "file": "/root/.triton/cache/7OP7MYHPBMPO467FUYMC5D7IMXYP2UMBBOQLBHTTFEGLMV6D5ZRQ/_swa_scatter_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/XGDM6P5G5BPFZDJQO7HZLCRVN77Z64XZYGLQI572HW6T3BK7KL2A/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_finalize_accept_lens_kernel",
+      "file": "/root/.triton/cache/G573O5VIE4VZLESUUVKCNP4AVNOGN3RWPLGSDZEI76AARLSQ7QIQ/_finalize_accept_lens_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/34GEJJSWUOF3KTK2Z2ECZKLAO23HBUPLEH2A7C6YK7A5QAAJKSGA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_vocab_parallel_embedding_kernel",
+      "file": "/root/.triton/cache/ETK2HAVY3CNI5IX3IKF6FRVI7QQM5IQGLQQCSQIN7TOLGIOYP2UA/_vocab_parallel_embedding_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "assign_req_to_token_pool",
+      "file": "/root/.triton/cache/WZ7H3ILBF24TSA7GJQDAMAYLNWQMEXSKAW5ZIIRUBWJ2GFV3734A/assign_req_to_token_pool.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/VEELW5RHBVEIHILQRQ6WXRNOWOTAJESRQMZSKRWHNVQOAWJZR7NA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/5A6RX4V3FYXC23EAYOPIO3MZT4MEGKT5P4BGVPAZGNGMONYSO7FA/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 2048,
+      "n_regs": null
+    },
+    {
+      "name": "_hash_topk_triton_kernel",
+      "file": "/root/.triton/cache/ULCRZIDGZR5AU47ITKGYBLDTZWIHD462ZGOCGKS7RWBFYRL6G2XA/_hash_topk_triton_kernel.json",
+      "warps": 1,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_init_compressed_attn_metadata_kernel",
+      "file": "/root/.triton/cache/R4WVA3XIFIO4CFKQUA5FSFON64YDD4CIFMRKK5MF3VHRZDQCWCWA/_init_compressed_attn_metadata_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/RBHVMAKEQTVNHELPQFCTBPTI2VK7WGXYR7BANAAFAMUJZUEKKJRA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/S7VNGZQNHWYRZ77SY5VUMNZEBANRLMSTFDFQAKFNDJK4CZYUOIVA/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 1024,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/LSYS3KVBEQZSBVPLB6KBRFDV7RGOFD5NYY5XIW3GLBA734SVOPBQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_expand_prefill_causally_kernel",
+      "file": "/root/.triton/cache/QDHR3BZRTLGYKIC2AOYYOATNK5L45IQ7C7DH3WTXIJM2KUKSOV5A/_expand_prefill_causally_kernel.json",
+      "warps": 4,
+      "shared": 2048,
+      "n_regs": null
+    },
+    {
+      "name": "_scatter_loc_kernel",
+      "file": "/root/.triton/cache/FERHBUZKRLKEYBQWBVIVVOFN4YHMKORJ2AVIKZZNOPEUAWVAUD7A/_scatter_loc_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_scatter_loc_kernel",
+      "file": "/root/.triton/cache/MT6UA4FAZ3HIR2VCQXFYFUSUOF7HKZVYBOVFTA3VSQIYMRB5YZUA/_scatter_loc_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/3YNGZUAKSGSZG3FFPYSBL63RHD5J6YJ6K3CQS4KCNQXTFOVWRPVQ/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_vocab_parallel_embedding_kernel",
+      "file": "/root/.triton/cache/VGNJQE6FQNOUQM6L2UBOTHKFGTQ6RCYHZBVYDJ4MZ4XRSZ5FZ7KQ/_vocab_parallel_embedding_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_swa_scatter_kernel",
+      "file": "/root/.triton/cache/ZCUB4IOPYAXDLDEJ4K7RVJJYCB6G2KYG6OFQNS2Y6CFW256RORWA/_swa_scatter_kernel.json",
+      "warps": 8,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/4V4DB4S35T2D25VHNY5J6AINL6HAGJNUZCRNAVLXIXSN37XD7XQA/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_get_last_loc_safe_kernel",
+      "file": "/root/.triton/cache/XJPWKGXXUB5HYCNXFVWWNGKNHV3OXTOZNIBAXNW3W5OYGEQFS7MQ/_get_last_loc_safe_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "alloc_extend_kernel",
+      "file": "/root/.triton/cache/ZALX2OF6GZKDEEU7I3PR64M6E6ZFLOIKMZ7YI4EYDJXJOVEZMYNQ/alloc_extend_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "compute_position_kernel",
+      "file": "/root/.triton/cache/6YJAQIBM4Q4RE22HT6TDWN5RXEQXT3V4FPIMFA2TDP5PI2I3MB5Q/compute_position_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/AZYJQEXNC5L5YYUCJTIWZVGGHD5MLYGKUIP26IGENDULUCLZ26OQ/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_prefill_lengths_kernel",
+      "file": "/root/.triton/cache/YWT7QADTD67GEPNQ7AUU6HATDCJJRNSX4UO5B74CN4JETY5MLSAA/_prefill_lengths_kernel.json",
+      "warps": 4,
+      "shared": 16,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/FLAOSRB5YRPWXOVLEHYMEWYR37AQ6YKITDJJEOIX62VMJSPYPZJA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/DANN3PO7U6KPOBGYPK2J2A4ATMEVCXA7YSKDVJXO3H7YCRGR7GSA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/FWGBPH6PEYHTVZPAX5VIQQSNMRB23QHLDD5YOBCXGQUHWPNYROQA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    },
+    {
+      "name": "_build_prefill_indices_kernel",
+      "file": "/root/.triton/cache/KR3GBS2D5GJDAP7IT4D3EXGUYOQ3OZAYMN6TEMHTDBP3E32YJUDA/_build_prefill_indices_kernel.json",
+      "warps": 4,
+      "shared": 0,
+      "n_regs": null
+    }
+  ]
+}

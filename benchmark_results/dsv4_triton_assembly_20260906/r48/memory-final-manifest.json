@@ -1,0 +1,16 @@
+{
+  "sources": {
+    "kernels/gfx950/memory/dsv4/write_req_pool.s": "56eea66dcfbea6ba4ebd6cb2f748da65063cf542578afc723f16f3286ac638a0",
+    "kernels/gfx950/memory/dsv4/alloc_extend.s": "9d1b84d7e7b280e76451a6b774ea0eccb6e2909e2ac6937030edb421543121a6",
+    "kernels/gfx950/memory/dsv4/assign_cache_locs.s": "6942221658e81bbb532ec07f1cde1b68f1717c3d35286a69ba300e612e6e22ff",
+    "kernels/gfx950/memory/dsv4/expand_prefill.s": "3ab493fc458c8dab73414c976c2089ef979dfbde19c7bd1207e494ed767f092c",
+    "kernels/gfx950/memory/dsv4/get_last_loc.s": "616722b1f6e5e886a3f18253909ff2e87a6d4279f3166af4233824acd1219aa2",
+    "kernels/gfx950/memory/dsv4/compute_position.s": "af951356447fd4f58f280e87602b45a49c457bfab6b12e665b7d9b7ef9aad35a",
+    "kernels/gfx950/memory/dsv4/vocab_embedding.s": "0523e4466f36df4a6e9d04cc2996e225d8dab603755284470cc279b3d176c2a3",
+    "runtime/gfx950/memory/dsv4/bridge.hip": "db057a2311293d9c96cba0ed46071de62a8efef662d287a114adc724955301f8",
+    "runtime/gfx950/memory/dsv4/memory.py": "f12c550a0065f2cc82b50415e20cf920bb15ebf68806356ffe210ea26f258dfd",
+    "tools/benchmark/dsv4_memory/build.sh": "f11bee07be1926eba7d87a194b20bde6a971eaf66b52368faad9dd848ae3780e",
+    "tools/benchmark/dsv4_memory/prepare_wave4.py": "e14af724f0cb13b89a7d83a53106ffbb1c84d6c0fe59e7823bcd10a295b6614b",
+    "tools/benchmark/dsv4_memory/validate.py": "15fc88f1dbede07fe54ac9111c90870bd416f9911824a95e067c50658ae62cc2"
+  }
+}

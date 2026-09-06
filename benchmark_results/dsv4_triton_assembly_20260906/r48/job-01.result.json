@@ -1,0 +1,865 @@
+{
+  "state": "passed",
+  "device": "AMD Instinct MI350X",
+  "cases": [
+    {
+      "operation": "get_last_loc",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int32",
+        false
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_extend_cache_locs",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_req_to_token_pool",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "expand_prefill",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "write_req_pool",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int32",
+        1
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int32",
+        16
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int32",
+        256
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "vocab_embedding",
+      "shape": [
+        1,
+        128,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "get_last_loc",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int64",
+        false
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_extend_cache_locs",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_req_to_token_pool",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "expand_prefill",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "write_req_pool",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int64",
+        1
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int64",
+        16
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        1,
+        71,
+        1024,
+        "torch.int64",
+        256
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "vocab_embedding",
+      "shape": [
+        1,
+        128,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "get_last_loc",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int32",
+        false
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_extend_cache_locs",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "assign_req_to_token_pool",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "expand_prefill",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "write_req_pool",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int32",
+        1
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int32",
+        16
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int32",
+        256
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "vocab_embedding",
+      "shape": [
+        3,
+        128,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "get_last_loc",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int64",
+        false
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_extend_cache_locs",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "assign_req_to_token_pool",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "expand_prefill",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "write_req_pool",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int64",
+        1
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int64",
+        16
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        3,
+        71,
+        1024,
+        "torch.int64",
+        256
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "vocab_embedding",
+      "shape": [
+        3,
+        128,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "get_last_loc",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int32",
+        false
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_extend_cache_locs",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "assign_req_to_token_pool",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "expand_prefill",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "write_req_pool",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int32",
+        256
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "vocab_embedding",
+      "shape": [
+        16,
+        128,
+        "torch.int32"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "get_last_loc",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int64",
+        false
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_extend_cache_locs",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "assign_req_to_token_pool",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "expand_prefill",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "write_req_pool",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        16,
+        71,
+        1024,
+        "torch.int64",
+        256
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "vocab_embedding",
+      "shape": [
+        16,
+        128,
+        "torch.int64"
+      ],
+      "exact_all_variants": true,
+      "changed_graph_replays": 3
+    },
+    {
+      "operation": "get_last_loc",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int32",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int32",
+        false
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_extend_cache_locs",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_req_to_token_pool",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "expand_prefill",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "write_req_pool",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int32",
+        256
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "vocab_embedding",
+      "shape": [
+        128,
+        128,
+        "torch.int32"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "get_last_loc",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int64",
+        true
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "compute_position",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int64",
+        false
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_extend_cache_locs",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "assign_req_to_token_pool",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "expand_prefill",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "write_req_pool",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "alloc_extend",
+      "shape": [
+        128,
+        71,
+        1024,
+        "torch.int64",
+        256
+      ],
+      "exact_all_variants": true
+    },
+    {
+      "operation": "vocab_embedding",
+      "shape": [
+        128,
+        128,
+        "torch.int64"
+      ],
+      "exact_all_variants": true
+    }
+  ],
+  "started": 1788711536.188742,
+  "scope": "Isolated component tests, synthetic inputs; no serving TPS claim.",
+  "finished": 1788711540.903474
+}

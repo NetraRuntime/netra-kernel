@@ -1,0 +1,181 @@
+{
+  "_hash_topk_triton_kernel": [
+    {
+      "signature": "tt.func public @_hash_topk_triton_kernel(%router_logits_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"router_logits_ptr\"(#loc)), %input_ids_ptr: !tt.ptr<i64> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"input_ids_ptr\"(#loc)), %tid2eid_ptr: !tt.ptr<i32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"tid2eid_ptr\"(#loc)), %topk_weights_ptr: !tt.ptr<f32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"topk_weights_ptr\"(#loc)), %topk_ids_ptr: !tt.ptr<i32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"topk_ids_ptr\"(#loc)), %routed_scaling_factor: f32 loc(\"routed_scaling_factor\"(#loc))) attributes {noinline = false} {",
+      "tensor_types": [
+        "tensor<8x!tt.ptr<bf16>",
+        "tensor<8x!tt.ptr<f32>",
+        "tensor<8x!tt.ptr<i32>",
+        "tensor<8xbf16>",
+        "tensor<8xf32>",
+        "tensor<8xi1>",
+        "tensor<8xi32>"
+      ]
+    }
+  ],
+  "_router_triton_kernel": [
+    {
+      "signature": "tt.func public @_router_triton_kernel(%scores_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"scores_ptr\"(#loc)), %bias_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"bias_ptr\"(#loc)), %out_weights_ptr: !tt.ptr<f32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out_weights_ptr\"(#loc)), %out_indices_ptr: !tt.ptr<i32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out_indices_ptr\"(#loc)), %M: i32 {tt.divisibility = 16 : i32} loc(\"M\"(#loc)), %routed_scaling_factor: f32 loc(\"routed_scaling_factor\"(#loc)), %moe_softcapping: f32 loc(\"moe_softcapping\"(#loc)), %stride_sm: i32 {tt.divisibility = 16 : i32} loc(\"stride_sm\"(#loc)), %stride_wm: i32 loc(\"stride_wm\"(#loc)), %stride_im: i32 loc(\"stride_im\"(#loc))) attributes {noinline = false} {",
+      "tensor_types": [
+        "tensor<1x1xf32>",
+        "tensor<1x1xi1>",
+        "tensor<1x1xi32>",
+        "tensor<1x256x!tt.ptr<bf16>",
+        "tensor<1x256xbf16>",
+        "tensor<1x256xf32>",
+        "tensor<1x256xi1>",
+        "tensor<1x256xi32>",
+        "tensor<1x8x!tt.ptr<f32>",
+        "tensor<1x8x!tt.ptr<i32>",
+        "tensor<1x8xf32>",
+        "tensor<1x8xi1>",
+        "tensor<1x8xi32>",
+        "tensor<1xf32>",
+        "tensor<1xi32>",
+        "tensor<256x!tt.ptr<bf16>",
+        "tensor<256xbf16>",
+        "tensor<256xf32>",
+        "tensor<256xi1>",
+        "tensor<256xi32>",
+        "tensor<8xi1>",
+        "tensor<8xi32>"
+      ]
+    },
+    {
+      "signature": "tt.func public @_router_triton_kernel(%scores_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"scores_ptr\"(#loc)), %bias_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"bias_ptr\"(#loc)), %out_weights_ptr: !tt.ptr<f32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out_weights_ptr\"(#loc)), %out_indices_ptr: !tt.ptr<i32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out_indices_ptr\"(#loc)), %routed_scaling_factor: f32 loc(\"routed_scaling_factor\"(#loc)), %moe_softcapping: f32 loc(\"moe_softcapping\"(#loc)), %stride_sm: i32 {tt.divisibility = 16 : i32} loc(\"stride_sm\"(#loc)), %stride_wm: i32 loc(\"stride_wm\"(#loc)), %stride_im: i32 loc(\"stride_im\"(#loc))) attributes {noinline = false} {",
+      "tensor_types": [
+        "tensor<1x1xf32>",
+        "tensor<1x1xi1>",
+        "tensor<1x1xi32>",
+        "tensor<1x256x!tt.ptr<bf16>",
+        "tensor<1x256xbf16>",
+        "tensor<1x256xf32>",
+        "tensor<1x256xi1>",
+        "tensor<1x256xi32>",
+        "tensor<1x8x!tt.ptr<f32>",
+        "tensor<1x8x!tt.ptr<i32>",
+        "tensor<1x8xf32>",
+        "tensor<1x8xi1>",
+        "tensor<1x8xi32>",
+        "tensor<1xf32>",
+        "tensor<1xi32>",
+        "tensor<256x!tt.ptr<bf16>",
+        "tensor<256xbf16>",
+        "tensor<256xf32>",
+        "tensor<256xi1>",
+        "tensor<256xi32>",
+        "tensor<8xi1>",
+        "tensor<8xi32>"
+      ]
+    },
+    {
+      "signature": "tt.func public @_router_triton_kernel(%scores_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"scores_ptr\"(#loc)), %bias_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"bias_ptr\"(#loc)), %out_weights_ptr: !tt.ptr<f32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out_weights_ptr\"(#loc)), %out_indices_ptr: !tt.ptr<i32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out_indices_ptr\"(#loc)), %M: i32 loc(\"M\"(#loc)), %routed_scaling_factor: f32 loc(\"routed_scaling_factor\"(#loc)), %moe_softcapping: f32 loc(\"moe_softcapping\"(#loc)), %stride_sm: i32 {tt.divisibility = 16 : i32} loc(\"stride_sm\"(#loc)), %stride_wm: i32 loc(\"stride_wm\"(#loc)), %stride_im: i32 loc(\"stride_im\"(#loc))) attributes {noinline = false} {",
+      "tensor_types": [
+        "tensor<1x1xf32>",
+        "tensor<1x1xi1>",
+        "tensor<1x1xi32>",
+        "tensor<1x256x!tt.ptr<bf16>",
+        "tensor<1x256xbf16>",
+        "tensor<1x256xf32>",
+        "tensor<1x256xi1>",
+        "tensor<1x256xi32>",
+        "tensor<1x8x!tt.ptr<f32>",
+        "tensor<1x8x!tt.ptr<i32>",
+        "tensor<1x8xf32>",
+        "tensor<1x8xi1>",
+        "tensor<1x8xi32>",
+        "tensor<1xf32>",
+        "tensor<1xi32>",
+        "tensor<256x!tt.ptr<bf16>",
+        "tensor<256xbf16>",
+        "tensor<256xf32>",
+        "tensor<256xi1>",
+        "tensor<256xi32>",
+        "tensor<8xi1>",
+        "tensor<8xi32>"
+      ]
+    }
+  ],
+  "_fused_rms_fp8_group_quant_kernel": [
+    {
+      "signature": "tt.func public @_fused_rms_fp8_group_quant_kernel(%inp1_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"inp1_ptr\"(#loc)), %weight1_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"weight1_ptr\"(#loc)), %out1_fp8_ptr: !tt.ptr<f8E4M3FN> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out1_fp8_ptr\"(#loc)), %out1_bs_ptr: !tt.ptr<f32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out1_bs_ptr\"(#loc)), %out1_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out1_ptr\"(#loc)), %eps1: f32 loc(\"eps1\"(#loc)), %n_rows: i32 {tt.divisibility = 16 : i32} loc(\"n_rows\"(#loc)), %inp1_n_cols: i32 {tt.divisibility = 16 : i32} loc(\"inp1_n_cols\"(#loc)), %inp2_n_cols: i32 {tt.divisibility = 16 : i32} loc(\"inp2_n_cols\"(#loc)), %inp1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"inp1_row_stride\"(#loc)), %inp2_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"inp2_row_stride\"(#loc)), %inp2_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"inp2_col_stride\"(#loc)), %res1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"res1_row_stride\"(#loc)), %res1_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"res1_col_stride\"(#loc)), %out1_fp8_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out1_fp8_row_stride\"(#loc)), %out1_bs_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"out1_bs_col_stride\"(#loc)), %out2_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out2_row_stride\"(#loc)), %out2_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"out2_col_stride\"(#loc)), %out_res1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out_res1_row_stride\"(#loc)), %out_res1_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"out_res1_col_stride\"(#loc)), %out1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out1_row_stride\"(#loc)), %gate_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"gate_ptr\"(#loc)), %linear_bias_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"linear_bias_ptr\"(#loc)), %stride_gate_row: i32 {tt.divisibility = 16 : i32} loc(\"stride_gate_row\"(#loc))) attributes {noinline = false} {",
+      "tensor_types": [
+        "tensor<1x32x128xf32>",
+        "tensor<1x32x1xf32>",
+        "tensor<1x32xf32>",
+        "tensor<32x!tt.ptr<f32>",
+        "tensor<32xf32>",
+        "tensor<32xi32>",
+        "tensor<4096x!tt.ptr<bf16>",
+        "tensor<4096x!tt.ptr<f8E4M3FN>",
+        "tensor<4096xbf16>",
+        "tensor<4096xf32>",
+        "tensor<4096xf8E4M3FN>",
+        "tensor<4096xi32>"
+      ]
+    },
+    {
+      "signature": "tt.func public @_fused_rms_fp8_group_quant_kernel(%inp1_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"inp1_ptr\"(#loc)), %weight1_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"weight1_ptr\"(#loc)), %out1_fp8_ptr: !tt.ptr<f8E4M3FN> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out1_fp8_ptr\"(#loc)), %out1_bs_ptr: !tt.ptr<f32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out1_bs_ptr\"(#loc)), %out1_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out1_ptr\"(#loc)), %eps1: f32 loc(\"eps1\"(#loc)), %n_rows: i32 loc(\"n_rows\"(#loc)), %inp1_n_cols: i32 {tt.divisibility = 16 : i32} loc(\"inp1_n_cols\"(#loc)), %inp2_n_cols: i32 {tt.divisibility = 16 : i32} loc(\"inp2_n_cols\"(#loc)), %inp1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"inp1_row_stride\"(#loc)), %inp2_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"inp2_row_stride\"(#loc)), %inp2_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"inp2_col_stride\"(#loc)), %res1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"res1_row_stride\"(#loc)), %res1_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"res1_col_stride\"(#loc)), %out1_fp8_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out1_fp8_row_stride\"(#loc)), %out1_bs_col_stride: i32 loc(\"out1_bs_col_stride\"(#loc)), %out2_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out2_row_stride\"(#loc)), %out2_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"out2_col_stride\"(#loc)), %out_res1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out_res1_row_stride\"(#loc)), %out_res1_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"out_res1_col_stride\"(#loc)), %out1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out1_row_stride\"(#loc)), %gate_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"gate_ptr\"(#loc)), %linear_bias_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"linear_bias_ptr\"(#loc)), %stride_gate_row: i32 {tt.divisibility = 16 : i32} loc(\"stride_gate_row\"(#loc))) attributes {noinline = false} {",
+      "tensor_types": [
+        "tensor<1x32x128xf32>",
+        "tensor<1x32x1xf32>",
+        "tensor<1x32xf32>",
+        "tensor<32x!tt.ptr<f32>",
+        "tensor<32xf32>",
+        "tensor<32xi32>",
+        "tensor<4096x!tt.ptr<bf16>",
+        "tensor<4096x!tt.ptr<f8E4M3FN>",
+        "tensor<4096xbf16>",
+        "tensor<4096xf32>",
+        "tensor<4096xf8E4M3FN>",
+        "tensor<4096xi32>"
+      ]
+    },
+    {
+      "signature": "tt.func public @_fused_rms_fp8_group_quant_kernel(%inp1_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"inp1_ptr\"(#loc)), %weight1_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"weight1_ptr\"(#loc)), %out1_fp8_ptr: !tt.ptr<f8E4M3FN> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out1_fp8_ptr\"(#loc)), %out1_bs_ptr: !tt.ptr<f32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out1_bs_ptr\"(#loc)), %out1_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"out1_ptr\"(#loc)), %eps1: f32 loc(\"eps1\"(#loc)), %inp1_n_cols: i32 {tt.divisibility = 16 : i32} loc(\"inp1_n_cols\"(#loc)), %inp2_n_cols: i32 {tt.divisibility = 16 : i32} loc(\"inp2_n_cols\"(#loc)), %inp1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"inp1_row_stride\"(#loc)), %inp2_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"inp2_row_stride\"(#loc)), %inp2_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"inp2_col_stride\"(#loc)), %res1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"res1_row_stride\"(#loc)), %res1_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"res1_col_stride\"(#loc)), %out1_fp8_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out1_fp8_row_stride\"(#loc)), %out2_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out2_row_stride\"(#loc)), %out2_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"out2_col_stride\"(#loc)), %out_res1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out_res1_row_stride\"(#loc)), %out_res1_col_stride: i32 {tt.divisibility = 16 : i32} loc(\"out_res1_col_stride\"(#loc)), %out1_row_stride: i32 {tt.divisibility = 16 : i32} loc(\"out1_row_stride\"(#loc)), %gate_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"gate_ptr\"(#loc)), %linear_bias_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"linear_bias_ptr\"(#loc)), %stride_gate_row: i32 {tt.divisibility = 16 : i32} loc(\"stride_gate_row\"(#loc))) attributes {noinline = false} {",
+      "tensor_types": [
+        "tensor<1x32x128xf32>",
+        "tensor<1x32x1xf32>",
+        "tensor<1x32xf32>",
+        "tensor<32x!tt.ptr<f32>",
+        "tensor<32xf32>",
+        "tensor<32xi32>",
+        "tensor<4096x!tt.ptr<bf16>",
+        "tensor<4096x!tt.ptr<f8E4M3FN>",
+        "tensor<4096xbf16>",
+        "tensor<4096xf32>",
+        "tensor<4096xf8E4M3FN>",
+        "tensor<4096xi32>"
+      ]
+    }
+  ],
+  "apply_rotary_emb_flat_kernel": [
+    {
+      "signature": "tt.func public @apply_rotary_emb_flat_kernel(%x_ptr: !tt.ptr<bf16> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"x_ptr\"(#loc)), %fr_ptr: !tt.ptr<f32> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"fr_ptr\"(#loc)), %pos_ptr: !tt.ptr<i64> {tt.divisibility = 16 : i32, tt.pointer_range = 32 : i32} loc(\"pos_ptr\"(#loc)), %n_rows: i32 {tt.divisibility = 16 : i32} loc(\"n_rows\"(#loc)), %n_heads: i32 {tt.divisibility = 16 : i32} loc(\"n_heads\"(#loc)), %sx_tok: i32 {tt.divisibility = 16 : i32} loc(\"sx_tok\"(#loc)), %sx_head: i32 {tt.divisibility = 16 : i32} loc(\"sx_head\"(#loc)), %sfr_pos: i32 {tt.divisibility = 16 : i32} loc(\"sfr_pos\"(#loc))) attributes {noinline = false} {",
+      "tensor_types": [
+        "tensor<16x!tt.ptr<i64>",
+        "tensor<16x1x!tt.ptr<f32>",
+        "tensor<16x1xi1>",
+        "tensor<16x1xi32>",
+        "tensor<16x1xi64>",
+        "tensor<16x32x1xi32>",
+        "tensor<16x32x2xf32>",
+        "tensor<16x32x2xi32>",
+        "tensor<16x32xi32>",
+        "tensor<16x64x!tt.ptr<bf16>",
+        "tensor<16x64x!tt.ptr<f32>",
+        "tensor<16x64xbf16>",
+        "tensor<16x64xf32>",
+        "tensor<16x64xi1>",
+        "tensor<16x64xi32>",
+        "tensor<16xi1>",
+        "tensor<16xi32>",
+        "tensor<16xi64>",
+        "tensor<1x64xi1>",
+        "tensor<1x64xi32>",
+        "tensor<64xi1>",
+        "tensor<64xi32>"
+      ]
+    }
+  ]
+}
