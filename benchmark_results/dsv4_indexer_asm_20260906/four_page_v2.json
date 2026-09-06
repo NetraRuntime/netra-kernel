@@ -1,0 +1,280 @@
+{
+  "state": "passed",
+  "device": "AMD Instinct MI350X",
+  "cases": [
+    {
+      "rows": 1,
+      "width": 64,
+      "gluon": {
+        "max_abs": 5.21540641784668e-08,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 8,
+      "width": 65,
+      "gluon": {
+        "max_abs": 4.76837158203125e-07,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 9,
+      "width": 257,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004520416259765625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00045013427734375,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 16,
+      "width": 32768,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      }
+    }
+  ],
+  "timings": [
+    {
+      "rows": 1,
+      "width": 4096,
+      "request_groups": 1,
+      "kv_bytes": 566016,
+      "rounds": [
+        {
+          "asm_us": 4.823249876499176,
+          "gluon_us": 4.486050009727478,
+          "speedup": 0.9300886590150197
+        },
+        {
+          "asm_us": 4.831250011920929,
+          "gluon_us": 4.493649899959564,
+          "speedup": 0.9301215811377285
+        },
+        {
+          "asm_us": 4.835650026798248,
+          "gluon_us": 4.476050138473511,
+          "speedup": 0.9256356671115767
+        }
+      ]
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "request_groups": 1,
+      "kv_bytes": 566016,
+      "rounds": [
+        {
+          "asm_us": 5.199249982833862,
+          "gluon_us": 4.569250047206879,
+          "speedup": 0.8788286891942055
+        },
+        {
+          "asm_us": 5.140849947929382,
+          "gluon_us": 4.539639949798584,
+          "speedup": 0.8830524126904439
+        },
+        {
+          "asm_us": 5.179650187492371,
+          "gluon_us": 4.591639935970306,
+          "speedup": 0.8864768410534808
+        }
+      ]
+    },
+    {
+      "rows": 128,
+      "width": 4096,
+      "request_groups": 16,
+      "kv_bytes": 8676096,
+      "rounds": [
+        {
+          "asm_us": 18.22417974472046,
+          "gluon_us": 16.30697011947632,
+          "speedup": 0.8947985779277909
+        },
+        {
+          "asm_us": 17.807780504226685,
+          "gluon_us": 16.478970050811768,
+          "speedup": 0.9253803441086034
+        },
+        {
+          "asm_us": 17.592179775238037,
+          "gluon_us": 16.13456964492798,
+          "speedup": 0.9171444273004915
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "request_groups": 128,
+      "kv_bytes": 69231360,
+      "rounds": [
+        {
+          "asm_us": 97.7433967590332,
+          "gluon_us": 102.81744956970215,
+          "speedup": 1.0519119754266164
+        },
+        {
+          "asm_us": 88.86369705200195,
+          "gluon_us": 100.66342353820801,
+          "speedup": 1.132784555196944
+        },
+        {
+          "asm_us": 88.11689376831055,
+          "gluon_us": 99.03221130371094,
+          "speedup": 1.1238731538143014
+        }
+      ]
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "request_groups": 1,
+      "kv_bytes": 34628352,
+      "rounds": [
+        {
+          "asm_us": 47.88008213043213,
+          "gluon_us": 55.31055927276611,
+          "speedup": 1.1551893148823829
+        },
+        {
+          "asm_us": 48.833699226379395,
+          "gluon_us": 56.63376808166504,
+          "speedup": 1.1597271756769174
+        },
+        {
+          "asm_us": 47.20447063446045,
+          "gluon_us": 55.66816806793213,
+          "speedup": 1.179298640991283
+        }
+      ]
+    },
+    {
+      "rows": 128,
+      "width": 32768,
+      "request_groups": 16,
+      "kv_bytes": 69231360,
+      "rounds": [
+        {
+          "asm_us": 90.36051750183105,
+          "gluon_us": 87.46848106384277,
+          "speedup": 0.9679944679607476
+        },
+        {
+          "asm_us": 84.78885650634766,
+          "gluon_us": 86.29847526550293,
+          "speedup": 1.0178044476757657
+        },
+        {
+          "asm_us": 85.16325950622559,
+          "gluon_us": 85.87806701660156,
+          "speedup": 1.00839337895849
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "width": 262144,
+      "request_groups": 128,
+      "kv_bytes": 4429210368,
+      "rounds": [
+        {
+          "asm_us": 5269.9371337890625,
+          "gluon_us": 5146.4892578125,
+          "speedup": 0.9765750761645606
+        },
+        {
+          "asm_us": 5285.27099609375,
+          "gluon_us": 5147.486572265625,
+          "speedup": 0.9739304902378783
+        },
+        {
+          "asm_us": 5288.76708984375,
+          "gluon_us": 5161.19873046875,
+          "speedup": 0.9758793765715312
+        }
+      ]
+    }
+  ],
+  "changed_graph_replays": 3,
+  "concurrent_streams": 2,
+  "padded_input_rows": true,
+  "wide_address_tests": [
+    "output_rows_above_2_and_4_GiB",
+    "KV_page_above_4_GiB"
+  ]
+}

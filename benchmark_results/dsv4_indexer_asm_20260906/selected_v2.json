@@ -1,0 +1,314 @@
+{
+  "state": "passed",
+  "device": "AMD Instinct MI350X",
+  "cases": [
+    {
+      "rows": 1,
+      "width": 64,
+      "gluon": {
+        "max_abs": 5.21540641784668e-08,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 65,
+      "gluon": {
+        "max_abs": 4.76837158203125e-07,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 9,
+      "width": 257,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004520416259765625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00045013427734375,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 16,
+      "width": 32768,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 256,
+      "width": 257,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 16,
+      "width": 32769,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.0005841255187988281,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0005841255187988281,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    }
+  ],
+  "timings": [
+    {
+      "rows": 1,
+      "width": 4096,
+      "request_groups": 1,
+      "kv_bytes": 566016,
+      "rounds": [
+        {
+          "asm_us": 4.90011990070343,
+          "gluon_us": 4.560909867286682,
+          "speedup": 0.930775156467487
+        },
+        {
+          "asm_us": 4.900520145893097,
+          "gluon_us": 4.567709863185883,
+          "speedup": 0.9320867432845619
+        },
+        {
+          "asm_us": 4.895319938659668,
+          "gluon_us": 4.574509859085083,
+          "speedup": 0.9344659626756853
+        }
+      ]
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "request_groups": 1,
+      "kv_bytes": 566016,
+      "rounds": [
+        {
+          "asm_us": 5.255330204963684,
+          "gluon_us": 4.625310003757477,
+          "speedup": 0.8801178657411193
+        },
+        {
+          "asm_us": 5.226920247077942,
+          "gluon_us": 4.65131014585495,
+          "speedup": 0.889875859203174
+        },
+        {
+          "asm_us": 5.2205199003219604,
+          "gluon_us": 4.632109999656677,
+          "speedup": 0.8872890225686153
+        }
+      ]
+    },
+    {
+      "rows": 128,
+      "width": 4096,
+      "request_groups": 16,
+      "kv_bytes": 8676096,
+      "rounds": [
+        {
+          "asm_us": 18.18763017654419,
+          "gluon_us": 16.72600030899048,
+          "speedup": 0.9196360464026417
+        },
+        {
+          "asm_us": 18.190840482711792,
+          "gluon_us": 16.79919958114624,
+          "speedup": 0.9234977128798343
+        },
+        {
+          "asm_us": 17.589620351791382,
+          "gluon_us": 16.404390335083008,
+          "speedup": 0.9326176464867437
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "request_groups": 128,
+      "kv_bytes": 69231360,
+      "rounds": [
+        {
+          "asm_us": 99.64480400085449,
+          "gluon_us": 103.11768531799316,
+          "speedup": 1.0348526082414582
+        },
+        {
+          "asm_us": 88.21931838989258,
+          "gluon_us": 99.77879524230957,
+          "speedup": 1.131031128593954
+        },
+        {
+          "asm_us": 87.83452033996582,
+          "gluon_us": 98.73637199401855,
+          "speedup": 1.1241180758072888
+        }
+      ]
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "request_groups": 1,
+      "kv_bytes": 34628352,
+      "rounds": [
+        {
+          "asm_us": 43.59785079956055,
+          "gluon_us": 55.2357292175293,
+          "speedup": 1.2669369752071828
+        },
+        {
+          "asm_us": 44.21986103057861,
+          "gluon_us": 55.36454200744629,
+          "speedup": 1.2520288557478954
+        },
+        {
+          "asm_us": 43.86226177215576,
+          "gluon_us": 55.15573024749756,
+          "speedup": 1.2574757438183686
+        }
+      ]
+    },
+    {
+      "rows": 128,
+      "width": 32768,
+      "request_groups": 16,
+      "kv_bytes": 69231360,
+      "rounds": [
+        {
+          "asm_us": 88.62613677978516,
+          "gluon_us": 86.99289321899414,
+          "speedup": 0.9815715361163803
+        },
+        {
+          "asm_us": 84.82844352722168,
+          "gluon_us": 86.7012882232666,
+          "speedup": 1.0220780273475596
+        },
+        {
+          "asm_us": 84.25843238830566,
+          "gluon_us": 85.5064582824707,
+          "speedup": 1.0148118812419094
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "width": 262144,
+      "request_groups": 128,
+      "kv_bytes": 4429210368,
+      "rounds": [
+        {
+          "asm_us": 5081.405029296875,
+          "gluon_us": 5139.0155029296875,
+          "speedup": 1.0113375086812917
+        },
+        {
+          "asm_us": 5093.213806152344,
+          "gluon_us": 5150.4840087890625,
+          "speedup": 1.0112444136092498
+        },
+        {
+          "asm_us": 5098.9373779296875,
+          "gluon_us": 5154.05029296875,
+          "speedup": 1.0108087060016886
+        }
+      ]
+    }
+  ],
+  "changed_graph_replays": 3,
+  "concurrent_streams": 2,
+  "padded_input_rows": true,
+  "wide_address_tests": [
+    "output_rows_above_2_and_4_GiB",
+    "KV_page_above_4_GiB"
+  ],
+  "explicit_module_close": true
+}

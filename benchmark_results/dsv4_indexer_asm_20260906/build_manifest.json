@@ -1,0 +1,27 @@
+{
+  "target": "gfx950",
+  "device_tested": "AMD Instinct MI350X (visible device 0)",
+  "code_object_version": 6,
+  "kernel_args_bytes": 76,
+  "pages_per_wave_policy": "1 for <1024 query-page tasks; otherwise 8 for width >=65536 and rows >=8; otherwise 4",
+  "source_sha256": {
+    "kernels/gfx950/attention/indexer/experiments/dsv4_mqa_fp8_h64_d128_gfx950.s": "94b5049573db0ef35218d275931b7a3da95f6ff8fe9ed851e2662e8169e1180b",
+    "runtime/gfx950/attention/indexer/dsv4_mqa_bridge.hip": "c0cdb32e31e5e5cd9ff02fadc6ec75c18a759b3f36ae185e400b50607ea5b89e",
+    "runtime/gfx950/attention/indexer/dsv4_mqa.py": "a94a76fb2ee3a3c6c3b440e881c1b0b7539e94d9d8d5285badb551d8f37d9238",
+    "tools/benchmark/indexer/validate.py": "4abbd541fed33f04186e08cb69788be8b48a68eaa94f53b3eec2c57a201d7738"
+  },
+  "artifact_sha256": {
+    "scorer.hsaco": "4c5bc963823ae9c86315fc3368d5acf62502f78d67e5271c7a172924a7e9fbc0",
+    "libnetra_mqa.so": "096a8770a57182dbcf98c0a98a0d23761d611d24c6233bafe272fbb79ea166e0"
+  },
+  "comment_only_assembly_rebuild_identical": true,
+  "artifact_hash_scope": "Original GPU-tested build; HIP host-library recompilation is not asserted byte-identical.",
+  "reference_sha256": {
+    "aiter/aiter/ops/triton/gluon/pa_mqa_logits.py": "854dd4f5ec6bac5e7e15d719e69824616634bbc67a9ed6968a7f889e189862da",
+    "aiter/aiter/ops/triton/attention/pa_mqa_logits.py": "06adf3ee68dabe2adbdb15ecf2d1f515c77b7b058357768081911d4a14590101",
+    "sglang/python/sglang/jit_kernel/dsv4/topk.py": "6036e7680a812fe76c86ded71770f6963d0d1d4df2e1d083dea964b399b95135",
+    "sglang/python/sglang/jit_kernel/csrc/deepseek_v4/netra_topk_exact_r2.cuh": "83f1c42005b24cb252e94e2c9bcbe4f19cdd587b1bb6cae4746a66d4e8cff8b7",
+    "sglang/python/sglang/jit_kernel/csrc/deepseek_v4/netra_topk_exact_impl_r2.cuh": "8ba7610388ef4fb5cff701db8736b8ae23570149db6a1de527e571a44b9fc225"
+  },
+  "compiler": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)"
+}

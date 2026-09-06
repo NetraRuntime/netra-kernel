@@ -1,0 +1,280 @@
+{
+  "state": "passed",
+  "device": "AMD Instinct MI350X",
+  "cases": [
+    {
+      "rows": 1,
+      "width": 64,
+      "gluon": {
+        "max_abs": 5.21540641784668e-08,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 8,
+      "width": 65,
+      "gluon": {
+        "max_abs": 4.76837158203125e-07,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 9,
+      "width": 257,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004520416259765625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00045013427734375,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 16,
+      "width": 32768,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      }
+    }
+  ],
+  "timings": [
+    {
+      "rows": 1,
+      "width": 4096,
+      "request_groups": 1,
+      "kv_bytes": 566016,
+      "rounds": [
+        {
+          "asm_us": 4.810450077056885,
+          "gluon_us": 4.5564499497413635,
+          "speedup": 0.9471982614419059
+        },
+        {
+          "asm_us": 4.804840087890625,
+          "gluon_us": 4.573250114917755,
+          "speedup": 0.9518006908166344
+        },
+        {
+          "asm_us": 4.8008400201797485,
+          "gluon_us": 4.560439884662628,
+          "speedup": 0.9499254016991553
+        }
+      ]
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "request_groups": 1,
+      "kv_bytes": 566016,
+      "rounds": [
+        {
+          "asm_us": 5.178449749946594,
+          "gluon_us": 4.6600499749183655,
+          "speedup": 0.8998928636830791
+        },
+        {
+          "asm_us": 5.1720499992370605,
+          "gluon_us": 4.661650061607361,
+          "speedup": 0.9013157379172688
+        },
+        {
+          "asm_us": 5.14644980430603,
+          "gluon_us": 4.65844988822937,
+          "speedup": 0.9051773679657089
+        }
+      ]
+    },
+    {
+      "rows": 128,
+      "width": 4096,
+      "request_groups": 16,
+      "kv_bytes": 8676096,
+      "rounds": [
+        {
+          "asm_us": 19.56099033355713,
+          "gluon_us": 17.149770259857178,
+          "speedup": 0.8767332311614371
+        },
+        {
+          "asm_us": 18.770190477371216,
+          "gluon_us": 17.177369594573975,
+          "speedup": 0.9151409313231265
+        },
+        {
+          "asm_us": 18.954590559005737,
+          "gluon_us": 16.79697036743164,
+          "speedup": 0.8861689897833765
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "request_groups": 128,
+      "kv_bytes": 69231360,
+      "rounds": [
+        {
+          "asm_us": 125.04687309265137,
+          "gluon_us": 100.99181175231934,
+          "speedup": 0.8076316444753573
+        },
+        {
+          "asm_us": 107.82386779785156,
+          "gluon_us": 100.24978637695312,
+          "speedup": 0.9297550572467096
+        },
+        {
+          "asm_us": 108.59107971191406,
+          "gluon_us": 100.26459693908691,
+          "speedup": 0.9233225897107126
+        }
+      ]
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "request_groups": 1,
+      "kv_bytes": 34628352,
+      "rounds": [
+        {
+          "asm_us": 59.98260021209717,
+          "gluon_us": 55.31775951385498,
+          "speedup": 0.9222301020337996
+        },
+        {
+          "asm_us": 58.958587646484375,
+          "gluon_us": 56.16375923156738,
+          "speedup": 0.9525967543239878
+        },
+        {
+          "asm_us": 56.882171630859375,
+          "gluon_us": 55.74535846710205,
+          "speedup": 0.9800145962932859
+        }
+      ]
+    },
+    {
+      "rows": 128,
+      "width": 32768,
+      "request_groups": 16,
+      "kv_bytes": 69231360,
+      "rounds": [
+        {
+          "asm_us": 114.5075511932373,
+          "gluon_us": 86.94486618041992,
+          "speedup": 0.7592937345563878
+        },
+        {
+          "asm_us": 106.84826850891113,
+          "gluon_us": 86.61686897277832,
+          "speedup": 0.8106529958934663
+        },
+        {
+          "asm_us": 105.93067169189453,
+          "gluon_us": 85.59845924377441,
+          "speedup": 0.8080611392018968
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "width": 262144,
+      "request_groups": 128,
+      "kv_bytes": 4429210368,
+      "rounds": [
+        {
+          "asm_us": 6909.73388671875,
+          "gluon_us": 5135.9661865234375,
+          "speedup": 0.7432943541277784
+        },
+        {
+          "asm_us": 6918.828125,
+          "gluon_us": 5141.2506103515625,
+          "speedup": 0.7430811284030217
+        },
+        {
+          "asm_us": 6921.8157958984375,
+          "gluon_us": 5150.3082275390625,
+          "speedup": 0.744068952339198
+        }
+      ]
+    }
+  ],
+  "changed_graph_replays": 3,
+  "concurrent_streams": 2,
+  "padded_input_rows": true,
+  "wide_address_tests": [
+    "output_rows_above_2_and_4_GiB",
+    "KV_page_above_4_GiB"
+  ]
+}

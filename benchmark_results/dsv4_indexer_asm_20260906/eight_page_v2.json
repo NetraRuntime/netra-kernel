@@ -1,0 +1,304 @@
+{
+  "state": "passed",
+  "device": "AMD Instinct MI350X",
+  "cases": [
+    {
+      "rows": 1,
+      "width": 64,
+      "gluon": {
+        "max_abs": 5.21540641784668e-08,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 8,
+      "width": 65,
+      "gluon": {
+        "max_abs": 4.76837158203125e-07,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 9,
+      "width": 257,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004520416259765625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00045013427734375,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 16,
+      "width": 32768,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 256,
+      "width": 257,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      }
+    },
+    {
+      "rows": 16,
+      "width": 32769,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      },
+      "gluon_vs_oracle": {
+        "max_abs": 0.0005841255187988281,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0005841255187988281,
+        "top512_set_equal": true
+      }
+    }
+  ],
+  "timings": [
+    {
+      "rows": 1,
+      "width": 4096,
+      "request_groups": 1,
+      "kv_bytes": 566016,
+      "rounds": [
+        {
+          "asm_us": 4.834049940109253,
+          "gluon_us": 4.528050124645233,
+          "speedup": 0.9366990785665934
+        },
+        {
+          "asm_us": 4.858050048351288,
+          "gluon_us": 4.525249898433685,
+          "speedup": 0.931495117052047
+        },
+        {
+          "asm_us": 4.846850037574768,
+          "gluon_us": 4.539240002632141,
+          "speedup": 0.9365340308534599
+        }
+      ]
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "request_groups": 1,
+      "kv_bytes": 566016,
+      "rounds": [
+        {
+          "asm_us": 5.224859714508057,
+          "gluon_us": 4.6044498682022095,
+          "speedup": 0.8812580853447352
+        },
+        {
+          "asm_us": 5.170860290527344,
+          "gluon_us": 4.578439891338348,
+          "speedup": 0.8854309793915205
+        },
+        {
+          "asm_us": 5.2352601289749146,
+          "gluon_us": 4.619239866733551,
+          "speedup": 0.8823324444124646
+        }
+      ]
+    },
+    {
+      "rows": 128,
+      "width": 4096,
+      "request_groups": 16,
+      "kv_bytes": 8676096,
+      "rounds": [
+        {
+          "asm_us": 27.41708993911743,
+          "gluon_us": 16.59896969795227,
+          "speedup": 0.6054241983672246
+        },
+        {
+          "asm_us": 26.999080181121826,
+          "gluon_us": 16.74536943435669,
+          "speedup": 0.6202199972006939
+        },
+        {
+          "asm_us": 26.81868076324463,
+          "gluon_us": 16.79777979850769,
+          "speedup": 0.6263462377884478
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "request_groups": 128,
+      "kv_bytes": 69231360,
+      "rounds": [
+        {
+          "asm_us": 97.60223388671875,
+          "gluon_us": 102.07826614379883,
+          "speedup": 1.0458599365899264
+        },
+        {
+          "asm_us": 91.87336921691895,
+          "gluon_us": 99.36544418334961,
+          "speedup": 1.0815478416682573
+        },
+        {
+          "asm_us": 91.05255126953125,
+          "gluon_us": 97.55861282348633,
+          "speedup": 1.0714539182399845
+        }
+      ]
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "request_groups": 1,
+      "kv_bytes": 34628352,
+      "rounds": [
+        {
+          "asm_us": 44.26045894622803,
+          "gluon_us": 55.25338172912598,
+          "speedup": 1.248368928940688
+        },
+        {
+          "asm_us": 43.26244831085205,
+          "gluon_us": 56.26218795776367,
+          "speedup": 1.300485528546722
+        },
+        {
+          "asm_us": 43.39885234832764,
+          "gluon_us": 55.02657890319824,
+          "speedup": 1.2679270516543666
+        }
+      ]
+    },
+    {
+      "rows": 128,
+      "width": 32768,
+      "request_groups": 16,
+      "kv_bytes": 69231360,
+      "rounds": [
+        {
+          "asm_us": 91.63373947143555,
+          "gluon_us": 86.27169609069824,
+          "speedup": 0.9414839620027863
+        },
+        {
+          "asm_us": 85.27849197387695,
+          "gluon_us": 86.40769958496094,
+          "speedup": 1.0132414115792514
+        },
+        {
+          "asm_us": 85.44769287109375,
+          "gluon_us": 84.92488861083984,
+          "speedup": 0.9938815871711995
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "width": 262144,
+      "request_groups": 128,
+      "kv_bytes": 4429210368,
+      "rounds": [
+        {
+          "asm_us": 5082.494201660156,
+          "gluon_us": 5146.116943359375,
+          "speedup": 1.0125180155991986
+        },
+        {
+          "asm_us": 5095.7818603515625,
+          "gluon_us": 5142.63916015625,
+          "speedup": 1.0091953111590721
+        },
+        {
+          "asm_us": 5097.34619140625,
+          "gluon_us": 5146.87255859375,
+          "speedup": 1.0097161082115627
+        }
+      ]
+    }
+  ],
+  "changed_graph_replays": 3,
+  "concurrent_streams": 2,
+  "padded_input_rows": true,
+  "wide_address_tests": [
+    "output_rows_above_2_and_4_GiB",
+    "KV_page_above_4_GiB"
+  ]
+}
