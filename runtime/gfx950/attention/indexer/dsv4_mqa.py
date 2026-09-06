@@ -21,17 +21,23 @@ def select_schedule(rows, width):
         return 1, 1
     if tasks <= 256:
         return 4, 1
-    if tasks <= 2048:
+    if tasks <= 512:
         return 5, 1
+    # A four-wave CTA loads Q once. Prefetch the later K tiles when the
+    # grid has at most 256 CTAs; above that, lower register use wins.
+    if tasks <= 1024:
+        return 13, 1
+    if tasks <= 2048:
+        return 10, 1
     if tasks <= 8192:
-        return 5, 2
+        return 10, 4 if tasks == 8192 else 2
     return 6, 4
 
 
 class Scorer:
     def __init__(self, build_dir, device=None, pages_per_wave=None, mode=None):
-        if mode not in (None, 0, 1, 2, 3, 4, 5, 6):
-            raise ValueError("mode must be None (automatic) or an integer from 0 to 6")
+        if mode not in (None, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13):
+            raise ValueError("mode must be None (automatic) or an integer from 0 to 13")
         self.mode = mode
         if pages_per_wave not in (None, 1, 2, 4, 8):
             raise ValueError("pages_per_wave must be None, 1, 2, 4 or 8")

@@ -6,7 +6,7 @@
 #include <string>
 
 namespace {
-struct Context { hipModule_t module; hipFunction_t function; hipFunction_t small[6]; int device; };
+struct Context { hipModule_t module; hipFunction_t function; hipFunction_t small[13]; int device; };
 thread_local std::string error;
 int fail(const char* message) { error = message; return -1; }
 int checked(hipError_t status) {
@@ -36,8 +36,15 @@ extern "C" int netra_mqa_create(const char* path, void** handle) {
     "netra_dsv4_mqa_fp8_tile32_gfx950",
     "netra_dsv4_mqa_fp8_pair32_gfx950",
     "netra_dsv4_mqa_fp8_pair32_w4_gfx950",
+    "netra_dsv4_mqa_fp8_transposed_gfx950",
+    "netra_dsv4_mqa_fp8_pair_prefetch_gfx950",
+    "netra_dsv4_mqa_fp8_headsplit_gfx950",
+    "netra_dsv4_mqa_fp8_shared_q_gfx950",
+    "netra_dsv4_mqa_fp8_preload_pair_gfx950",
+    "netra_dsv4_mqa_fp8_preload_shared_gfx950",
+    "netra_dsv4_mqa_fp8_shared_prefetch_gfx950",
   };
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < 13; ++i) {
     e = checked(hipModuleGetFunction(&c.small[i], c.module, small_symbols[i]));
     if (e) { (void)hipModuleUnload(c.module); return e; }
   }
@@ -65,7 +72,7 @@ extern "C" int netra_mqa_launch_v2(void* handle, const void* q, const void* kv,
     uint32_t width, uint32_t pages_per_wave, uint32_t mode, hipStream_t stream) {
   if (!handle || !q || !kv || !weights || !lengths || !pages || !out)
     return fail("module and tensor pointers are required");
-  if (mode > 6 || !rows || rows > 65535 || !width || width > 262144 ||
+  if (mode > 13 || !rows || rows > 65535 || !width || width > 262144 ||
       (pages_per_wave != 1 && pages_per_wave != 2 && pages_per_wave != 4 && pages_per_wave != 8) ||
       out_stride < width || out_stride > UINT32_MAX / 4 ||
       q_bytes < 8192 || q_bytes % 16 || w_bytes < 256 || w_bytes % 16 ||
@@ -85,10 +92,10 @@ extern "C" int netra_mqa_launch_v2(void* handle, const void* q, const void* kv,
   if (device != c->device) return fail("launch on the owning device");
   void* args[] = {&q, &kv, &weights, &lengths, &pages, &out,
     &out_stride, &q_bytes, &w_bytes, &pages_bytes, &kv_bytes, &width, &pages_per_wave};
-  const uint32_t tile = mode == 6 ? 256 * pages_per_wave :
-      (mode == 0 || mode == 3 || mode == 5) ? 64 * pages_per_wave :
+  const uint32_t tile = mode == 7 ? 16 * pages_per_wave : (mode == 6 || mode == 10 || mode == 12 || mode == 13) ? 256 * pages_per_wave :
+      (mode == 0 || mode == 3 || mode == 5 || mode == 8 || mode == 9 || mode == 11) ? 64 * pages_per_wave :
       mode == 1 ? 16 : mode == 4 ? 32 : 64;
-  const uint32_t threads = (mode == 2 || mode == 6) ? 256 : 64;
+  const uint32_t threads = (mode == 2 || mode == 6 || mode == 9 || mode == 10 || mode == 12 || mode == 13) ? 256 : 64;
   hipFunction_t fn = mode == 0 ? c->function : c->small[mode - 1];
   return checked(hipModuleLaunchKernel(fn, (width + tile - 1) / tile,
       rows, 1, threads, 1, 1, 0, stream, args, nullptr));

@@ -133,15 +133,17 @@ netra_dsv4_mqa_fp8_tile16_w1_gfx950:
     v_pk_add_f32 v[66:67], v[66:67], v[70:71]
     v_pk_add_f32 v[64:65], v[64:65], v[66:67]
     v_add_f32_e32 v64, v64, v65
-    v_xor_b32_e32 v83, 16, v0
-    v_lshlrev_b32_e32 v83, 2, v83
-    ds_bpermute_b32 v82, v83, v64
-    s_waitcnt lgkmcnt(0)
+    // Both registers are operands/results of the native gfx950 swap.
+    // Copy first, then add its two complementary outputs; head order 4,8.
+    v_mov_b32_e32 v82, v64
+    s_nop 1
+    v_permlane16_swap_b32_e32 v64, v82
+    s_nop 1
     v_add_f32_e32 v64, v64, v82
-    v_xor_b32_e32 v83, 32, v0
-    v_lshlrev_b32_e32 v83, 2, v83
-    ds_bpermute_b32 v82, v83, v64
-    s_waitcnt lgkmcnt(0)
+    v_mov_b32_e32 v82, v64
+    s_nop 1
+    v_permlane32_swap_b32_e32 v64, v82
+    s_nop 1
     v_add_f32_e32 v64, v64, v82
     v_add_u32_e32 v5, s22, v1
     v_cmp_gt_u32_e32 vcc, s24, v5

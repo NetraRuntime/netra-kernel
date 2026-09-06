@@ -1,0 +1,398 @@
+{
+  "state": "passed",
+  "device": "AMD Instinct MI350X",
+  "cases": [
+    {
+      "rows": 1,
+      "width": 64,
+      "gluon": {
+        "max_abs": 5.21540641784668e-08,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        1,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 65,
+      "gluon": {
+        "max_abs": 4.76837158203125e-07,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        1,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 9,
+      "width": 257,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        1,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        5,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004520416259765625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00045013427734375,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 16,
+      "width": 32768,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        10,
+        4
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        0,
+        8
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        0,
+        4
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 256,
+      "width": 257,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        10,
+        1
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 16,
+      "width": 32769,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        6,
+        4
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0005841255187988281,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0005841255187988281,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 2,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 0.0,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        1,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 2.5272369384765625e-05,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 2.5272369384765625e-05,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 4,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 1.9073486328125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        4,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0001583099365234375,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00016021728515625,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 16,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        13,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004711151123046875,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0004711151123046875,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 24,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        10,
+        1
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 32,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        10,
+        1
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 64,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        10,
+        2
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 128,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        10,
+        4
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 256,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        6,
+        4
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 1,
+      "width": 16384,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        4,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004711151123046875,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0004711151123046875,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 128,
+      "width": 1024,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        10,
+        1
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 128,
+      "width": 16384,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        6,
+        4
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 512,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        0,
+        4
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 65536,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        0,
+        8
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004787445068359375,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0004787445068359375,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    }
+  ],
+  "timings": [],
+  "mode": -1,
+  "changed_graph_replays": 3,
+  "concurrent_streams": 2,
+  "padded_input_rows": true,
+  "wide_address_tests": [
+    "output_rows_above_2_and_4_GiB",
+    "KV_page_above_4_GiB"
+  ],
+  "explicit_module_close": true
+}

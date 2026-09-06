@@ -55,10 +55,19 @@ The small-batch policy uses shorter key tiles when there is little work, and
 increases per-wave query reuse only when enough query-page work is available.
 No GPU lengths are read on the host and no mutable execution buffers are shared.
 
-All variants use FP8 `v_mfma_f32_16x16x128_f8f6f4`, FP32 scale/ReLU/weight
-operations, the original reduction tree and two `ds_bpermute` head reductions.
-The small variants use packed FP32 arithmetic, with loads and independent
-MFMAs scheduled ahead of their consumers. No variant uses LDS or scratch spills.
+The automatically selected variants use FP8
+`v_mfma_f32_16x16x128_f8f6f4`, FP32 scale/ReLU/weight operations and the original
+reduction tree. Small paths use native `v_permlane16_swap_b32` and
+`v_permlane32_swap_b32` instead of two DS exchanges. Both swap registers are
+inputs and outputs; copying the value before each swap preserves head order.
+Mode 0 remains byte-identical to the previous qualified build.
+
+Modes 10 and 13 cooperatively load Q once per four-wave workgroup into 9216
+bytes of LDS, with a padded 144-byte head pitch. All waves participate in the
+barrier, including waves whose key ranges are invalid; page-table/KV reads
+remain guarded. Mode 13 additionally prefetches the later key tiles into
+separate registers while the early tiles compute. No selected path uses
+scratch spills, changes FP32 reduction order, or allocates shared host buffers.
 
 | Mode | Assembly file suffix | Keys per wave | VGPRs | Threads/workgroup |
 |---:|---|---|---:|---:|
@@ -69,6 +78,34 @@ MFMAs scheduled ahead of their consumers. No variant uses LDS or scratch spills.
 | 4 | `tile32` | 32 | 96 | 64 |
 | 5 | `pair32` | 64 x pages | 112 | 64 |
 | 6 | `pair32_w4` | 64 x pages | 112 | 256 |
+| 7 | `transposed` | 16 x tiles | 72 | 64 |
+| 8 | `pair_prefetch` | 64 x pages | 132 | 64 |
+| 9 | `headsplit` | 64 x pages, split heads | 76 | 256 |
+| 10 | `shared_q` | 64 x pages | 112 | 256 |
+| 11 | `preload_pair` | 64 x pages | 132 | 64 |
+| 12 | `preload_shared` | 64 x pages | 112 | 256 |
+| 13 | `shared_prefetch` | 64 x pages | 132 | 256 |
+
+Modes 7–9 and 11–12 are explicit comparison experiments and are never selected
+automatically. Mode 7 transposes the MFMA layout; mode 9 splits heads across
+waves and reassociates the FP32 reduction tree, using 1024 bytes of LDS.
+Modes 11–12 test firmware kernarg preloading with a 256-byte fallback prologue;
+mode 12 uses the same 9216-byte LDS layout as mode 10. They did not improve the
+selected paths in this run. Mode 7's page-count parameter counts 16-key tiles.
+
+The automatic policy uses `tasks = rows * ceil(width / 64)`. It retains mode 0
+for rows >= 512, width >= 65536, or tasks >= 65536. Otherwise it selects:
+
+| Tasks | Mode | Pages/wave |
+|---|---:|---:|
+| <= 128 | 1 | 1 |
+| <= 256 | 4 | 1 |
+| <= 512 | 5 | 1 |
+| <= 1024 | 13 | 1 |
+| <= 2048 | 10 | 1 |
+| < 8192 | 10 | 2 |
+| = 8192 | 10 | 4 |
+| > 8192 | 6 | 4 |
 
 Modes 2 and 6 partition work across independent waves. Mode 2 shares a page;
 mode 6 assigns separate page runs to each wave. Explicit `mode=N` and
@@ -111,4 +148,4 @@ TP4xDP2 correctness and C256 a/b/c serving gates. Preserve outer query tiling,
 exact top-K, long-position arithmetic, HiCache/Mooncake ownership fixes, and
 request isolation. Assembly alone is not evidence of a performance gain.
 
-Recorded results and limitations: [small-batch follow-up](../../../../benchmark_results/dsv4_indexer_small_batch_20260906/README.md) and [original validation report](../../../../benchmark_results/dsv4_indexer_asm_20260906/README.md).
+Recorded results and limitations: [C1–C4 fix](../../../../benchmark_results/dsv4_indexer_c1_c4_20260906/README.md), [small-batch follow-up](../../../../benchmark_results/dsv4_indexer_small_batch_20260906/README.md) and [original validation report](../../../../benchmark_results/dsv4_indexer_asm_20260906/README.md).

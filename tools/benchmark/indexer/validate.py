@@ -115,7 +115,7 @@ def main():
     parser.add_argument("--build", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--smoke", action="store_true")
-    parser.add_argument("--mode", type=int, choices=[-1,0,1,2,3,4,5,6], default=-1)
+    parser.add_argument("--mode", type=int, choices=list(range(-1,14)), default=-1)
     parser.add_argument("--correctness-only", action="store_true")
     parser.add_argument("--skip-native-topk", action="store_true", help="Skip production SGLang exact-topK integration check")
     args = parser.parse_args()
