@@ -3,6 +3,7 @@
 import pathlib, sys
 source, out = map(pathlib.Path, sys.argv[1:])
 for p in source.glob('*.s'):
+    if p.stem.endswith('_wide'): continue
     s = p.read_text().replace('netra_dsv4_' + p.stem, 'netra_dsv4_' + p.stem + '_w4')
     s = s.replace('    s_waitcnt lgkmcnt(0)\n', '''    s_waitcnt lgkmcnt(0)
     // Each wave owns one row. Producer and consumer readlane delays are required.

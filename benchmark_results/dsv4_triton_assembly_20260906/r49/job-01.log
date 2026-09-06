@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 273, in <module>
+    rms(rows);rms(rows,column_major=True,store=False);rms(rows,zero=True)
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 178, in rms
+    case('rms_fp8',[rows,column_major,store,zero],make,lambda:x.add_(0.125) if rows in (3,16) and not zero else None)
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 80, in case
+    for name in variants:compare(buffers[name],buffers['triton'],op,shape,name)
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 71, in compare
+    assert int(diff.max())<=1 and float((diff>0).float().mean())<=0.001,(op,shape,name,'FP8 rounding')
+AssertionError: ('rms_fp8', [1, False, True, False], 'wave1', 'FP8 rounding')

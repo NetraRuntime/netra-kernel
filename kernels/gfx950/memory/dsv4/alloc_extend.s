@@ -21,21 +21,34 @@ netra_dsv4_alloc_extend:
     s_and_b32 s63, s63, s2
     s_lshr_b32 s2, s2, s50
     s_lshl_b32 s63, s63, 6
+    // The first request has no preceding token/page offsets.
+    s_cmp_eq_u32 s2, 0
+    s_cbranch_scc1 .Lown_metadata
+    s_lshl_b32 s57, 1, s38
+    s_sub_u32 s57, s57, 1
     v_mov_b32 v1, v0
     v_mov_b32 v3, 0
+    v_mov_b32 v10, 0
 .Lsum:
     v_mov_b32 v4, 0
+    v_mov_b32 v5, 0
     v_cmp_gt_u32 vcc, s2, v1
     s_and_saveexec_b64 s[58:59], vcc
     v_mul_lo_u32 v2, s37, v1
     global_load_dword v4, v2, s[6:7]
-    v_mov_b32 v5, 0
     v_mul_lo_u32 v2, s36, v1
     global_load_dword v5, v2, s[4:5]
     s_waitcnt vmcnt(0)
-    v_sub_u32 v4, v4, v5
     s_mov_b64 exec, s[58:59]
-    v_add_u32 v3, v3, v4
+    // Reuse each pair of lengths for both prefix reductions.
+    v_sub_u32 v6, v4, v5
+    v_add_u32 v3, v3, v6
+    v_add_u32 v4, s57, v4
+    v_add_u32 v5, s57, v5
+    v_lshrrev_b32 v4, s38, v4
+    v_lshrrev_b32 v5, s38, v5
+    v_sub_u32 v6, v4, v5
+    v_add_u32 v10, v10, v6
     v_add_u32 v1, 64, v1
     v_cmp_gt_u32 vcc, s2, v1
     s_cbranch_vccnz .Lsum
@@ -65,55 +78,33 @@ netra_dsv4_alloc_extend:
     s_mul_hi_u32 s61, s52, 8
     s_add_u32 s12, s12, s60
     s_addc_u32 s13, s13, s61
-    s_lshl_b32 s57, 1, s38
-    s_sub_u32 s57, s57, 1
-    v_mov_b32 v1, v0
-    v_mov_b32 v3, 0
-.Lpage_sum:
-    v_mov_b32 v4, 0
-    v_cmp_gt_u32 vcc, s2, v1
-    s_and_saveexec_b64 s[58:59], vcc
-    v_mul_lo_u32 v2, s36, v1
-    global_load_dword v5, v2, s[4:5]
-    v_mul_lo_u32 v2, s37, v1
-    global_load_dword v4, v2, s[6:7]
-    s_waitcnt vmcnt(0)
-    v_add_u32 v4, s57, v4
-    v_add_u32 v5, s57, v5
-    v_lshrrev_b32 v4, s38, v4
-    v_lshrrev_b32 v5, s38, v5
-    v_sub_u32 v4, v4, v5
-    s_mov_b64 exec, s[58:59]
-    v_add_u32 v3, v3, v4
-    v_add_u32 v1, 64, v1
-    v_cmp_gt_u32 vcc, s2, v1
-    s_cbranch_vccnz .Lpage_sum
     s_nop 1
-    v_add_u32_dpp v3, v3, v3 quad_perm:[1,0,3,2]
+    v_add_u32_dpp v10, v10, v10 quad_perm:[1,0,3,2]
     s_nop 1
-    v_add_u32_dpp v3, v3, v3 quad_perm:[2,3,0,1]
+    v_add_u32_dpp v10, v10, v10 quad_perm:[2,3,0,1]
     s_nop 1
-    v_add_u32_dpp v3, v3, v3 row_shl:4 bound_ctrl:1
+    v_add_u32_dpp v10, v10, v10 row_shl:4 bound_ctrl:1
     s_nop 1
-    v_add_u32_dpp v3, v3, v3 row_shl:8 bound_ctrl:1
+    v_add_u32_dpp v10, v10, v10 row_shl:8 bound_ctrl:1
     s_nop 1
-    v_mov_b32 v20, v3
+    v_mov_b32 v20, v10
     s_nop 1
-    v_permlane16_swap_b32 v3, v20
+    v_permlane16_swap_b32 v10, v20
     s_nop 1
-    v_add_u32 v3, v3, v20
-    v_mov_b32 v20, v3
+    v_add_u32 v10, v10, v20
+    v_mov_b32 v20, v10
     s_nop 1
-    v_permlane32_swap_b32 v3, v20
+    v_permlane32_swap_b32 v10, v20
     s_nop 1
-    v_add_u32 v3, v3, v20
+    v_add_u32 v10, v10, v20
     s_nop 4
-    v_readfirstlane_b32 s53, v3
+    v_readfirstlane_b32 s53, v10
     s_nop 4
     s_mul_i32 s60, s53, 8
     s_mul_hi_u32 s61, s53, 8
     s_add_u32 s10, s10, s60
     s_addc_u32 s11, s11, s61
+.Lown_metadata:
     s_mul_i32 s60, s2, s36
     s_load_dword s54, s[4:5], s60
     s_mul_i32 s60, s2, s37

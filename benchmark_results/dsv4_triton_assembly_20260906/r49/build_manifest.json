@@ -1,0 +1,22 @@
+{
+  "sources": {
+    "kernels/gfx950/numeric/dsv4/classic_sample.s": "97215e67f0eb66ea1ab25075da4ce8c5f291001defcef570d78152999648bb38",
+    "kernels/gfx950/numeric/dsv4/hash_topk.s": "e8ec7399ca23d0fb5fad636d880bdd56e17fd450dc9eab353b1af80145030589",
+    "kernels/gfx950/numeric/dsv4/softmax_combine.s": "f7f0fa0fe39b939f25d246c25e99048470d32c1dc20802bff0ae4b17dbfd02b1",
+    "kernels/gfx950/numeric/dsv4/hc_head_4096.s": "6940695327de2fc7eff104ba09e8ba93f980a1a86c2c3a483e22cb9f748f7666",
+    "kernels/gfx950/numeric/dsv4/softmax_tile_stats.s": "d9d76176d366fa0c34482965e85d06958ef78cec26bb4185663b18e79810247c",
+    "kernels/gfx950/numeric/dsv4/classic_accept.s": "6be8eb46da8d446296e7cf54ced19491d8a2aff9207d465b5a93e25b8a56b025",
+    "kernels/gfx950/numeric/dsv4/online_partial_1024.s": "3dd203bbd4edc7f3f2a54b9afc7c7acc39d831955795c5128fb41a49d2dfea55",
+    "kernels/gfx950/numeric/dsv4/rms_fp8_4096.s": "f4f53af3ee2f0d0daeeeb7014e850d32c097233434c517521dc6988722d27d0e",
+    "kernels/gfx950/numeric/dsv4/classic_tile_sum.s": "26b06cd425e81b86f22a4c8a5a5efcf28abbcb58807c3cf1265b5e970413420a",
+    "kernels/gfx950/numeric/dsv4/softmax_apply.s": "f919e654967d57dca8424ee1dbb445f4bbb7fafafc03267b124135990f46990a",
+    "kernels/gfx950/numeric/dsv4/router_256.s": "3a64cdefe03c812e4aa55e0443ed4ca2abb3a79c08ed3196c3e0796254a042fd",
+    "kernels/gfx950/numeric/dsv4/online_combine.s": "f8d73792b987f843414382f902571fba437a1f5c1d59c0aae2134e4299e4ba00",
+    "kernels/gfx950/numeric/dsv4/rope_flat.s": "188c4e9d4e95e41b2b2736ad7c754d7f488ec575336522107408980fc5273dba",
+    "runtime/gfx950/numeric/dsv4/numeric.py": "3d9eb428296a8bcdf8e29332299ea9a6e05c5aa41fec1119166bf9a430120591",
+    "runtime/gfx950/numeric/dsv4/bridge.hip": "ce43a2438d5429082c00bfae8d22adc9d18381a72c4ef1a4f76b701b16976d0f",
+    "tools/benchmark/dsv4_numeric/build.sh": "0e963310fe20d49180716defabb88394c5b4cde2e64dd7964587b0aacb2c410a",
+    "tools/benchmark/dsv4_numeric/prepare_wave4.py": "d77213c594d939e3478ac68f718debaf84ff5e690d9a16a60735359ce535761a",
+    "tools/benchmark/dsv4_numeric/validate.py": "e208a3f8e58046d2df9b35dabea9c07fa9894805ce526466b6d178d9ce2343d2"
+  }
+}

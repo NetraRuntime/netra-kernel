@@ -1,0 +1,15 @@
+{"rank": 0, "label": "short9", "text": "OK.", "pass": true}
+{"rank": 0, "label": "crash13", "text": "OK", "pass": true}
+{"rank": 0, "label": "history_violet", "text": "violet", "pass": true}
+{"rank": 0, "label": "followup_violet", "text": "violet", "pass": true}
+{"rank": 0, "label": "history_cobalt", "text": "cobalt", "pass": true}
+{"rank": 0, "label": "followup_cobalt", "text": "cobalt", "pass": true}
+{"rank": 0, "label": "unrelated_after_histories", "text": "Tokyo", "pass": true}
+{"rank": 1, "label": "short9", "text": "OK.", "pass": true}
+{"rank": 1, "label": "crash13", "text": "OK", "pass": true}
+{"rank": 1, "label": "history_violet", "text": "violet", "pass": true}
+{"rank": 1, "label": "followup_violet", "text": "violet", "pass": true}
+{"rank": 1, "label": "history_cobalt", "text": "cobalt", "pass": true}
+{"rank": 1, "label": "followup_cobalt", "text": "cobalt", "pass": true}
+{"rank": 1, "label": "unrelated_after_histories", "text": "Tokyo", "pass": true}
+{"rank": 0, "label": "thinking", "text": "We need to answer with number only. 7+8=15. So \"15\".</think>15", "pass": true}

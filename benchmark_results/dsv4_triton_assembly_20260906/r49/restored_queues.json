@@ -1,0 +1,82 @@
+{
+  "time": 1788714277.1654644,
+  "worker": "netra-dsv4-tp4dp2-c256-p48-unified-r36",
+  "processes": [
+    {
+      "pid": 713173,
+      "comm": "sglang::schedul",
+      "compute_queues_by_gpu_id": {
+        "54552": 5
+      }
+    },
+    {
+      "pid": 713171,
+      "comm": "sglang::schedul",
+      "compute_queues_by_gpu_id": {
+        "23222": 5
+      }
+    },
+    {
+      "pid": 713178,
+      "comm": "sglang::schedul",
+      "compute_queues_by_gpu_id": {
+        "32627": 5
+      }
+    },
+    {
+      "pid": 713176,
+      "comm": "sglang::schedul",
+      "compute_queues_by_gpu_id": {
+        "48384": 5
+      }
+    },
+    {
+      "pid": 713174,
+      "comm": "sglang::schedul",
+      "compute_queues_by_gpu_id": {
+        "57533": 5
+      }
+    },
+    {
+      "pid": 713172,
+      "comm": "sglang::schedul",
+      "compute_queues_by_gpu_id": {
+        "64215": 5
+      }
+    },
+    {
+      "pid": 713177,
+      "comm": "sglang::schedul",
+      "compute_queues_by_gpu_id": {
+        "20435": 5
+      }
+    },
+    {
+      "pid": 713175,
+      "comm": "sglang::schedul",
+      "compute_queues_by_gpu_id": {
+        "36256": 5
+      }
+    }
+  ],
+  "total_compute_queues_by_gpu_id": {
+    "54552": 5,
+    "23222": 5,
+    "32627": 5,
+    "48384": 5,
+    "57533": 5,
+    "64215": 5,
+    "20435": 5,
+    "36256": 5
+  },
+  "gpu_vram_used_bytes": {
+    "card1": 250594316288,
+    "card49": 250594463744,
+    "card57": 250494070784,
+    "card17": 250594344960,
+    "card25": 250493665280,
+    "card33": 250594353152,
+    "card41": 250627899392,
+    "card9": 250628169728
+  }
+}

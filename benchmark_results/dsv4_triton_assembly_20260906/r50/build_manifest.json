@@ -1,0 +1,56 @@
+{
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/classic_accept.s": "6be8eb46da8d446296e7cf54ced19491d8a2aff9207d465b5a93e25b8a56b025",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/classic_sample.s": "964184b306d97ad2690631b9e84872d20a7476e993e66d23009d53da07b18e0e",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/classic_tile_sum.s": "91cae47c4777621a13ec23c39de9f985b36b88094bf3529e2d37ad75c2ff93c5",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/hash_topk.s": "b07497eea0d541752a4aa8a88f2fff89c62db26bc4b0511e6b22ef80b48b6286",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/hc_head_4096.s": "6e387f3cd15321f1f7986d867636e46f9170656804f93d5bb76fe8795d304054",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/online_combine.s": "7303aa1ebd1f236789a3edae37c686d22d4cea55a703b77615d0790857ccb49d",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/online_partial_1024.s": "f5a213f32036ff69d47ce847abadcd1438c1c3d738b62030e6e962ed348142cf",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/rms_fp8_4096.s": "cbe1cc63d64c56af9e0f98806c1769c72c2f6fdcb9d03507ced21b6aa5446763",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/rms_fp8_4096_small.s": "647a7024e198f7ffbf233caaec5a9de2fd0f2c60b75c3ced8c9ae91087e66c91",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/rope_flat.s": "188c4e9d4e95e41b2b2736ad7c754d7f488ec575336522107408980fc5273dba",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/router_256.s": "17bc17e8c92b1410388879d4d157129c5689817a9de3c75876c6fedbbe197202",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/softmax_apply.s": "4b03306626d2e6e179bb499e6233cda22486577b8cf9f8b37afbc1258ff396b1",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/softmax_combine.s": "0f326b7f84d323e005c48b231f9e7c6c9cf701ffa19e526830028d580f385b43",
+  "/tmp/netra-numeric/kernels/gfx950/numeric/dsv4/softmax_tile_stats.s": "57c19391f4ea68482e2bb11b1f623a37ebb7c5a43f58f3859cadfc5bc14067a3",
+  "/tmp/netra-numeric/runtime/gfx950/numeric/dsv4/bridge.hip": "e3585b39d9e111c8718ae746a16c3f1876b0195a276239aecded501b00fdeb7f",
+  "/tmp/netra-numeric/runtime/gfx950/numeric/dsv4/numeric.py": "fe4957616ad0db54cadd91bd49f88c57cec002ba6a203a436907b000519e70ea",
+  "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/build.sh": "0e963310fe20d49180716defabb88394c5b4cde2e64dd7964587b0aacb2c410a",
+  "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/prepare_wave4.py": "6d0ee498b3fbb0bd55603ef1be382746bd376206daf546bca3c23a99e2837ccc",
+  "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py": "3cd05765a97cb5821ae4721662119c1f1b2f6188d2b10947ae853d0d7b05afe4",
+  "/tmp/netra-numeric/build/numeric.hsaco": {
+    "sha256": "0c9493cf60564459e5adbc2597ca84af5ee3aea7abc2ed1002117364e256f76b",
+    "mtime": 1788714320.4938965
+  },
+  "/tmp/netra-numeric/build/libnetra_numeric.so": {
+    "sha256": "d39d7a62cd902916c66702ada8e30de0b4e92e02e4b281b9060603af7deb0e6a",
+    "mtime": 1788714321.1918843
+  },
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/append_shared.s": "73645af80864171c210e2ea524bf45669adba34f5a10d5eadcd7330f8a0e9d24",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/build_out_tokens.s": "62ad2bb85d7a47a3b903c17b3858c6693bc11edc4e195ae9e8d51ae6691d9121",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/build_out_tokens_flat.s": "3e2d7e036c70b9537425d718eeaefe4cc6507483014428aa203342f2ea0a0206",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/compressed_metadata.s": "b253b8134003c6f83c17235e46f28b3840796bf45952880a3302b93e9636a60e",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/fill_compress_tail.s": "a59fdc3268af339d34d00efc673ef367b15ac3ccc4f389ce8d8eedb98b797ae8",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/fill_compress_tail_wide.s": "d247c6fee928c5a6de846ebd916f2ae5bbe2b085ebe11b6e101f523e886be590",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/finalize_accept.s": "77f9888788e7e736ba3c1046278fd2df03d9553619eaffc3631e4e78bb55d77e",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/gather_bonus.s": "639ab423c44572328b02357bfd33a5c0d2446002c3a83bfdc9c7363122e36dbe",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/prefill_indices.s": "407bb131733b699b29c8dcb7ad129954520636564e19fd7d6412983a07e5588d",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/prefill_indices_wide.s": "331ba79b3f0f0333c02f75a2980b3fe49b32f2fa2b9b71c2b10ef46af9478dbe",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/prefill_lengths.s": "0d3b082eeaf6e835ddb85967869627b304b91636fb31cd5d36ea2e9e76c27f16",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/prefill_lengths_wide.s": "267030b87c3e49bcdc854696eb54ce20774d560f88d6b3f0565ea371355b876c",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/scatter_loc.s": "27c3498b8e75c6eae495f312f63dfe483551c628b801e6644387ca89d653db1f",
+  "/tmp/netra-control-r50/kernels/gfx950/control/dsv4/swa_scatter.s": "213c93f2c27b29015069aa3a69f2eaec1d11338d3ed4ce9283173b562d778437",
+  "/tmp/netra-control-r50/runtime/gfx950/control/dsv4/bridge.hip": "332fd66d14837186c366f613119bc15f05f882ee18e434bd539df1f5c0aa139a",
+  "/tmp/netra-control-r50/runtime/gfx950/control/dsv4/control.py": "4973cf2687e41e7f7bcac71791c6f261405795220fe1708ee8aaf4f2c789c239",
+  "/tmp/netra-control-r50/tools/benchmark/dsv4_control/build.sh": "5e02a7cb3d26b035f7b21b1bdf88fbcf4aa277831baadae5d86a9bf692ab7ef2",
+  "/tmp/netra-control-r50/tools/benchmark/dsv4_control/prepare_wave4.py": "5e2efdee474a53bffc9160214f113747b52496eef1e7283d70cb4f431afb94d5",
+  "/tmp/netra-control-r50/tools/benchmark/dsv4_control/validate.py": "74c8c3dcfae588f7cf5f4077396e5b584216c71e20fd84279a877f9625253428",
+  "/tmp/netra-control-r50/build/control.hsaco": {
+    "sha256": "ab1e5f8da4146abb8ae09413424eaca34c83d44c2d46817ab965d066a28495e4",
+    "mtime": 1788714224.5915632
+  },
+  "/tmp/netra-control-r50/build/libnetra_control.so": {
+    "sha256": "8d3e760a21c3f9dec9a3a621f818de08ef2541d89e1318b20e831e70243c3274",
+    "mtime": 1788714225.285551
+  }
+}

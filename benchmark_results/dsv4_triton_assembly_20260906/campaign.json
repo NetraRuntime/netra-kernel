@@ -18,9 +18,10 @@
       ],
       "assembly_port": "build_out_tokens",
       "status": "component_correctness_passed",
-      "evidence": "r47/job-06.result.json",
+      "evidence": "r50/job-04.result.json",
       "production_promoted": false,
-      "additional_correctness_evidence": "r48/control-edges.result.json"
+      "additional_correctness_evidence": "r48/control-edges.result.json",
+      "performance_status": "measured; 8K-page regressions fixed; other shape results in performance_summary.json"
     },
     {
       "name": "_build_prefill_indices_kernel",
@@ -39,9 +40,9 @@
       ],
       "assembly_port": "prefill_indices",
       "status": "component_correctness_passed",
-      "evidence": "r47/job-06.result.json",
+      "evidence": "r50/job-04.result.json",
       "production_promoted": false,
-      "performance_status": "wide_page_cases_regress; tuning_required",
+      "performance_status": "measured; 8K-page regressions fixed; other shape results in performance_summary.json",
       "additional_correctness_evidence": "r48/control-edges.result.json"
     },
     {
@@ -59,8 +60,8 @@
       "assembly_port": "expand_prefill",
       "status": "component_correctness_passed",
       "production_promoted": false,
-      "evidence": "r48/job-04.result.json",
-      "performance_status": "measured; serving qualification pending"
+      "evidence": "r50/memory-final.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "_fill_compress_tail_kernel",
@@ -76,9 +77,9 @@
       ],
       "assembly_port": "fill_compress_tail",
       "status": "component_correctness_passed",
-      "evidence": "r47/job-06.result.json",
+      "evidence": "r50/job-04.result.json",
       "production_promoted": false,
-      "performance_status": "wide_page_cases_regress; tuning_required",
+      "performance_status": "measured; 8K-page regressions fixed; other shape results in performance_summary.json",
       "additional_correctness_evidence": "r48/control-edges.result.json"
     },
     {
@@ -95,9 +96,10 @@
       ],
       "assembly_port": "finalize_accept",
       "status": "component_correctness_passed",
-      "evidence": "r47/job-06.result.json",
+      "evidence": "r50/job-04.result.json",
       "production_promoted": false,
-      "additional_correctness_evidence": "r48/control-edges.result.json"
+      "additional_correctness_evidence": "r48/control-edges.result.json",
+      "performance_status": "measured; 8K-page regressions fixed; other shape results in performance_summary.json"
     },
     {
       "name": "_fused_append_shared_experts_kernel",
@@ -116,9 +118,10 @@
       ],
       "assembly_port": "append_shared",
       "status": "component_correctness_passed",
-      "evidence": "r47/job-06.result.json",
+      "evidence": "r50/job-04.result.json",
       "production_promoted": false,
-      "additional_correctness_evidence": "r48/control-edges.result.json"
+      "additional_correctness_evidence": "r48/control-edges.result.json",
+      "performance_status": "measured; 8K-page regressions fixed; other shape results in performance_summary.json"
     },
     {
       "name": "_fused_rms_fp8_group_quant_kernel",
@@ -134,8 +137,11 @@
           "sha256": "4804dc6727400b3c5b20d3919bcb0c6609e4d47be08291e9a44c53d96bacd3d2"
         }
       ],
-      "assembly_port": null,
-      "status": "pending_source_review"
+      "assembly_port": "rms_fp8_4096",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r52/full.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "_gather_two_level_bonus_kernel",
@@ -151,9 +157,10 @@
       ],
       "assembly_port": "gather_bonus",
       "status": "component_correctness_passed",
-      "evidence": "r47/job-06.result.json",
+      "evidence": "r50/job-04.result.json",
       "production_promoted": false,
-      "additional_correctness_evidence": "r48/control-edges.result.json"
+      "additional_correctness_evidence": "r48/control-edges.result.json",
+      "performance_status": "measured; 8K-page regressions fixed; other shape results in performance_summary.json"
     },
     {
       "name": "_get_last_loc_safe_kernel",
@@ -170,8 +177,8 @@
       "assembly_port": "get_last_loc",
       "status": "component_correctness_passed",
       "production_promoted": false,
-      "evidence": "r48/job-04.result.json",
-      "performance_status": "measured; serving qualification pending"
+      "evidence": "r50/memory-final.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "_gluon_deepgemm_fp8_paged_mqa_logits_preshuffle",
@@ -193,8 +200,9 @@
           "sha256": "57f07ff1caa383508dfe606820701c7b4365f0b890c1cf4aebb39b8d86e0ce9b"
         }
       ],
-      "assembly_port": null,
-      "status": "component_qualified_previous_turn"
+      "assembly_port": "runtime/gfx950/attention/indexer/dsv4_mqa.py",
+      "status": "component_qualified_previous_turn",
+      "production_promoted": false
     },
     {
       "name": "_hash_topk_triton_kernel",
@@ -210,8 +218,11 @@
           "sha256": "ad764744fb1b569717dc6f6d2952326dc41a8fc05637c9d2232627e5907fb17d"
         }
       ],
-      "assembly_port": null,
-      "status": "pending_source_review"
+      "assembly_port": "hash_topk",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r52/full.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "_hc_head_kernel",
@@ -227,8 +238,11 @@
           "sha256": "a82d40c36a0c9b40285116cf1701f5e449b895eb48f18b00ab6600ef53537826"
         }
       ],
-      "assembly_port": null,
-      "status": "pending_source_review"
+      "assembly_port": "hc_head_4096",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r52/full.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "_init_compressed_attn_metadata_kernel",
@@ -244,9 +258,10 @@
       ],
       "assembly_port": "compressed_metadata",
       "status": "component_correctness_passed",
-      "evidence": "r47/job-06.result.json",
+      "evidence": "r50/job-04.result.json",
       "production_promoted": false,
-      "additional_correctness_evidence": "r48/control-edges.result.json"
+      "additional_correctness_evidence": "r48/control-edges.result.json",
+      "performance_status": "measured; 8K-page regressions fixed; other shape results in performance_summary.json"
     },
     {
       "name": "_online_combine_kernel",
@@ -260,8 +275,11 @@
           "sha256": "2865ce6742b6de4d91a5eec01a194324c4f5480e9652908bff5755ec867d613f"
         }
       ],
-      "assembly_port": null,
-      "status": "pending_source_review"
+      "assembly_port": "online_combine",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r52/full.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "_online_partial_kernel",
@@ -275,8 +293,11 @@
           "sha256": "2865ce6742b6de4d91a5eec01a194324c4f5480e9652908bff5755ec867d613f"
         }
       ],
-      "assembly_port": null,
-      "status": "pending_source_review"
+      "assembly_port": "online_partial_1024",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r52/full.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "_prefill_lengths_kernel",
@@ -295,9 +316,9 @@
       ],
       "assembly_port": "prefill_lengths",
       "status": "component_correctness_passed",
-      "evidence": "r47/job-06.result.json",
+      "evidence": "r50/job-04.result.json",
       "production_promoted": false,
-      "performance_status": "wide_page_cases_regress; tuning_required",
+      "performance_status": "measured; 8K-page regressions fixed; other shape results in performance_summary.json",
       "additional_correctness_evidence": "r48/control-edges.result.json"
     },
     {
@@ -315,8 +336,11 @@
           "sha256": "62e12f93898dcfd2166897ccc69d4b83fe8cd35babcd50a9b4b7ae4778ae1a24"
         }
       ],
-      "assembly_port": null,
-      "status": "pending_source_review"
+      "assembly_port": "router_256",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r52/full.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "_scatter_loc_kernel",
@@ -334,9 +358,10 @@
       ],
       "assembly_port": "scatter_loc",
       "status": "component_correctness_passed",
-      "evidence": "r47/job-06.result.json",
+      "evidence": "r50/job-04.result.json",
       "production_promoted": false,
-      "additional_correctness_evidence": "r48/control-edges.result.json"
+      "additional_correctness_evidence": "r48/control-edges.result.json",
+      "performance_status": "measured; 8K-page regressions fixed; other shape results in performance_summary.json"
     },
     {
       "name": "_softmax_temp_kernel",
@@ -350,8 +375,11 @@
           "sha256": "e13983e6b237d1ed885c94b026e1d7f1a9f21d5139d0e74459436dd636722e9c"
         }
       ],
-      "assembly_port": null,
-      "status": "pending_source_review"
+      "assembly_port": "softmax_tile_stats + softmax_combine + softmax_apply",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r52/full.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "_swa_scatter_kernel",
@@ -369,9 +397,10 @@
       ],
       "assembly_port": "swa_scatter",
       "status": "component_correctness_passed",
-      "evidence": "r47/job-06.result.json",
+      "evidence": "r50/job-04.result.json",
       "production_promoted": false,
-      "additional_correctness_evidence": "r48/control-edges.result.json"
+      "additional_correctness_evidence": "r48/control-edges.result.json",
+      "performance_status": "measured; 8K-page regressions fixed; other shape results in performance_summary.json"
     },
     {
       "name": "_vocab_parallel_embedding_kernel",
@@ -388,8 +417,8 @@
       "assembly_port": "vocab_embedding",
       "status": "component_correctness_passed",
       "production_promoted": false,
-      "evidence": "r48/job-04.result.json",
-      "performance_status": "measured; serving qualification pending"
+      "evidence": "r50/memory-final.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "alloc_extend_kernel",
@@ -406,8 +435,8 @@
       "assembly_port": "alloc_extend",
       "status": "component_correctness_passed",
       "production_promoted": false,
-      "evidence": "r48/job-04.result.json",
-      "performance_status": "some small shapes near parity or modest regression; tuning_required"
+      "evidence": "r50/memory-final.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "apply_rotary_emb_flat_kernel",
@@ -424,8 +453,11 @@
           "sha256": "85547063b543d57cb5469f50209020a4b662e6a89a7e3a25ef63cd6f7d519022"
         }
       ],
-      "assembly_port": null,
-      "status": "pending_source_review"
+      "assembly_port": "rope_flat",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r52/full.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "assign_extend_cache_locs",
@@ -442,8 +474,8 @@
       "assembly_port": "assign_cache_locs",
       "status": "component_correctness_passed",
       "production_promoted": false,
-      "evidence": "r48/job-04.result.json",
-      "performance_status": "measured; serving qualification pending"
+      "evidence": "r50/memory-final.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "assign_req_to_token_pool",
@@ -460,8 +492,8 @@
       "assembly_port": "assign_cache_locs",
       "status": "component_correctness_passed",
       "production_promoted": false,
-      "evidence": "r48/job-04.result.json",
-      "performance_status": "measured; serving qualification pending"
+      "evidence": "r50/memory-final.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "compute_position_kernel",
@@ -478,8 +510,8 @@
       "assembly_port": "compute_position",
       "status": "component_correctness_passed",
       "production_promoted": false,
-      "evidence": "r48/job-04.result.json",
-      "performance_status": "measured; serving qualification pending"
+      "evidence": "r50/memory-final.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "speculative_sampling_classic_kernel",
@@ -493,8 +525,11 @@
           "sha256": "9483b6d608e261fa8d5635e052589ce715b6a124aaa965337757c2d180c39b25"
         }
       ],
-      "assembly_port": null,
-      "status": "pending_source_review"
+      "assembly_port": "classic_accept + classic_tile_sum + classic_sample",
+      "status": "component_correctness_passed",
+      "production_promoted": false,
+      "evidence": "r52/full.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     },
     {
       "name": "write_req_to_token_pool_triton",
@@ -511,11 +546,22 @@
       "assembly_port": "write_req_pool",
       "status": "component_correctness_passed",
       "production_promoted": false,
-      "evidence": "r48/job-04.result.json",
-      "performance_status": "some small prefix-write shapes regress; tuning_required"
+      "evidence": "r50/memory-final.result.json",
+      "performance_status": "measured; see performance_summary.json for shape regressions"
     }
   ],
-  "state": "in_progress",
+  "state": "all_entry_points_implemented_and_component_qualified",
   "completed_all": false,
-  "production_assembly_promoted": false
+  "production_assembly_promoted": false,
+  "assembly_coverage_complete": true,
+  "component_correctness_complete": true,
+  "performance_qualification_complete": false,
+  "final_component_cases": 1067,
+  "additional_sampling_stress_cases": 36,
+  "remaining_work": [
+    "Resolve or explicitly qualify remaining shape-dependent regressions",
+    "Integrate serving dispatch and per-overlap workspace ownership",
+    "Validate end-to-end C1-C4 and C256 throughput",
+    "Validate model-level long-context accuracy and history isolation"
+  ]
 }

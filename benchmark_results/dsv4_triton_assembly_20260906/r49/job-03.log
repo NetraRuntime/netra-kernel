@@ -1,0 +1,49 @@
+FP8 diagnostic wave1 max code diff 117 mismatch rate 0.24781976640224457
+buffer (4128,) max abs 447.978515625 got [0.009765625, 6.0, -0.00390625, 18.0, -0.001953125, -1.25, -0.00390625, -4.5] reference [88.0, 6.0, -28.0, 18.0, -22.0, -1.25, -40.0, -4.5]
+buffer (64,) max abs 9.313225746154785e-10 got [0.01052337046712637, 0.009289929643273354, 0.008535194210708141, 0.012597125954926014, 0.009565415792167187, 0.00843901839107275, 0.009330681525170803, 0.011410686187446117] reference [0.01052337046712637, 0.009289928711950779, 0.008535193279385567, 0.012597125954926014, 0.009565414860844612, 0.008439017459750175, 0.009330681525170803, 0.011410685256123543]
+buffer (4128,) max abs 0.0 got [0.8984375, 0.0615234375, -0.30078125, 0.1875, -0.23828125, -0.01300048828125, -0.400390625, -0.04541015625] reference [0.8984375, 0.0615234375, -0.30078125, 0.1875, -0.23828125, -0.01300048828125, -0.400390625, -0.04541015625]
+FAILED {"operation": "rms_fp8", "shape": [1, false, true, false], "error": "('rms_fp8', [1, False, True, False], 'wave1', 'FP8 rounding')"}
+FP8 diagnostic wave1 max code diff 118 mismatch rate 0.24806201457977295
+buffer (4128,) max abs 447.982421875 got [-0.001953125, -20.0, -0.001953125, -24.0, 0.0, -7.0, -0.015625, -44.0] reference [-48.0, -20.0, -36.0, -24.0, 1.625, -7.0, -288.0, -44.0]
+buffer (64,) max abs 9.313225746154785e-10 got [0.007402999792248011, 0.009825823828577995, 0.0065730600617825985, 0.010590644553303719, 0.012934145517647266, 0.007674465421587229, 0.0098697729408741, 0.011405308730900288] reference [0.007402999792248011, 0.009825823828577995, 0.006573059596121311, 0.010590643621981144, 0.012934145517647266, 0.007674465421587229, 0.009869772009551525, 0.011405308730900288]
+buffer (4128,) max abs 0.0 got [-111.0, -111.0, -111.0, -111.0, -111.0, -111.0, -111.0, -111.0] reference [-111.0, -111.0, -111.0, -111.0, -111.0, -111.0, -111.0, -111.0]
+FAILED {"operation": "rms_fp8", "shape": [1, true, false, false], "error": "('rms_fp8', [1, True, False, False], 'wave1', 'FP8 rounding')"}
+{"operation": "rms_fp8", "shape": [1, false, true, true], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+FAILED {"operation": "router_256", "shape": [1, 6, 1, false], "error": "Tensor-likes are not close!\n\nMismatched elements: 6 / 39 (15.4%)\nGreatest absolute difference: 84.24082946777344 at index (16,) (up to 2e-07 allowed)\nGreatest relative difference: 456.68316650390625 at index (16,) (up to 2e-06 allowed)"}
+FAILED {"operation": "router_256", "shape": [1, 6, 1, true], "error": "Tensor-likes are not close!\n\nMismatched elements: 4 / 39 (10.3%)\nGreatest absolute difference: 485215.40625 at index (16,) (up to 2e-07 allowed)\nGreatest relative difference: 2911292.25 at index (16,) (up to 2e-06 allowed)"}
+Traceback (most recent call last):
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 288, in <module>
+    partial(rows,1057);partial(rows,1024,greedy_only=True)
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 226, in partial
+    case('online_partial',[rows,vocab,greedy_only],make,lambda:temp.add_(0.125) if rows in (3,16) else None)
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 107, in case
+    try:return _case(*args,**kwargs)
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 84, in case
+    for fn in fns.values():fn()
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 222, in <lambda>
+    if name=='triton':fns[name]=lambda mx=mx,key=key,idx=idx:ref._online_partial_kernel[(rows,tiles)](
+  File "/sgl-workspace/triton-custom/python/triton/runtime/jit.py", line 370, in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+  File "/sgl-workspace/triton-custom/python/triton/runtime/jit.py", line 739, in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+  File "/sgl-workspace/triton-custom/python/triton/runtime/jit.py", line 883, in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+  File "/sgl-workspace/triton-custom/python/triton/compiler/compiler.py", line 307, in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+  File "/sgl-workspace/triton-custom/python/triton/compiler/compiler.py", line 80, in make_ir
+    return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+triton.compiler.errors.CompilationError: at 16:43:
+    mask = offs < V
+    logits = tl.load(logits_ptr + row * stride_row + offs, mask=mask, other=float('-inf')).to(tl.float32)
+    temperature = tl.load(temperatures_ptr + row)
+    s = logits / temperature
+    tile_max = tl.max(s, axis=0)
+    greedy = tl.load(greedy_mask_ptr + row) != 0
+    noise = tl.load(exp_noise_ptr + row * V + offs, mask=mask, other=1.0)
+    denom = tl.where(greedy, 1.0, noise)
+    key = tl.exp(s - tile_max) / denom
+    key = tl.where(mask, key, -1.0)
+    tile_best = tl.max(key, axis=0)
+    idx = tl.where(key == tile_best, offs, _IDX_SENTINEL)
+                                           ^
+NameError("Cannot access global variable _IDX_SENTINEL from within @jit'ed function. Triton kernels can only access global variables that are instanstiated as constexpr (`x = triton.language.constexpr(42)`). Note that this is different from annotating a variable as constexpr (`x: triton.language.constexpr = 42`), which is not supported.  Alternatively, set the envvar TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1, but we do not promise to support this forever.")

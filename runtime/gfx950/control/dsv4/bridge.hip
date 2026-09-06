@@ -27,9 +27,12 @@ constexpr const char* names[] = {
     "gather_bonus_w4",
     "build_out_tokens_w4",
     "compressed_metadata_w4",
-    "build_out_tokens_flat_w4"};
+    "build_out_tokens_flat_w4",
+    "prefill_lengths_wide",
+    "fill_compress_tail_wide",
+    "prefill_indices_wide"};
 constexpr unsigned count = sizeof(names) / sizeof(names[0]);
-constexpr unsigned op_count = count / 2;
+constexpr unsigned op_count = 11;
 struct Owner { hipModule_t module; hipFunction_t fn[count]; int device; };
 thread_local std::string error;
 int fail(const char* s) { error=s; return -1; }
@@ -62,7 +65,7 @@ extern "C" int netra_control_launch(void* handle, unsigned mode, void* args,
   size_t size=192;
   void* extra[]={HIP_LAUNCH_PARAM_BUFFER_POINTER,args,HIP_LAUNCH_PARAM_BUFFER_SIZE,
       &size,HIP_LAUNCH_PARAM_END};
-  return checked(hipModuleLaunchKernel(c->fn[mode],mode>=op_count ? (rows+3)/4 : rows,1,1,mode>=op_count ? 256 : 64,1,1,0,stream,nullptr,extra));
+  return checked(hipModuleLaunchKernel(c->fn[mode],mode>=2*op_count ? rows : (mode>=op_count ? (rows+3)/4 : rows),1,1,mode>=op_count ? 256 : 64,1,1,0,stream,nullptr,extra));
 }
 extern "C" int netra_control_close(void* handle) {
   if(!handle) return 0;

@@ -1,0 +1,64 @@
+{
+  "state": "failed",
+  "device": "AMD Instinct MI350X",
+  "cases": [
+    {
+      "operation": "rms_fp8",
+      "shape": [
+        1,
+        false,
+        true,
+        true
+      ],
+      "passed_all_variants": true,
+      "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008",
+      "changed_graph_replays": 3
+    }
+  ],
+  "started": 1788713555.2585962,
+  "scope": "Isolated component tests, synthetic inputs; no serving TPS claim.",
+  "failures": [
+    {
+      "operation": "rms_fp8",
+      "shape": [
+        1,
+        false,
+        true,
+        false
+      ],
+      "error": "('rms_fp8', [1, False, True, False], 'wave1', 'FP8 rounding')"
+    },
+    {
+      "operation": "rms_fp8",
+      "shape": [
+        1,
+        true,
+        false,
+        false
+      ],
+      "error": "('rms_fp8', [1, True, False, False], 'wave1', 'FP8 rounding')"
+    },
+    {
+      "operation": "router_256",
+      "shape": [
+        1,
+        6,
+        1,
+        false
+      ],
+      "error": "Tensor-likes are not close!\n\nMismatched elements: 6 / 39 (15.4%)\nGreatest absolute difference: 84.24082946777344 at index (16,) (up to 2e-07 allowed)\nGreatest relative difference: 456.68316650390625 at index (16,) (up to 2e-06 allowed)"
+    },
+    {
+      "operation": "router_256",
+      "shape": [
+        1,
+        6,
+        1,
+        true
+      ],
+      "error": "Tensor-likes are not close!\n\nMismatched elements: 4 / 39 (10.3%)\nGreatest absolute difference: 485215.40625 at index (16,) (up to 2e-07 allowed)\nGreatest relative difference: 2911292.25 at index (16,) (up to 2e-06 allowed)"
+    }
+  ],
+  "error": "CompilationError(\"def _online_partial_kernel(logits_ptr, temperatures_ptr, greedy_mask_ptr, exp_noise_ptr, tile_max_ptr, partial_key_ptr, partial_idx_ptr, V, stride_row, n_tiles, BLOCK_V: tl.constexpr):\\n    row = tl.program_id(0)\\n    tile = tl.program_id(1)\\n    offs = tile * BLOCK_V + tl.arange(0, BLOCK_V)\\n    mask = offs < V\\n    logits = tl.load(logits_ptr + row * stride_row + offs, mask=mask, other=float('-inf')).to(tl.float32)\\n    temperature = tl.load(temperatures_ptr + row)\\n    s = logits / temperature\\n    tile_max = tl.max(s, axis=0)\\n    greedy = tl.load(greedy_mask_ptr + row) != 0\\n    noise = tl.load(exp_noise_ptr + row * V + offs, mask=mask, other=1.0)\\n    denom = tl.where(greedy, 1.0, noise)\\n    key = tl.exp(s - tile_max) / denom\\n    key = tl.where(mask, key, -1.0)\\n    tile_best = tl.max(key, axis=0)\\n    idx = tl.where(key == tile_best, offs, _IDX_SENTINEL)\\n    tl.store(tile_max_ptr + row * n_tiles + tile, tile_max)\\n    tl.store(partial_key_ptr + row * n_tiles + tile, tile_best)\\n    tl.store(partial_idx_ptr + row * n_tiles + tile, tl.min(idx, axis=0))\\n\", <ast.Name object at 0x75ea6a7df790>, 'NameError(\"Cannot access global variable _IDX_SENTINEL from within @jit\\'ed function. Triton kernels can only access global variables that are instanstiated as constexpr (`x = triton.language.constexpr(42)`). Note that this is different from annotating a variable as constexpr (`x: triton.language.constexpr = 42`), which is not supported.  Alternatively, set the envvar TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1, but we do not promise to support this forever.\")')",
+  "finished": 1788713556.4664798
+}

@@ -21,6 +21,9 @@ netra_dsv4_write_req_pool:
     s_and_b32 s63, s63, s2
     s_lshr_b32 s2, s2, s50
     s_lshl_b32 s63, s63, 6
+    s_mov_b32 s52, 0
+    s_cmp_eq_u32 s2, 0
+    s_cbranch_scc1 .Lown_metadata
     v_mov_b32 v1, v0
     v_mov_b32 v3, 0
 .Lsum:
@@ -57,6 +60,7 @@ netra_dsv4_write_req_pool:
     s_nop 4
     v_readfirstlane_b32 s52, v3
     s_nop 4
+ .Lown_metadata:
     s_mul_i32 s60, s2, s37
     s_load_dword s57, s[6:7], s60
     s_mul_i32 s60, s2, s38
@@ -75,8 +79,31 @@ netra_dsv4_write_req_pool:
     s_mul_hi_u32 s61, s52, 8
     s_add_u32 s16, s16, s60
     s_addc_u32 s17, s17, s61
+    // Four int64 sources become four int32 table entries per lane.
+    s_and_b32 s60, s53, -4
+    s_lshl_b32 s61, s63, 2
+    v_lshlrev_b32 v1, 2, v0
+    v_add_u32 v1, s61, v1
+    v_lshlrev_b32 v17, 2, s49
+.Lprefix_quad:
+    v_cmp_gt_u32 vcc, s60, v1
+    s_and_saveexec_b64 s[58:59], vcc
+    v_lshlrev_b32 v2, 3, v1
+    global_load_dwordx4 v[4:7], v2, s[54:55]
+    global_load_dwordx4 v[8:11], v2, s[54:55] offset:16
+    s_waitcnt vmcnt(0)
+    v_mov_b32 v12, v4
+    v_mov_b32 v13, v6
+    v_mov_b32 v14, v8
+    v_mov_b32 v15, v10
+    v_lshlrev_b32 v2, 2, v1
+    global_store_dwordx4 v2, v[12:15], s[4:5]
+    s_mov_b64 exec, s[58:59]
+    v_add_u32 v1, v17, v1
+    v_cmp_gt_u32 vcc, s60, v1
+    s_cbranch_vccnz .Lprefix_quad
     v_add_u32 v1, s63, v0
-.Lprefix_copy:
+    v_add_u32 v1, s60, v1
     v_cmp_gt_u32 vcc, s53, v1
     s_and_saveexec_b64 s[58:59], vcc
     v_lshlrev_b32 v2, 3, v1
@@ -85,16 +112,36 @@ netra_dsv4_write_req_pool:
     v_lshlrev_b32 v2, 2, v1
     global_store_dword v2, v4, s[4:5]
     s_mov_b64 exec, s[58:59]
-    v_add_u32 v1, s49, v1
-    v_cmp_gt_u32 vcc, s53, v1
-    s_cbranch_vccnz .Lprefix_copy
     s_sub_u32 s56, s56, s53
     s_mul_i32 s60, s53, 4
     s_mul_hi_u32 s61, s53, 4
     s_add_u32 s4, s4, s60
     s_addc_u32 s5, s5, s61
+    // Four int64 sources become four int32 table entries per lane.
+    s_and_b32 s60, s56, -4
+    s_lshl_b32 s61, s63, 2
+    v_lshlrev_b32 v1, 2, v0
+    v_add_u32 v1, s61, v1
+    v_lshlrev_b32 v17, 2, s49
+.Lextend_quad:
+    v_cmp_gt_u32 vcc, s60, v1
+    s_and_saveexec_b64 s[58:59], vcc
+    v_lshlrev_b32 v2, 3, v1
+    global_load_dwordx4 v[4:7], v2, s[16:17]
+    global_load_dwordx4 v[8:11], v2, s[16:17] offset:16
+    s_waitcnt vmcnt(0)
+    v_mov_b32 v12, v4
+    v_mov_b32 v13, v6
+    v_mov_b32 v14, v8
+    v_mov_b32 v15, v10
+    v_lshlrev_b32 v2, 2, v1
+    global_store_dwordx4 v2, v[12:15], s[4:5]
+    s_mov_b64 exec, s[58:59]
+    v_add_u32 v1, v17, v1
+    v_cmp_gt_u32 vcc, s60, v1
+    s_cbranch_vccnz .Lextend_quad
     v_add_u32 v1, s63, v0
-.Lextend_copy:
+    v_add_u32 v1, s60, v1
     v_cmp_gt_u32 vcc, s56, v1
     s_and_saveexec_b64 s[58:59], vcc
     v_lshlrev_b32 v2, 3, v1
@@ -103,10 +150,6 @@ netra_dsv4_write_req_pool:
     v_lshlrev_b32 v2, 2, v1
     global_store_dword v2, v4, s[4:5]
     s_mov_b64 exec, s[58:59]
-    v_add_u32 v1, s49, v1
-    v_cmp_gt_u32 vcc, s56, v1
-    s_cbranch_vccnz .Lextend_copy
-
 .Ldone:
     s_endpgm
 .Lend:

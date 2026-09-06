@@ -1,0 +1,102 @@
+{
+  "time": 1788714274.0001454,
+  "services": [
+    {
+      "name": "netra-dsv4-tp4dp2-c256-p48-unified-r36",
+      "running": true,
+      "started_at": "2026-09-06T17:00:18.096762203Z",
+      "restart_count": 0,
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "name": "netra-dsv4-tp8-router-r9",
+      "running": true,
+      "started_at": "2026-09-06T17:04:28.539596989Z",
+      "restart_count": 0,
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "name": "netra-dsv4-mooncake-hip-master-20260905",
+      "running": true,
+      "started_at": "2026-09-06T17:00:15.99263778Z",
+      "restart_count": 0,
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "name": "netra-direct-ip-proxy",
+      "running": true,
+      "started_at": "2026-09-01T07:42:51.368326514Z",
+      "restart_count": 0,
+      "restart_policy": "unless-stopped"
+    }
+  ],
+  "faults": [],
+  "mooncake": {
+    "master_total_capacity_bytes": 68719476736.0,
+    "master_active_clients": 8.0
+  },
+  "scheduler_count": 8,
+  "server_info": {
+    "context_length": 1048576,
+    "chunked_prefill_size": 49152,
+    "max_total_num_tokens": 15901440,
+    "max_req_input_len": 1048570
+  },
+  "disk": {
+    "total": 105089261568,
+    "used": 95198715904,
+    "free": 4505059328
+  },
+  "pool_log_lines": [
+    "[2026-09-06 17:01:44 DP0 TP2] Memory pool end. avail mem=72.03 GB",
+    "[2026-09-06 17:01:44 DP0 TP2] Memory pool end. avail mem=71.93 GB",
+    "[2026-09-06 17:01:44 DP0 TP3] Memory pool end. avail mem=72.12 GB",
+    "[2026-09-06 17:01:44 DP0 TP3] Memory pool end. avail mem=72.02 GB",
+    "[2026-09-06 17:01:44 DP0 TP1] Memory pool end. avail mem=71.99 GB",
+    "[2026-09-06 17:01:44 DP0 TP1] Memory pool end. avail mem=71.89 GB",
+    "[2026-09-06 17:01:44 DP0 TP0] Memory pool end. avail mem=72.03 GB",
+    "[2026-09-06 17:01:44 DP0 TP0] Memory pool end. avail mem=71.93 GB",
+    "[2026-09-06 17:01:44 DP1 TP1] Memory pool end. avail mem=71.99 GB",
+    "[2026-09-06 17:01:44 DP1 TP1] Memory pool end. avail mem=71.89 GB",
+    "[2026-09-06 17:01:44 DP1 TP3] Memory pool end. avail mem=72.12 GB",
+    "[2026-09-06 17:01:44 DP1 TP3] Memory pool end. avail mem=72.02 GB",
+    "[2026-09-06 17:01:44 DP1 TP0] Memory pool end. avail mem=72.03 GB",
+    "[2026-09-06 17:01:44 DP1 TP0] Memory pool end. avail mem=71.93 GB",
+    "[2026-09-06 17:01:44 DP1 TP2] Memory pool end. avail mem=72.03 GB",
+    "[2026-09-06 17:01:44 DP1 TP2] Memory pool end. avail mem=71.93 GB",
+    "[2026-09-06 17:02:21 DP0 TP0] max_total_num_tokens=15901440, chunked_prefill_size=49152, max_prefill_tokens=49152, max_running_requests=256, context_len=1048576, available_gpu_mem=65.28 GB",
+    "[2026-09-06 17:02:21 DP1 TP0] max_total_num_tokens=15901440, chunked_prefill_size=49152, max_prefill_tokens=49152, max_running_requests=256, context_len=1048576, available_gpu_mem=65.28 GB",
+    "[2026-09-06 17:03:33 DP1 TP3] Allocating 106.86 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4' (layers=21, pages=77643, item_bytes=65536, layout=page_first_direct).",
+    "[2026-09-06 17:03:36 DP1 TP2] Allocating 106.86 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4' (layers=21, pages=77643, item_bytes=65536, layout=page_first_direct).",
+    "[2026-09-06 17:03:38 DP0 TP2] Allocating 106.86 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4' (layers=21, pages=77643, item_bytes=65536, layout=page_first_direct).",
+    "[2026-09-06 17:03:41 DP1 TP2] Allocating 13.77 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4_indexer' (layers=21, pages=77643, item_bytes=8448, layout=page_first_direct).",
+    "[2026-09-06 17:03:41 DP0 TP3] Allocating 106.86 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4' (layers=21, pages=77643, item_bytes=65536, layout=page_first_direct).",
+    "[2026-09-06 17:03:42 DP1 TP2] Allocating 3.18 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c128' (layers=20, pages=77643, item_bytes=2048, layout=page_first_direct).",
+    "[2026-09-06 17:03:42 DP1 TP2] Mooncake store setup successfully.",
+    "[2026-09-06 17:03:42 DP0 TP2] Allocating 13.77 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4_indexer' (layers=21, pages=77643, item_bytes=8448, layout=page_first_direct).",
+    "[2026-09-06 17:03:50 DP0 TP2] Allocating 3.18 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c128' (layers=20, pages=77643, item_bytes=2048, layout=page_first_direct).",
+    "[2026-09-06 17:03:50 DP0 TP2] Mooncake store setup successfully.",
+    "[2026-09-06 17:03:58 DP1 TP3] Allocating 13.77 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4_indexer' (layers=21, pages=77643, item_bytes=8448, layout=page_first_direct).",
+    "[2026-09-06 17:03:58 DP0 TP3] Allocating 13.77 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4_indexer' (layers=21, pages=77643, item_bytes=8448, layout=page_first_direct).",
+    "[2026-09-06 17:04:03 DP1 TP0] Allocating 106.86 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4' (layers=21, pages=77643, item_bytes=65536, layout=page_first_direct).",
+    "[2026-09-06 17:04:06 DP1 TP1] Allocating 106.86 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4' (layers=21, pages=77643, item_bytes=65536, layout=page_first_direct).",
+    "[2026-09-06 17:04:06 DP0 TP3] Allocating 3.18 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c128' (layers=20, pages=77643, item_bytes=2048, layout=page_first_direct).",
+    "[2026-09-06 17:04:06 DP0 TP3] Mooncake store setup successfully.",
+    "[2026-09-06 17:04:10 DP1 TP3] Allocating 3.18 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c128' (layers=20, pages=77643, item_bytes=2048, layout=page_first_direct).",
+    "[2026-09-06 17:04:10 DP1 TP3] Mooncake store setup successfully.",
+    "[2026-09-06 17:04:10 DP1 TP1] Allocating 13.77 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4_indexer' (layers=21, pages=77643, item_bytes=8448, layout=page_first_direct).",
+    "[2026-09-06 17:04:11 DP0 TP0] Allocating 106.86 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4' (layers=21, pages=77643, item_bytes=65536, layout=page_first_direct).",
+    "[2026-09-06 17:04:12 DP1 TP1] Allocating 3.18 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c128' (layers=20, pages=77643, item_bytes=2048, layout=page_first_direct).",
+    "[2026-09-06 17:04:12 DP1 TP1] Mooncake store setup successfully.",
+    "[2026-09-06 17:04:13 DP0 TP1] Allocating 106.86 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4' (layers=21, pages=77643, item_bytes=65536, layout=page_first_direct).",
+    "[2026-09-06 17:04:16 DP0 TP0] Allocating 13.77 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4_indexer' (layers=21, pages=77643, item_bytes=8448, layout=page_first_direct).",
+    "[2026-09-06 17:04:16 DP1 TP0] Allocating 13.77 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4_indexer' (layers=21, pages=77643, item_bytes=8448, layout=page_first_direct).",
+    "[2026-09-06 17:04:17 DP0 TP0] Allocating 3.18 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c128' (layers=20, pages=77643, item_bytes=2048, layout=page_first_direct).",
+    "[2026-09-06 17:04:17 DP0 TP0] Mooncake store setup successfully.",
+    "[2026-09-06 17:04:17 DP1 TP0] Allocating 3.18 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c128' (layers=20, pages=77643, item_bytes=2048, layout=page_first_direct).",
+    "[2026-09-06 17:04:18 DP1 TP0] Mooncake store setup successfully.",
+    "[2026-09-06 17:04:18 DP0 TP1] Allocating 13.77 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c4_indexer' (layers=21, pages=77643, item_bytes=8448, layout=page_first_direct).",
+    "[2026-09-06 17:04:20 DP0 TP1] Allocating 3.18 GB HiCache mirror memory for V4 paged pool 'deepseek_v4_c128' (layers=20, pages=77643, item_bytes=2048, layout=page_first_direct).",
+    "[2026-09-06 17:04:20 DP0 TP1] Mooncake store setup successfully."
+  ]
+}

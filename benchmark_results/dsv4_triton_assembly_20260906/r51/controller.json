@@ -1,0 +1,36 @@
+{
+  "state": "tests_finished",
+  "phase": "complete",
+  "started": 1788715360.183638,
+  "worker": "netra-dsv4-tp4dp2-c256-p48-unified-r36",
+  "worker_restarted": false,
+  "scope": "Paired component timings with production model resident, router drained, native load monitored; not end-to-end serving throughput.",
+  "jobs": [
+    {
+      "job": "smoke",
+      "exit_code": 0,
+      "started": 1788715362.4324877,
+      "finished": 1788715366.460407,
+      "native_idle_samples": 2
+    },
+    {
+      "job": "full",
+      "exit_code": 0,
+      "started": 1788715366.461028,
+      "finished": 1788715384.5066419,
+      "native_idle_samples": 9
+    }
+  ],
+  "free_vram_bytes_before": [
+    58623176704,
+    58623066112,
+    58723807232,
+    58623025152,
+    58723745792,
+    58623012864,
+    58589483008,
+    58589618176
+  ],
+  "production_restored": true,
+  "finished": 1788715388.7852008
+}

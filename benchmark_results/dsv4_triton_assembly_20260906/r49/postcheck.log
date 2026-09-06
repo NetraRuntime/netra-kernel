@@ -1,0 +1,52 @@
+{
+  "time": 1788714274.0001454,
+  "services": [
+    {
+      "name": "netra-dsv4-tp4dp2-c256-p48-unified-r36",
+      "running": true,
+      "started_at": "2026-09-06T17:00:18.096762203Z",
+      "restart_count": 0,
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "name": "netra-dsv4-tp8-router-r9",
+      "running": true,
+      "started_at": "2026-09-06T17:04:28.539596989Z",
+      "restart_count": 0,
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "name": "netra-dsv4-mooncake-hip-master-20260905",
+      "running": true,
+      "started_at": "2026-09-06T17:00:15.99263778Z",
+      "restart_count": 0,
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "name": "netra-direct-ip-proxy",
+      "running": true,
+      "started_at": "2026-09-01T07:42:51.368326514Z",
+      "restart_count": 0,
+      "restart_policy": "unless-stopped"
+    }
+  ],
+  "faults": [],
+  "mooncake": {
+    "master_total_capacity_bytes": 68719476736.0,
+    "master_active_clients": 8.0
+  },
+  "scheduler_count": 8,
+  "server_info": {
+    "context_length": 1048576,
+    "chunked_prefill_size": 49152,
+    "max_total_num_tokens": 15901440,
+    "max_req_input_len": 1048570
+  },
+  "disk": {
+    "total": 105089261568,
+    "used": 95198715904,
+    "free": 4505059328
+  }
+}
+{'54552': 5, '23222': 5, '32627': 5, '48384': 5, '57533': 5, '64215': 5, '20435': 5, '36256': 5}
+recovery audit passed

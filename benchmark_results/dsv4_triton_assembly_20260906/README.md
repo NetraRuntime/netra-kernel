@@ -1,72 +1,92 @@
-# DSV4 Triton-to-assembly campaign — in progress
+# DSV4 Triton assembly coverage and qualification
 
-The ledger covers 27 compiled entry-point names in the current TP4×DP2 worker,
-plus the source-discovered compressed-tail helper. Cache presence does not prove
-execution for every workload. Prior DP8 trace roles establish observed names,
-not TP4 latency. Required model math, prefix caching and overlap ownership remain
-part of the contract. No assembly from this campaign has been promoted to serving.
+All 28 inventoried entry points have handwritten gfx950 implementations: 27
+new control, memory, and numeric ports, plus the previously qualified indexer.
+This inventory covers the current TP4×DP2 worker's 27 compiled names and one
+source-discovered compressed-tail helper. Cache presence is conservative evidence,
+not proof of execution in every request. This does not cover every Triton function
+in SGLang or unrelated model families.
 
-## First control group (r47)
+**Component implementation is complete. Performance qualification and production
+integration remain open.** None of these new ports has been installed into the
+serving worker. The existing TP4×DP2/HiCache/Mooncake deployment was restored and
+passed native, authenticated public TLS, and Expo/history checks.
 
-Ten operations / eleven assembly bodies passed all 385 exact-output cases against
-AST-extracted bodies from the deployed source. Assembly hashes are recorded in the build manifests; the final r48
-manifest also covers the expanded validation harness. Cases cover one/four waves, automatic
-selection, output canaries, changed-input graph replay, C1–C4-equivalent rows
-8/16/24/32, large prefill batches, 1M-equivalent metadata, concurrent streams and
-a scatter address above 4 GiB. This is component qualification, not a model-level
-accuracy or throughput result. The follow-up r48 run passed 393 cases, including compressed page ratios
-1/2/4/8, odd vector tails, non-power-of-two output-token widths, and negative
-pages within a compressed tail.
+| Group | Entry points | Final component evidence | Cases |
+| --- | ---: | --- | ---: |
+| Control and cache metadata | 10 | `r50/job-04.result.json` | 393 |
+| Memory, allocation, embedding | 8 | `r50/memory-final.result.json` | 294 |
+| Numeric and sampling | 9 | `r52/full.result.json` | 380 |
+| Previously qualified indexer | 1 | Earlier indexer campaign | Separate |
 
-The first smoke run found missing DPP dependency waits. The corrected assembly
-passed the subsequent smoke/full runs. Historical failed results are retained.
-Final timing uses five shuffled rounds of graph replay; raw per-round numbers
-are in `r47/job-06.result.json`. The final 16-row compressed-metadata case with
-8,192 compressed indices took 9.031 µs versus 23.094 µs for Triton. A 49,152×512
-BF16 scatter took 15.496 µs versus 42.545 µs. These component improvements do not
-establish 300 TPS/user or 14K C256 serving throughput.
+The 1,067 final component cases include small decode and verify rows, large
+prefill batches, output canaries, and graph replay. Memory tests include C1–C4,
+1,048,570-token fills, prefix-only writes, and an address above 4 GiB. Numeric tests
+include 131,072-token vocabularies, changed-input replay and two independent
+streams. The separate `r50/job-03.result.json` sampling stress run passed 36 cases
+across six seeds. Sampling IDs, expert IDs, and acceptance outputs are exact;
+floating-point tolerances are recorded per case. These are not model-level
+long-context accuracy tests or end-to-end throughput measurements.
 
-**Performance is not fully qualified:** prefill lengths, prefill indices and
-compressed-tail copies regress at wide 8K-page shapes. For example, 1,024-row
-prefill lengths took 12.417 µs versus 7.092 µs. Several ordinary small cases are
-near parity. The ledger keeps these tuning requirements open.
+## Changes that mattered
 
-Production r36 was restored after the bounded test window. Native, public TLS
-and Expo/history checks passed; recovery artifacts are in the server validation
-branch. Eight further memory/embedding entry points passed the 246-case r48 suite.
-Nine numeric/sampling entry points remain unqualified.
+- Wide cache rows use four cooperating waves. The three earlier 8K-page
+  regressions now match or beat the reference in the tested 8K-page cases.
+- The allocator reuses loaded lengths for token and page prefix sums. Request
+  zero skips empty preceding-request reductions. Request-table writes load four
+  int64 values and store four int32 entries per lane, with disjoint tiled tails.
+- RMS keeps normalized values in registers, interleaves reductions, and handles
+  four adjacent BF16 values per lane. Routing retains both IDs and weights until
+  coalesced final stores; a ballot preserves smallest-ID ties.
+- Full-vocabulary softmax and classic sampling split work across tiles using
+  explicitly caller-owned scratch. Classic sampling preserves the reference's
+  distinct sum and inclusive-scan orders, including inter-tile accumulation.
+- HIP bridges own modules and launches; compute is handwritten assembly. There
+  is no silent Triton fallback. Overlapping steps must own separate workspaces.
 
-## Build and validate
+## Performance and remaining work
 
-On a gfx950 ROCm host, build with
-`bash tools/benchmark/dsv4_control/build.sh BUILD_DIR`, then run
-`python tools/benchmark/dsv4_control/validate.py --build BUILD_DIR --reference-root DEPLOYED_SOURCE_COPY --output result.json`.
-The memory group uses the analogous `dsv4_memory` paths. Run isolated GPU checks
-only in a drained, bounded window with recovery; do not overlap production work.
-The bridge owns HIP modules and launches handwritten assembly; it does not use
-HIP-generated compute or secretly fall back to Triton. Reference Triton runs exist
-only in the benchmark harness.
+Paired timings use five shuffled graph-replay rounds. In r52, single-row HC head
+was 11.825 us versus 43.158 us; full-vocabulary softmax was 7.775 us versus
+118.552 us; classic sampling was 15.056 us versus 53.010 us; routing was 4.114 us
+versus 4.215 us. The corresponding RMS case storing normalized output was
+3.827 us versus 3.728 us. Small differences should not be treated as durable
+serving speedups without end-to-end evidence.
 
-## Memory group (r48)
+`performance_summary.json` records every operation's worst case and all measured
+regressions above 5%, rather than only favorable examples. Remaining regressions
+include RMS without normalized output, large strided RoPE, some high-row-count
+allocation/table and embedding cases, and short-vocabulary composite sampling.
+The wide metadata fix does not eliminate every other metadata-shape regression.
+Production dispatch/integration, actual C1–C4/C256 serving benchmarks, preserved
+high-batch throughput, and model-level long-context/history validation remain
+required. Neither 300 TPS/user nor 14K C256 TPS is established by this campaign.
 
-Eight entry points share seven handwritten bodies: safe last-location lookup,
-position fill, request-table read/write, causal expansion, prefix/extend table
-write, paged allocation, and vocabulary embedding. Prefix sums use wave reductions.
-Long outputs are partitioned into disjoint tiles without GPU readback or mutable
-shared scratch. The prefix-pointer writer accepts a host `prefix_tokens` work hint;
-callers must retain the pointed-to int64 GPU allocations until all eager/graph
-uses finish. No prefix memory is inferred from raw pointers on the host.
+## Reproducibility and recovery
 
-The final 246 cases include int32/int64 metadata, ragged and empty requests,
-partial pages, free-page pointers offset by eight bytes, zero-extension prefix-only
-writes, changed-input graph replay, a request-table address above 4 GiB, 1M-token
-fills, and BF16 vocabulary sharding/padding. Final source hashes match
-`r48/memory-final-manifest.json`; raw timing is `r48/job-04.result.json`.
-The initial serial long-fill implementation passed correctness but regressed
-badly; tiling fixed that measured bottleneck. A prefix-only 1,048,570-token copy
-took 4.907 µs versus 642.830 µs for the Triton reference in the final isolated run.
+The committed control/memory implementation matches the relevant paths in
+`r50/final-manifest.json`; numeric code and its validator match
+`r52/build-manifest.json`. All 49 recorded implementation/validation source hashes
+were checked against the local worktree. Runtime documentation was added after
+compilation and is not a compiled input. Earlier numeric source snapshots are
+retained with r50/r51 because later variants changed their instruction layout.
 
-Performance qualification is still open. Some short prefix-write cases without
-a prefix-work hint lag the reference, and some small allocator cases are near
-parity or slightly slower. Do not infer model latency, throughput, or long-context
-accuracy from these synthetic helper measurements.
+r47–r50 used drained windows with the serving worker stopped. r51/r52 kept the
+qualified model resident in VRAM, drained the router, and monitored native load;
+their controller records show no active native requests during each benchmark.
+Both variants compare Triton and assembly under the same run conditions. The
+r51/r52 windows avoided model reloads. Recovery evidence lives in the matching
+server validation branch.
+
+Historical failures are retained. r49 first exposed an FP8 instruction-dependency
+spacing error, then a one-token sampling mismatch at 1,024 requests. Both were
+corrected and the final suites passed. Earlier numeric reports labeled every
+replay with a supplied callback as changed-input replay, even when that callback
+was a no-op for its shape. r52 distinguishes 315 graph-replay cases from the 56
+cases whose callbacks actually changed input data.
+
+Build with `bash tools/benchmark/dsv4_control/build.sh BUILD_DIR`, then validate
+with `python tools/benchmark/dsv4_control/validate.py --build BUILD_DIR
+--reference-root DEPLOYED_SOURCE_COPY --output result.json`. Memory and numeric
+use the analogous `dsv4_memory` and `dsv4_numeric` paths. Qualification must run in
+a bounded, drained window; retain recovery and source-hash evidence.

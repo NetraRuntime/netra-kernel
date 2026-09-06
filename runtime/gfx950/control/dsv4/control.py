@@ -65,7 +65,7 @@ class Control:
         for i, t in enumerate(tensors): args.p[i] = t.data_ptr()
         for i, v in enumerate(scalars): args.a[i] = int(v)
         args.a[15] = rows
-        if self.waves == 4 or (self.waves is None and rows >= 128): mode += len(_NAMES)
+        if mode < len(_NAMES) and (self.waves == 4 or (self.waves is None and rows >= 128)): mode += len(_NAMES)
         with torch.cuda.device(self.device):
             self._check(self.lib.netra_control_launch(self.handle, mode,
                 ctypes.byref(args), rows, torch.cuda.current_stream(self.device).cuda_stream))
@@ -97,7 +97,7 @@ class Control:
         _vector(prefix, rows); _vector(extend, rows)
         width = self._pages(pages, rows)
         tensors = (pos, chunk, pos if pages is None else pages, prefix, extend)
-        self._launch(2, tensors, (_vector(pos, rows), _vector(chunk, rows), width, win), rows)
+        self._launch(22 if self.waves is None and width >= 512 else 2, tensors, (_vector(pos, rows), _vector(chunk, rows), width, win), rows)
     @staticmethod
     def _pages(pages, rows):
         if pages is None: return 0
@@ -122,7 +122,7 @@ class Control:
         self._indptr(indptr, rows)
         if out.ndim != 1 or out.dtype != torch.int32:
             raise ValueError('tail output must be int32 vector')
-        self._launch(4, (out, indptr, prefix, pages, valid),
+        self._launch(23 if self.waves is None and width >= 512 else 4, (out, indptr, prefix, pages, valid),
             (_vector(prefix, rows), _vector(valid, rows), width, swa_pages), rows)
     @staticmethod
     def _indptr(indptr, rows):
@@ -136,7 +136,7 @@ class Control:
             raise ValueError('index outputs must be int32 vectors')
         if not 1 <= win <= ring_stride <= 0x7fffffff or ring_stride < 2:
             raise ValueError('invalid SWA window/stride')
-        self._launch(5, (pos, chunk, cu, state, pos if pages is None else pages,
+        self._launch(24 if self.waves is None and width >= 512 else 5, (pos, chunk, cu, state, pos if pages is None else pages,
             pre_indptr, ext_indptr, pre_out, ext_out),
             (_vector(pos, rows), _vector(chunk, rows), _vector(cu, rows),
              _vector(state, rows), width, win, swa_pages, ring_stride,

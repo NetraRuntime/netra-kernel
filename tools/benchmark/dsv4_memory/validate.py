@@ -210,7 +210,7 @@ def boundaries():
     case('write_req_pool_prefix_only',[1,n],make,lambda:prefix.add_(1),True)
 
 try:
-    for rows in ([1,3,16,128] if a.smoke else [1,3,8,16,24,32,128,256,1024]):
+    for rows in ([1,2,3,4,16,128] if a.smoke else [1,2,3,4,8,16,24,32,128,256,1024]):
         for dtype in (torch.int32,torch.int64):
             run(rows,dtype)
             for width in ([128] if a.smoke else [128,512,4096]):embedding(rows,width,dtype)

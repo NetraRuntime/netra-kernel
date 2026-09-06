@@ -1,0 +1,60 @@
+{
+  "state": "tests_finished",
+  "phase": "complete",
+  "started": 1788714367.9936032,
+  "worker": "netra-dsv4-tp4dp2-c256-p48-unified-r36",
+  "jobs": [
+    {
+      "job": "job-01.json",
+      "exit_code": 0,
+      "finished": 1788714398.9912813
+    },
+    {
+      "job": "job-02.json",
+      "exit_code": 0,
+      "finished": 1788714449.7203186
+    },
+    {
+      "job": "job-03.json",
+      "exit_code": 0,
+      "finished": 1788714452.4604468
+    },
+    {
+      "job": "job-04.json",
+      "exit_code": 0,
+      "finished": 1788714466.2224903
+    },
+    {
+      "job": "job-05.json",
+      "exit_code": 0,
+      "finished": 1788714567.896269
+    },
+    {
+      "job": "job-06.json",
+      "exit_code": 0,
+      "finished": 1788714583.8624527
+    },
+    {
+      "job": "job-07.json",
+      "exit_code": 0,
+      "finished": 1788714709.4489615
+    },
+    {
+      "job": "job-08.json",
+      "exit_code": 0,
+      "finished": 1788714725.465011
+    },
+    {
+      "job": "job-09.json",
+      "exit_code": 0,
+      "finished": 1788714891.2863276
+    },
+    {
+      "job": "job-10.json",
+      "exit_code": 0,
+      "finished": 1788715046.3596299
+    }
+  ],
+  "production_restored": true,
+  "finished": 1788715322.8790793
+}

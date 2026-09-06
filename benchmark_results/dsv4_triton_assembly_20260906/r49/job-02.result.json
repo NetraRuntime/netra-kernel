@@ -1,0 +1,9 @@
+{
+  "state": "failed",
+  "device": "AMD Instinct MI350X",
+  "cases": [],
+  "started": 1788713417.1314123,
+  "scope": "Isolated component tests, synthetic inputs; no serving TPS claim.",
+  "error": "AssertionError(('rms_fp8', [1, False, True, False], 'wave1', 'FP8 rounding'))",
+  "finished": 1788713417.6699715
+}

@@ -1,0 +1,184 @@
+{"operation": "rms_fp8", "shape": [1, false, true, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [1, true, false, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [1, false, true, true], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [1, 6, 1, false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [1, 6, 1, true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [1, 1057, false], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [1, 1024, true], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "hc_head", "shape": [1], "passed_all_variants": true, "comparison": "BF16 rtol0.008 atol0.002", "changed_graph_replays": 3}
+{"operation": "softmax_temp", "shape": [1, 1057, 3], "passed_all_variants": true, "comparison": "FP32 rtol3e-5 atol1e-9", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [1, 4096, 8, "random"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [1, 4096, 8, "accept"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [1, 4096, 8, "reject"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [1, 4096, 8, "boundary"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rope_flat", "shape": [1, 32, 64, false, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "rope_flat", "shape": [1, 32, 64, true, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "hash_topk", "shape": [1, 256, 6, 1, "torch.bfloat16", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [1, 256, 6, 0, "torch.bfloat16", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [1, 256, 6, 1, "torch.float32", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [1, 256, 6, 0, "torch.float32", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [1, 3, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [1, 3, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [1, 32, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [1, 32, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [2, false, true, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [2, true, false, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [2, false, true, true], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [2, 6, 1, false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [2, 6, 1, true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [2, 1057, false], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [2, 1024, true], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "hc_head", "shape": [2], "passed_all_variants": true, "comparison": "BF16 rtol0.008 atol0.002", "changed_graph_replays": 3}
+{"operation": "softmax_temp", "shape": [2, 1057, 3], "passed_all_variants": true, "comparison": "FP32 rtol3e-5 atol1e-9", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [2, 4096, 8, "random"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [2, 4096, 8, "accept"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [2, 4096, 8, "reject"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [2, 4096, 8, "boundary"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rope_flat", "shape": [2, 32, 64, false, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "rope_flat", "shape": [2, 32, 64, true, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "hash_topk", "shape": [2, 256, 6, 1, "torch.bfloat16", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [2, 256, 6, 0, "torch.bfloat16", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [2, 256, 6, 1, "torch.float32", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [2, 256, 6, 0, "torch.float32", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [2, 3, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [2, 3, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [2, 32, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [2, 32, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [3, false, true, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [3, true, false, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [3, false, true, true], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [3, 6, 1, false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [3, 6, 1, true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [3, 1057, false], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [3, 1024, true], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "hc_head", "shape": [3], "passed_all_variants": true, "comparison": "BF16 rtol0.008 atol0.002", "changed_graph_replays": 3}
+{"operation": "softmax_temp", "shape": [3, 1057, 3], "passed_all_variants": true, "comparison": "FP32 rtol3e-5 atol1e-9", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [3, 4096, 8, "random"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [3, 4096, 8, "accept"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [3, 4096, 8, "reject"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [3, 4096, 8, "boundary"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rope_flat", "shape": [3, 32, 64, false, true, true, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rope_flat", "shape": [3, 32, 64, true, true, true, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [3, 256, 6, 1, "torch.bfloat16", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [3, 256, 6, 0, "torch.bfloat16", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [3, 256, 6, 1, "torch.float32", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [3, 256, 6, 0, "torch.float32", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [3, 3, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [3, 3, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [3, 32, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [3, 32, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [4, false, true, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [4, true, false, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [4, false, true, true], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [4, 6, 1, false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [4, 6, 1, true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [4, 1057, false], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [4, 1024, true], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "hc_head", "shape": [4], "passed_all_variants": true, "comparison": "BF16 rtol0.008 atol0.002", "changed_graph_replays": 3}
+{"operation": "softmax_temp", "shape": [4, 1057, 3], "passed_all_variants": true, "comparison": "FP32 rtol3e-5 atol1e-9", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [4, 4096, 8, "random"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [4, 4096, 8, "accept"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [4, 4096, 8, "reject"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [4, 4096, 8, "boundary"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rope_flat", "shape": [4, 32, 64, false, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "rope_flat", "shape": [4, 32, 64, true, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "hash_topk", "shape": [4, 256, 6, 1, "torch.bfloat16", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [4, 256, 6, 0, "torch.bfloat16", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [4, 256, 6, 1, "torch.float32", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [4, 256, 6, 0, "torch.float32", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [4, 3, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [4, 3, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [4, 32, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [4, 32, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [8, false, true, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [8, true, false, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [8, false, true, true], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [8, 6, 1, false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [8, 6, 1, true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [8, 1057, false], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [8, 1024, true], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "hc_head", "shape": [8], "passed_all_variants": true, "comparison": "BF16 rtol0.008 atol0.002", "changed_graph_replays": 3}
+{"operation": "softmax_temp", "shape": [8, 1057, 3], "passed_all_variants": true, "comparison": "FP32 rtol3e-5 atol1e-9", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [8, 4096, 8, "random"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [8, 4096, 8, "accept"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [8, 4096, 8, "reject"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [8, 4096, 8, "boundary"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rope_flat", "shape": [8, 32, 64, false, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "rope_flat", "shape": [8, 32, 64, true, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "hash_topk", "shape": [8, 256, 6, 1, "torch.bfloat16", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [8, 256, 6, 0, "torch.bfloat16", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [8, 256, 6, 1, "torch.float32", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [8, 256, 6, 0, "torch.float32", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [8, 3, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [8, 3, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [8, 32, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [8, 32, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [16, false, true, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [16, true, false, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [16, false, true, true], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [16, 6, 1, false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [16, 6, 1, true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [16, 1057, false], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [16, 1024, true], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "hc_head", "shape": [16], "passed_all_variants": true, "comparison": "BF16 rtol0.008 atol0.002", "changed_graph_replays": 3}
+{"operation": "softmax_temp", "shape": [16, 1057, 3], "passed_all_variants": true, "comparison": "FP32 rtol3e-5 atol1e-9", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [16, 4096, 8, "random"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [16, 4096, 8, "accept"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [16, 4096, 8, "reject"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [16, 4096, 8, "boundary"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rope_flat", "shape": [16, 32, 64, false, true, true, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rope_flat", "shape": [16, 32, 64, true, true, true, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [16, 256, 6, 1, "torch.bfloat16", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [16, 256, 6, 0, "torch.bfloat16", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [16, 256, 6, 1, "torch.float32", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [16, 256, 6, 0, "torch.float32", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [16, 3, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [16, 3, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [16, 32, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [16, 32, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [24, false, true, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [24, true, false, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [24, false, true, true], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [24, 6, 1, false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [24, 6, 1, true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [24, 1057, false], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [24, 1024, true], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "hc_head", "shape": [24], "passed_all_variants": true, "comparison": "BF16 rtol0.008 atol0.002", "changed_graph_replays": 3}
+{"operation": "softmax_temp", "shape": [24, 1057, 3], "passed_all_variants": true, "comparison": "FP32 rtol3e-5 atol1e-9", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [24, 4096, 8, "random"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [24, 4096, 8, "accept"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [24, 4096, 8, "reject"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [24, 4096, 8, "boundary"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rope_flat", "shape": [24, 32, 64, false, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "rope_flat", "shape": [24, 32, 64, true, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "hash_topk", "shape": [24, 256, 6, 1, "torch.bfloat16", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [24, 256, 6, 0, "torch.bfloat16", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [24, 256, 6, 1, "torch.float32", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [24, 256, 6, 0, "torch.float32", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [24, 3, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [24, 3, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [24, 32, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [24, 32, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [32, false, true, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [32, true, false, false], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "rms_fp8", "shape": [32, false, true, true], "passed_all_variants": true, "comparison": "FP8 <=1 codepoint and <=0.1% mismatch; scales rtol2e-5; BF16 rtol0.008", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [32, 6, 1, false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "router_256", "shape": [32, 6, 1, true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [32, 1057, false], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_partial", "shape": [32, 1024, true], "passed_all_variants": true, "comparison": "FP32 rtol2e-5 atol1e-6; IDs exact", "changed_graph_replays": 3}
+{"operation": "hc_head", "shape": [32], "passed_all_variants": true, "comparison": "BF16 rtol0.008 atol0.002", "changed_graph_replays": 3}
+{"operation": "softmax_temp", "shape": [32, 1057, 3], "passed_all_variants": true, "comparison": "FP32 rtol3e-5 atol1e-9", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [32, 4096, 8, "random"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [32, 4096, 8, "accept"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [32, 4096, 8, "reject"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "classic_sampling", "shape": [32, 4096, 8, "boundary"], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "rope_flat", "shape": [32, 32, 64, false, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "rope_flat", "shape": [32, 32, 64, true, true, true, false], "passed_all_variants": true, "comparison": "exact"}
+{"operation": "hash_topk", "shape": [32, 256, 6, 1, "torch.bfloat16", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [32, 256, 6, 0, "torch.bfloat16", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [32, 256, 6, 1, "torch.float32", false], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "hash_topk", "shape": [32, 256, 6, 0, "torch.float32", true], "passed_all_variants": true, "comparison": "FP32 weights rtol2e-6 atol2e-7; IDs exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [32, 3, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [32, 3, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [32, 32, false], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}
+{"operation": "online_combine", "shape": [32, 32, true], "passed_all_variants": true, "comparison": "exact", "changed_graph_replays": 3}

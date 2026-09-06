@@ -1,0 +1,28 @@
+{
+  "kernels/gfx950/numeric/dsv4/classic_accept.s": "6be8eb46da8d446296e7cf54ced19491d8a2aff9207d465b5a93e25b8a56b025",
+  "kernels/gfx950/numeric/dsv4/classic_sample.s": "964184b306d97ad2690631b9e84872d20a7476e993e66d23009d53da07b18e0e",
+  "kernels/gfx950/numeric/dsv4/classic_tile_sum.s": "91cae47c4777621a13ec23c39de9f985b36b88094bf3529e2d37ad75c2ff93c5",
+  "kernels/gfx950/numeric/dsv4/hash_topk.s": "b07497eea0d541752a4aa8a88f2fff89c62db26bc4b0511e6b22ef80b48b6286",
+  "kernels/gfx950/numeric/dsv4/hc_head_4096.s": "6e387f3cd15321f1f7986d867636e46f9170656804f93d5bb76fe8795d304054",
+  "kernels/gfx950/numeric/dsv4/online_combine.s": "7303aa1ebd1f236789a3edae37c686d22d4cea55a703b77615d0790857ccb49d",
+  "kernels/gfx950/numeric/dsv4/online_partial_1024.s": "f5a213f32036ff69d47ce847abadcd1438c1c3d738b62030e6e962ed348142cf",
+  "kernels/gfx950/numeric/dsv4/rms_fp8_4096.s": "d57677de793b0da788b105a3f72781883f16c5d5978165b35d55c7c5ce4fcb33",
+  "kernels/gfx950/numeric/dsv4/rope_flat.s": "188c4e9d4e95e41b2b2736ad7c754d7f488ec575336522107408980fc5273dba",
+  "kernels/gfx950/numeric/dsv4/router_256.s": "f5f5cbcaa4f211091b89d0755ca09b4f226d7c2c6bd30acc8f53a4e9cc1daee9",
+  "kernels/gfx950/numeric/dsv4/softmax_apply.s": "4b03306626d2e6e179bb499e6233cda22486577b8cf9f8b37afbc1258ff396b1",
+  "kernels/gfx950/numeric/dsv4/softmax_combine.s": "0f326b7f84d323e005c48b231f9e7c6c9cf701ffa19e526830028d580f385b43",
+  "kernels/gfx950/numeric/dsv4/softmax_tile_stats.s": "57c19391f4ea68482e2bb11b1f623a37ebb7c5a43f58f3859cadfc5bc14067a3",
+  "runtime/gfx950/numeric/dsv4/bridge.hip": "ce43a2438d5429082c00bfae8d22adc9d18381a72c4ef1a4f76b701b16976d0f",
+  "runtime/gfx950/numeric/dsv4/numeric.py": "4e63eca8cae6f8153a178899fadbd8ca055427d63c9b949d50981a0ce5b6cbf1",
+  "tools/benchmark/dsv4_numeric/build.sh": "0e963310fe20d49180716defabb88394c5b4cde2e64dd7964587b0aacb2c410a",
+  "tools/benchmark/dsv4_numeric/prepare_wave4.py": "d77213c594d939e3478ac68f718debaf84ff5e690d9a16a60735359ce535761a",
+  "tools/benchmark/dsv4_numeric/validate.py": "b967b1ee6e5a7ab7a37858c7d46f1ec2c2cb17ce78211e54cee71cf112a47bed",
+  "build/numeric.hsaco": {
+    "sha256": "1523c7445f21cc6291b5084fbe87717b77caa976b1051ded7563fda4a9044098",
+    "mtime": 1788715497.522029
+  },
+  "build/libnetra_numeric.so": {
+    "sha256": "e973a43ede6cd08269f778acec1e66a6be59eb121a90fb3e98c4c090e2847c7d",
+    "mtime": 1788715498.223025
+  }
+}

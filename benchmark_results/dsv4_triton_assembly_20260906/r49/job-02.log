@@ -1,0 +1,14 @@
+FP8 diagnostic wave1 max code diff 117 mismatch rate 0.24781976640224457
+buffer (4128,) max abs 447.978515625 got [0.009765625, 6.0, -0.00390625, 18.0, -0.001953125, -1.25, -0.00390625, -4.5] reference [88.0, 6.0, -28.0, 18.0, -22.0, -1.25, -40.0, -4.5]
+buffer (64,) max abs 9.313225746154785e-10 got [0.01052337046712637, 0.009289929643273354, 0.008535194210708141, 0.012597125954926014, 0.009565415792167187, 0.00843901839107275, 0.009330681525170803, 0.011410686187446117] reference [0.01052337046712637, 0.009289928711950779, 0.008535193279385567, 0.012597125954926014, 0.009565414860844612, 0.008439017459750175, 0.009330681525170803, 0.011410685256123543]
+buffer (4128,) max abs 0.0 got [0.8984375, 0.0615234375, -0.30078125, 0.1875, -0.23828125, -0.01300048828125, -0.400390625, -0.04541015625] reference [0.8984375, 0.0615234375, -0.30078125, 0.1875, -0.23828125, -0.01300048828125, -0.400390625, -0.04541015625]
+Traceback (most recent call last):
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 278, in <module>
+    rms(rows);rms(rows,column_major=True,store=False);rms(rows,zero=True)
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 183, in rms
+    case('rms_fp8',[rows,column_major,store,zero],make,lambda:x.add_(0.125) if rows in (3,16) and not zero else None)
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 85, in case
+    for name in variants:compare(buffers[name],buffers['triton'],op,shape,name)
+  File "/tmp/netra-numeric/tools/benchmark/dsv4_numeric/validate.py", line 76, in compare
+    raise AssertionError((op,shape,name,'FP8 rounding'))
+AssertionError: ('rms_fp8', [1, False, True, False], 'wave1', 'FP8 rounding')
