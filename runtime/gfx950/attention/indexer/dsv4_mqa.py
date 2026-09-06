@@ -6,8 +6,33 @@ from pathlib import Path
 import torch
 
 
+def select_schedule(rows, width):
+    """Choose from CPU shape metadata; lengths stay on the caller's GPU.
+
+    Query rows include speculative tokens, so these are not user counts.
+    Retain the qualified original schedule for large/long workloads.
+    Returns (mode, pages per wave); modes 1 and 4 ignore page reuse.
+    """
+    tasks = rows * ((width + 63) // 64)
+    if rows >= 512 or width >= 65536 or tasks >= 65536:
+        pages = 8 if width >= 65536 and rows >= 8 else 4
+        return 0, 1 if tasks < 1024 else pages
+    if tasks <= 128:
+        return 1, 1
+    if tasks <= 256:
+        return 4, 1
+    if tasks <= 2048:
+        return 5, 1
+    if tasks <= 8192:
+        return 5, 2
+    return 6, 4
+
+
 class Scorer:
-    def __init__(self, build_dir, device=None, pages_per_wave=None):
+    def __init__(self, build_dir, device=None, pages_per_wave=None, mode=None):
+        if mode not in (None, 0, 1, 2, 3, 4, 5, 6):
+            raise ValueError("mode must be None (automatic) or an integer from 0 to 6")
+        self.mode = mode
         if pages_per_wave not in (None, 1, 2, 4, 8):
             raise ValueError("pages_per_wave must be None, 1, 2, 4 or 8")
         self.pages_per_wave = pages_per_wave
@@ -16,7 +41,7 @@ class Scorer:
         ptr, u32 = ctypes.c_void_p, ctypes.c_uint32
         self.lib.netra_mqa_error.restype = ctypes.c_char_p
         self.lib.netra_mqa_create.argtypes = [ctypes.c_char_p, ctypes.POINTER(ptr)]
-        self.lib.netra_mqa_launch.argtypes = [ptr] * 7 + [u32] * 8 + [ptr]
+        self.lib.netra_mqa_launch_v2.argtypes = [ptr] * 7 + [u32] * 9 + [ptr]
         self.lib.netra_mqa_destroy.argtypes = [ptr]
         self.handle = ptr()
         with torch.cuda.device(self.device):
@@ -57,15 +82,20 @@ class Scorer:
             raise ValueError("stride exceeds ABI")
         # No scalar GPU reads, tensor copies, allocations, or stream synchronization.
         # lengths must be nonnegative and active page IDs must belong to the KV pool.
-        pages_per_wave = self.pages_per_wave
-        if pages_per_wave is None:
-            pages_per_wave = 8 if width >= 65536 and rows >= 8 else 4
-        if rows * ((width + 63) // 64) < 1024:
-            pages_per_wave = 1
+        if self.mode is None and self.pages_per_wave is None:
+            mode, pages_per_wave = select_schedule(rows, width)
+        else:
+            # An explicit page count retains the original mode-0 override API.
+            mode = 0 if self.mode is None else self.mode
+            pages_per_wave = self.pages_per_wave
+            if pages_per_wave is None:
+                pages_per_wave = 8 if width >= 65536 and rows >= 8 else 4
+                if rows * ((width + 63) // 64) < 1024:
+                    pages_per_wave = 1
         with torch.cuda.device(self.device):
-            self._check(self.lib.netra_mqa_launch(
+            self._check(self.lib.netra_mqa_launch_v2(
                 self.handle, *(t.data_ptr() for t in tensors), rows, *strides, width,
-                pages_per_wave,
+                pages_per_wave, mode,
                 torch.cuda.current_stream(self.device).cuda_stream))
         return out
 

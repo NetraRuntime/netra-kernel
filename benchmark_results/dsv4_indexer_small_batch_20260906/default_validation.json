@@ -1,0 +1,542 @@
+{
+  "state": "passed",
+  "device": "AMD Instinct MI350X",
+  "cases": [
+    {
+      "rows": 1,
+      "width": 64,
+      "gluon": {
+        "max_abs": 5.21540641784668e-08,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        1,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 5.960464477539063e-08,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 65,
+      "gluon": {
+        "max_abs": 4.76837158203125e-07,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        1,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 2.384185791015625e-07,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 9,
+      "width": 257,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        1,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00039768218994140625,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        5,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004520416259765625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00045013427734375,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 16,
+      "width": 32768,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        5,
+        2
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.000553131103515625,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        0,
+        8
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0005397796630859375,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        0,
+        4
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 256,
+      "width": 257,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        5,
+        1
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 16,
+      "width": 32769,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        6,
+        4
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0005841255187988281,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0005841255187988281,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 2,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 0.0,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        1,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 2.5272369384765625e-05,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 2.5272369384765625e-05,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 4,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 1.9073486328125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        4,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0001583099365234375,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.00016021728515625,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 16,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        5,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004711151123046875,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0004711151123046875,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 24,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        5,
+        1
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 32,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        5,
+        1
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 64,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        5,
+        2
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 128,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        5,
+        2
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 256,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        6,
+        4
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 1,
+      "width": 16384,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        4,
+        1
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004711151123046875,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0004711151123046875,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 128,
+      "width": 1024,
+      "gluon": {
+        "max_abs": 3.814697265625e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        5,
+        1
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 128,
+      "width": 16384,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        6,
+        4
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 512,
+      "width": 4096,
+      "gluon": {
+        "max_abs": 5.7220458984375e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        0,
+        4
+      ],
+      "native_exact_top512_page_set_equal": true
+    },
+    {
+      "rows": 8,
+      "width": 65536,
+      "gluon": {
+        "max_abs": 7.62939453125e-06,
+        "top512_set_equal": true
+      },
+      "auto_schedule": [
+        0,
+        8
+      ],
+      "gluon_vs_oracle": {
+        "max_abs": 0.0004787445068359375,
+        "top512_set_equal": true
+      },
+      "oracle": {
+        "max_abs": 0.0004787445068359375,
+        "top512_set_equal": true
+      },
+      "native_exact_top512_page_set_equal": true
+    }
+  ],
+  "timings": [
+    {
+      "rows": 1,
+      "width": 4096,
+      "request_groups": 1,
+      "kv_bytes": 566016,
+      "rounds": [
+        {
+          "asm_us": 3.568829894065857,
+          "gluon_us": 4.532440006732941,
+          "speedup": 1.27000729686482
+        },
+        {
+          "asm_us": 3.5936298966407776,
+          "gluon_us": 4.539630115032196,
+          "speedup": 1.2632436409981207
+        },
+        {
+          "asm_us": 3.576030135154724,
+          "gluon_us": 4.548029899597168,
+          "speedup": 1.2718097241091588
+        }
+      ]
+    },
+    {
+      "rows": 8,
+      "width": 4096,
+      "request_groups": 1,
+      "kv_bytes": 566016,
+      "rounds": [
+        {
+          "asm_us": 4.687640070915222,
+          "gluon_us": 4.618839919567108,
+          "speedup": 0.985323072951998
+        },
+        {
+          "asm_us": 4.666840136051178,
+          "gluon_us": 4.620839953422546,
+          "speedup": 0.9901431844058077
+        },
+        {
+          "asm_us": 4.648439884185791,
+          "gluon_us": 4.6204400062561035,
+          "speedup": 0.9939764999381955
+        }
+      ]
+    },
+    {
+      "rows": 128,
+      "width": 4096,
+      "request_groups": 16,
+      "kv_bytes": 8676096,
+      "rounds": [
+        {
+          "asm_us": 14.812519550323486,
+          "gluon_us": 16.986939907073975,
+          "speedup": 1.1467961172549475
+        },
+        {
+          "asm_us": 14.848519563674927,
+          "gluon_us": 17.39814043045044,
+          "speedup": 1.171708758966978
+        },
+        {
+          "asm_us": 14.857720136642456,
+          "gluon_us": 16.776540279388428,
+          "speedup": 1.1291463377354736
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "width": 4096,
+      "request_groups": 128,
+      "kv_bytes": 69231360,
+      "rounds": [
+        {
+          "asm_us": 97.75800704956055,
+          "gluon_us": 103.5512638092041,
+          "speedup": 1.0592611995118368
+        },
+        {
+          "asm_us": 87.52113342285156,
+          "gluon_us": 99.84883308410645,
+          "speedup": 1.1408539763955587
+        },
+        {
+          "asm_us": 87.93231964111328,
+          "gluon_us": 98.87922286987305,
+          "speedup": 1.1244923740603958
+        }
+      ]
+    },
+    {
+      "rows": 8,
+      "width": 262144,
+      "request_groups": 1,
+      "kv_bytes": 34628352,
+      "rounds": [
+        {
+          "asm_us": 44.015560150146484,
+          "gluon_us": 55.172061920166016,
+          "speedup": 1.2534672223177967
+        },
+        {
+          "asm_us": 44.18235778808594,
+          "gluon_us": 56.444058418273926,
+          "speedup": 1.2775248140671758
+        },
+        {
+          "asm_us": 42.837162017822266,
+          "gluon_us": 55.091657638549805,
+          "speedup": 1.286071603334252
+        }
+      ]
+    },
+    {
+      "rows": 128,
+      "width": 32768,
+      "request_groups": 16,
+      "kv_bytes": 69231360,
+      "rounds": [
+        {
+          "asm_us": 89.87833976745605,
+          "gluon_us": 87.6195240020752,
+          "speedup": 0.9748680742075885
+        },
+        {
+          "asm_us": 85.55471420288086,
+          "gluon_us": 86.53950691223145,
+          "speedup": 1.0115106773311788
+        },
+        {
+          "asm_us": 84.60829734802246,
+          "gluon_us": 85.78471183776855,
+          "speedup": 1.0139042449336513
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "width": 262144,
+      "skipped": "Full-pool Gluon has 32-bit KV buffer offsets; use sweep_small.py for the rebased-reference assembly comparison"
+    }
+  ],
+  "mode": -1,
+  "changed_graph_replays": 3,
+  "concurrent_streams": 2,
+  "padded_input_rows": true,
+  "wide_address_tests": [
+    "output_rows_above_2_and_4_GiB",
+    "KV_page_above_4_GiB"
+  ],
+  "explicit_module_close": true
+}

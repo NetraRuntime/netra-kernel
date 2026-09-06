@@ -6,8 +6,8 @@ DeepSeek V4 Flash indexer: 64 replicated heads, dimension 128, one query per row
 64 keys per packed page, gfx950 E4M3FN. It does not replace other Triton kernels.
 It is experimental and is not selected automatically by SGLang.
 
-`experiments/dsv4_mqa_fp8_h64_d128_gfx950.s` implements the entire score
-calculation. The HIP bridge only loads the module, checks the launch contract,
+The AMDGCN files in `experiments/` implement the entire score calculation.
+The original `dsv4_mqa_fp8_h64_d128_gfx950.s` is retained for large workloads. The HIP bridge only loads the module, checks the launch contract,
 and launches it on the caller's stream. There is no HIP C++ compute kernel or
 Triton dependency in the candidate runtime.
 
@@ -49,17 +49,41 @@ Unsupported layouts must use the existing serving backend.
 
 ## Schedule and ABI
 
-One 64-thread wave computes one query by a run of 64-key pages. It retains 64x128 query
-elements and head weights in registers while processing four 16-key tiles per page.
-Each tile uses four `v_mfma_f32_16x16x128_f8f6f4` instructions, vector
-scale/ReLU/weight operations, register reduction, then two `ds_bpermute`
-reductions. It uses 84 VGPRs, 40 SGPRs and no LDS or scratch spills.
+`Scorer(build_dir)` selects a schedule from CPU shape metadata before launch.
+Query rows include speculative tokens; they are not concurrent-user counts.
+The small-batch policy uses shorter key tiles when there is little work, and
+increases per-wave query reuse only when enough query-page work is available.
+No GPU lengths are read on the host and no mutable execution buffers are shared.
 
-The 76-byte kernarg block contains six pointers (Q, KV, weights, lengths,
+All variants use FP8 `v_mfma_f32_16x16x128_f8f6f4`, FP32 scale/ReLU/weight
+operations, the original reduction tree and two `ds_bpermute` head reductions.
+The small variants use packed FP32 arithmetic, with loads and independent
+MFMAs scheduled ahead of their consumers. No variant uses LDS or scratch spills.
+
+| Mode | Assembly file suffix | Keys per wave | VGPRs | Threads/workgroup |
+|---:|---|---|---:|---:|
+| 0 | `h64_d128` | 64 x pages | 84 | 64 |
+| 1 | `tile16_w1` | 16 | 84 | 64 |
+| 2 | `tile16_w4` | 16 | 84 | 256 |
+| 3 | `pipeline` | 64 x pages | 96 | 64 |
+| 4 | `tile32` | 32 | 96 | 64 |
+| 5 | `pair32` | 64 x pages | 112 | 64 |
+| 6 | `pair32_w4` | 64 x pages | 112 | 256 |
+
+Modes 2 and 6 partition work across independent waves. Mode 2 shares a page;
+mode 6 assigns separate page runs to each wave. Explicit `mode=N` and
+`pages_per_wave=N` arguments support isolated comparisons. An explicit page
+count with no mode retains the original mode-0 override behavior.
+
+The 76-byte GPU kernarg block remains six pointers (Q, KV, weights, lengths,
 page table, output), then seven uint32 values: output row stride in elements,
 Q row stride in bytes, weight row stride in bytes, page-table row stride in
-bytes, KV page stride in bytes, output width, and pages per wave. Grid X is ceil(width/(64*pages_per_wave)),
-grid Y is rows, block X is 64. See the bridge for bounds and alignment checks.
+bytes, KV page stride in bytes, output width, and pages per wave. The **host**
+launch ABI is now `netra_mqa_launch_v2`; it adds a mode argument that chooses
+the entry point and launch dimensions, without changing the GPU kernarg ABI.
+Load the matching Python runtime, HIP bridge and code object together.
+Grid Y is rows. Grid X is the ceiling of width divided by the keys owned by
+a workgroup (including all its waves). The bridge checks bounds and alignment.
 
 Instruction reference: [AMD CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf).
 
@@ -87,4 +111,4 @@ TP4xDP2 correctness and C256 a/b/c serving gates. Preserve outer query tiling,
 exact top-K, long-position arithmetic, HiCache/Mooncake ownership fixes, and
 request isolation. Assembly alone is not evidence of a performance gain.
 
-Recorded results and limitations: [validation report](../../../../benchmark_results/dsv4_indexer_asm_20260906/README.md).
+Recorded results and limitations: [small-batch follow-up](../../../../benchmark_results/dsv4_indexer_small_batch_20260906/README.md) and [original validation report](../../../../benchmark_results/dsv4_indexer_asm_20260906/README.md).

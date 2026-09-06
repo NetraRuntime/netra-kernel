@@ -11,7 +11,7 @@ import torch
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "runtime/gfx950/attention/indexer"))
-from dsv4_mqa import Scorer
+from dsv4_mqa import Scorer, select_schedule
 from aiter.ops.triton.attention.pa_mqa_logits import deepgemm_fp8_paged_mqa_logits
 
 
@@ -115,26 +115,28 @@ def main():
     parser.add_argument("--build", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--mode", type=int, choices=[-1,0,1,2,3,4,5,6], default=-1)
+    parser.add_argument("--correctness-only", action="store_true")
     parser.add_argument("--skip-native-topk", action="store_true", help="Skip production SGLang exact-topK integration check")
     args = parser.parse_args()
     torch.backends.cuda.matmul.allow_tf32 = False
-    scorer = Scorer(args.build)
+    scorer = Scorer(args.build, mode=None if args.mode == -1 else args.mode)
     native_topk = None
     if not args.smoke and not args.skip_native_topk:
         os.environ["NETRA_DSV4_EXACT_TOPK"] = "1"
         from sglang.jit_kernel.dsv4.topk import plan_topk_v2, topk_transform_512_v2
         native_topk = (plan_topk_v2, topk_transform_512_v2)
-    report = {"state": "running", "device": torch.cuda.get_device_name(), "cases": [], "timings": []}
+    report = {"state": "running", "device": torch.cuda.get_device_name(), "cases": [], "timings": [], "mode": args.mode}
     def save(): Path(args.output).write_text(json.dumps(report, indent=2) + "\n")
     save()
     try:
         shapes = [(1, 64), (8, 65), (9, 257), (8, 4096)]
-        if not args.smoke: shapes += [(16, 32768), (8, 262144), (1024, 4096), (256, 257), (16, 32769)]
+        if not args.smoke: shapes += [(16, 32768), (8, 262144), (1024, 4096), (256, 257), (16, 32769), (2, 4096), (4, 4096), (16, 4096), (24, 4096), (32, 4096), (64, 4096), (128, 4096), (256, 4096), (1, 16384), (128, 1024), (128, 16384), (512, 4096), (8, 65536)]
         for i, (rows, width) in enumerate(shapes):
             t = make(rows, width, 30+i, onehot=i<2)
             scorer(*t[:6]); torch.cuda.synchronize()
             ref = reference(t)
-            case = {"rows": rows, "width": width, "gluon": check(t[5], ref, t[3])}
+            case = {"rows": rows, "width": width, "gluon": check(t[5], ref, t[3]), "auto_schedule": select_schedule(rows, width)}
             if rows <= 16:
                 high_precision = oracle(t[0],t[2],t[3],t[4],t[6],t[7],width)
                 # The native MFMA path (including Gluon) has a small arithmetic
@@ -215,10 +217,15 @@ def main():
             check(t[5],expected,t[3]); del pool
             report["wide_address_tests"] = ["output_rows_above_2_and_4_GiB", "KV_page_above_4_GiB"]
             save()
-            for rows, width in [(1,4096),(8,4096),(128,4096),(1024,4096),(8,262144),(128,32768),(1024,262144)]:
+            for rows, width in ([] if args.correctness_only else [(1,4096),(8,4096),(128,4096),(1024,4096),(8,262144),(128,32768),(1024,262144)]):
                 groups = max(1, rows // 8)
                 t = make(rows,width,90,request_groups=groups)
                 t[3].fill_(width); t[4][0].copy_(t[4][-1] if rows>1 else t[4][0])
+                if t[1].numel() * t[1].element_size() > (1 << 31):
+                    report["timings"].append({"rows": rows, "width": width,
+                        "skipped": "Full-pool Gluon has 32-bit KV buffer offsets; use sweep_small.py for the rebased-reference assembly comparison"})
+                    save()
+                    continue
                 base = torch.empty_like(t[5])
                 a = lambda: scorer(*t[:6])
                 b = lambda: deepgemm_fp8_paged_mqa_logits(*t[:3],base,t[3],t[4],width,Preshuffle=True,KVBlockSize=64)

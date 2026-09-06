@@ -1,0 +1,32 @@
+{
+  "sources": {
+    "kernels/gfx950/attention/indexer/experiments/dsv4_mqa_fp8_h64_d128_gfx950.s": "94b5049573db0ef35218d275931b7a3da95f6ff8fe9ed851e2662e8169e1180b",
+    "kernels/gfx950/attention/indexer/experiments/dsv4_mqa_fp8_pair32_gfx950.s": "d551c79f4495d00fa27efd39d69d54190fa222bfecfc17b7b4cd7a954898634a",
+    "kernels/gfx950/attention/indexer/experiments/dsv4_mqa_fp8_pair32_w4_gfx950.s": "6012f5b3f3de5059b86393d947f1caac608e9759022d668b2680a13a4271262e",
+    "kernels/gfx950/attention/indexer/experiments/dsv4_mqa_fp8_pipeline_gfx950.s": "54f842c332b1c8ad0baa51e3bc649c189e5c084fbff860c5148fc06c22cd16e3",
+    "kernels/gfx950/attention/indexer/experiments/dsv4_mqa_fp8_tile16_w1_gfx950.s": "fc91e3e5f7f3ba1ba4bd383a9427e66656ad1b2d43b13a1052257c20658fff16",
+    "kernels/gfx950/attention/indexer/experiments/dsv4_mqa_fp8_tile16_w4_gfx950.s": "c0b02d9f8c4129520e52aac336dc64ed1647d8b1b59b533151113a869b5c3790",
+    "kernels/gfx950/attention/indexer/experiments/dsv4_mqa_fp8_tile32_gfx950.s": "b0aa9529fd6948a198077787a7cb013dc0e647daa824bccfbbd948febec4c69f",
+    "runtime/gfx950/attention/indexer/dsv4_mqa.py": "3374dd982555caebad6faf28387266032ee1b9350d8a58bc8be01acea6f32c93",
+    "runtime/gfx950/attention/indexer/dsv4_mqa_bridge.hip": "dfde95bd70cca17293fe467b788c73d04f88fcd00f92ff8c55b5d2e9ff12590c",
+    "tools/benchmark/indexer/build.sh": "1bd9dd38c81e0dee0fb8ea8efdbe05706cb71792510195a54704a06b71798813",
+    "tools/benchmark/indexer/sweep_small.py": "77aef4e54304964e859b51a65f9cdaad9f5248d86159d89309517c65fccce742",
+    "tools/benchmark/indexer/validate.py": "c6dc57dd20046e69924674fa0d4eaa431853fd914284492647c5f4504b93cb2e"
+  },
+  "build": {
+    "scorer.hsaco": "c3856a255c4cde2d2aad5c08f92aea9ff66880c967f9c14d8b9627c611dec8cd",
+    "libnetra_mqa.so": "7ed3a963f6d9d097b38ed31ac8b29f02da8c081baa27cf130e121d8707bb32d7",
+    "pipeline.o": "bf05c7126e8e8ad7d9450a5bb7a2a02dd9a0195bbfad25ef9476efeac55edaa0",
+    "tile32.o": "1ae88f123e86bf13d51be007d3bb266b4d2ce09ad3251df00a4f768db7b461c2",
+    "pair32.o": "e677d391970b553d04cc12326170fa51f67eee8a92c9d331562694d985562ead",
+    "small4.o": "d839f1827951c07c9167db09f78c1daca2992e247f1b798a34178e8d14bd9f9a",
+    "scorer.o": "1686792cf37e718001ddddc45ca13b5f59e0683489c9c050ccb703c4d34b608c",
+    "pair32_w4.o": "8a11bb261a082ba39987cbc15877672c5d33e3d35d5fd79576b310e04d7f8454",
+    "small1.o": "103d51f2d5007546dd5af5261c3995c39400b08750c0c85af4bc9cb11424ad2f"
+  },
+  "clang": [
+    "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)",
+    "Target: x86_64-unknown-linux-gnu"
+  ],
+  "original_object_unchanged": true
+}
